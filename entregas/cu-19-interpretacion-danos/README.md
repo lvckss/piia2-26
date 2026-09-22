@@ -62,9 +62,15 @@ responsabilidades de producto, datos, modelos e integración.
 ```text
 cu-19-interpretacion-danos/
 ├── README.md
-└── specs/
-    ├── interpretacion-danos-imagen.md
-    └── evaluacion-trazabilidad.md
+├── specs/
+│   ├── interpretacion-danos-imagen.md
+│   └── evaluacion-trazabilidad.md
+└── app/
+    ├── frontend/
+    ├── server/
+    ├── ml/
+    ├── bd/
+    └── docker/
 ```
 
 - `README.md`: presenta el problema, la motivación, el alcance y el equipo.
@@ -72,3 +78,6 @@ cu-19-interpretacion-danos/
   transforma una imagen en una interpretación estructurada.
 - `specs/evaluacion-trazabilidad.md`: define cómo se evaluarán, compararán y
   rastrearán los resultados del sistema.
+- `app/`: contiene el código fuente de la aplicación heredada de PIIA1,
+  organizado por capas. Su propio [README](app/README.md) explica cómo se
+  ejecutan el frontend, el backend y el pipeline ML.

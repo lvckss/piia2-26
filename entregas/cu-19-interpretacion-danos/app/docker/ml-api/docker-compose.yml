@@ -1,0 +1,42 @@
+services:
+  ml-api:
+    build:
+      context: ../..
+      dockerfile: docker/ml-api/Dockerfile
+    image: webapp-ml-api:local
+    container_name: webapp-ml-api
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+    environment:
+      ML_API_HOST: 0.0.0.0
+      ML_API_PORT: 8001
+      ML_API_STRATEGY: ${ML_API_STRATEGY:-baseline}
+      ML_API_MODEL_PATH: /models/facebook_sam3
+      ML_API_ENABLE_ROI_VERIFICATION: ${ML_API_ENABLE_ROI_VERIFICATION:-false}
+      ML_API_INCLUDE_VISUALIZATION: ${ML_API_INCLUDE_VISUALIZATION:-false}
+      ML_API_VISUALIZATION_FORMAT: ${ML_API_VISUALIZATION_FORMAT:-PNG}
+      ML_API_SCORE_THRESHOLD: ${ML_API_SCORE_THRESHOLD:-0.6}
+      ML_API_MASK_THRESHOLD: ${ML_API_MASK_THRESHOLD:-0.5}
+      ML_API_PROMPT_BATCH_SIZE: ${ML_API_PROMPT_BATCH_SIZE:-6}
+      MPLCONFIGDIR: /tmp/matplotlib
+      HF_HOME: /cache/huggingface
+      TRANSFORMERS_CACHE: /cache/huggingface
+    volumes:
+      - ${PROJECT_MODELS_DIR:-../../../../../models}:/models:ro
+      - ml_api_hf_cache:/cache/huggingface
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health')",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+
+volumes:
+  ml_api_hf_cache:

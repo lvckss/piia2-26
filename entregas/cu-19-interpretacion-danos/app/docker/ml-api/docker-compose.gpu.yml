@@ -1,0 +1,5 @@
+services:
+  ml-api:
+    gpus: all
+    environment:
+      ML_API_DEVICE: cuda
