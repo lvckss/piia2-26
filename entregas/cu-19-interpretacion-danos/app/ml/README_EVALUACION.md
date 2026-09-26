@@ -577,6 +577,16 @@ Sirve para ver que clase falla.
 `output.per_vehicle` sigue el mismo patron, ver seccion de `per_vehicle` mas
 abajo.
 
+> [!TIP]
+> Si `output.per_class` muestra que una clase concreta necesita un
+> `score_threshold` distinto (tipico en CarDD por el desequilibrio de clases:
+> scratch 41% vs tire_flat 3.6%), no hace falta tocar el `score_threshold`
+> global. Las tres strategies aceptan `score_threshold_map={category_id:
+> threshold}` en el constructor, o `strategy.set_score_threshold_map({...})`
+> sin recargar sam3. Las categorias que no aparecen en el mapa siguen usando
+> `score_threshold`. Corre `output.per_class` antes y despues de calibrar
+> para comparar el efecto real.
+
 ```python
 output.per_image
 ```

@@ -7,6 +7,7 @@ from ml.StrategyPipeline.strategies.components.clip_tip_adapter import RoiVerifi
 from ml.StrategyPipeline.strategies.components.defaults import (
     DEFAULT_MASK_THRESHOLD,
     DEFAULT_SCORE_THRESHOLD,
+    resolve_score_threshold_map,
 )
 from ml.StrategyPipeline.strategies.components.roi_verificator import (
     RoiCandidate,
@@ -29,6 +30,7 @@ class BaselineStrategy(StrategyModule):
         prompt_map: dict[int, PromptValue] | None = None,
         score_threshold: float = DEFAULT_SCORE_THRESHOLD,
         mask_threshold: float = DEFAULT_MASK_THRESHOLD,
+        score_threshold_map: dict[int, float] | None = None, # umbral de score propio por category_id; las categorias no listadas usan score_threshold
         prompt_batch_size: int = 1, # permite procesar múltiples prompts en paralelo
         device: str | None = None,
         enable_roi_verification: bool = False, # si se activa, se usa un módulo adicional para verificar la coherencia de las regiones propuestas por SAM con los ejemplos del cache de tip-adapter
@@ -51,6 +53,20 @@ class BaselineStrategy(StrategyModule):
         self.score_threshold = score_threshold
         self.mask_threshold = mask_threshold
 
+        # umbral efectivo por categoria: si score_threshold_map es None, todas
+        # las categorias caen en score_threshold y el comportamiento es
+        # identico al de antes de soportar calibracion por clase
+        self.score_threshold_map = resolve_score_threshold_map(
+            category_map=category_map,
+            score_threshold_map=score_threshold_map,
+            fallback_threshold=score_threshold,
+        )
+        # sam3 se configura con el umbral mas permisivo de todas las
+        # categorias para no descartar de raiz nada que una categoria menos
+        # estricta si aceptaria; el filtro fino por categoria ocurre despues
+        # en _predict_instances
+        internal_score_threshold = min(self.score_threshold_map.values())
+
         # elige gpu si está disponible para acelerar la inferencia
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -71,7 +87,7 @@ class BaselineStrategy(StrategyModule):
         # toda la lógica de cómo se habla con sam3 vive aquí y no en la strategy
         self.sam3_backend = Sam3Backend(
             model_path=model_path,
-            score_threshold=score_threshold,
+            score_threshold=internal_score_threshold,
             mask_threshold=mask_threshold,
             device=self.device,
         )
@@ -82,8 +98,25 @@ class BaselineStrategy(StrategyModule):
 
     def set_score_threshold(self, score_threshold: float) -> None:
         # helper cómodo para notebooks: actualiza el threshold sin recargar sam3
+        # esto resetea tambien cualquier calibracion por clase previa, ya que
+        # pasa a ser el mismo umbral para todas las categorias
         self.score_threshold = score_threshold
+        self.score_threshold_map = resolve_score_threshold_map(
+            category_map=self.category_map,
+            score_threshold_map=None,
+            fallback_threshold=score_threshold,
+        )
         self.sam3_backend.set_score_threshold(score_threshold)
+
+    def set_score_threshold_map(self, score_threshold_map: dict[int, float] | None) -> None:
+        # helper para calibrar (o quitar la calibracion de) el umbral por clase
+        # sin recargar sam3; util para comparar output.per_class antes/despues
+        self.score_threshold_map = resolve_score_threshold_map(
+            category_map=self.category_map,
+            score_threshold_map=score_threshold_map,
+            fallback_threshold=self.score_threshold,
+        )
+        self.sam3_backend.set_score_threshold(min(self.score_threshold_map.values()))
 
     def _predict_instances(self, sample: ImageSample) -> list[InstancePrediction]:
         # garantiza que la estrategia trabaje con una imagen rgb en memoria
@@ -115,6 +148,12 @@ class BaselineStrategy(StrategyModule):
 
             for (category_id, prompt_spec), detections in zip(chunk, batch_outputs):
                 for detection in detections:
+                    # sam3 ya filtro con el umbral mas permisivo de todas las
+                    # categorias; aqui aplicamos el umbral especifico de esta
+                    # categoria (o el global, si no tiene uno propio)
+                    if float(detection.score) < self.score_threshold_map[category_id]:
+                        continue
+
                     mask = np.asarray(detection.mask, dtype=bool)
 
                     if mask.shape != (sample.height, sample.width):

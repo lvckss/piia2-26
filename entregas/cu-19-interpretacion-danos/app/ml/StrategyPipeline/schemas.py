@@ -8,6 +8,14 @@ import numpy as np
 import pandas as pd
 
 
+# vive aqui (en vez de en strategies/base.py, donde se usa mas) para que
+# modulos ligeros como ml/api/core/settings.py o
+# strategies/components/defaults.py puedan importarla sin arrastrar la
+# dependencia de torch que tiene strategies/base.py
+class StrategyContractError(ValueError):
+    """El strategy no respeta el contrato esperado del pipeline."""
+
+
 # DATA LOADER -> STRATEGY MODULE
 
 

@@ -10,6 +10,7 @@ from ml.StrategyPipeline.strategies.components.clip_tip_adapter import RoiVerifi
 from ml.StrategyPipeline.strategies.components.defaults import (
     DEFAULT_MASK_THRESHOLD,
     DEFAULT_SCORE_THRESHOLD,
+    resolve_score_threshold_map,
 )
 from ml.StrategyPipeline.strategies.components.roi_verificator import (
     RoiCandidate,
@@ -43,6 +44,7 @@ class GeometricEnsembleStrategy(StrategyModule):
         random_seed: int | None = None,
         enable_roi_verification: bool = False,
         roi_verifier_configs: list[RoiVerifierConfig] | None = None,
+        score_threshold_map: dict[int, float] | None = None, # umbral de score propio por category_id; las categorias no listadas usan score_threshold
     ) -> None:
         strategy_name = (
             "geometric_ensemble_prompt_roi_verified"
@@ -66,6 +68,20 @@ class GeometricEnsembleStrategy(StrategyModule):
         self.mask_threshold = mask_threshold
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
 
+        # umbral efectivo por categoria: si score_threshold_map es None, todas
+        # las categorias caen en score_threshold y el comportamiento es
+        # identico al de antes de soportar calibracion por clase.
+        # nota: bajar el umbral interno de sam3 aqui deja pasar mas seeds, y
+        # cada seed adicional se refina con el ensemble geometrico completo,
+        # asi que calibrar por clase en esta strategy cuesta mas computo que
+        # en baseline/sahi.
+        self.score_threshold_map = resolve_score_threshold_map(
+            category_map=category_map,
+            score_threshold_map=score_threshold_map,
+            fallback_threshold=score_threshold,
+        )
+        internal_score_threshold = min(self.score_threshold_map.values())
+
         # si activamos tip-adapter, el flujo es igual que en baseline: sam3 propone y clip decide positivo o negativo
         self.roi_verification = RoiVerificationManager(
             enabled=enable_roi_verification,
@@ -77,7 +93,7 @@ class GeometricEnsembleStrategy(StrategyModule):
         # la strategy no implementa el ensemble a mano: delega toda la parte sam3 al backend
         self.sam3_backend = Sam3Backend(
             model_path=model_path,
-            score_threshold=score_threshold,
+            score_threshold=internal_score_threshold,
             mask_threshold=mask_threshold,
             device=self.device,
             geometric_ensemble_config=GeometricEnsembleConfig(
@@ -97,8 +113,25 @@ class GeometricEnsembleStrategy(StrategyModule):
         self.processor = self.sam3_backend.processor
 
     def set_score_threshold(self, score_threshold: float) -> None:
+        # esto resetea tambien cualquier calibracion por clase previa, ya que
+        # pasa a ser el mismo umbral para todas las categorias
         self.score_threshold = score_threshold
+        self.score_threshold_map = resolve_score_threshold_map(
+            category_map=self.category_map,
+            score_threshold_map=None,
+            fallback_threshold=score_threshold,
+        )
         self.sam3_backend.set_score_threshold(score_threshold)
+
+    def set_score_threshold_map(self, score_threshold_map: dict[int, float] | None) -> None:
+        # helper para calibrar (o quitar la calibracion de) el umbral por clase
+        # sin recargar sam3; util para comparar output.per_class antes/despues
+        self.score_threshold_map = resolve_score_threshold_map(
+            category_map=self.category_map,
+            score_threshold_map=score_threshold_map,
+            fallback_threshold=self.score_threshold,
+        )
+        self.sam3_backend.set_score_threshold(min(self.score_threshold_map.values()))
 
     def _predict_instances(self, sample: ImageSample) -> list[InstancePrediction]:
         image_np = self._load_image_if_needed(sample)
@@ -130,6 +163,13 @@ class GeometricEnsembleStrategy(StrategyModule):
 
         for (category_id, _), detections in zip(prompt_items, batch_outputs):
             for detection in detections:
+                # sam3 ya filtro con el umbral mas permisivo de todas las
+                # categorias; aqui aplicamos el umbral especifico de esta
+                # categoria (el score de la deteccion final es el de la seed,
+                # ver _refine_text_predictions_with_geometric_ensemble)
+                if float(detection.score) < self.score_threshold_map[category_id]:
+                    continue
+
                 mask = np.asarray(detection.mask, dtype=bool)
                 if mask.shape != (sample.height, sample.width):
                     raise StrategyContractError(

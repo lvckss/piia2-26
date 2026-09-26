@@ -39,8 +39,18 @@ Todas las tareas quedan asignadas a Lucía.
       con `score_threshold=0.3` en `README_EVALUACION.md` sigue siendo válido),
       lo que ya no ocurre es que "no decir nada" dé un número distinto según
       la estrategia.
-- [ ] 3. Calibrar el umbral de score por clase de daño, apoyándose en
-      `output.per_class` del `Evaluator`.
+- [x] 3. Umbral de score por clase de daño: `baseline.py`/`sahi.py`/
+      `geom_ensemble.py` aceptan `score_threshold_map={category_id: umbral}`
+      en el constructor (o `strategy.set_score_threshold_map({...})` sin
+      recargar sam3), resuelto por el helper compartido
+      `resolve_score_threshold_map` (`strategies/components/defaults.py`).
+      SAM3 se configura internamente con el umbral más permisivo de todas las
+      categorías, y cada categoría se filtra después con su propio umbral (o
+      con `score_threshold` si no tiene uno propio) — sin usar el mapa, el
+      comportamiento es idéntico al de antes.
+      **Pendiente real:** decidir los valores por clase mirando
+      `output.per_class` sobre el dataset real (necesita la tarea 1 y una
+      máquina con el CarDD + GPU montados, no disponibles aquí).
 
 ## Prompts y verificación visual
 

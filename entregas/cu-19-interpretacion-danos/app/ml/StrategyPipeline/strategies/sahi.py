@@ -4,6 +4,7 @@ from ml.StrategyPipeline.strategies.components.clip_tip_adapter import RoiVerifi
 from ml.StrategyPipeline.strategies.components.defaults import (
     DEFAULT_MASK_THRESHOLD,
     DEFAULT_SCORE_THRESHOLD,
+    resolve_score_threshold_map,
 )
 from ml.StrategyPipeline.strategies.components.roi_verificator import (
     RoiCandidate,
@@ -36,6 +37,7 @@ class SahiStrategy(StrategyModule):
         device: str | None = None,
         enable_roi_verification: bool = False,
         roi_verifier_configs: list[RoiVerifierConfig] | None = None,
+        score_threshold_map: dict[int, float] | None = None, # umbral de score propio por category_id; las categorias no listadas usan score_threshold
     ) -> None:
         strategy_name = (
             "sahi_prompt_roi_verified"
@@ -72,6 +74,17 @@ class SahiStrategy(StrategyModule):
         self.prompt_map = dict(prompt_map or category_map)
         self.score_threshold = score_threshold
         self.mask_threshold = mask_threshold
+
+        # umbral efectivo por categoria: si score_threshold_map es None, todas
+        # las categorias caen en score_threshold y el comportamiento es
+        # identico al de antes de soportar calibracion por clase
+        self.score_threshold_map = resolve_score_threshold_map(
+            category_map=category_map,
+            score_threshold_map=score_threshold_map,
+            fallback_threshold=score_threshold,
+        )
+        internal_score_threshold = min(self.score_threshold_map.values())
+
         self.slice_size = slice_size
         self.overlap_ratio = overlap_ratio
         self.nms_iou_threshold = nms_iou_threshold
@@ -91,7 +104,7 @@ class SahiStrategy(StrategyModule):
         # sam3 queda encapsulado en un backend reutilizable por cualquier strategy
         self.sam3_backend = Sam3Backend(
             model_path=model_path,
-            score_threshold=score_threshold,
+            score_threshold=internal_score_threshold,
             mask_threshold=mask_threshold,
             device=self.device,
         )
@@ -102,8 +115,25 @@ class SahiStrategy(StrategyModule):
 
     def set_score_threshold(self, score_threshold: float) -> None:
         # helper cómodo para notebooks: actualiza el threshold sin recargar sam3
+        # esto resetea tambien cualquier calibracion por clase previa, ya que
+        # pasa a ser el mismo umbral para todas las categorias
         self.score_threshold = score_threshold
+        self.score_threshold_map = resolve_score_threshold_map(
+            category_map=self.category_map,
+            score_threshold_map=None,
+            fallback_threshold=score_threshold,
+        )
         self.sam3_backend.set_score_threshold(score_threshold)
+
+    def set_score_threshold_map(self, score_threshold_map: dict[int, float] | None) -> None:
+        # helper para calibrar (o quitar la calibracion de) el umbral por clase
+        # sin recargar sam3; util para comparar output.per_class antes/despues
+        self.score_threshold_map = resolve_score_threshold_map(
+            category_map=self.category_map,
+            score_threshold_map=score_threshold_map,
+            fallback_threshold=self.score_threshold,
+        )
+        self.sam3_backend.set_score_threshold(min(self.score_threshold_map.values()))
 
     def _predict_instances(self, sample: ImageSample) -> list[InstancePrediction]:
         image_np = self._load_image_if_needed(sample)
@@ -133,6 +163,11 @@ class SahiStrategy(StrategyModule):
                     )[0]
 
                     for detection in full_detections:
+                        # sam3 ya filtro con el umbral mas permisivo de todas
+                        # las categorias; aqui aplicamos el de esta categoria
+                        if float(detection.score) < self.score_threshold_map[category_id]:
+                            continue
+
                         mask = np.asarray(detection.mask, dtype=bool)
 
                         if mask.shape != (sample.height, sample.width):
@@ -192,6 +227,10 @@ class SahiStrategy(StrategyModule):
                         expected_shape = (y_max - y_min, x_max - x_min)
 
                         for detection in detections:
+                            # mismo filtro por categoria que en el pase full-image
+                            if float(detection.score) < self.score_threshold_map[category_id]:
+                                continue
+
                             mask_slice = np.asarray(detection.mask, dtype=bool)
 
                             if mask_slice.shape != expected_shape:

@@ -12,16 +12,13 @@ from ml.StrategyPipeline.schemas import (
     InstancePrediction,
     RuntimeStats,
     SampleRef,
+    StrategyContractError,
     StrategyResult,
 )
 
 import torch
 
 # CLASE ABSTRACTA QUE TODAS LAS ESTRATEGIAS DEBEN HEREDAR PARA GARANTIZAR CONTRATO CON EL PIPELINE
-
-
-class StrategyContractError(ValueError):
-    """El strategy no respeta el contrato esperado del pipeline."""
 
 
 class StrategyModule(ABC):
