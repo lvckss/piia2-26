@@ -6,6 +6,7 @@ from ml.StrategyPipeline.strategies.components.defaults import (
     DEFAULT_SCORE_THRESHOLD,
     resolve_prompt_map,
     resolve_score_threshold_map,
+    resolve_value_by_vehicle_type,
 )
 from ml.StrategyPipeline.strategies.components.roi_verificator import (
     RoiCandidate,
@@ -39,6 +40,8 @@ class SahiStrategy(StrategyModule):
         enable_roi_verification: bool = False,
         roi_verifier_configs: list[RoiVerifierConfig] | None = None,
         score_threshold_map: dict[int, float] | None = None, # umbral de score propio por category_id; las categorias no listadas usan score_threshold
+        slice_size_by_vehicle_type: dict[str, int] | None = None, # slice_size propio por vehicle_type; ver output.per_vehicle
+        overlap_ratio_by_vehicle_type: dict[str, float] | None = None, # overlap_ratio propio por vehicle_type
     ) -> None:
         strategy_name = (
             "sahi_prompt_roi_verified"
@@ -72,6 +75,20 @@ class SahiStrategy(StrategyModule):
         if not 0.0 <= mask_threshold <= 1.0:
             raise StrategyContractError("mask_threshold debe estar en [0, 1].")
 
+        for vehicle_type, candidate_slice_size in (slice_size_by_vehicle_type or {}).items():
+            if candidate_slice_size <= 0:
+                raise StrategyContractError(
+                    "slice_size_by_vehicle_type debe tener valores > 0: "
+                    f"vehicle_type={vehicle_type!r}, slice_size={candidate_slice_size}"
+                )
+
+        for vehicle_type, candidate_overlap_ratio in (overlap_ratio_by_vehicle_type or {}).items():
+            if not 0.0 <= candidate_overlap_ratio < 1.0:
+                raise StrategyContractError(
+                    "overlap_ratio_by_vehicle_type debe tener valores en [0, 1): "
+                    f"vehicle_type={vehicle_type!r}, overlap_ratio={candidate_overlap_ratio}"
+                )
+
         # si no se provee un prompt_map (o esta incompleto), las categorias que
         # falten se rellenan con DEFAULT_PROMPT_MAP; nunca con el nombre
         # desnudo de la categoria (ver resolve_prompt_map)
@@ -91,6 +108,10 @@ class SahiStrategy(StrategyModule):
 
         self.slice_size = slice_size
         self.overlap_ratio = overlap_ratio
+        # sin estos mapas, el comportamiento es identico al de antes de
+        # soportar calibracion por tipo de vehiculo (ver output.per_vehicle)
+        self.slice_size_by_vehicle_type = dict(slice_size_by_vehicle_type or {})
+        self.overlap_ratio_by_vehicle_type = dict(overlap_ratio_by_vehicle_type or {})
         self.nms_iou_threshold = nms_iou_threshold
         self.nms_ios_threshold = nms_ios_threshold
         self.batch_size = batch_size
@@ -143,8 +164,27 @@ class SahiStrategy(StrategyModule):
         image_np = self._load_image_if_needed(sample)
         image = Image.fromarray(image_np)
 
+        # si esta imagen tiene vehicle_type y hay un valor calibrado para el,
+        # se usa ese; si no, se usa el slice_size/overlap_ratio global (mismo
+        # comportamiento que antes de soportar calibracion por vehiculo)
+        effective_slice_size = resolve_value_by_vehicle_type(
+            self.slice_size_by_vehicle_type,
+            sample.vehicle_type,
+            self.slice_size,
+        )
+        effective_overlap_ratio = resolve_value_by_vehicle_type(
+            self.overlap_ratio_by_vehicle_type,
+            sample.vehicle_type,
+            self.overlap_ratio,
+        )
+
         # generar recortes
-        slices = self._generate_slices(sample.width, sample.height)
+        slices = self._generate_slices(
+            sample.width,
+            sample.height,
+            slice_size=effective_slice_size,
+            overlap_ratio=effective_overlap_ratio,
+        )
 
         predictions: list[InstancePrediction] = []
         roi_candidates_by_category: dict[int, list[RoiCandidate]] = {}
@@ -320,26 +360,36 @@ class SahiStrategy(StrategyModule):
         self,
         width: int,
         height: int,
+        *,
+        slice_size: int | None = None,
+        overlap_ratio: float | None = None,
     ) -> list[tuple[int, int, int, int]]: # x_min, y_min, x_max, y_max
+        # por defecto usa los valores globales de la strategy; se pueden
+        # sobreescribir por llamada para calibrar por vehicle_type
+        effective_slice_size = self.slice_size if slice_size is None else slice_size
+        effective_overlap_ratio = (
+            self.overlap_ratio if overlap_ratio is None else overlap_ratio
+        )
+
         slices = []
         # creamos el solape entre recortes para no perder objetos que estén en los bordes
-        stride = int(self.slice_size * (1.0 - self.overlap_ratio))
+        stride = int(effective_slice_size * (1.0 - effective_overlap_ratio))
 
         if stride <= 0:
             raise StrategyContractError(
-                f"stride inválido: slice_size={self.slice_size}, "
-                f"overlap_ratio={self.overlap_ratio}, stride={stride}"
+                f"stride inválido: slice_size={effective_slice_size}, "
+                f"overlap_ratio={effective_overlap_ratio}, stride={stride}"
             )
 
         y = 0
         while y < height:
-            y_max = min(y + self.slice_size, height)
-            y_min = max(0, y_max - self.slice_size)
+            y_max = min(y + effective_slice_size, height)
+            y_min = max(0, y_max - effective_slice_size)
 
             x = 0
             while x < width:
-                x_max = min(x + self.slice_size, width)
-                x_min = max(0, x_max - self.slice_size)
+                x_max = min(x + effective_slice_size, width)
+                x_min = max(0, x_max - effective_slice_size)
 
                 slices.append((x_min, y_min, x_max, y_max))
 

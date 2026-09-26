@@ -430,6 +430,13 @@ La diferencia está en cómo se usa:
 - `SahiStrategy`: un prompt, una imagen completa o muchos slices
 - `GeometricEnsembleStrategy`: una imagen, varios prompts, y refinamiento por cajas perturbadas en los prompts de texto
 
+> [!TIP]
+> `SahiStrategy` acepta `slice_size_by_vehicle_type={"motorcycle": 256}` y
+> `overlap_ratio_by_vehicle_type={...}` para recalibrar el tamaño de slice por
+> tipo de vehículo (útil si `output.per_vehicle` muestra que un encuadre muy
+> distinto necesita otro tamaño de recorte). Sin esos parámetros, el
+> comportamiento es idéntico al de siempre.
+
 En todos los casos:
 
 - el backend decide si un prompt va por texto o por exemplars
@@ -480,6 +487,15 @@ strategy = GeometricEnsembleStrategy(
     random_seed=42,
 )
 ```
+
+> [!TIP]
+> Si `output.per_vehicle` muestra que un tipo de vehículo necesita más o
+> menos ruido geométrico (por ejemplo, un encuadre muy cerrado en moto vs. uno
+> de cuerpo completo en furgoneta), pasa
+> `perturbation_scale_by_vehicle_type={"motorcycle": 0.02}`. Se aplica por
+> imagen sin recargar SAM3 (solo cambia `perturbation_scale`; el resto de la
+> config del ensemble se mantiene). Sin ese parámetro, el comportamiento es
+> idéntico al de siempre.
 
 Parámetros importantes:
 

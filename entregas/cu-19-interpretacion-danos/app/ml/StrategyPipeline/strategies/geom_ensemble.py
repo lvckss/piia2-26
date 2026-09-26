@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import dataclasses
 import warnings
 
 import numpy as np
@@ -14,6 +15,7 @@ from ml.StrategyPipeline.strategies.components.defaults import (
     DEFAULT_SCORE_THRESHOLD,
     resolve_prompt_map,
     resolve_score_threshold_map,
+    resolve_value_by_vehicle_type,
 )
 from ml.StrategyPipeline.strategies.components.roi_verificator import (
     RoiCandidate,
@@ -49,6 +51,7 @@ class GeometricEnsembleStrategy(StrategyModule):
         enable_roi_verification: bool = False,
         roi_verifier_configs: list[RoiVerifierConfig] | None = None,
         score_threshold_map: dict[int, float] | None = None, # umbral de score propio por category_id; las categorias no listadas usan score_threshold
+        perturbation_scale_by_vehicle_type: dict[str, float] | None = None, # perturbation_scale propio por vehicle_type; ver output.per_vehicle
     ) -> None:
         strategy_name = (
             "geometric_ensemble_prompt_roi_verified"
@@ -66,6 +69,13 @@ class GeometricEnsembleStrategy(StrategyModule):
 
         if not 0.0 <= mask_threshold <= 1.0:
             raise StrategyContractError("mask_threshold debe estar en [0, 1].")
+
+        for vehicle_type, candidate_scale in (perturbation_scale_by_vehicle_type or {}).items():
+            if candidate_scale < 0:
+                raise StrategyContractError(
+                    "perturbation_scale_by_vehicle_type debe tener valores >= 0: "
+                    f"vehicle_type={vehicle_type!r}, perturbation_scale={candidate_scale}"
+                )
 
         # si no se provee un prompt_map (o esta incompleto), las categorias que
         # falten se rellenan con DEFAULT_PROMPT_MAP; nunca con el nombre
@@ -98,22 +108,34 @@ class GeometricEnsembleStrategy(StrategyModule):
             device=self.device,
         )
 
+        # sin este mapa, el comportamiento es identico al de antes de soportar
+        # calibracion por tipo de vehiculo (ver output.per_vehicle)
+        self.perturbation_scale_by_vehicle_type = dict(
+            perturbation_scale_by_vehicle_type or {}
+        )
+
+        # se guarda aparte porque _predict_instances puede pedirle al backend
+        # una variante con perturbation_scale distinta segun sample.vehicle_type,
+        # reemplazando sam3_backend.geometric_ensemble_config por imagen en vez
+        # de cargar un Sam3Backend (y su modelo SAM3 completo) por cada valor
+        self._base_geometric_ensemble_config = GeometricEnsembleConfig(
+            num_perturbations=num_perturbations,
+            perturbation_scale=perturbation_scale,
+            consensus_threshold=consensus_threshold,
+            min_valid_perturbations=min_valid_perturbations,
+            min_detection_rate=min_detection_rate,
+            include_seed_box=include_seed_box,
+            consensus_policy=consensus_policy,
+            random_seed=random_seed,
+        )
+
         # la strategy no implementa el ensemble a mano: delega toda la parte sam3 al backend
         self.sam3_backend = Sam3Backend(
             model_path=model_path,
             score_threshold=internal_score_threshold,
             mask_threshold=mask_threshold,
             device=self.device,
-            geometric_ensemble_config=GeometricEnsembleConfig(
-                num_perturbations=num_perturbations,
-                perturbation_scale=perturbation_scale,
-                consensus_threshold=consensus_threshold,
-                min_valid_perturbations=min_valid_perturbations,
-                min_detection_rate=min_detection_rate,
-                include_seed_box=include_seed_box,
-                consensus_policy=consensus_policy,
-                random_seed=random_seed,
-            ),
+            geometric_ensemble_config=self._base_geometric_ensemble_config,
         )
 
         # mantener compatibilidad con notebooks y explainability actuales
@@ -142,6 +164,25 @@ class GeometricEnsembleStrategy(StrategyModule):
                         stacklevel=2,
                     )
 
+    def _apply_perturbation_scale_for_vehicle_type(self, vehicle_type: str | None) -> None:
+        # resuelve el perturbation_scale efectivo para esta imagen y lo aplica
+        # al backend sin recargar sam3; si no hay override para este
+        # vehicle_type (o no hay vehicle_type), el comportamiento es identico
+        # al de antes de soportar calibracion por tipo de vehiculo
+        effective_scale = resolve_value_by_vehicle_type(
+            self.perturbation_scale_by_vehicle_type,
+            vehicle_type,
+            self._base_geometric_ensemble_config.perturbation_scale,
+        )
+
+        if effective_scale == self.sam3_backend.geometric_ensemble_config.perturbation_scale:
+            return
+
+        self.sam3_backend.geometric_ensemble_config = dataclasses.replace(
+            self._base_geometric_ensemble_config,
+            perturbation_scale=effective_scale,
+        )
+
     def set_score_threshold(self, score_threshold: float) -> None:
         # esto resetea tambien cualquier calibracion por clase previa, ya que
         # pasa a ser el mismo umbral para todas las categorias
@@ -166,6 +207,8 @@ class GeometricEnsembleStrategy(StrategyModule):
     def _predict_instances(self, sample: ImageSample) -> list[InstancePrediction]:
         image_np = self._load_image_if_needed(sample)
         image = Image.fromarray(image_np)
+
+        self._apply_perturbation_scale_for_vehicle_type(sample.vehicle_type)
 
         predictions: list[InstancePrediction] = []
         roi_candidates_by_category: dict[int, list[RoiCandidate]] = {}

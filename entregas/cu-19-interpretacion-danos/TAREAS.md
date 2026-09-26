@@ -102,5 +102,18 @@ Todas las tareas quedan asignadas a Lucía.
 
 ## Al cierre (depende de la tarea 1)
 
-- [ ] 7. Recalibrar `slice_size`/`overlap_ratio` (SAHI) y
-      `perturbation_scale` (ensemble geométrico) por tipo de vehículo.
+- [x] 7. Infraestructura de recalibración por tipo de vehículo:
+      - `SahiStrategy(slice_size_by_vehicle_type=..., overlap_ratio_by_vehicle_type=...)`:
+        `_generate_slices` ahora acepta overrides por llamada, resueltos por
+        `sample.vehicle_type` en cada `_predict_instances`.
+      - `GeometricEnsembleStrategy(perturbation_scale_by_vehicle_type=...)`:
+        en vez de cargar un `Sam3Backend` (y su SAM3 completo) por cada valor,
+        reemplaza `sam3_backend.geometric_ensemble_config` por imagen con
+        `dataclasses.replace`, cambiando solo `perturbation_scale`.
+      - Ambas usan el helper genérico `resolve_value_by_vehicle_type`
+        (`strategies/components/defaults.py`). Sin estos parámetros, el
+        comportamiento es idéntico al de antes.
+      **Pendiente real:** una vez que la tarea 1 esté corrida sobre el dataset
+      real y `output.per_vehicle` muestre qué tipos de vehículo necesitan un
+      slicing o una perturbación distintos, decidir y fijar esos valores —
+      necesita la máquina con el CarDD + GPU montados, no disponibles aquí.

@@ -1,8 +1,10 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, TypeVar
 
 from ml.StrategyPipeline.schemas import StrategyContractError
+
+T = TypeVar("T")
 
 # valores por defecto de threshold compartidos por las tres strategies del
 # pipeline (baseline, sahi, geometric ensemble) y por ml/api/core/settings.py.
@@ -134,3 +136,24 @@ def resolve_prompt_map(
         )
 
     return resolved
+
+
+def resolve_value_by_vehicle_type(
+    value_by_vehicle_type: dict[str, T] | None,
+    vehicle_type: str | None,
+    fallback_value: T,
+) -> T:
+    """Resuelve un valor de configuracion (slice_size, overlap_ratio,
+    perturbation_scale, ...) segun el vehicle_type de la imagen actual.
+
+    Pensado para la tarea 7 de mejora-robustez-tipos-vehiculo.md: una vez que
+    output.per_vehicle (ver evaluation/metrics/vehicle_metrics.py) muestre que
+    un parametro necesita un valor distinto para un tipo de vehiculo concreto,
+    esta funcion permite aplicarlo sin tocar los demas. Sin `value_by_vehicle_type`,
+    o si la imagen no tiene vehicle_type asignado, se devuelve fallback_value
+    sin cambios de comportamiento.
+    """
+    if not value_by_vehicle_type or vehicle_type is None:
+        return fallback_value
+
+    return value_by_vehicle_type.get(vehicle_type, fallback_value)
