@@ -1,6 +1,10 @@
 from ml.StrategyPipeline.schemas import ImageSample, InstancePrediction
 from ml.StrategyPipeline.strategies.base import StrategyModule, StrategyContractError
 from ml.StrategyPipeline.strategies.components.clip_tip_adapter import RoiVerifierConfig
+from ml.StrategyPipeline.strategies.components.defaults import (
+    DEFAULT_MASK_THRESHOLD,
+    DEFAULT_SCORE_THRESHOLD,
+)
 from ml.StrategyPipeline.strategies.components.roi_verificator import (
     RoiCandidate,
     RoiVerificationManager,
@@ -21,8 +25,8 @@ class SahiStrategy(StrategyModule):
         model_path: str,
         category_map: dict[int, str],
         prompt_map: dict[int, PromptValue] | None = None,
-        score_threshold: float = 0.8,
-        mask_threshold: float = 0.5,
+        score_threshold: float = DEFAULT_SCORE_THRESHOLD,
+        mask_threshold: float = DEFAULT_MASK_THRESHOLD,
         slice_size: int = 512,
         overlap_ratio: float = 0.2,
         nms_iou_threshold: float = 0.5,

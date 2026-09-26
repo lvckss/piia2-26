@@ -27,9 +27,18 @@ Todas las tareas quedan asignadas a Lucía.
         --img-dir bd/rawdata/images \
         --output-path ml/config/vehicle_types.json
       ```
-- [ ] 2. Unificar `score_threshold`/`mask_threshold` en una única fuente de
-      configuración (`ml/api/core/settings.py`), eliminando los defaults
-      divergentes de `baseline.py`, `sahi.py` y `geom_ensemble.py`.
+- [x] 2. Unificar `score_threshold`/`mask_threshold` en una única fuente de
+      configuración. `mask_threshold` ya era 0.5 en todos los sitios; el
+      divergente era `score_threshold` (baseline 0.3, sahi 0.8, geom_ensemble
+      0.3, settings.py 0.6). Ahora los tres viven en
+      `ml/StrategyPipeline/strategies/components/defaults.py`
+      (`DEFAULT_SCORE_THRESHOLD=0.6`, `DEFAULT_MASK_THRESHOLD=0.5`), y
+      `baseline.py`/`sahi.py`/`geom_ensemble.py`/`ml/api/core/settings.py` lo
+      usan como default compartido. Sigue siendo posible pasar un valor
+      distinto de forma explícita (ej. el ejemplo de `GeometricEnsembleStrategy`
+      con `score_threshold=0.3` en `README_EVALUACION.md` sigue siendo válido),
+      lo que ya no ocurre es que "no decir nada" dé un número distinto según
+      la estrategia.
 - [ ] 3. Calibrar el umbral de score por clase de daño, apoyándose en
       `output.per_class` del `Evaluator`.
 

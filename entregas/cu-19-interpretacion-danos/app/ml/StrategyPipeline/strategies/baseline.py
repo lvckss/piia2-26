@@ -4,6 +4,10 @@ from ml.StrategyPipeline.schemas import ImageSample, InstancePrediction
 from ml.StrategyPipeline.strategies.base import StrategyModule, StrategyContractError
 
 from ml.StrategyPipeline.strategies.components.clip_tip_adapter import RoiVerifierConfig
+from ml.StrategyPipeline.strategies.components.defaults import (
+    DEFAULT_MASK_THRESHOLD,
+    DEFAULT_SCORE_THRESHOLD,
+)
 from ml.StrategyPipeline.strategies.components.roi_verificator import (
     RoiCandidate,
     RoiVerificationManager,
@@ -23,8 +27,8 @@ class BaselineStrategy(StrategyModule):
         model_path: str,
         category_map: dict[int, str],
         prompt_map: dict[int, PromptValue] | None = None,
-        score_threshold: float = 0.3,
-        mask_threshold: float = 0.5,
+        score_threshold: float = DEFAULT_SCORE_THRESHOLD,
+        mask_threshold: float = DEFAULT_MASK_THRESHOLD,
         prompt_batch_size: int = 1, # permite procesar múltiples prompts en paralelo
         device: str | None = None,
         enable_roi_verification: bool = False, # si se activa, se usa un módulo adicional para verificar la coherencia de las regiones propuestas por SAM con los ejemplos del cache de tip-adapter

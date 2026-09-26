@@ -7,6 +7,10 @@ from PIL import Image
 from ml.StrategyPipeline.schemas import ImageSample, InstancePrediction
 from ml.StrategyPipeline.strategies.base import StrategyContractError, StrategyModule
 from ml.StrategyPipeline.strategies.components.clip_tip_adapter import RoiVerifierConfig
+from ml.StrategyPipeline.strategies.components.defaults import (
+    DEFAULT_MASK_THRESHOLD,
+    DEFAULT_SCORE_THRESHOLD,
+)
 from ml.StrategyPipeline.strategies.components.roi_verificator import (
     RoiCandidate,
     RoiVerificationManager,
@@ -26,8 +30,8 @@ class GeometricEnsembleStrategy(StrategyModule):
         model_path: str,
         category_map: dict[int, str],
         prompt_map: dict[int, PromptValue] | None = None,
-        score_threshold: float = 0.3,
-        mask_threshold: float = 0.5,
+        score_threshold: float = DEFAULT_SCORE_THRESHOLD,
+        mask_threshold: float = DEFAULT_MASK_THRESHOLD,
         num_perturbations: int = 5,
         perturbation_scale: float = 0.05,
         consensus_threshold: float = 0.6,

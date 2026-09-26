@@ -5,6 +5,10 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from ml.api.core.paths import paths
+from ml.StrategyPipeline.strategies.components.defaults import (
+    DEFAULT_MASK_THRESHOLD,
+    DEFAULT_SCORE_THRESHOLD,
+)
 
 
 DEFAULT_CATEGORY_MAP = {
@@ -91,11 +95,19 @@ class Settings:
     )
 
     # thresholds de inferencia del backend.
+    # el fallback cuando no hay variable de entorno es el mismo
+    # DEFAULT_SCORE_THRESHOLD/DEFAULT_MASK_THRESHOLD que usan baseline/sahi/
+    # geom_ensemble por defecto, para que la api y el pipeline nunca diverjan
+    # en silencio.
     score_threshold: float = field(
-        default_factory=lambda: float(os.getenv("ML_API_SCORE_THRESHOLD", "0.6"))
+        default_factory=lambda: float(
+            os.getenv("ML_API_SCORE_THRESHOLD", str(DEFAULT_SCORE_THRESHOLD))
+        )
     )
     mask_threshold: float = field(
-        default_factory=lambda: float(os.getenv("ML_API_MASK_THRESHOLD", "0.5"))
+        default_factory=lambda: float(
+            os.getenv("ML_API_MASK_THRESHOLD", str(DEFAULT_MASK_THRESHOLD))
+        )
     )
     prompt_batch_size: int = field(
         default_factory=lambda: int(os.getenv("ML_API_PROMPT_BATCH_SIZE", "6"))
