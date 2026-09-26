@@ -136,6 +136,12 @@ class Settings:
             paths.broken_lamp_cache_path,
         )
     )
+    dent_cache_path: Path = field(
+        default_factory=lambda: _env_path(
+            "ML_API_DENT_CACHE_PATH",
+            paths.dent_cache_path,
+        )
+    )
 
     # mapa del problema y prompts por defecto.
     category_map: dict[int, str] = field(

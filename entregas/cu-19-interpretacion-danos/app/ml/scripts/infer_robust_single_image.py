@@ -127,7 +127,8 @@ def load_image_sample(
 
 
 def build_roi_verifier_configs() -> list[RoiVerifierConfig]:
-    # solo hay verificación roi para tire flat y lamp broken.
+    # hay verificación roi para tire flat, lamp broken y dent; cada una se
+    # activa solo si su cache ya fue generado (ver ml/scripts/export_*_roi_crops.py)
     configs: list[RoiVerifierConfig] = []
 
     if paths.flat_tire_cache_path.exists():
@@ -149,6 +150,17 @@ def build_roi_verifier_configs() -> list[RoiVerifierConfig]:
                 cache_path=str(paths.broken_lamp_cache_path),
                 positive_label="broken car lamp",
                 negative_label="healthy car lamp",
+            )
+        )
+
+    if paths.dent_cache_path.exists():
+        configs.append(
+            simple_roi_verifier_config(
+                target_category_id=1,
+                proposal_prompt="a visible dent or deformation on the metal body of a car",
+                cache_path=str(paths.dent_cache_path),
+                positive_label="dented car body panel",
+                negative_label="healthy car body panel",
             )
         )
 

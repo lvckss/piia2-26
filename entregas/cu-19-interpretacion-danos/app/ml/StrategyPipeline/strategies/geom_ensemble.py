@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import warnings
+
 import numpy as np
 import torch
 from PIL import Image
@@ -23,6 +25,7 @@ from ml.StrategyPipeline.strategies.components.sam3_backend import (
     PromptSpec,
     PromptValue,
     Sam3Backend,
+    normalize_prompt_specs,
 )
 
 
@@ -68,6 +71,7 @@ class GeometricEnsembleStrategy(StrategyModule):
         # falten se rellenan con DEFAULT_PROMPT_MAP; nunca con el nombre
         # desnudo de la categoria (ver resolve_prompt_map)
         self.prompt_map = resolve_prompt_map(category_map, prompt_map)
+        self._warn_about_ensemble_incompatible_prompts()
         self.score_threshold = score_threshold
         self.mask_threshold = mask_threshold
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
@@ -115,6 +119,28 @@ class GeometricEnsembleStrategy(StrategyModule):
         # mantener compatibilidad con notebooks y explainability actuales
         self.model = self.sam3_backend.model
         self.processor = self.sam3_backend.processor
+
+    def _warn_about_ensemble_incompatible_prompts(self) -> None:
+        # el ensemble geometrico solo refina prompts de texto puro: sam3_backend
+        # decide esto con _is_text_only_prompt, y cualquier prompt en modo
+        # "exemplar" o "hybrid" va directo a _predict_exemplar_prompt sin pasar
+        # por perturbacion/consenso (ver README_EVALUACION.md, seccion
+        # GeometricEnsembleStrategy). antes esto era una limitacion documentada
+        # pero completamente silenciosa en runtime; avisamos aqui para que se
+        # note en el momento de construir la strategy, no solo mirando la
+        # metadata (`sam3_backend`) de cada prediccion despues de correrla.
+        for category_id, prompt_value in self.prompt_map.items():
+            for prompt_spec in normalize_prompt_specs(prompt_value):
+                if prompt_spec.mode != "text":
+                    warnings.warn(
+                        "GeometricEnsembleStrategy: category_id="
+                        f"{category_id} usa un prompt en modo {prompt_spec.mode!r}. "
+                        "El ensemble geometrico solo refina prompts de texto "
+                        "puro, asi que esta categoria no recibira refinamiento "
+                        "geometrico y usara la ruta normal de exemplars "
+                        "(sin perturbacion ni consenso).",
+                        stacklevel=2,
+                    )
 
     def set_score_threshold(self, score_threshold: float) -> None:
         # esto resetea tambien cualquier calibracion por clase previa, ya que

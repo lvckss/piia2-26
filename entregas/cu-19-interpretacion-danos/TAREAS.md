@@ -69,11 +69,36 @@ Todas las tareas quedan asignadas a Lucía.
       **Pendiente real:** decidir si v2 (o alguna otra redacción) mejora
       `output.per_class` frente a v1 sobre `val` — necesita la máquina con el
       CarDD + GPU montados, no disponibles aquí.
-- [ ] 5. Extender CLIP + Tip-Adapter a clases adicionales, empezando por
-      `dent`.
-- [ ] 6. Decidir e implementar/documentar la relación entre exemplars y
-      ensemble geométrico (hoy son mutuamente excluyentes por
-      `_is_text_only_prompt`).
+- [x] 5. Extender CLIP + Tip-Adapter a `dent`. Añadido siguiendo exactamente
+      el mismo patrón que `flat_tire`/`broken_lamp`:
+      - [export_dent_roi_crops.py](../app/ml/scripts/export_dent_roi_crops.py)
+        (mismo patrón que `export_lamp_roi_crops.py`, derivado a su vez de
+        `export_wheel_roi_crops.py`). `dent` no tiene un "objeto sano" claro
+        como una rueda o un faro, así que el rol de negativo lo hace un panel
+        de carrocería sano, propuesto por SAM3 con prompts genéricos de panel
+        en vez de un prompt de dent.
+      - `dent_cache_path` añadido a `paths.py`/`settings.py` (con
+        `ML_API_DENT_CACHE_PATH`), mismo patrón que `flat_tire`/`broken_lamp`.
+      - `build_roi_verifier_configs()` en `infer_robust_single_image.py` ya
+        activa el verificador de dent automáticamente si su cache existe.
+      - Ejemplo de `RoiVerifierConfig` documentado en `README_EVALUACION.md`.
+      **Pendiente real:** elegir a mano qué `image_id` del CarDD muestran un
+      dent claro vs un panel sano (el script ya soporta pasarlos por
+      `--dent-ids`/`--healthy-ids`), correr el script para generar los crops,
+      generar el cache con `generate_cropped_embeddings.py`, y calibrar
+      `alpha`/`beta`/`threshold` con `val` — todo esto necesita ver las
+      imágenes reales y la máquina con GPU, no disponibles aquí.
+- [x] 6. Relación exemplars ↔ ensemble geométrico: **decisión tomada** —
+      se mantiene la limitación (el ensemble geométrico solo refina prompts de
+      texto puro; extenderlo a exemplars requeriría poder pasarle una caja
+      guía a `_predict_exemplar_prompt`, que hoy no la acepta — cambio de
+      arquitectura no trivial y sin forma de validarlo sin GPU/dataset).
+      Lo que cambia es que **ya no es silenciosa**:
+      `GeometricEnsembleStrategy` ahora avisa con `UserWarning` en
+      construcción si alguna categoría de `prompt_map` usa modo
+      `exemplar`/`hybrid`, en vez de que sea descubrible solo leyendo el
+      código o la metadata (`sam3_backend`) de cada predicción después de
+      correr. Documentado también en `README_EVALUACION.md`.
 
 ## Al cierre (depende de la tarea 1)
 

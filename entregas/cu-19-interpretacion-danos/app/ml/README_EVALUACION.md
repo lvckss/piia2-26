@@ -369,6 +369,11 @@ Hay tres rutas internas:
 > [!NOTE]
 > El ensemble geométrico solo afecta a prompts de texto.
 > Si una categoría usa exemplars o hybrid, esa parte sigue yendo por su ruta normal.
+> `GeometricEnsembleStrategy` avisa con un `UserWarning` en el momento de
+> construirse si detecta alguna categoría en modo `exemplar`/`hybrid` en su
+> `prompt_map`, para que esto no dependa de leer el código fuente ni de
+> inspeccionar la metadata (`sam3_backend`) de cada predicción después de
+> correr.
 
 ## Requisitos para exemplars
 
@@ -742,6 +747,24 @@ lamp_config = simple_roi_verifier_config(
 )
 ```
 
+> [!NOTE]
+> `dent` no tiene un "objeto sano" tan claro como una rueda o un faro (no hay
+> un "dent sano"). Aquí el rol de negative_label lo hace un panel de
+> carrocería sin daño, y el proposal_prompt sigue siendo el mismo prompt de
+> dent que ya usa la strategy sin tip-adapter — la diferencia es que
+> tip-adapter filtra después los falsos positivos (pliegues de diseño,
+> sombras, reflejos) que se parecen a un dent real.
+
+```python
+dent_config = simple_roi_verifier_config(
+    target_category_id=1,
+    proposal_prompt="a visible dent or deformation on the metal body of a car",
+    cache_path=str(ROOT / "ml/config/tip_adapter/dent/cropped_embeddings_001/cache.pt"),
+    positive_label="dented car body panel",
+    negative_label="healthy car body panel",
+)
+```
+
 Ese helper:
 
 - mete `proposal_prompts=[proposal_prompt]`
@@ -776,8 +799,33 @@ conda run --no-capture-output -n sam3 python ml/config/tip_adapter/generate_crop
   --metadata-path ml/config/tip_adapter/flat_tire/cropped_embeddings_001/cache_metadata.json
 ```
 
+Para dent, primero exporta los crops con `ml/scripts/export_dent_roi_crops.py` (mismo patrón que
+`export_lamp_roi_crops.py`; ver también `ml/scripts/export_wheel_roi_crops.py`):
+
+```bash
+python ml/scripts/export_dent_roi_crops.py \
+  --dent-ids 101 202 303 \
+  --healthy-ids 404 505 606 \
+  --output-dir ml/config/tip_adapter/dent/dent_roi_crops
+```
+
+y después genera el cache igual que con flat_tire:
+
+```bash
+conda run --no-capture-output -n sam3 python ml/config/tip_adapter/generate_cropped_embeddings.py \
+  --local-files-only \
+  --input-dir ml/config/tip_adapter/dent/dent_roi_crops \
+  --positive-dir-name dent \
+  --negative-dir-name healthy \
+  --output-path ml/config/tip_adapter/dent/cropped_embeddings_001/cache.pt \
+  --metadata-path ml/config/tip_adapter/dent/cropped_embeddings_001/cache_metadata.json
+```
+
 > [!IMPORTANT]
 > Si cambias crops, modelo CLIP o etiquetas positive/negative, regenera el cache.
+> Los `--dent-ids`/`--healthy-ids` del ejemplo son placeholders: hay que
+> elegirlos mirando el dataset real (imágenes con dent claro vs paneles
+> sanos), igual que se hizo para `flat_tire`/`broken_lamp`.
 
 ## Crear una estrategia nueva
 

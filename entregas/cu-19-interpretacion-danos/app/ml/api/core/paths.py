@@ -14,6 +14,7 @@ class Paths:
     sam3_model_path: Path
     flat_tire_cache_path: Path
     broken_lamp_cache_path: Path
+    dent_cache_path: Path
 
 
 # este archivo vive en ml/api/core, así que parents[3] es la raíz app/.
@@ -43,6 +44,14 @@ paths = Paths(
         / "config"
         / "tip_adapter"
         / "broken_lamp"
+        / "cropped_embeddings_001"
+        / "cache.pt"
+    ),
+    dent_cache_path=(
+        ML_ROOT
+        / "config"
+        / "tip_adapter"
+        / "dent"
         / "cropped_embeddings_001"
         / "cache.pt"
     ),
