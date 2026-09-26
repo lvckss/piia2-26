@@ -86,26 +86,7 @@ Tip-Adapter), dejando el resto expuesto directamente al umbral crudo de SAM3.
    geométrico cuentan con al menos una configuración alternativa evaluada por
    tipo de vehículo, con resultados registrados en la dimensión `per_vehicle`.
 
-## Reparto de trabajo propuesto
+## Reparto de trabajo
 
-**Persona A — Medición e infraestructura de evaluación**
-
-- Instrumentar `vehicle_type` (clasificación + campo en `ImageSample`/loader
-  + dimensión `per_vehicle` en el `Evaluator`).
-- Unificar `score_threshold`/`mask_threshold` en una única fuente de
-  configuración.
-- Calibrar el umbral de score por clase de daño.
-
-**Persona B — Prompts y verificación visual**
-
-- Eliminar el fallback de prompt silencioso y diseñar variantes de texto por
-  clase.
-- Extender CLIP + Tip-Adapter a clases adicionales (empezando por `dent`).
-- Decidir e implementar/documentar la relación entre exemplars y ensemble
-  geométrico.
-
-**Conjunto, al cierre**
-
-- Recalibrar `slice_size`/`overlap_ratio` (SAHI) y `perturbation_scale`
-  (ensemble geométrico) por tipo de vehículo, una vez disponible esa
-  dimensión de evaluación.
+Todas las tareas quedan asignadas a Lucía. El checklist de seguimiento vive en
+[`TAREAS.md`](../TAREAS.md).
