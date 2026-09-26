@@ -68,6 +68,7 @@ class StrategyModule(ABC):
                 corruption=sample.corruption,
                 severity=sample.severity,
                 is_clean=bool(sample.is_clean),
+                vehicle_type=sample.vehicle_type,
             ),
             predictions=validated_predictions,
             runtime=RuntimeStats(

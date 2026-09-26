@@ -13,6 +13,7 @@ from ml.StrategyPipeline.evaluation.metrics.error_metrics import compute_error_m
 from ml.StrategyPipeline.evaluation.metrics.runtime_metrics import compute_runtime_metrics
 from ml.StrategyPipeline.evaluation.metrics.coco_metrics import compute_coco_metrics
 from ml.StrategyPipeline.evaluation.metrics.robustness_metrics import compute_robustness_metrics
+from ml.StrategyPipeline.evaluation.metrics.vehicle_metrics import compute_vehicle_metrics
 
 from ml.StrategyPipeline.evaluation.utils.record_utils import copy_gt_instance, copy_prediction, build_per_image_base
 from ml.StrategyPipeline.evaluation.utils.validators import EvaluationContractError, validate_evaluator_input
@@ -87,6 +88,7 @@ class Evaluator:
                 if result.runtime.peak_vram_mb is None
                 else float(result.runtime.peak_vram_mb)
             ),
+            vehicle_type=sample.vehicle_type,
         )
 
     def finalize(self) -> EvalOutput:
@@ -117,6 +119,12 @@ class Evaluator:
             error_iou_threshold=self.error_iou_threshold,
             error_matching_policy=self.error_matching_policy,
             base_metric_name=self.robustness_base_metric,
+        )
+        vehicle_out = compute_vehicle_metrics(
+            records=records,
+            category_map=self.category_map,
+            error_iou_threshold=self.error_iou_threshold,
+            error_matching_policy=self.error_matching_policy,
         )
 
         per_image = (
@@ -166,6 +174,7 @@ class Evaluator:
             summary=summary,
             per_class=per_class,
             per_condition=robustness_out.per_condition.copy(),
+            per_vehicle=vehicle_out.per_vehicle.copy(),
             per_image=per_image,
         )
 

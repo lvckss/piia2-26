@@ -19,6 +19,7 @@ class CarddLoader:
             img_dir: str,
             load_image: bool = True,
             verbose: bool = True,
+            vehicle_types_path: str | None = None,
     ) -> None:
         # guarda las rutas base y la configuración de carga
         self.ann_path = Path(ann_path)
@@ -27,6 +28,13 @@ class CarddLoader:
         self.verbose = verbose
         self.dataset_name = self.ann_path.name
         self.is_all_dataset = self.dataset_name == "instances_all.json"
+
+        # mapa opcional image_id -> vehicle_type, generado por ml/scripts/label_vehicle_types.py
+        # si no se provee, todas las muestras quedan con vehicle_type=None (visibles como "unknown" en el evaluator)
+        self.vehicle_types_path = (
+            Path(vehicle_types_path) if vehicle_types_path is not None else None
+        )
+        self.image_id_to_vehicle_type = self._load_vehicle_types()
 
         # abre el json coco y guarda los ids ordenados
         self.coco = self._load_coco_annotations()
@@ -109,6 +117,26 @@ class CarddLoader:
             )
 
         return image_id_to_split
+
+    def _load_vehicle_types(self) -> dict[int, str]:
+        # el fichero de vehicle_types es un json plano {"<image_id>": "<vehicle_type>"}
+        # generado por ml/scripts/label_vehicle_types.py; es opcional para no romper
+        # datasets/entornos donde todavia no se ha etiquetado el tipo de vehiculo
+        if self.vehicle_types_path is None:
+            return {}
+
+        if not self.vehicle_types_path.exists():
+            raise FileNotFoundError(
+                f"No existe vehicle_types_path: {self.vehicle_types_path}"
+            )
+
+        data = json.loads(self.vehicle_types_path.read_text(encoding="utf-8"))
+        if not isinstance(data, dict):
+            raise ValueError(
+                f"vehicle_types_path debe contener un objeto json plano: {self.vehicle_types_path}"
+            )
+
+        return {int(image_id): str(vehicle_type) for image_id, vehicle_type in data.items()}
 
     def _load_coco_annotations(self) -> COCO:
         # silencia la salida por defecto de pycocotools y la reemplaza por mensajes más claros
@@ -194,6 +222,7 @@ class CarddLoader:
             severity=image_info.get("severity"),
             is_clean=image_info.get("corruption") in (None, "", "clean"),
             gt_instances=gt_instances,
+            vehicle_type=self.image_id_to_vehicle_type.get(image_id),
         )
 
     def get_by_image_id(self, image_id: int) -> ImageSample:

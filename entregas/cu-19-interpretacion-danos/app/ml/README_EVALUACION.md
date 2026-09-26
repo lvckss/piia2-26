@@ -574,6 +574,9 @@ output.per_class
 
 Sirve para ver que clase falla.
 
+`output.per_vehicle` sigue el mismo patron, ver seccion de `per_vehicle` mas
+abajo.
+
 ```python
 output.per_image
 ```
@@ -585,6 +588,22 @@ output.per_condition
 ```
 
 Sirve para ver robustez por corrupcion/severidad.
+
+```python
+output.per_vehicle
+```
+
+Sirve para ver si la metrica es consistente entre tipos de vehiculo
+(sedan, suv, pickup, ...). Si una imagen no tiene `vehicle_type` asignado,
+aparece agrupada bajo `"unknown"` en vez de desaparecer del desglose.
+
+> [!NOTE]
+> `vehicle_type` no viene en las anotaciones de CarDD. Se etiqueta aparte con
+> `ml/scripts/label_vehicle_types.py` (zero-shot con CLIP) y se pasa a
+> `CarddLoader(..., vehicle_types_path="ruta/al/vehicle_types.json")`.
+> Si no se pasa `vehicle_types_path`, todas las imagenes quedan como
+> `"unknown"` y `output.per_vehicle` sigue funcionando igual, solo que sin
+> desglose real.
 
 ## Inspeccionar errores
 

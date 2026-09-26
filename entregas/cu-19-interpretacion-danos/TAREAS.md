@@ -7,10 +7,26 @@ Todas las tareas quedan asignadas a Lucía.
 
 ## Medición e infraestructura de evaluación
 
-- [ ] 1. Instrumentar `vehicle_type`: clasificador zero-shot (ej. CLIP) para
-      etiquetar el dataset, campo `vehicle_type` en `ImageSample`/loader, y
-      dimensión `per_vehicle` en el `Evaluator` (mismo patrón que
-      `per_condition`).
+- [x] 1a. Campo `vehicle_type` en `ImageSample`/`SampleRef`/`ImageEvalRecord`,
+      propagado por `StrategyModule.run()`, validado en
+      `validate_evaluator_input`, y visible en `per_image`.
+- [x] 1b. Dimensión `per_vehicle` en el `Evaluator`
+      (`ml/StrategyPipeline/evaluation/metrics/vehicle_metrics.py`), mismo
+      patrón que `per_condition`. Sin etiquetar, las imágenes quedan visibles
+      como `"unknown"` en vez de desaparecer del desglose.
+- [x] 1c. `CarddLoader(vehicle_types_path=...)` para leer el mapeo
+      `image_id -> vehicle_type` desde un json externo.
+- [ ] 1d. Script `ml/scripts/label_vehicle_types.py` (zero-shot con CLIP)
+      escrito y listo, pero **pendiente de ejecutar sobre el dataset real**:
+      esto requiere el CarDD descargado + un entorno con `torch`/
+      `transformers`, que no están disponibles en este equipo. Ejecutar donde
+      esté montado el dataset:
+      ```bash
+      python ml/scripts/label_vehicle_types.py \
+        --ann-path bd/rawdata/instances_all.json \
+        --img-dir bd/rawdata/images \
+        --output-path ml/config/vehicle_types.json
+      ```
 - [ ] 2. Unificar `score_threshold`/`mask_threshold` en una única fuente de
       configuración (`ml/api/core/settings.py`), eliminando los defaults
       divergentes de `baseline.py`, `sahi.py` y `geom_ensemble.py`.
