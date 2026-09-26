@@ -4,6 +4,7 @@ from ml.StrategyPipeline.strategies.components.clip_tip_adapter import RoiVerifi
 from ml.StrategyPipeline.strategies.components.defaults import (
     DEFAULT_MASK_THRESHOLD,
     DEFAULT_SCORE_THRESHOLD,
+    resolve_prompt_map,
     resolve_score_threshold_map,
 )
 from ml.StrategyPipeline.strategies.components.roi_verificator import (
@@ -71,7 +72,10 @@ class SahiStrategy(StrategyModule):
         if not 0.0 <= mask_threshold <= 1.0:
             raise StrategyContractError("mask_threshold debe estar en [0, 1].")
 
-        self.prompt_map = dict(prompt_map or category_map)
+        # si no se provee un prompt_map (o esta incompleto), las categorias que
+        # falten se rellenan con DEFAULT_PROMPT_MAP; nunca con el nombre
+        # desnudo de la categoria (ver resolve_prompt_map)
+        self.prompt_map = resolve_prompt_map(category_map, prompt_map)
         self.score_threshold = score_threshold
         self.mask_threshold = mask_threshold
 

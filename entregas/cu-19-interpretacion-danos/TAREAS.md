@@ -54,9 +54,21 @@ Todas las tareas quedan asignadas a Lucía.
 
 ## Prompts y verificación visual
 
-- [ ] 4. Eliminar el fallback de prompt silencioso (`prompt_map or
-      category_map`) y diseñar al menos una variante de texto adicional por
-      clase.
+- [x] 4. Fallback de prompt silencioso eliminado en dos capas: (1)
+      `resolve_prompt_map` (`strategies/components/defaults.py`) sustituye
+      `dict(prompt_map or category_map)` en las tres strategies — si falta
+      una categoría, se rellena con `DEFAULT_PROMPT_MAP`, nunca con el nombre
+      desnudo; si tampoco está ahí, falla con error claro. (2)
+      `roi_verificator.get_prompts_for_category` ya no acepta
+      `fallback_text=category_name`; `normalize_prompt_specs` ya no tiene
+      parámetro de fallback en absoluto. De paso se eliminó la triplicación de
+      `DEFAULT_CATEGORY_MAP`/`DEFAULT_PROMPT_MAP` que vivía por separado en
+      `settings.py`, `evaluator.py` y `notebook_utils.py`.
+      Variante de texto: `DEFAULT_PROMPT_MAP_V2` en el mismo módulo (usa
+      "vehicle" en vez de "car" en las seis clases).
+      **Pendiente real:** decidir si v2 (o alguna otra redacción) mejora
+      `output.per_class` frente a v1 sobre `val` — necesita la máquina con el
+      CarDD + GPU montados, no disponibles aquí.
 - [ ] 5. Extender CLIP + Tip-Adapter a clases adicionales, empezando por
       `dent`.
 - [ ] 6. Decidir e implementar/documentar la relación entre exemplars y

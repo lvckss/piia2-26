@@ -405,16 +405,15 @@ def prompt_map_from_manifests(
 
 def normalize_prompt_specs(
     prompt_value: PromptValue | None,
-    *,
-    fallback_text: str | None = None,
 ) -> list[PromptSpec]:
     # normaliza la api pública para que el resto del backend trabaje siempre con promptspec
+    # nota: a proposito no hay un fallback aqui que use el nombre de categoria
+    # como prompt; quien llame a esto debe resolver un prompt real antes (ver
+    # resolve_prompt_map en strategies/components/defaults.py)
     if prompt_value is None:
-        if fallback_text is None or not fallback_text.strip():
-            raise StrategyContractError(
-                "No se pudo resolver ningún prompt para la categoría."
-            )
-        return [PromptSpec.text_prompt(fallback_text)]
+        raise StrategyContractError(
+            "No se pudo resolver ningún prompt para la categoría."
+        )
 
     if isinstance(prompt_value, (str, PromptSpec)):
         raw_items = [prompt_value]

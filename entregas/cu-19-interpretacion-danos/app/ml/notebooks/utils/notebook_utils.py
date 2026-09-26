@@ -13,20 +13,11 @@ from ml.StrategyPipeline.evaluation.evaluator import Evaluator
 from ml.StrategyPipeline.strategies.baseline import BaselineStrategy
 from ml.StrategyPipeline.strategies.geom_ensemble import GeometricEnsembleStrategy
 from ml.StrategyPipeline.strategies.sahi import SahiStrategy
+from ml.StrategyPipeline.strategies.components.defaults import DEFAULT_CATEGORY_MAP
 from ml.StrategyPipeline.strategies.components.sam3_backend import (
     ExemplarRef,
     PromptSpec,
 )
-
-
-DEFAULT_CATEGORY_MAP = {
-    1: "dent",
-    2: "scratch",
-    3: "crack",
-    4: "glass shatter",
-    5: "lamp broken",
-    6: "tire flat",
-}
 
 
 def run_and_plot_image(

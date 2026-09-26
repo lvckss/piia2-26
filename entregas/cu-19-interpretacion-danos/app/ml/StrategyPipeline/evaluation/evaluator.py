@@ -14,21 +14,12 @@ from ml.StrategyPipeline.evaluation.metrics.runtime_metrics import compute_runti
 from ml.StrategyPipeline.evaluation.metrics.coco_metrics import compute_coco_metrics
 from ml.StrategyPipeline.evaluation.metrics.robustness_metrics import compute_robustness_metrics
 from ml.StrategyPipeline.evaluation.metrics.vehicle_metrics import compute_vehicle_metrics
+from ml.StrategyPipeline.strategies.components.defaults import DEFAULT_CATEGORY_MAP
 
 from ml.StrategyPipeline.evaluation.utils.record_utils import copy_gt_instance, copy_prediction, build_per_image_base
 from ml.StrategyPipeline.evaluation.utils.validators import EvaluationContractError, validate_evaluator_input
 from ml.StrategyPipeline.evaluation.inspection import RunInspection
 
-
-# Mapeo por defecto de categorías, se puede sobreescribir al crear el Evaluator
-DEFAULT_CATEGORY_MAP = {
-    1: "dent",
-    2: "scratch",
-    3: "crack",
-    4: "glass shatter",
-    5: "lamp broken",
-    6: "tire flat",
-}
 
 
 class Evaluator:

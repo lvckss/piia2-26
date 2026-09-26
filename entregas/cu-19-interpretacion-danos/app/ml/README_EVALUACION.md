@@ -80,6 +80,24 @@ strategy = BaselineStrategy(
 
 ## Sistema de prompts
 
+> [!IMPORTANT]
+> Si no pasas `prompt_map` (o le falta alguna categoría), esa categoría se
+> rellena con `DEFAULT_PROMPT_MAP`
+> (`ml/StrategyPipeline/strategies/components/defaults.py`). Antes, si no se
+> pasaba `prompt_map`, SAM3 recibía literalmente el nombre de la categoría
+> como prompt (`"dent"`, `"tire flat"`...) en vez de una descripción real. Si
+> una categoría no tiene prompt ni en tu `prompt_map` ni en
+> `DEFAULT_PROMPT_MAP`, ahora falla con un error claro en vez de degradar en
+> silencio.
+>
+> Ese mismo módulo trae `DEFAULT_PROMPT_MAP_V2`, una redacción alternativa sin
+> validar (usa "vehicle" en vez de "car", pensado para no sesgar hacia
+> turismos) para comparar contra la v1 con `output.per_class` sobre `val`:
+> ```python
+> from ml.StrategyPipeline.strategies.components.defaults import DEFAULT_PROMPT_MAP_V2
+> strategy_v2 = BaselineStrategy(model_path=SAM3, category_map=CATEGORY_MAP, prompt_map=DEFAULT_PROMPT_MAP_V2)
+> ```
+
 Ahora `prompt_map` ya no está limitado a `str`.
 
 El backend nuevo acepta un `prompt_map` de tipo:

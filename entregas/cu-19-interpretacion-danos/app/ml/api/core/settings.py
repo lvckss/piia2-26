@@ -6,28 +6,11 @@ from pathlib import Path
 
 from ml.api.core.paths import paths
 from ml.StrategyPipeline.strategies.components.defaults import (
+    DEFAULT_CATEGORY_MAP,
     DEFAULT_MASK_THRESHOLD,
+    DEFAULT_PROMPT_MAP,
     DEFAULT_SCORE_THRESHOLD,
 )
-
-
-DEFAULT_CATEGORY_MAP = {
-    1: "dent",
-    2: "scratch",
-    3: "crack",
-    4: "glass shatter",
-    5: "lamp broken",
-    6: "tire flat",
-}
-
-DEFAULT_PROMPT_MAP = {
-    1: "a visible dent on the metal body of a car",
-    2: "a visible scratch on the painted surface of a car",
-    3: "a visible crack on a car part or surface",
-    4: "shattered or broken car window glass",
-    5: "a broken or damaged car headlamp or tail lamp",
-    6: "a flat or deflated car tire",
-}
 
 
 # os.getenv siempre devuelve texto o none.

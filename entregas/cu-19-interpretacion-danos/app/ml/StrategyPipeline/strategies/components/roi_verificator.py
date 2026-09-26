@@ -99,11 +99,21 @@ class RoiVerificationManager:
             # para proponer rois seguimos usando prompts genéricos de texto
             return [PromptSpec.text_prompt(verifier.config.proposal_prompts[0])]
 
-        # si no hay verifier, resolvemos el prompt tal y como lo definió la strategy
-        return normalize_prompt_specs(
-            prompt_map.get(category_id),
-            fallback_text=category_name,
-        )
+        # si no hay verifier, resolvemos el prompt tal y como lo definio la strategy.
+        # self.prompt_map ya deberia cubrir todas las categorias (lo garantiza
+        # resolve_prompt_map en el constructor de la strategy), asi que llegar
+        # aqui sin prompt es un error de contrato, no un caso a resolver en
+        # silencio con el nombre desnudo de la categoria
+        prompt_value = prompt_map.get(category_id)
+        if prompt_value is None:
+            raise StrategyContractError(
+                "No hay prompt configurado para category_id="
+                f"{category_id} ({category_name!r}). Pasa un prompt_map "
+                "explicito para esta categoria en vez de dejar que caiga en "
+                "el nombre desnudo de la categoria."
+            )
+
+        return normalize_prompt_specs(prompt_value)
 
 
     def verify_candidates(
