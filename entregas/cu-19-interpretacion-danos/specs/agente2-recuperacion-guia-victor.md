@@ -58,11 +58,17 @@ ficheros de texto/markdown/csv, no hace falta nada sofisticado):
   glass_shatter,parabrisas,320
   glass_shatter,ventanilla,150
   tire_flat,neumatico,90
+  dent,puerta,250
+  scratch,puerta,90
+  crack,parabrisas,280
   ```
 
-  Solo hacen falta las 3 categorías activas (`lamp_broken`, `glass_shatter`,
-  `tire_flat` — `dent`/`scratch`/`crack` están excluidas por ahora, ver
-  `agente-confianza-hallazgos.md`).
+  Hacen falta las 6 categorías de daño (`lamp_broken`, `glass_shatter`,
+  `tire_flat`, `dent`, `scratch`, `crack`) — ninguna se excluye del informe,
+  ver `agente-confianza-hallazgos.md`. `dent`/`scratch`/`crack` simplemente
+  llegan con más frecuencia como `needs_review` en vez de `confirmed`, pero
+  cuando sí llegan, el Agente 2 necesita poder recuperar su procedimiento y
+  precio igual que para las otras 3.
 
 - **Procedimientos de reparación.** Un documento de texto por categoría (o
   uno solo con varias secciones), describiendo en 2-4 frases cómo se repara
@@ -153,8 +159,8 @@ uno.
 
 ## Definición de terminado
 
-- [ ] Tabla de precios y procedimientos creados para las 3 clases activas.
+- [ ] Tabla de precios y procedimientos creados para las 6 clases de daño.
 - [ ] Base vectorial montada y consultable.
 - [ ] `buscar_procedimiento(finding)` devuelve el JSON de salida correcto
-      para al menos un ejemplo de cada una de las 3 clases.
+      para al menos un ejemplo de cada una de las 6 clases.
 - [ ] Probado de forma aislada, sin depender del código de Lucía ni de Lucas.

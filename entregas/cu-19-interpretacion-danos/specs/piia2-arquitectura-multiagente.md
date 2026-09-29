@@ -43,8 +43,9 @@ leer el JSON de PIIA-1 (categoría, máscara, score) — también debe mirar el
 recorte de imagen de cada daño con un modelo con visión (Claude o GPT con
 visión, usando la API Key de la infraestructura del caso). Esto añade una
 segunda fuente de evidencia, útil sobre todo para las clases que PIIA-1 no
-detecta con fiabilidad (ver `agente-confianza-hallazgos.md`: `dent`,
-`scratch`, `crack` están excluidas del informe automático por ahora).
+detecta con fiabilidad (ver `agente-confianza-hallazgos.md`: ninguna clase
+se excluye, pero `dent`/`scratch`/`crack` tienen un threshold de `confirmed`
+más exigente y dependen más de esta segunda fuente de evidencia).
 
 ## Contrato de datos entre agentes
 
@@ -60,8 +61,9 @@ ejemplo de cómo convertir esto a JSON (`build_json_summary`).
 
 ### Agente 1 → Agente 2 y Agente 3
 
-Un "hallazgo" (finding) por cada detección que pase el filtro de confianza
-(`confirmed` o `needs_review`; las `excluded` no llegan aquí):
+Un "hallazgo" (finding) por cada detección de PIIA-1, con un
+`confidence_tier` asignado (`confirmed` o `needs_review` — ninguna detección
+se descarta en esta capa):
 
 ```json
 {
@@ -105,9 +107,9 @@ de daños confirmados vs. pendientes de revisión, coste total desglosado
 - Cada agente se puede desarrollar y probar por separado si se respeta el
   contrato JSON de arriba — no hace falta esperar a que los otros dos estén
   terminados para empezar a programar contra datos de ejemplo.
-- `dent`, `scratch`, `crack` no llegan al Agente 2/3 en la v1 (están
-  `excluded`, ver `agente-confianza-hallazgos.md`). El sistema debe seguir
-  funcionando bien con solo 3 clases de daño activas.
+- Las 6 clases de daño llegan al Agente 2/3 (ninguna se excluye, ver
+  `agente-confianza-hallazgos.md`). El Agente 2 necesita procedimiento +
+  precio para las 6, no solo para 3.
 - Infraestructura: Google Colab Pro + API Key (para el modelo de visión del
   Agente 1 y el LLM del Agente 3; el Agente 2 puede usar la misma API para
   generar embeddings, o un modelo local si prefiere no gastar cuota).
@@ -117,9 +119,9 @@ de daños confirmados vs. pendientes de revisión, coste total desglosado
 
 ## Criterios de aceptación
 
-1. Dada la salida de PIIA-1 sobre una imagen con al menos un daño de las 3
-   clases activas, el sistema completo produce un informe con al menos un
-   hallazgo, su procedimiento de reparación y su precio estimado.
+1. Dada la salida de PIIA-1 sobre una imagen con al menos un daño de
+   cualquiera de las 6 clases, el sistema completo produce un informe con al
+   menos un hallazgo, su procedimiento de reparación y su precio estimado.
 2. El informe distingue visiblemente entre hallazgos `confirmed` y
    `needs_review`.
 3. Cada agente puede ejecutarse y probarse de forma aislada, pasándole datos

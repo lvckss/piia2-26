@@ -9,8 +9,8 @@ añadirlos ahí cuando generemos el lote real de imágenes).
 |---|---|
 | `ejemplo_1_faro_roto.json` | Caso simple: una detección, clase fiable, score alto → `confirmed`. |
 | `ejemplo_2_cristal_y_rueda.json` | Dos detecciones de clases distintas, ambas fiables → las dos `confirmed`. |
-| `ejemplo_3_mixto_dificil.json` | Fuerza los 3 niveles a la vez en la misma imagen: `lamp broken` score alto → `confirmed`; `tire flat` score bajo (0.45, por debajo de 0.6) → `needs_review`; `dent` → `excluded` sin importar el score (ver `EXCLUDED_CATEGORIES` en `specs/agente-confianza-hallazgos.md`). |
+| `ejemplo_3_mixto_dificil.json` | Fuerza los 2 tiers a la vez en la misma imagen: `lamp broken` score 0.91 (≥0.6) → `confirmed`; `tire flat` score 0.45 (<0.6) → `needs_review`; `dent` score 0.68 (<0.7, threshold más exigente por ser clase menos fiable) → también `needs_review`. Ninguna se excluye (ver `specs/agente-confianza-hallazgos.md`). |
 
 Si `classify_confidence` está bien implementado, el ejemplo 3 debería
-devolver exactamente un hallazgo de cada tier — es el mejor para comprobar
-que la lógica funciona antes de nada más.
+devolver 3 hallazgos: 1 `confirmed` y 2 `needs_review` — es el mejor para
+comprobar que la lógica funciona antes de nada más.
