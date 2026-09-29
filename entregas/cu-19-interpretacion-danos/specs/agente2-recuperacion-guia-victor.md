@@ -77,7 +77,7 @@ ficheros de texto/markdown/csv, no hace falta nada sofisticado):
   ```
 
 Guarda estos ficheros donde tenga sentido en el repo, por ejemplo
-`entregas/cu-19-interpretacion-danos/app/piia2/data/`.
+`entregas/cu-19-interpretacion-danos/app/agentes/agente_recuperacion/data/`.
 
 ### 2. Monta la base vectorial
 
