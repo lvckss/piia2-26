@@ -1,0 +1,20 @@
+{
+  "image_id": 42,
+  "vehicle_type": "sedan",
+  "variant": "baseline",
+  "strategy_name": "baseline_prompt",
+  "image_path": "bd/rawdata/images/000042.jpg",
+  "image_width": 1400,
+  "image_height": 933,
+  "num_predictions": 1,
+  "predictions": [
+    {
+      "instance_index": 1,
+      "damage_class": "lamp broken",
+      "category_id": 5,
+      "score": 0.94,
+      "bbox_xywh": [980.0, 310.0, 180.0, 150.0],
+      "area": 21400.0
+    }
+  ]
+}

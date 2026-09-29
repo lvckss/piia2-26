@@ -1,0 +1,28 @@
+{
+  "image_id": 87,
+  "vehicle_type": "suv",
+  "variant": "baseline",
+  "strategy_name": "baseline_prompt",
+  "image_path": "bd/rawdata/images/000087.jpg",
+  "image_width": 1200,
+  "image_height": 800,
+  "num_predictions": 2,
+  "predictions": [
+    {
+      "instance_index": 1,
+      "damage_class": "glass shatter",
+      "category_id": 4,
+      "score": 0.85,
+      "bbox_xywh": [150.0, 60.0, 400.0, 220.0],
+      "area": 68000.0
+    },
+    {
+      "instance_index": 2,
+      "damage_class": "tire flat",
+      "category_id": 6,
+      "score": 0.72,
+      "bbox_xywh": [60.0, 520.0, 210.0, 210.0],
+      "area": 31000.0
+    }
+  ]
+}
