@@ -2,8 +2,8 @@
 
 3 JSON escritos a mano, con el mismo formato que produce
 `ml/scripts/infer_robust_single_image.py` (`build_json_summary`), más
-`image_id` y `vehicle_type` (que esa función todavía no incluye — falta
-añadirlos ahí cuando generemos el lote real de imágenes).
+`image_id` (que esa función todavía no incluye — falta añadirlo ahí cuando
+generemos el lote real de imágenes).
 
 | Fichero | Qué prueba |
 |---|---|

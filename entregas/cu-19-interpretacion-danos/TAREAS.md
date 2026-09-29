@@ -1,32 +1,29 @@
-# Tareas — mejora de robustez por tipo de vehículo
+# Tareas — mejora de robustez del pipeline de detección (PIIA-1)
 
 Detalle completo, contexto y criterios de aceptación de cada punto en
 [`specs/mejora-robustez-tipos-vehiculo.md`](specs/mejora-robustez-tipos-vehiculo.md).
 
 Todas las tareas quedan asignadas a Lucía.
 
+> [!NOTE]
+> **Actualización 29/09/2026: la instrumentación por `vehicle_type` (tarea 1
+> y tarea 7 de abajo) se construyó y se revirtió por completo.** CarDD no
+> trae esa etiqueta de fábrica; se había escrito un clasificador zero-shot
+> con CLIP para generarla (`label_vehicle_types.py`), pero nunca llegó a
+> correrse sobre el dataset real. Mantener `vehicle_type`/`per_vehicle` en el
+> pipeline sin ningún dato real detrás — solo reportando siempre `"unknown"`
+> — era complejidad sin validar y sin plan real de validarla, así que se optó
+> por quitarla en vez de dejarla a medias. El umbral por clase de daño (tarea
+> 3, sí calibrado con datos reales) es independiente de esto y se mantiene
+> intacto. Se deja esta nota en vez de borrar el historial de abajo para que
+> quede constancia de qué se intentó y por qué se descartó.
+
 ## Medición e infraestructura de evaluación
 
-- [x] 1a. Campo `vehicle_type` en `ImageSample`/`SampleRef`/`ImageEvalRecord`,
-      propagado por `StrategyModule.run()`, validado en
-      `validate_evaluator_input`, y visible en `per_image`.
-- [x] 1b. Dimensión `per_vehicle` en el `Evaluator`
-      (`ml/StrategyPipeline/evaluation/metrics/vehicle_metrics.py`), mismo
-      patrón que `per_condition`. Sin etiquetar, las imágenes quedan visibles
-      como `"unknown"` en vez de desaparecer del desglose.
-- [x] 1c. `CarddLoader(vehicle_types_path=...)` para leer el mapeo
-      `image_id -> vehicle_type` desde un json externo.
-- [ ] 1d. Script `ml/scripts/label_vehicle_types.py` (zero-shot con CLIP)
-      escrito y listo, pero **pendiente de ejecutar sobre el dataset real**:
-      esto requiere el CarDD descargado + un entorno con `torch`/
-      `transformers`, que no están disponibles en este equipo. Ejecutar donde
-      esté montado el dataset:
-      ```bash
-      python ml/scripts/label_vehicle_types.py \
-        --ann-path bd/rawdata/instances_all.json \
-        --img-dir bd/rawdata/images \
-        --output-path ml/config/vehicle_types.json
-      ```
+- [x] ~~1a-1d. Campo `vehicle_type` + dimensión `per_vehicle` en el
+      `Evaluator` + `CarddLoader(vehicle_types_path=...)` +
+      `label_vehicle_types.py`~~ — **revertido el 29/09/2026**, ver nota de
+      arriba.
 - [x] 2. Unificar `score_threshold`/`mask_threshold` en una única fuente de
       configuración. `mask_threshold` ya era 0.5 en todos los sitios; el
       divergente era `score_threshold` (baseline 0.3, sahi 0.8, geom_ensemble
@@ -112,21 +109,12 @@ Todas las tareas quedan asignadas a Lucía.
 
 ## Al cierre (depende de la tarea 1)
 
-- [x] 7. Infraestructura de recalibración por tipo de vehículo:
-      - `SahiStrategy(slice_size_by_vehicle_type=..., overlap_ratio_by_vehicle_type=...)`:
-        `_generate_slices` ahora acepta overrides por llamada, resueltos por
-        `sample.vehicle_type` en cada `_predict_instances`.
-      - `GeometricEnsembleStrategy(perturbation_scale_by_vehicle_type=...)`:
-        en vez de cargar un `Sam3Backend` (y su SAM3 completo) por cada valor,
-        reemplaza `sam3_backend.geometric_ensemble_config` por imagen con
-        `dataclasses.replace`, cambiando solo `perturbation_scale`.
-      - Ambas usan el helper genérico `resolve_value_by_vehicle_type`
-        (`strategies/components/defaults.py`). Sin estos parámetros, el
-        comportamiento es idéntico al de antes.
-      **Pendiente real:** una vez que la tarea 1 esté corrida sobre el dataset
-      real y `output.per_vehicle` muestre qué tipos de vehículo necesitan un
-      slicing o una perturbación distintos, decidir y fijar esos valores —
-      necesita la máquina con el CarDD + GPU montados, no disponibles aquí.
+- [x] ~~7. Infraestructura de recalibración por tipo de vehículo
+      (`slice_size_by_vehicle_type`/`overlap_ratio_by_vehicle_type` en
+      `SahiStrategy`, `perturbation_scale_by_vehicle_type` en
+      `GeometricEnsembleStrategy`)~~ — **revertido el 29/09/2026** junto con
+      la tarea 1, ver nota de arriba: dependía de `vehicle_type`, que ya no
+      existe en el pipeline.
 
 ## Decisión de alcance para PIIA2 (actualizado 29/09/2026)
 

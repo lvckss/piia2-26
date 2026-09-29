@@ -75,12 +75,6 @@ def _validate_sample_alignment(
             f"sample={sample.is_clean}, result={ref.is_clean}"
         )
 
-    if ref.vehicle_type != sample.vehicle_type:
-        raise EvaluationContractError(
-            "vehicle_type inconsistente entre sample y result.sample: "
-            f"sample={sample.vehicle_type!r}, result={ref.vehicle_type!r}"
-        )
-
 
 def _validate_ground_truth(
     sample: ImageSample,

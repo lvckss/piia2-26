@@ -68,7 +68,6 @@ se descarta en esta capa):
 ```json
 {
   "image_id": 123,
-  "vehicle_type": "sedan",
   "findings": [
     {
       "finding_id": "123-1",

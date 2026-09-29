@@ -1,6 +1,5 @@
 {
   "image_id": 87,
-  "vehicle_type": "suv",
   "variant": "baseline",
   "strategy_name": "baseline_prompt",
   "image_path": "bd/rawdata/images/000087.jpg",

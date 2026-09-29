@@ -9,7 +9,7 @@ from confianza import classify_confidence
 
 def cargar_detecciones(json_path: str | Path) -> dict[str, Any]:
     """Lee el JSON de detecciones de PIIA-1 (formato `build_json_summary`
-    + `image_id`/`vehicle_type`, ver `ejemplos/README.md`)."""
+    + `image_id`, ver `ejemplos/README.md`)."""
     with open(json_path, encoding="utf-8") as f:
         return json.load(f)
 
@@ -40,7 +40,6 @@ def construir_hallazgos(deteccion: dict[str, Any]) -> dict[str, Any]:
         )
     return {
         "image_id": image_id,
-        "vehicle_type": deteccion["vehicle_type"],
         "findings": findings,
     }
 
