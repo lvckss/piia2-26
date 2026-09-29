@@ -48,9 +48,14 @@ Todas las tareas quedan asignadas a Lucía.
       categorías, y cada categoría se filtra después con su propio umbral (o
       con `score_threshold` si no tiene uno propio) — sin usar el mapa, el
       comportamiento es idéntico al de antes.
-      **Pendiente real:** decidir los valores por clase mirando
-      `output.per_class` sobre el dataset real (necesita la tarea 1 y una
-      máquina con el CarDD + GPU montados, no disponibles aquí).
+      **Calibrado con datos reales el 29/09/2026** (BaselineStrategy, 150-200
+      imágenes de `val` en Colab): `lamp_broken`/`glass_shatter`/`tire_flat`
+      funcionan bien a threshold≈0.3-0.6. Para `dent`/`scratch`/`crack` el
+      barrido completo (0.1 a 0.85) **no encontró ningún threshold con
+      precisión y recall aceptables a la vez** — mejor caso `dent` a 0.70:
+      11.5% precisión, 6.6% recall; a 0.85 las tres caen a 0%/0%. Conclusión:
+      no es un problema de calibración de threshold, ver decisión de alcance
+      más abajo.
 
 ## Prompts y verificación visual
 
@@ -66,9 +71,14 @@ Todas las tareas quedan asignadas a Lucía.
       `settings.py`, `evaluator.py` y `notebook_utils.py`.
       Variante de texto: `DEFAULT_PROMPT_MAP_V2` en el mismo módulo (usa
       "vehicle" en vez de "car" en las seis clases).
-      **Pendiente real:** decidir si v2 (o alguna otra redacción) mejora
-      `output.per_class` frente a v1 sobre `val` — necesita la máquina con el
-      CarDD + GPU montados, no disponibles aquí.
+      **Probado con datos reales el 29/09/2026:** 3 variantes de prompt para
+      `crack` sobre 150 imágenes de `val` (BaselineStrategy). Ninguna mejoró
+      la original: `v2` (más específica, "rigid part") se quedó en 0%
+      precisión y 0% recall — dejó de detectar cualquier crack real; `v3`
+      (con negación "not a paint scratch") perdió casi todo el recall (4.1%
+      vs 32.7% de la original) sin ganar precisión utilizable. Lección: los
+      modelos zero-shot tipo SAM3/CLIP manejan mal la negación en el prompt.
+      Se mantiene el prompt original; ver decisión de alcance más abajo.
 - [x] 5. Extender CLIP + Tip-Adapter a `dent`. Añadido siguiendo exactamente
       el mismo patrón que `flat_tire`/`broken_lamp`:
       - [export_dent_roi_crops.py](../app/ml/scripts/export_dent_roi_crops.py)
@@ -117,3 +127,18 @@ Todas las tareas quedan asignadas a Lucía.
       real y `output.per_vehicle` muestre qué tipos de vehículo necesitan un
       slicing o una perturbación distintos, decidir y fijar esos valores —
       necesita la máquina con el CarDD + GPU montados, no disponibles aquí.
+
+## Decisión de alcance para PIIA2 (29/09/2026)
+
+Con datos reales de `val` en mano (barrido de thresholds + prueba de prompts
+de `crack`, ambos sobre `BaselineStrategy`), **`dent`, `scratch` y `crack` se
+excluyen del informe automático de PIIA2 hasta que haya una mejora real de
+detección** (no de calibración — eso ya se agotó). PIIA2 arranca apoyado solo
+en `lamp_broken`, `glass_shatter` y `tire_flat`, que sí tienen una curva
+precisión/recall utilizable. Detalle y `classify_confidence(...)` en
+[`specs/agente-confianza-hallazgos.md`](specs/agente-confianza-hallazgos.md).
+
+Vías para reincorporar `dent`/`scratch`/`crack` más adelante (ninguna es un
+ajuste de threshold): extender CLIP + Tip-Adapter (base ya lista para `dent`
+en la tarea 5), prompts basados en exemplars en vez de texto puro, o
+fine-tuning.
