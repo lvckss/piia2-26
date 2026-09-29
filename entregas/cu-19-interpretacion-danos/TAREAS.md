@@ -128,14 +128,22 @@ Todas las tareas quedan asignadas a Lucía.
       slicing o una perturbación distintos, decidir y fijar esos valores —
       necesita la máquina con el CarDD + GPU montados, no disponibles aquí.
 
-## Decisión de alcance para PIIA2 (29/09/2026)
+## Decisión de alcance para PIIA2 (actualizado 29/09/2026)
 
-Con datos reales de `val` en mano (barrido de thresholds + prueba de prompts
-de `crack`, ambos sobre `BaselineStrategy`), **`dent`, `scratch` y `crack` se
-excluyen del informe automático de PIIA2 hasta que haya una mejora real de
-detección** (no de calibración — eso ya se agotó). PIIA2 arranca apoyado solo
-en `lamp_broken`, `glass_shatter` y `tire_flat`, que sí tienen una curva
-precisión/recall utilizable. Detalle y `classify_confidence(...)` en
+Primera versión de esta decisión (excluir `dent`/`scratch`/`crack` del
+informe) revisada: la precisión bruta a threshold=0.3 de `lamp_broken`
+(18.6%), `glass_shatter` (15.3%) y `tire_flat` (19.0%) tampoco era buena, y
+su threshold de `confirmed` (0.6) se había asumido sin comprobar con un
+barrido real. No es coherente excluir 3 clases sin verificar antes las otras
+3 con el mismo rigor.
+
+**Decisión final: ninguna clase se excluye.** Las 6 pasan por el mismo
+esquema `confirmed`/`needs_review`, con un threshold de `confirmed` por
+clase calibrado con datos — no con una lista de exclusión fija. El barrido
+de thresholds se extendió a las 6 clases (antes solo cubría
+`dent`/`scratch`/`crack`); pendiente correr esa celda en Colab y fijar los
+valores finales de `CATEGORY_REVIEW_THRESHOLD`. Detalle y
+`classify_confidence(...)` en
 [`specs/agente-confianza-hallazgos.md`](specs/agente-confianza-hallazgos.md).
 
 Vías para reincorporar `dent`/`scratch`/`crack` más adelante (ninguna es un
