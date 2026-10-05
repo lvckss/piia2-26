@@ -191,6 +191,8 @@ def generar_informe(agente1, agente2, hoy=None):
     esc_conf = agente2["escenarios"]["confirmados"]
     esc_pend = agente2["escenarios"]["con_pendientes"]
     por_id = {f["finding_id"]: f for f in agente1["findings"]}
+    # PIIA-1 puede dar decenas de detecciones por imagen; el Agente 1 solo manda al modelo de visión las candidatas
+    total_detecciones = agente1.get("resumen_filtro_previo", {}).get("detecciones_totales", len(agente1["findings"]))
 
     confirmados = [por_id[i] for i in esc_conf["hallazgos_incluidos"]]
     pendientes = [por_id[i] for i in esc_pend["hallazgos_incluidos"] if i not in esc_conf["hallazgos_incluidos"]]
@@ -210,7 +212,8 @@ def generar_informe(agente1, agente2, hoy=None):
         "",
         "## Resumen",
         "",
-        f"- Daños detectados: **{len(agente1['findings'])}** — {len(confirmados)} confirmados, {len(pendientes)} pendientes de revisión, {len(fuera)} no incluidos en el coste.",
+        f"- Detecciones de PIIA-1: **{total_detecciones}**; analizadas por la visión: **{len(agente1['findings'])}** — "
+        f"{len(confirmados)} confirmados, {len(pendientes)} pendientes de revisión, {len(fuera)} no incluidos en el coste.",
         f"- Coste de reparación **solo con daños confirmados**: {eur(est_c['subtotal_sin_iva_eur'])} sin IVA ({eur(est_c['total_con_iva_eur'])} con IVA).",
         f"- Coste **incluyendo los pendientes**: {eur(est_p['subtotal_sin_iva_eur'])} sin IVA ({eur(est_p['total_con_iva_eur'])} con IVA).",
         f"- Pérdida total (valor venal {eur(agente2['valor_venal_eur'])}, umbral {agente2['umbral_perdida_total']:.0%}): "

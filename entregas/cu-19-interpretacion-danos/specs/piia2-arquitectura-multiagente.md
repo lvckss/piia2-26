@@ -129,12 +129,27 @@ opinión del modelo de visión.
 
 ### Agente 1 → Agente 2 y Agente 3
 
-Un *hallazgo* (finding) por cada detección de PIIA-1. Ninguna se descarta en
-esta capa; lo que no se confirma queda como `needs_review`:
+PIIA-1 deja **~37 detecciones por imagen** (con score ≥ 0,3), el 97 % falsas
+en `dent`/`scratch`/`crack`. Mandarlas todas al modelo de visión costaría
+18.507 llamadas para 500 imágenes, así que el Agente 1 aplica antes un
+**filtro previo por clase** (`seleccion.py`, medido con las 500 imágenes
+exportadas; ver `agente-confianza-hallazgos.md`): `glass shatter` con score
+≥ 0,5, y las 2 mejores por imagen en el resto de clases. Quedan ~3.700 llamadas
+y se conserva el 94-100 % del recall de las clases que PIIA-1 detecta bien.
+
+Un *hallazgo* (finding) por cada detección **candidata**. Ninguna *clase* se
+excluye; las detecciones que no pasan el filtro no se mandan a la visión y
+quedan contadas en `resumen_filtro_previo`, para que nada desaparezca sin
+rastro. Entre las candidatas, lo que no se confirma queda como `needs_review`:
 
 ```json
 {
   "image_id": 160,
+  "resumen_filtro_previo": {
+    "detecciones_totales": 31,
+    "candidatas": 5,
+    "descartadas_por_clase": { "dent": 9, "scratch": 8, "crack": 9 }
+  },
   "findings": [
     {
       "finding_id": "160-1",
@@ -216,7 +231,8 @@ complejo: la empresa dijo que se vea más adelante).
 
 | Qué | Cómo |
 |---|---|
-| Segunda opinión de visión (Agente 1) | Con las ~500 detecciones etiquetadas (`is_true_positive`): ¿cuántos falsos positivos rechaza la visión y cuántos aciertos reales descarta por error? Misma muestra de 30-50 imágenes para cada modelo → tabla de comparación de modelos (precisión del filtro vs. coste en €). |
+| Segunda opinión de visión (Agente 1) | Con las ~500 detecciones etiquetadas (`is_true_positive`): ¿cuántos falsos positivos rechaza la visión y cuántos aciertos reales descarta por error? Lo mide `agente_multimodal/evaluar_vision.py` con la misma muestra de 40 imágenes (~310 llamadas por modelo) para cada modelo → tabla de comparación de modelos (precisión del filtro vs. tokens/coste). Por defecto solo cuenta las llamadas; hace falta `--ejecutar` para gastar. No mide si pieza y severidad son correctas (CarDD no trae esas etiquetas): eso se revisa a mano en una muestra. |
+| Techo de PIIA-1 | `agente_multimodal/analizar_detecciones.py`: curvas de precisión/recall por clase y umbral. A score ≥ 0,3 PIIA-1 solo encuentra el 32 % de las abolladuras, el 35 % de los arañazos y el 65 % de las grietas; la visión solo puede verificar lo que SAM3 propone, así que **en esas clases «no detectado» no significa «no hay daño»** (debe constar en las limitaciones). |
 | Costes (Agente 2) | Con los siniestros sintéticos (`split` val/test): llamar a la tool con los daños reales da un error (MAPE) de ≈ 9 % contra `coste_facturado_sin_iva_eur`; es el suelo. Ojo: esos siniestros **no tienen foto**, así que sirven para evaluar la parte de costes y cobertura, no la cadena completa desde la imagen. |
 | RAG (Agente 2) | Las 25 preguntas de `preguntas_evaluacion.csv`: ¿aparece la fuente esperada entre los k fragmentos recuperados? |
 | Informe (Agente 3) | Revisión automática de que **todas** las cifras en euros del informe coinciden con las de la salida del Agente 2. |
