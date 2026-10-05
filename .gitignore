@@ -1,2 +1,9 @@
 # dataset CarDD copiado en local para pruebas (varios GB, no se sube a git)
 CarDD_release/
+
+# paquete de datos de la empresa (piia2_paquete_datos.zip extraido en local):
+# cada miembro lo extrae en su copia; no se redistribuye desde el repo
+piia2_paquete_datos/
+
+# detecciones de PIIA-1 exportadas de Colab (derivadas de las anotaciones de CarDD)
+piia2_detecciones/

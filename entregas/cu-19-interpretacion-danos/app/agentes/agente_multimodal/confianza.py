@@ -21,8 +21,8 @@ DEFAULT_REVIEW_THRESHOLD = 0.8
 
 
 def classify_confidence(category_name: str, score: float) -> ConfidenceTier:
-    """Decide si un hallazgo se puede afirmar (`confirmed`) o si el informe
-    debe presentarlo como pendiente de verificacion humana (`needs_review`).
+    """Primer filtro, solo con el score de PIIA-1: `confirmed` si pasa el
+    umbral de su clase, `needs_review` si no.
 
     Un falso positivo con score alto seria una afirmacion economica falsa en
     el informe; un falso negativo simplemente omite un dano real. Por eso el
@@ -30,3 +30,28 @@ def classify_confidence(category_name: str, score: float) -> ConfidenceTier:
     """
     threshold = CATEGORY_REVIEW_THRESHOLD.get(category_name, DEFAULT_REVIEW_THRESHOLD)
     return "confirmed" if score >= threshold else "needs_review"
+
+
+def decidir_tier(
+    category_name: str,
+    score: float,
+    vision_verdict: str | None,
+    pieza_id: str | None,
+    regla_coste_aplicable: bool | None,
+) -> ConfidenceTier:
+    """Tier final: `confirmed` solo si coinciden las tres condiciones. Nada
+    se descarta aqui; lo que no cumple alguna queda como `needs_review` y el
+    informe lo presenta como pendiente de verificacion.
+
+    1. el score de PIIA-1 pasa el umbral de su clase,
+    2. el modelo de vision confirma el dano (segunda opinion),
+    3. se sabe sobre que pieza esta y la tool de costes tiene una regla para
+       esa clase + pieza + severidad (si no, no se puede presupuestar).
+    """
+    if classify_confidence(category_name, score) != "confirmed":
+        return "needs_review"
+    if vision_verdict != "confirmado":
+        return "needs_review"
+    if pieza_id is None or regla_coste_aplicable is not True:
+        return "needs_review"
+    return "confirmed"
