@@ -3,12 +3,29 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from PIL import Image
+from PIL import Image, ImageDraw
 
 # Margen relativo (fraccion del ancho/alto del bbox) anadido por cada lado
 # al recortar, para darle al modelo de vision contexto alrededor del bbox
 # exacto de PIIA-1 en vez de un recorte justo al borde del dano.
 MARGEN_RELATIVO = 0.15
+
+
+def imagen_con_caja(
+    imagen: Image.Image, bbox_xywh: list[float], max_lado: int = 1024
+) -> Image.Image:
+    """Foto completa con el bbox dibujado en rojo y reducida a `max_lado`.
+    El recorte solo no basta para saber la pieza (izquierda/derecha,
+    delantera/trasera): hace falta el contexto de toda la foto."""
+    img = imagen.convert("RGB").copy()
+    x, y, w, h = bbox_xywh
+    grosor = max(3, round(max(img.size) / 300))
+    ImageDraw.Draw(img).rectangle([x, y, x + w, y + h], outline="red", width=grosor)
+
+    escala = max_lado / max(img.size)
+    if escala < 1:
+        img = img.resize((round(img.width * escala), round(img.height * escala)), Image.LANCZOS)
+    return img
 
 
 def recortar_hallazgo(
