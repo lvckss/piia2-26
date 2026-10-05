@@ -1,8 +1,8 @@
 ---
-description: Group all current repository changes into meaningful semantic commits and push the current branch
+description: Group all current repository changes into meaningful semantic commits on a feature branch (never on main), push that branch, and open a pull request for the team to merge
 ---
 
-Group all current repository changes into meaningful, atomic commits and push the current branch.
+Group all current repository changes into meaningful, atomic commits on a feature branch, push that branch, and open a pull request. Commits are never made directly on `main`, and the pull request is never merged by this command.
 
 Optional context for commit messages:
 
@@ -10,7 +10,7 @@ $ARGUMENTS
 
 ## Objective
 
-Inspect every current repository change, group related files by intent, create clear semantic commits, and push the current branch only after all commits succeed.
+Inspect every current repository change, make sure the work lives on a feature branch (see "Branch policy"), group related files by intent, create clear semantic commits, push the feature branch only after all commits succeed, and open a pull request.
 
 Do not modify the contents of any file. This command is only for reviewing, staging, committing, and pushing changes that already exist.
 
@@ -25,7 +25,9 @@ Do not modify the contents of any file. This command is only for reviewing, stag
 - Do not force-push.
 - Do not create empty commits.
 - Do not bypass failed hooks or checks.
-- Do not switch branches.
+- Never commit directly on `main` or `master`, and never push to them.
+- Never merge a pull request and never enable auto-merge: the team merges pull requests manually after review.
+- Do not switch branches, except the single creation of a feature branch described in "Branch policy".
 - Do not rebase, merge, pull, or rewrite history.
 - Do not include files whose purpose has not been understood.
 - Do not silently ignore untracked, modified, staged, renamed, or deleted files.
@@ -58,6 +60,23 @@ Also determine:
 If there is an unfinished Git operation, unresolved conflict, detached `HEAD`, or another unsafe repository state, stop and explain the problem before making commits.
 
 If there are no changes to commit, report that and stop without pushing.
+
+## Branch policy
+
+All work goes through a feature branch and a pull request. Direct commits on `main` or `master` are not allowed.
+
+- If the current branch is already a feature branch (anything other than `main`/`master`), stay on it.
+- If the current branch is `main` or `master`:
+  - If local `main` already has commits that are not on its upstream (`git log @{u}..HEAD`), stop and explain the situation to the user before doing anything. Do not reset or rewrite `main` to fix it.
+  - Otherwise, create and switch to a new branch from the current `HEAD` before staging or committing anything. Uncommitted changes carry over to the new branch:
+
+    ```bash
+    git switch -c <type>/<short-kebab-description>
+    ```
+
+    Use the dominant commit type and a short description of the change, for example `feat/agente1-recorte-imagen` or `docs/guia-agente2`. If the user passed a branch name in `$ARGUMENTS`, use it.
+
+Never leave new commits on `main`.
 
 ## Sensitive-file inspection
 
@@ -221,7 +240,7 @@ Verify that:
 - No unrelated or sensitive file was included.
 - The working tree has no unexpected remaining changes.
 - All commits were created successfully.
-- The current branch is still the original branch.
+- The current branch is a feature branch, not `main` or `master`.
 
 If unexpected changes remain, do not push until they have been explained.
 
@@ -247,12 +266,23 @@ Do not use `--force` or `--force-with-lease`.
 
 If the push is rejected, stop and report the reason. Do not pull, rebase, merge, reset, or rewrite history automatically.
 
+## Pull request
+
+After a successful push, open a pull request from the feature branch into `main`.
+
+This repository is usually a fork, and `gh pr create` can default to the upstream repository instead of the fork. Always pass the target explicitly (`--repo <owner>/<repo> --base main --head <branch>`), and confirm the target repository with the user if it is not obvious from `git remote -v`.
+
+The pull request description must summarize what changed and why, based on the commits created.
+
+Do not merge the pull request, do not enable auto-merge, and do not approve it. If `gh` is not available or not authenticated, skip this step and give the user the branch name and the compare URL instead.
+
 ## Final summary
 
 When finished, report:
 
 - The branch that was pushed.
 - The remote used.
+- The pull request URL (or why it was not created).
 - Every commit created, including its short hash and message.
 - The files or logical purpose included in each commit.
 - Whether the push succeeded.
