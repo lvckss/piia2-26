@@ -58,7 +58,10 @@ def main() -> None:
         for finding in resultado["findings"]:
             assert Path(finding["crop_image_path"]).exists(), "falta el recorte en disco"
 
-    assert set(resultado) == {"image_id", "findings"}
+    assert set(resultado) == {"image_id", "resumen_filtro_previo", "findings"}
+    assert resultado["resumen_filtro_previo"] == {
+        "detecciones_totales": 3, "candidatas": 3, "descartadas_por_clase": {},
+    }, resultado["resumen_filtro_previo"]
     assert resultado["image_id"] == 160
     assert len(resultado["findings"]) == 3
     for finding in resultado["findings"]:

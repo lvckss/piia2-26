@@ -6,6 +6,7 @@ from typing import Any
 
 from catalogo import clase_a_tool
 from confianza import classify_confidence
+from seleccion import seleccionar_candidatos
 
 
 def cargar_detecciones(json_path: str | Path) -> dict[str, Any]:
@@ -16,10 +17,15 @@ def cargar_detecciones(json_path: str | Path) -> dict[str, Any]:
         return json.load(f)
 
 
-def construir_hallazgos(deteccion: dict[str, Any]) -> dict[str, Any]:
+def construir_hallazgos(deteccion: dict[str, Any], filtrar: bool = True) -> dict[str, Any]:
     """Convierte las predicciones crudas de PIIA-1 en la lista de `findings`
     del contrato Agente 1 -> Agente 2/3
     (`specs/piia2-arquitectura-multiagente.md`).
+
+    Con `filtrar=True` solo se convierten en hallazgos las detecciones que
+    pasan el filtro previo (ver `seleccion.py`); el resto no se manda al
+    modelo de vision y queda contado en `resumen_filtro_previo`, para que
+    nada desaparezca sin dejar rastro.
 
     Aqui solo se aplica el filtro por score. `vision_verdict`, `pieza_id`,
     `severidad`, `regla_coste_aplicable`, `vision_description` y
@@ -28,8 +34,14 @@ def construir_hallazgos(deteccion: dict[str, Any]) -> dict[str, Any]:
     veredicto (ver `vision.enriquecer_con_vision`).
     """
     image_id = deteccion["image_id"]
+    predicciones = deteccion["predictions"]
+    if filtrar:
+        candidatas, descartadas = seleccionar_candidatos(predicciones)
+    else:
+        candidatas, descartadas = list(predicciones), {}
+
     findings = []
-    for pred in deteccion["predictions"]:
+    for pred in candidatas:
         tier_por_score = classify_confidence(pred["damage_class"], pred["score"])
         findings.append(
             {
@@ -50,6 +62,11 @@ def construir_hallazgos(deteccion: dict[str, Any]) -> dict[str, Any]:
         )
     return {
         "image_id": image_id,
+        "resumen_filtro_previo": {
+            "detecciones_totales": len(predicciones),
+            "candidatas": len(candidatas),
+            "descartadas_por_clase": descartadas,
+        },
         "findings": findings,
     }
 

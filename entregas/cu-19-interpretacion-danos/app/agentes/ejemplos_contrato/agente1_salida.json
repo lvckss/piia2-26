@@ -1,5 +1,14 @@
 {
   "image_id": 160,
+  "resumen_filtro_previo": {
+    "detecciones_totales": 31,
+    "candidatas": 5,
+    "descartadas_por_clase": {
+      "dent": 9,
+      "scratch": 8,
+      "crack": 9
+    }
+  },
   "findings": [
     {
       "finding_id": "160-1",
