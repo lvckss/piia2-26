@@ -92,12 +92,15 @@ def analizar_hallazgo(
     finding: dict[str, Any],
     catalogo: Catalogo,
     cache_dir: str | Path | None = None,
+    uso: dict[str, int] | None = None,
 ) -> dict[str, Any]:
     """Segunda opinion de un modelo con vision sobre un hallazgo de PIIA-1.
 
     `client` es un cliente de OpenAI (o uno falso en las pruebas). Si se pasa
     `cache_dir`, la respuesta se guarda por (modelo, prompt, imagenes) y no se
-    vuelve a pagar la misma consulta.
+    vuelve a pagar la misma consulta. Si se pasa `uso`, se le suman las
+    llamadas y los tokens realmente facturados (lo que sale de la cache no
+    cuenta): claves `llamadas`, `prompt_tokens` y `completion_tokens`.
     """
     prompt = PROMPT_TEMPLATE.format(
         categoria=finding["category"], piezas=lista_piezas_para_prompt(catalogo)
@@ -131,6 +134,12 @@ def analizar_hallazgo(
         response_format={"type": "json_object"},
     )
     texto = respuesta.choices[0].message.content or ""
+
+    if uso is not None:
+        tokens = getattr(respuesta, "usage", None)
+        uso["llamadas"] = uso.get("llamadas", 0) + 1
+        uso["prompt_tokens"] = uso.get("prompt_tokens", 0) + int(getattr(tokens, "prompt_tokens", 0) or 0)
+        uso["completion_tokens"] = uso.get("completion_tokens", 0) + int(getattr(tokens, "completion_tokens", 0) or 0)
 
     if ruta_cache is not None:
         ruta_cache.parent.mkdir(parents=True, exist_ok=True)

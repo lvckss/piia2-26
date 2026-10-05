@@ -57,13 +57,25 @@ class _Eleccion:
 
 
 @dataclass
+class _Uso:
+    prompt_tokens: int
+    completion_tokens: int
+
+
+@dataclass
 class _Respuesta:
     choices: list[_Eleccion]
+    usage: _Uso
+
+
+# para clases sin respuesta preparada: la vision no se moja
+RESPUESTA_GENERICA = {"veredicto": "incierto", "pieza_id": None, "severidad": None, "descripcion": "No se aprecia con claridad."}
 
 
 class ClienteFalso:
-    """Imita `OpenAI()`: registra las peticiones y responde un JSON segun la
-    clase que aparece en el prompt."""
+    """Imita `OpenAI()`: registra las peticiones, responde un JSON segun la
+    clase que aparece en el prompt e informa de tokens (1.500 de entrada y 40
+    de salida por llamada)."""
 
     def __init__(self) -> None:
         self.llamadas: list[dict] = []
@@ -74,7 +86,8 @@ class ClienteFalso:
         self.llamadas.append({"model": model, "messages": messages, "response_format": response_format})
         texto_prompt = messages[0]["content"][0]["text"]
         categoria = texto_prompt.split("tipo '")[1].split("'")[0]
-        return _Respuesta([_Eleccion(_Mensaje(json.dumps(RESPUESTAS_POR_CLASE[categoria])))])
+        respuesta = RESPUESTAS_POR_CLASE.get(categoria, RESPUESTA_GENERICA)
+        return _Respuesta([_Eleccion(_Mensaje(json.dumps(respuesta)))], _Uso(1500, 40))
 
 
 def probar_decidir_tier() -> None:
@@ -153,6 +166,15 @@ def probar_enriquecer() -> None:
         enriquecer_con_vision(hallazgos, cliente, "modelo-falso", foto, MINI_CATALOGO, cache_dir=cache)
 
         assert len(cliente.llamadas) == 3
+
+        # contador de coste: tokens facturados, y la cache no cuenta
+        uso: dict[str, int] = {}
+        from vision import analizar_hallazgo
+        with Image.open(foto) as img:
+            analizar_hallazgo(cliente, "modelo-falso", img, hallazgos["findings"][0], MINI_CATALOGO, cache_dir=tmp_dir / "cache2", uso=uso)
+            analizar_hallazgo(cliente, "modelo-falso", img, hallazgos["findings"][0], MINI_CATALOGO, cache_dir=tmp_dir / "cache2", uso=uso)
+        assert uso == {"llamadas": 1, "prompt_tokens": 1500, "completion_tokens": 40}, uso
+        cliente.llamadas.pop()  # la llamada extra de esta comprobacion no cuenta para lo de abajo
         for llamada in cliente.llamadas:
             assert llamada["model"] == "modelo-falso"
             assert llamada["response_format"] == {"type": "json_object"}
