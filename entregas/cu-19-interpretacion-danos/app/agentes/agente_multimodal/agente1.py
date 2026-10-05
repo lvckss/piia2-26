@@ -21,7 +21,16 @@ def crear_cliente_openai() -> Any:
 
     from openai import OpenAI
 
-    return OpenAI()
+    # Sin brotli: con el paquete `brotli` (en realidad brotlipy) que trae algun
+    # Anaconda, httpx2 revienta al leer respuestas `br` con un TypeError sobre
+    # `output_buffer_limit`. gzip va bien. Ver agentes/README.md.
+    # timeout corto: por defecto el SDK espera 10 min por llamada, y una que se
+    # cuelga parece que el script esta parado
+    return OpenAI(
+        default_headers={"Accept-Encoding": "gzip, deflate"},
+        timeout=120.0,
+        max_retries=1,
+    )
 
 
 def resolver_modelo(modelo: str | None) -> str:

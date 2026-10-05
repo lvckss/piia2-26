@@ -148,7 +148,9 @@ DOCS = Path(__file__).resolve().parents[5] / "piia2_paquete_datos" / "docs"
 CHROMA_DIR = Path(__file__).resolve().parent / "chroma_db"
 MODELO_EMBEDDINGS = os.environ.get("OPENAI_EMBEDDINGS_MODEL", "text-embedding-3-small")
 
-cliente = OpenAI()  # lee OPENAI_API_KEY del entorno
+# lee OPENAI_API_KEY del entorno. La cabecera evita un fallo conocido con brotli
+# en algunos Anaconda (ver app/agentes/README.md, "Problemas conocidos")
+cliente = OpenAI(default_headers={"Accept-Encoding": "gzip, deflate"})
 
 
 def embeber(textos, lote=100):

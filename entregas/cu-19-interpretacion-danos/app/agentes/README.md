@@ -29,6 +29,21 @@ de piezas y reglas, pólizas, legislación y preguntas de evaluación). Se
 extrae en la raíz del repo como `piia2_paquete_datos/`. Está en
 `.gitignore`: **cada miembro lo extrae en su copia, no se sube a git**.
 
+## Problemas conocidos
+
+**`TypeError: Decompressor.decompress() got an unexpected keyword argument
+'output_buffer_limit'`** al llamar a la API de OpenAI. No es de la clave ni de
+nuestro código: en algunas instalaciones de Anaconda el paquete `brotli` es en
+realidad `brotlipy` (antiguo), que no entiende lo que le pide la librería HTTP
+del SDK de OpenAI al leer respuestas comprimidas con `br`. Soluciones, de
+menos a más invasiva:
+
+1. **Crear el cliente sin pedir brotli** (lo hace ya `crear_cliente_openai()` en
+   `agente_multimodal/agente1.py`; usadlo, o en vuestro propio código):
+   `OpenAI(default_headers={"Accept-Encoding": "gzip, deflate"})`.
+2. Usar un entorno virtual limpio (`python -m venv .venv`) en vez del Anaconda base.
+3. Actualizar la librería de brotli: `pip install -U brotlicffi`.
+
 ## Reglas comunes
 
 - La API Key de OpenAI va solo en la variable de entorno `OPENAI_API_KEY`;
