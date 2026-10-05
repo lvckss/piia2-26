@@ -1,9 +1,18 @@
-# Agente 2 — Recuperación (RAG)
+# Agente 2 — Costes, cobertura y normativa (RAG)
 
 Responsable: Víctor.
 
-Guía paso a paso:
+Guía paso a paso (léela entera antes de empezar):
 [`../../../specs/agente2-recuperacion-guia-victor.md`](../../../specs/agente2-recuperacion-guia-victor.md).
 
-Aquí van los datos (tabla de precios, procedimientos de reparación) y el
-código de la base vectorial + búsqueda.
+Tres piezas:
+
+1. **Costes**: convierte los hallazgos del Agente 1 en dos presupuestos con la
+   herramienta de costes de la empresa (`piia2_paquete_datos/scripts/estimar_coste.py`).
+2. **Cobertura**: pérdida total, cobertura de la póliza e indemnización.
+3. **Normativa (RAG)**: base vectorial (ChromaDB) sobre pólizas y legislación,
+   evaluada con las 25 preguntas de la empresa.
+
+Datos de entrada y salida de ejemplo: `../ejemplos_contrato/`.
+
+La base vectorial se genera en `chroma_db/` (en `.gitignore`).

@@ -1,0 +1,339 @@
+{
+  "image_id": 160,
+  "contexto": {
+    "vehiculo_id": "V05",
+    "region": "Madrid",
+    "tipo_taller": "multimarca",
+    "acabado": "metalizado",
+    "tipo_pieza": "oem",
+    "poliza_id": "P-TR-FR300",
+    "rol": "propio",
+    "edad_anios": 3,
+    "km": 42000
+  },
+  "valor_venal_eur": 17491.54,
+  "umbral_perdida_total": 0.75,
+  "escenarios": {
+    "confirmados": {
+      "hallazgos_incluidos": [
+        "160-1",
+        "160-4"
+      ],
+      "estimacion": {
+        "vehiculo_id": "V05",
+        "region": "Madrid",
+        "tipo_taller": "multimarca",
+        "acabado": "metalizado",
+        "tipo_pieza": "oem",
+        "lineas": [
+          {
+            "tipo": "pieza",
+            "codigo": "SYN-0E4C1A22",
+            "descripcion": "Faro delantero derecho (OEM)",
+            "cantidad": 1,
+            "importe_eur": 295.37,
+            "categoria": "piezas"
+          },
+          {
+            "tipo": "mano_obra",
+            "codigo": "SUST_FARO_DEL_D",
+            "descripcion": "Sustitución: Faro delantero derecho",
+            "cantidad": 0.6,
+            "importe_eur": 22.66,
+            "categoria": "mo_mecanica"
+          },
+          {
+            "tipo": "mano_obra",
+            "codigo": "CALIBRADO_ADAS",
+            "descripcion": "Calibrado de cámara ADAS tras sustitución de faro/parabrisas",
+            "cantidad": 1.2,
+            "importe_eur": 45.31,
+            "categoria": "mo_mecanica"
+          },
+          {
+            "tipo": "otros",
+            "codigo": "CALIBRADO_ADAS_FIJO",
+            "descripcion": "Material/coste fijo: Calibrado de cámara ADAS tras sustitución de faro/parabrisas",
+            "cantidad": 1,
+            "importe_eur": 90.0,
+            "categoria": "otros"
+          },
+          {
+            "tipo": "pieza",
+            "codigo": "SYN-9A8F16CE",
+            "descripcion": "Parabrisas (OEM)",
+            "cantidad": 1,
+            "importe_eur": 340.18,
+            "categoria": "piezas"
+          },
+          {
+            "tipo": "mano_obra",
+            "codigo": "SUST_PARABRISAS",
+            "descripcion": "Sustitución: Parabrisas",
+            "cantidad": 1.8,
+            "importe_eur": 67.97,
+            "categoria": "mo_mecanica"
+          },
+          {
+            "tipo": "mano_obra",
+            "codigo": "CALIBRADO_ADAS",
+            "descripcion": "Calibrado de cámara ADAS tras sustitución de faro/parabrisas",
+            "cantidad": 1.2,
+            "importe_eur": 45.31,
+            "categoria": "mo_mecanica"
+          },
+          {
+            "tipo": "otros",
+            "codigo": "CALIBRADO_ADAS_FIJO",
+            "descripcion": "Material/coste fijo: Calibrado de cámara ADAS tras sustitución de faro/parabrisas",
+            "cantidad": 1,
+            "importe_eur": 90.0,
+            "categoria": "otros"
+          },
+          {
+            "tipo": "mano_obra",
+            "codigo": "DIAGNOSIS_ESCANER",
+            "descripcion": "Diagnosis/escaneo pre y post reparación",
+            "cantidad": 0.6,
+            "importe_eur": 22.66,
+            "categoria": "mo_mecanica"
+          }
+        ],
+        "desglose": {
+          "piezas": 635.55,
+          "mano_obra_chapa": 0,
+          "mano_obra_pintura": 0,
+          "mano_obra_mecanica": 203.91,
+          "materiales_pintura": 0,
+          "otros": 180.0
+        },
+        "subtotal_sin_iva_eur": 1019.46,
+        "iva_eur": 214.09,
+        "total_con_iva_eur": 1233.55,
+        "arrastres_posibles": [],
+        "aviso": "Datos sintéticos de prototipo; no sustituyen a una valoración pericial."
+      },
+      "cobertura": {
+        "cubierto": true,
+        "motivo": "Daños propios por colisión",
+        "franquicia_eur": 300.0,
+        "perdida_total": false,
+        "indemnizacion_estimada_eur": 933.55
+      }
+    },
+    "con_pendientes": {
+      "hallazgos_incluidos": [
+        "160-1",
+        "160-4",
+        "160-3",
+        "160-5"
+      ],
+      "estimacion": {
+        "vehiculo_id": "V05",
+        "region": "Madrid",
+        "tipo_taller": "multimarca",
+        "acabado": "metalizado",
+        "tipo_pieza": "oem",
+        "lineas": [
+          {
+            "tipo": "pieza",
+            "codigo": "SYN-0E4C1A22",
+            "descripcion": "Faro delantero derecho (OEM)",
+            "cantidad": 1,
+            "importe_eur": 295.37,
+            "categoria": "piezas"
+          },
+          {
+            "tipo": "mano_obra",
+            "codigo": "SUST_FARO_DEL_D",
+            "descripcion": "Sustitución: Faro delantero derecho",
+            "cantidad": 0.6,
+            "importe_eur": 22.66,
+            "categoria": "mo_mecanica"
+          },
+          {
+            "tipo": "mano_obra",
+            "codigo": "CALIBRADO_ADAS",
+            "descripcion": "Calibrado de cámara ADAS tras sustitución de faro/parabrisas",
+            "cantidad": 1.2,
+            "importe_eur": 45.31,
+            "categoria": "mo_mecanica"
+          },
+          {
+            "tipo": "otros",
+            "codigo": "CALIBRADO_ADAS_FIJO",
+            "descripcion": "Material/coste fijo: Calibrado de cámara ADAS tras sustitución de faro/parabrisas",
+            "cantidad": 1,
+            "importe_eur": 90.0,
+            "categoria": "otros"
+          },
+          {
+            "tipo": "pieza",
+            "codigo": "SYN-9A8F16CE",
+            "descripcion": "Parabrisas (OEM)",
+            "cantidad": 1,
+            "importe_eur": 340.18,
+            "categoria": "piezas"
+          },
+          {
+            "tipo": "mano_obra",
+            "codigo": "SUST_PARABRISAS",
+            "descripcion": "Sustitución: Parabrisas",
+            "cantidad": 1.8,
+            "importe_eur": 67.97,
+            "categoria": "mo_mecanica"
+          },
+          {
+            "tipo": "mano_obra",
+            "codigo": "CALIBRADO_ADAS",
+            "descripcion": "Calibrado de cámara ADAS tras sustitución de faro/parabrisas",
+            "cantidad": 1.2,
+            "importe_eur": 45.31,
+            "categoria": "mo_mecanica"
+          },
+          {
+            "tipo": "otros",
+            "codigo": "CALIBRADO_ADAS_FIJO",
+            "descripcion": "Material/coste fijo: Calibrado de cámara ADAS tras sustitución de faro/parabrisas",
+            "cantidad": 1,
+            "importe_eur": 90.0,
+            "categoria": "otros"
+          },
+          {
+            "tipo": "pieza",
+            "codigo": "SYN-FD5E4163",
+            "descripcion": "Paragolpes delantero (cubierta) (OEM)",
+            "cantidad": 1,
+            "importe_eur": 266.81,
+            "categoria": "piezas"
+          },
+          {
+            "tipo": "mano_obra",
+            "codigo": "SUST_PARAG_DEL",
+            "descripcion": "Sustitución: Paragolpes delantero (cubierta)",
+            "cantidad": 1.2,
+            "importe_eur": 41.2,
+            "categoria": "mo_chapa"
+          },
+          {
+            "tipo": "mano_obra",
+            "codigo": "PINT_PARAG_DEL",
+            "descripcion": "Pintado: Paragolpes delantero (cubierta) (metalizado)",
+            "cantidad": 2.3,
+            "importe_eur": 82.91,
+            "categoria": "mo_pintura"
+          },
+          {
+            "tipo": "material",
+            "codigo": "MAT_PARAG_DEL",
+            "descripcion": "Materiales de pintura: Paragolpes delantero (cubierta)",
+            "cantidad": 2.3,
+            "importe_eur": 33.6,
+            "categoria": "materiales_pintura"
+          },
+          {
+            "tipo": "mano_obra",
+            "codigo": "PULIDO_REPASO",
+            "descripcion": "Pulido / repaso de arañazo superficial",
+            "cantidad": 0.9,
+            "importe_eur": 32.45,
+            "categoria": "mo_pintura"
+          },
+          {
+            "tipo": "otros",
+            "codigo": "PULIDO_REPASO_FIJO",
+            "descripcion": "Material/coste fijo: Pulido / repaso de arañazo superficial",
+            "cantidad": 1,
+            "importe_eur": 4.0,
+            "categoria": "otros"
+          },
+          {
+            "tipo": "mano_obra",
+            "codigo": "DIAGNOSIS_ESCANER",
+            "descripcion": "Diagnosis/escaneo pre y post reparación",
+            "cantidad": 0.6,
+            "importe_eur": 22.66,
+            "categoria": "mo_mecanica"
+          },
+          {
+            "tipo": "material",
+            "codigo": "MAT_VARIOS",
+            "descripcion": "Pequeños materiales (6,5 EUR por hora de chapa)",
+            "cantidad": 1.2,
+            "importe_eur": 7.8,
+            "categoria": "otros"
+          }
+        ],
+        "desglose": {
+          "piezas": 902.36,
+          "mano_obra_chapa": 41.2,
+          "mano_obra_pintura": 115.36,
+          "mano_obra_mecanica": 203.91,
+          "materiales_pintura": 33.6,
+          "otros": 191.8
+        },
+        "subtotal_sin_iva_eur": 1488.23,
+        "iva_eur": 312.53,
+        "total_con_iva_eur": 1800.76,
+        "arrastres_posibles": [
+          {
+            "pieza_id": "ABSORB_DEL",
+            "probabilidad": 0.9,
+            "origen": "PARAG_DEL"
+          },
+          {
+            "pieza_id": "RADIADOR",
+            "probabilidad": 0.4,
+            "origen": "PARAG_DEL"
+          },
+          {
+            "pieza_id": "CONDENSADOR_AA",
+            "probabilidad": 0.3,
+            "origen": "PARAG_DEL"
+          },
+          {
+            "pieza_id": "TRAVESANO_DEL",
+            "probabilidad": 0.25,
+            "origen": "PARAG_DEL"
+          },
+          {
+            "pieza_id": "AIRBAG_CONDUCTOR",
+            "probabilidad": 0.1,
+            "origen": "PARAG_DEL"
+          },
+          {
+            "pieza_id": "PRETENSOR_CINTURON",
+            "probabilidad": 0.1,
+            "origen": "PARAG_DEL"
+          }
+        ],
+        "aviso": "Datos sintéticos de prototipo; no sustituyen a una valoración pericial."
+      },
+      "cobertura": {
+        "cubierto": true,
+        "motivo": "Daños propios por colisión",
+        "franquicia_eur": 300.0,
+        "perdida_total": false,
+        "indemnizacion_estimada_eur": 1500.76
+      }
+    }
+  },
+  "hallazgos_fuera_del_coste": [
+    {
+      "finding_id": "160-2",
+      "motivo": "rechazado_por_vision"
+    }
+  ],
+  "normativa": [
+    {
+      "tema": "cobertura de daños propios",
+      "extracto": "2.3 **Daños propios por colisión, vuelco, atropello de animales y actos vandálicos** con franquicia de 300 EUR por siniestro.",
+      "fuente": "docs/polizas_sinteticas/P-TR-FR300.md#2. Coberturas incluidas"
+    },
+    {
+      "tema": "pérdida total",
+      "extracto": "5.1 Habrá pérdida total cuando el coste de reparación (sin IVA) alcance o supere el 75 % del valor venal.",
+      "fuente": "docs/polizas_sinteticas/P-TR-FR300.md#5. Pérdida total"
+    }
+  ]
+}
