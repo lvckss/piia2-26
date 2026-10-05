@@ -1,0 +1,11 @@
+{
+  "vehiculo_id": "V05",
+  "region": "Madrid",
+  "tipo_taller": "multimarca",
+  "acabado": "metalizado",
+  "tipo_pieza": "oem",
+  "poliza_id": "P-TR-FR300",
+  "rol": "propio",
+  "edad_anios": 3,
+  "km": 42000
+}

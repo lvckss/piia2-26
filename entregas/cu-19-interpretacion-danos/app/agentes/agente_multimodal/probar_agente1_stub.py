@@ -11,14 +11,20 @@ from pathlib import Path
 from PIL import Image
 
 from agente1 import analizar_imagen
-from probar_vision_stub import ClienteFalso
+from probar_vision_stub import MINI_CATALOGO, ClienteFalso
 
 CAMPOS_FINDING = {
     "finding_id",
     "category",
+    "clase_tool",
     "score",
+    "score_tier",
     "confidence_tier",
     "bbox_xywh",
+    "vision_verdict",
+    "pieza_id",
+    "severidad",
+    "regla_coste_aplicable",
     "vision_description",
     "crop_image_path",
 }
@@ -40,8 +46,10 @@ def main() -> None:
             ejemplo_path,
             ClienteFalso(),
             tmp_dir / "crops",
+            modelo="modelo-falso",
             image_path=foto_falsa,
             output_path=salida,
+            catalogo=MINI_CATALOGO,
         )
 
         guardado = json.loads(salida.read_text(encoding="utf-8"))
@@ -50,13 +58,17 @@ def main() -> None:
         for finding in resultado["findings"]:
             assert Path(finding["crop_image_path"]).exists(), "falta el recorte en disco"
 
-    assert set(resultado) == {"image_id", "findings"}
+    assert set(resultado) == {"image_id", "resumen_filtro_previo", "findings"}
+    assert resultado["resumen_filtro_previo"] == {
+        "detecciones_totales": 3, "candidatas": 3, "descartadas_por_clase": {},
+    }, resultado["resumen_filtro_previo"]
     assert resultado["image_id"] == 160
     assert len(resultado["findings"]) == 3
     for finding in resultado["findings"]:
-        assert set(finding) == CAMPOS_FINDING, f"campos inesperados: {set(finding)}"
+        assert set(finding) == CAMPOS_FINDING, f"campos inesperados: {set(finding) ^ CAMPOS_FINDING}"
+        assert finding["vision_verdict"] in ("confirmado", "rechazado", "incierto")
         assert finding["vision_description"], "vision_description vacio"
-        assert finding["crop_image_path"], "crop_image_path vacio"
+        assert finding["clase_tool"] == finding["category"].replace(" ", "_")
 
     tiers = [f["confidence_tier"] for f in resultado["findings"]]
     assert tiers == ["confirmed", "needs_review", "needs_review"], tiers
