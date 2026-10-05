@@ -1,10 +1,15 @@
-# Agente 3 — Redactor del informe (guía para Lucas)
+# Agente 3 — Redactor del informe (guía para Víctor)
 
 Esta guía es autónoma: léela entera (tú o tu Claude) antes de tocar código.
 Antes, lee también `specs/piia2-arquitectura-multiagente.md`: ahí está el
 sistema completo, el contrato JSON entre agentes y las decisiones tomadas con
-la empresa. No necesitas el código de Lucía ni el de Víctor: tienes ejemplos
-reales en `entregas/cu-19-interpretacion-danos/app/agentes/ejemplos_contrato/`.
+la empresa. No necesitas esperar a nadie ni haber terminado tus costes: tienes
+ejemplos reales en `entregas/cu-19-interpretacion-danos/app/agentes/ejemplos_contrato/`.
+
+**Orden recomendado:** haz primero `agente2-costes-cobertura-guia.md` (es lo más
+rápido y te enseña de dónde salen las cifras que luego cuentas en el informe), y
+después esta guía. El RAG de pólizas y legislación (el campo `normativa`) lo hace
+Lucas; hasta que exista, `normativa` viene vacío y el informe lo soporta.
 
 ## Qué cambió respecto a la primera versión de esta guía
 
@@ -25,7 +30,8 @@ primer día:
   (`confirmed` / `needs_review`), `vision_verdict` (`confirmado`, `rechazado`,
   `incierto`), `pieza_id`, `severidad`, `vision_description`,
   `crop_image_path`...
-- `agente2_salida.json` — el trabajo del Agente 2 (Víctor): dos presupuestos
+- `agente2_salida.json` — el trabajo del Agente 2 (tus costes y cobertura; la
+  `normativa` la rellena el RAG de Lucas): dos presupuestos
   (`escenarios.confirmados` y `escenarios.con_pendientes`, cada uno con
   `estimacion`, `cobertura` y los `hallazgos_incluidos`), los
   `hallazgos_fuera_del_coste`, el `valor_venal_eur`, y `normativa` (extractos
@@ -69,7 +75,7 @@ peritaje con un precio falso es peor que no tener informe. Por eso:
   existen en la salida del Agente 2. Si no, se descarta su párrafo y se usa el
   resumen determinista.
 
-## Paso 1 (puedes hacerlo ya, mientras te incorporas): mirar informes reales
+## Paso 1 (puedes hacerlo ya): mirar informes reales
 
 Busca 3 o 4 ejemplos de informes o presupuestos de peritación de daños de
 vehículos (de aseguradoras, talleres o peritos) y apunta: qué secciones
@@ -349,8 +355,8 @@ no debe romperse ni quedar raro):
 - **Ningún hallazgo confirmado** (todos pendientes o rechazados).
 - **Todos rechazados** por la visión.
 - Una **pérdida total**. Edita a mano una copia de `agente2_salida.json` y pon
-  `perdida_total: true` en la cobertura de un escenario (o, cuando tengas el
-  código de Víctor, usa el coche `V14`, `edad_anios: 16` y `km: 300000`, que da
+  `perdida_total: true` en la cobertura de un escenario (o, cuando tengas tu
+  código de costes, usa el coche `V14`, `edad_anios: 16` y `km: 300000`, que da
   pérdida total solo en el escenario `con_pendientes`). Comprueba que el informe
   explica la diferencia entre los dos escenarios.
 - Un siniestro **sin `arrastres_posibles`** y otro sin `normativa`.
@@ -401,16 +407,16 @@ cifra: es un dato bueno para la defensa.
   complejo. Las imágenes ya van enlazadas en el markdown por su ruta. Si
   sobra tiempo: markdown → HTML → PDF con una librería tipo `weasyprint`.
 - **Google ADK**: la empresa trabaja con él. Cuando `generar_informe` funcione
-  como función normal, Lucía la registra como *tool* de un agente (hay un
-  ejemplo sin probar en `piia2_paquete_datos/scripts/ejemplo_tool.py`). No
-  empieces por ahí.
+  como función normal, Lucas la registra como *tool* de un agente (ver
+  `integracion-adk-guia.md`). No empieces por ahí: tú solo mantén
+  `generar_informe(agente1, agente2)` como función pura.
 
 ## Qué NO tienes que hacer
 
 - No calcules ni decidas precios, pérdida total o indemnización: lo hace el
   Agente 2 y tú solo lo cuentas.
 - No dejes que el LLM escriba importes.
-- No toques la detección de PIIA-1 ni los otros dos agentes.
+- No toques la detección de PIIA-1, el Agente 1 ni el RAG de Lucas.
 - No subas a git el paquete de la empresa ni ninguna clave.
 - Git: nadie hace commits directos en `main`. Crea una rama, súbela y abre un
   PR que mergeará el equipo (la skill `.agents/skills/semantic-commits-and-push`

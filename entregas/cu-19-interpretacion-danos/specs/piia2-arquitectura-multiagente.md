@@ -2,8 +2,8 @@
 
 Este documento es el punto de partida para los 3: describe el sistema
 completo, el contrato de datos entre piezas y quién hace qué. Las guías de
-cada agente (`agente2-recuperacion-guia-victor.md`,
-`agente3-informe-guia-lucas.md`) dan el detalle paso a paso, pero antes de
+cada pieza (`agente2-costes-cobertura-guia.md`, `agente2-rag-normativa-guia.md`,
+`agente3-informe-guia.md`, `integracion-adk-guia.md`) dan el detalle paso a paso, pero antes de
 leerlas, lee este.
 
 > **Versión 2 (reunión con la empresa).** Sustituye a la primera versión. Lo
@@ -265,10 +265,45 @@ complejo: la empresa dijo que se vea más adelante).
 
 ## Reparto final
 
-| Agente | Quién | Cuándo | Guía |
-|---|---|---|---|
-| Agente 1 — Analista de daños (multimodal) + integración general y ADK | Lucía | Ya | `app/agentes/agente_multimodal/README.md` |
-| Agente 2 — Costes, cobertura y RAG | Víctor | Ya | [`agente2-recuperacion-guia-victor.md`](agente2-recuperacion-guia-victor.md) |
-| Agente 3 — Redactor del informe | Lucas | Se incorpora en ~1 semana | [`agente3-informe-guia-lucas.md`](agente3-informe-guia-lucas.md) |
+Las guías están organizadas **por contenido, no por persona**, para que se
+puedan reasignar sin reescribirlas.
 
-Lucía coordina la integración final de las 3 piezas.
+| Pieza | Quién | Guía |
+|---|---|---|
+| Agente 1 — Analista de daños (multimodal), comparación de modelos de visión y coordinación | Lucía | `app/agentes/agente_multimodal/README.md` |
+| Agente 2, partes A y B — Costes y cobertura | Víctor | [`agente2-costes-cobertura-guia.md`](agente2-costes-cobertura-guia.md) |
+| Agente 3 — Redactor del informe | Víctor | [`agente3-informe-guia.md`](agente3-informe-guia.md) |
+| Agente 2, parte C — Normativa (RAG) | Lucas | [`agente2-rag-normativa-guia.md`](agente2-rag-normativa-guia.md) |
+| Integración de los tres agentes (Google ADK, o plan B en Python) | Lucas | [`integracion-adk-guia.md`](integracion-adk-guia.md) |
+
+**Por qué este reparto.** Lucas es quien mejor maneja este tipo de trabajo, así
+que se queda con lo que más incertidumbre técnica tiene: el RAG y ADK (que no
+está comprobado con modelos de OpenAI). Los costes, la cobertura y el informe
+tienen código de referencia probado y tests con ejemplos, y se pueden hacer a
+ratos.
+
+**Un único punto de contacto entre Víctor y Lucas** (la parte A/B y el RAG
+forman el Agente 2): la función de Lucas
+`buscar_normativa(pregunta, k=4, poliza_id="") -> [{"tema", "extracto", "fuente"}]`,
+que rellena el campo `normativa`. Hasta que exista, `normativa` va vacío y el
+informe lo soporta.
+
+## Plan por hitos (sin fechas: hay semanas sin avance)
+
+Quedan unos 2 meses, con semanas en las que casi nadie podrá avanzar por carga
+externa, así que se planifica por hitos, no por fechas:
+
+1. **Primeras semanas:** Lucía prueba la API real y compara 2 modelos de visión;
+   Víctor hace costes y cobertura; Lucas hace **primero** la prueba mínima de
+   ADK con un modelo de OpenAI (decide el plan) y empieza el RAG.
+2. **Siguientes:** Lucas termina el RAG y lo mide con las 25 preguntas; Víctor
+   hace el informe; Lucía fija los umbrales con los resultados de la
+   comparación y mergea los PRs.
+3. **Hito clave:** una imagen real recorriendo los tres agentes hasta un informe
+   (con ADK o con el plan B).
+4. **Últimas 2 semanas, intocables:** colchón para tablas de evaluación,
+   pulido y memoria o presentación.
+
+**Regla para las semanas muertas:** avisar con tiempo de que no se llega, para
+que otra persona pueda recoger la pieza. Con el contrato y los ejemplos,
+cualquiera puede.

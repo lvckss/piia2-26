@@ -12,7 +12,7 @@ se pruebe sin esperar a los otros.
 
 Las cifras de `agente2_salida.json` son una referencia: la salida del Agente 2
 (sin `normativa`) tiene que coincidir con ella (ver
-`../../../specs/agente2-recuperacion-guia-victor.md`).
+`../../../specs/agente2-costes-cobertura-guia.md`).
 
 Todo es sintético salvo la legislación citada. No hay fotos en este ejemplo:
 las rutas de `crop_image_path` son ilustrativas.

@@ -10,13 +10,17 @@ Diseño completo, contrato entre agentes y decisiones tomadas con la empresa:
 ```text
 agentes/
   agente_multimodal/     # Agente 1 — visión: ¿hay daño?, ¿qué pieza?, ¿qué severidad? (Lucía)
-  agente_recuperacion/   # Agente 2 — costes (tool de la empresa), cobertura y RAG (Víctor)
-  agente_redactor/       # Agente 3 — informe de peritaje en markdown (Lucas)
+  agente_recuperacion/   # Agente 2 — costes y cobertura (Víctor) + RAG de normativa (Lucas)
+  agente_redactor/       # Agente 3 — informe de peritaje en markdown (Víctor)
+  orquestador/           # (por crear) integración de los tres agentes con Google ADK (Lucas)
   ejemplos_contrato/     # JSON de ejemplo del contrato entre agentes, con cifras reales
 ```
 
-Cada subcarpeta tiene su propio `README.md`, y las guías paso a paso de los
-agentes 2 y 3 están en `../../specs/`.
+Cada subcarpeta tiene su propio `README.md`. Las guías paso a paso están en
+`../../specs/` y organizadas por contenido (no por persona):
+`agente2-costes-cobertura-guia.md`, `agente2-rag-normativa-guia.md`,
+`agente3-informe-guia.md` e `integracion-adk-guia.md`. El reparto y el plan por
+hitos, en `piia2-arquitectura-multiagente.md`.
 
 ## Paquete de datos de la empresa
 
