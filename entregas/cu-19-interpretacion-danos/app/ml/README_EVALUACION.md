@@ -430,13 +430,6 @@ La diferencia está en cómo se usa:
 - `SahiStrategy`: un prompt, una imagen completa o muchos slices
 - `GeometricEnsembleStrategy`: una imagen, varios prompts, y refinamiento por cajas perturbadas en los prompts de texto
 
-> [!TIP]
-> `SahiStrategy` acepta `slice_size_by_vehicle_type={"motorcycle": 256}` y
-> `overlap_ratio_by_vehicle_type={...}` para recalibrar el tamaño de slice por
-> tipo de vehículo (útil si `output.per_vehicle` muestra que un encuadre muy
-> distinto necesita otro tamaño de recorte). Sin esos parámetros, el
-> comportamiento es idéntico al de siempre.
-
 En todos los casos:
 
 - el backend decide si un prompt va por texto o por exemplars
@@ -487,15 +480,6 @@ strategy = GeometricEnsembleStrategy(
     random_seed=42,
 )
 ```
-
-> [!TIP]
-> Si `output.per_vehicle` muestra que un tipo de vehículo necesita más o
-> menos ruido geométrico (por ejemplo, un encuadre muy cerrado en moto vs. uno
-> de cuerpo completo en furgoneta), pasa
-> `perturbation_scale_by_vehicle_type={"motorcycle": 0.02}`. Se aplica por
-> imagen sin recargar SAM3 (solo cambia `perturbation_scale`; el resto de la
-> config del ensemble se mantiene). Sin ese parámetro, el comportamiento es
-> idéntico al de siempre.
 
 Parámetros importantes:
 
@@ -613,9 +597,6 @@ output.per_class
 
 Sirve para ver que clase falla.
 
-`output.per_vehicle` sigue el mismo patron, ver seccion de `per_vehicle` mas
-abajo.
-
 > [!TIP]
 > Si `output.per_class` muestra que una clase concreta necesita un
 > `score_threshold` distinto (tipico en CarDD por el desequilibrio de clases:
@@ -637,22 +618,6 @@ output.per_condition
 ```
 
 Sirve para ver robustez por corrupcion/severidad.
-
-```python
-output.per_vehicle
-```
-
-Sirve para ver si la metrica es consistente entre tipos de vehiculo
-(sedan, suv, pickup, ...). Si una imagen no tiene `vehicle_type` asignado,
-aparece agrupada bajo `"unknown"` en vez de desaparecer del desglose.
-
-> [!NOTE]
-> `vehicle_type` no viene en las anotaciones de CarDD. Se etiqueta aparte con
-> `ml/scripts/label_vehicle_types.py` (zero-shot con CLIP) y se pasa a
-> `CarddLoader(..., vehicle_types_path="ruta/al/vehicle_types.json")`.
-> Si no se pasa `vehicle_types_path`, todas las imagenes quedan como
-> `"unknown"` y `output.per_vehicle` sigue funcionando igual, solo que sin
-> desglose real.
 
 ## Inspeccionar errores
 

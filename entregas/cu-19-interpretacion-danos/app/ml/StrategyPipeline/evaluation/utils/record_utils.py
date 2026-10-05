@@ -33,7 +33,6 @@ def build_per_image_base(records: list[ImageEvalRecord]) -> pd.DataFrame:
                 "corruption": record.corruption,
                 "severity": record.severity,
                 "is_clean": record.is_clean,
-                "vehicle_type": record.vehicle_type,
                 "num_gt": len(record.gt_instances),
                 "num_pred": len(record.pred_instances),
             }

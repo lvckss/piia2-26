@@ -1,5 +1,17 @@
 # Mejora de robustez entre tipos de vehículo
 
+> [!NOTE]
+> **Actualización 29/09/2026:** la parte de este spec relativa a
+> `vehicle_type` (dimensión de evaluación por tipo de vehículo, criterios 1 y
+> 8, tareas 1 y 7 de `TAREAS.md`) se implementó y después se revirtió por
+> completo. CarDD no trae esa etiqueta; el clasificador zero-shot con CLIP
+> que se escribió para generarla nunca se llegó a ejecutar sobre el dataset
+> real, así que mantenerla en el pipeline era complejidad sin validar. El
+> resto del spec (umbral por clase, prompts, Tip-Adapter, exemplars vs.
+> ensemble geométrico) sigue vigente tal cual, es independiente de
+> `vehicle_type`. Se deja el spec original sin reescribir para que quede
+> constancia de qué se planteó y por qué se descartó esa parte.
+
 ## Qué construir
 
 Se instrumentará y refactorizará el pipeline de detección de daños (SAM3 +

@@ -40,8 +40,6 @@ class ImageSample:
     corruption: str | None = None
     severity: int | None = None
     is_clean: bool = True
-    # tipo de vehiculo (sedan, suv, pickup, van, motorcycle, ...), None si no se ha etiquetado
-    vehicle_type: str | None = None
 
 
 # STRATEGY MODULE -> EVALUATOR
@@ -55,7 +53,6 @@ class SampleRef:
     corruption: str | None = None
     severity: int | None = None
     is_clean: bool = True
-    vehicle_type: str | None = None
 
 
 @dataclass(frozen=True)
@@ -120,7 +117,6 @@ class ImageEvalRecord:
     pred_instances: list[InstancePrediction]
     inference_ms: float
     peak_vram_mb: float | None
-    vehicle_type: str | None = None
 
 
 # METRICS DATA TYPES
@@ -151,10 +147,6 @@ class RobustnessMetricsOutput:
     mpc: float | None
     rpc: float | None
     per_condition: pd.DataFrame # columnas: corruption | severity | num_images | mask_ap_50_95 | ap75 | ap_small | fp_per_image
-
-@dataclass(frozen=True)
-class VehicleMetricsOutput:
-    per_vehicle: pd.DataFrame # columnas: vehicle_type | num_images | mask_ap_50_95 | ap75 | ap_small | fp_per_image
 
 # EVALUATOR -> OUTPUT FINAL
 
@@ -242,7 +234,6 @@ class EvalOutput:
     summary: SummaryMetrics
     per_class: pd.DataFrame
     per_condition: pd.DataFrame
-    per_vehicle: pd.DataFrame
     per_image: pd.DataFrame
 
     def to_dict(self, include_run_info: bool = False) -> dict[str, Any]:
@@ -250,7 +241,6 @@ class EvalOutput:
             "summary": self.summary.to_dict(),
             "per_class": self.per_class.to_dict(orient="records"),
             "per_condition": self.per_condition.to_dict(orient="records"),
-            "per_vehicle": self.per_vehicle.to_dict(orient="records"),
             "per_image": self.per_image.to_dict(orient="records"),
         }
 

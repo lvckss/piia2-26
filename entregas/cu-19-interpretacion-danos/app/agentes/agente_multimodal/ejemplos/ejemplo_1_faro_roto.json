@@ -1,6 +1,5 @@
 {
   "image_id": 42,
-  "vehicle_type": "sedan",
   "variant": "baseline",
   "strategy_name": "baseline_prompt",
   "image_path": "bd/rawdata/images/000042.jpg",

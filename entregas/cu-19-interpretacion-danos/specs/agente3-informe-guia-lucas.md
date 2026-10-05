@@ -40,7 +40,6 @@ Del Agente 1 (Lucía):
 ```json
 {
   "image_id": 123,
-  "vehicle_type": "sedan",
   "findings": [
     {
       "finding_id": "123-1",
@@ -70,7 +69,7 @@ Un informe agregado — markdown como mínimo (PDF si da tiempo, con alguna
 librería tipo `weasyprint` o exportando el markdown). Debe incluir, como
 mínimo:
 
-- Cabecera: vehículo, fecha, resumen de cuántos daños se encontraron.
+- Cabecera: fecha, resumen de cuántos daños se encontraron.
 - Una sección por hallazgo: descripción, categoría, procedimiento de
   reparación, precio.
 - **Los hallazgos `confirmed` y `needs_review` deben distinguirse
@@ -91,8 +90,6 @@ en una plantilla de prompt para un LLM (usando la API Key del caso). Algo así:
 PROMPT_TEMPLATE = """
 Eres un perito de seguros redactando un informe de daños de vehículo.
 
-Vehículo: {vehicle_type}
-
 Daños confirmados:
 {hallazgos_confirmados}
 
@@ -109,7 +106,7 @@ Redacta un informe de peritaje profesional y claro con esta información.
 ### 2. Implementa la función de agregación
 
 ```python
-def generar_informe(findings: list[dict], procedimientos: list[dict], vehicle_type: str) -> str:
+def generar_informe(findings: list[dict], procedimientos: list[dict]) -> str:
     procedimientos_por_id = {p["finding_id"]: p for p in procedimientos}
 
     confirmados = [f for f in findings if f["confidence_tier"] == "confirmed"]
@@ -125,7 +122,6 @@ def generar_informe(findings: list[dict], procedimientos: list[dict], vehicle_ty
     )
 
     prompt = PROMPT_TEMPLATE.format(
-        vehicle_type=vehicle_type,
         hallazgos_confirmados=_formatear(confirmados, procedimientos_por_id),
         hallazgos_pendientes=_formatear(pendientes, procedimientos_por_id),
         coste_confirmado=coste_confirmado,
