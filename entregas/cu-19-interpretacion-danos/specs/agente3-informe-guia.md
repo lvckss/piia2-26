@@ -385,7 +385,9 @@ Datos:
 
 
 def resumen_con_llm(agente2, texto_resumen_determinista):
-    cliente = OpenAI()
+    # la cabecera evita un fallo conocido con brotli en algunos Anaconda
+    # (ver app/agentes/README.md, "Problemas conocidos")
+    cliente = OpenAI(default_headers={"Accept-Encoding": "gzip, deflate"})
     r = cliente.chat.completions.create(
         model=os.environ["OPENAI_MODEL"],
         messages=[{"role": "user", "content": PROMPT_RESUMEN.format(datos=texto_resumen_determinista)}],

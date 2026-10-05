@@ -22,6 +22,13 @@ Que mide, por clase y modelo:
 No se puede medir si la PIEZA y la SEVERIDAD son correctas: CarDD no trae
 esas etiquetas. Eso requiere revisar a mano una muestra.
 
+Cuidado con `is_true_positive` como verdad en dent/scratch/crack: CarDD no
+anota todos los daños y el IoU de mascara >= 0.5 es estricto para cajas
+pequenas o sueltas, asi que la vision puede "confirmar" un dano REAL que la
+metrica cuenta como falso positivo (visto a mano). Es una vara razonable en
+glass shatter / lamp broken / tire flat; en las otras tres sirve para comparar
+modelos entre si, no como medida absoluta.
+
 Las imagenes elegidas no son una muestra al azar: se garantizan unos aciertos
 minimos de cada clase para poder medir tambien las raras.
 """
@@ -135,7 +142,8 @@ def evaluar_modelo(
     uso: dict[str, int],
 ) -> list[dict[str, Any]]:
     resultados: list[dict[str, Any]] = []
-    for n, det in enumerate(imagenes, 1):
+    print(f"Evaluando {modelo}: una linea por llamada (lo servido desde cache sale en ~0 s)", flush=True)
+    for det in imagenes:
         ruta = ruta_foto(cardd_dir, det)
         if not ruta.exists():
             continue
@@ -148,7 +156,13 @@ def evaluar_modelo(
         with Image.open(ruta) as imagen:
             imagen.load()
             for f in hallazgos["findings"]:
+                t0 = time.time()
                 r = analizar_hallazgo(client, modelo, imagen, f, catalogo, cache_dir, uso)
+                print(
+                    f"  [{len(resultados) + 1}] {f['finding_id']:>9s} {f['category']:13s} score={f['score']:.2f} -> "
+                    f"{r['vision_verdict']:10s} {str(r['pieza_id'] or '-'):17s} ({time.time() - t0:.1f} s)",
+                    flush=True,
+                )
                 resultados.append(
                     {
                         "finding_id": f["finding_id"],
@@ -161,8 +175,6 @@ def evaluar_modelo(
                         "regla": r["regla_coste_aplicable"],
                     }
                 )
-        if n % 10 == 0:
-            print(f"  {modelo}: {n}/{len(imagenes)} imagenes, {uso.get('llamadas', 0)} llamadas facturadas")
     return resultados
 
 

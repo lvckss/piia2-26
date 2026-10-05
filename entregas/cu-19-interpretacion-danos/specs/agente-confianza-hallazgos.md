@@ -66,11 +66,17 @@ midió cuánto sirve cada filtro. Reproducible con
 
 Hallazgos que condicionan el diseño:
 
-- **Los falsos positivos son falsas alarmas reales**, no duplicados ni cajas
-  desplazadas: quitar duplicados baja las detecciones solo de 18.507 a
-  17.263, y solo el 8 % de las de `dent`, el 10 % de `scratch` y el 2 % de
-  `crack` caen sobre un daño real de su clase. Por eso `is_true_positive` es
-  una vara justa para medir al modelo de visión.
+- **Los falsos positivos no son duplicados** (quitar duplicados baja las
+  detecciones solo de 18.507 a 17.263), **pero tampoco son todos falsas
+  alarmas.** Al mirar a mano casos que el modelo de visión confirmaba y CarDD
+  marcaba como falso positivo en `dent`/`scratch`/`crack`, había daño real en
+  la caja (por ejemplo, una grieta en la esquina de un paragolpes que CarDD no
+  anota): CarDD no anota todos los daños, y el criterio de IoU de máscara ≥ 0,5
+  es muy estricto para cajas pequeñas o sueltas. Por eso `is_true_positive`
+  **infravalora a la visión en esas tres clases**. Es una vara razonable en
+  `glass shatter`, `lamp broken` y `tire flat`; en las otras tres, comparar
+  modelos con ella sirve solo en términos relativos, y medir de verdad exige
+  revisar a mano una muestra de detecciones.
 - **El techo lo pone SAM3, no la visión.** En `dent`/`scratch`/`crack`, ni
   siquiera quedándose con las 5 mejores por imagen y clase se recupera más
   del 26 %, 25 % y 48 %. La visión solo verifica lo que SAM3 propone: un daño
