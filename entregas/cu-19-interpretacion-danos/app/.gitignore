@@ -42,6 +42,7 @@ ml/config/tip_adapter/*/cropped_embeddings_*/
 ml/config/tip_adapter/*/*_roi_crops/
 ml/notebooks/results/
 ml/presentation_assets/
+agentes/agente_recuperacion/chroma_db/
 *.joblib
 __pycache__/
 *.py[cod]
