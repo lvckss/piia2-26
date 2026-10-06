@@ -28,6 +28,12 @@ Estas reglas se aplican a personas y agentes en todo el repositorio.
 - Los agentes no pueden declarar trabajo terminado sin evidencia de verificación:
   comandos o pasos ejecutados, resultados y relación con los AC. Un check no
   ejecutado se registra como pendiente, con el motivo; nunca se presenta como éxito.
+- Un agente no puede declarar una tarea terminada, cerrar su Issue ni marcarla
+  como Done / Hechas mientras su Definition of Done no esté completamente
+  satisfecha: tanto la DoD global del workflow/Issue como los requisitos
+  específicos de las Specs. Las Specs pueden ampliarla, nunca relajarla.
+- Checks requeridos no ejecutados, fallos conocidos introducidos por el cambio
+  o trabajo pendiente dentro del alcance impiden marcar la tarea como Done.
 - Si cambia el alcance o una decisión aceptada, actualizar y revisar la
   planificación en una PR separada antes de implementar el nuevo comportamiento.
 
@@ -40,20 +46,18 @@ Estas reglas se aplican a personas y agentes en todo el repositorio.
 - No subir secretos, credenciales ni datos privados. Respetar los cambios
   existentes y no incluir trabajo ajeno al alcance de la PR.
 
-## Foundation y documentos existentes
-
-Esta fase establece reglas y templates; su aplicación es manual. No incorpora
-GitHub Projects, skills externas, GitHub Actions, automatización TDD, scripts de
-trazabilidad ni branch protection.
+## Documentos existentes y cambios documentales
 
 Las specs actuales permanecen en `entregas/<caso>/specs/`. No se presupone que
 las decisiones descritas en ellas sean ADRs aceptados: antes de una nueva
 implementación, completar sus referencias y AC, y registrar o enlazar un ADR
-aceptado. No se exige migrar retroactivamente el código existente en esta foundation.
+aceptado.
 
-Los cambios exclusivamente documentales, como esta foundation, no son desarrollo
+Los cambios exclusivamente documentales no son desarrollo
 funcional: se verifican mediante revisión de contenido, enlaces y diff. Esta
 distinción no permite introducir código productivo sin los requisitos anteriores.
+Para su DoD, la PR documental cumple los requisitos de evidencia, revisión,
+aprobación e integración; los requisitos funcionales no aplicables se justifican.
 
 Consultar el [lifecycle](docs/workflow.md), el [template de Spec](docs/templates/spec-template.md)
 y el [registro de ADRs](docs/adr/README.md).

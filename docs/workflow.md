@@ -19,12 +19,37 @@ GitHub Issue → Spec → ADR → Test Plan → Planning PR → Ready
 | TDD | En una nueva feature branch desde `main` con la planificación integrada, ejecutar Red → Green → Refactor por comportamiento y registrar evidencia. |
 | Implementation PR | PR distinta que enlaza Issue, Spec, ADR, Test Plan y Planning PR, con tests trazables y evidencia de verificación. |
 | CI / traceability / review | Revisar resultados de verificación, cobertura de AC y diff. La CI queda para una fase posterior; en esta foundation se aportan comandos y resultados manuales. |
-| Done | Todos los AC verificados, evidencia revisada e Implementation PR aprobada e integrada por el equipo; cerrar entonces la Issue. |
+| Done | DoD global y requisitos específicos de las Specs completamente satisfechos, con evidencia. Solo entonces cerrar la Issue y pasarla a Hechas. |
 
 La Planning PR debe referenciar la Issue sin cerrarla (`Refs #N`). La
-Implementation PR puede usar `Closes #N`: la Issue permanece abierta durante
-la implementación. Ready y Done son condiciones del proceso, sin integración
+Implementation PR puede usar `Closes #N` si todos los puntos de la DoD se cumplen
+al integrarla; si quedan pendientes, usar `Refs #N` y cerrar manualmente solo
+cuando se cumpla la DoD. La Issue permanece abierta durante la implementación.
+Ready y Done son condiciones del proceso, sin integración
 con GitHub Projects ni etiquetas automáticas.
+
+## Definition of Ready y Definition of Done
+
+La **Definition of Ready (DoR)** permite comenzar implementación: confirma que
+la Issue, la Spec revisada, el ADR aceptado y el Test Plan están disponibles,
+la Planning PR está integrada y no hay bloqueos de planificación. No acredita
+que el comportamiento esté implementado ni verificado.
+
+La **Definition of Done (DoD)** permite considerar terminada y cerrar la tarea,
+y pasarla a `Hechas`. La checklist global está en el
+[template de Issue](../.github/ISSUE_TEMPLATE/work-item.md#definition-of-done)
+y se completa en cada Issue con referencias a evidencia verificable. Incluye
+AC implementados y verificados, tests y checks requeridos en verde, ausencia
+de regresiones conocidas, verificación final documentada, PR revisada,
+aprobada e integrada en `main`, documentación actualizada y ausencia de
+bloqueos o pendientes dentro del alcance.
+
+La DoD de cada Spec puede añadir condiciones específicas (métricas, versiones
+de datos, artefactos o documentación), pero nunca relajar la DoD global.
+Ambas deben cumplirse. Checks requeridos no ejecutados, fallos conocidos
+introducidos por el cambio o trabajo pendiente dentro del alcance impiden Done,
+aunque la PR ya esté integrada. Registrar la evidencia de cierre en la Issue
+y la verificación final en la Implementation PR.
 
 Para la trazabilidad manual, usar siempre la ruta de la Spec junto al ID del
 AC. El Test Plan relaciona AC y casos; los tests incluyen esa referencia; la
@@ -36,7 +61,13 @@ Los cambios exclusivamente documentales usan una PR documental y evidencia
 de revisión de contenido, enlaces y diff. No requieren un ciclo TDD funcional
 ni una Implementation PR adicional. Las specs y ejemplos existentes se
 conservan; para nuevas implementaciones se completan según estas reglas.
+Su DoD mantiene la verificación, revisión, aprobación, integración y ausencia
+de pendientes: usar la PR documental como referencia y justificar los requisitos
+funcionales no aplicables, sin omitir los checks documentales requeridos.
 
+Nota histórica de la foundation: se establecieron reglas y templates sin exigir
+la migración retroactiva del código existente. La comprobación de DoD sigue
+siendo manual; su validación mediante CI y GitHub Projects queda para fases posteriores.
 No se incorporan en esta fase GitHub Projects, skills externas, GitHub Actions,
 automatización TDD, scripts de trazabilidad ni branch protection.
 

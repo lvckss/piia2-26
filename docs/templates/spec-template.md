@@ -50,3 +50,20 @@ Para IA: datos/partición, protocolo, métricas y umbrales verificables.>
 
 <Preguntas y dependencias que bloquean implementación. Resolverlas en la
 Planning PR; “ninguno” solo cuando se hayan resuelto.>
+
+## Definition of Done
+
+La DoD global está definida por el workflow y la checklist de la Issue enlazada.
+Esta sección añade condiciones verificables de esta funcionalidad; nunca puede
+relajar ni sustituir la DoD global. Todos los AC de esta Spec deben estar
+verificados con evidencia trazable mediante `Spec path + AC ID`.
+
+<!-- Completar solo los requisitos específicos aplicables, con condición de éxito
+     y evidencia prevista. Si no hay requisitos adicionales, indicarlo.
+     Ejemplos: métricas mínimas y tolerancias; datasets, particiones y versiones
+     concretos; artefactos u outputs generados y su ubicación; documentación
+     específica actualizada. No duplicar la checklist global de la Issue. -->
+
+| Condición específica de cierre | Evidencia requerida |
+|---|---|
+| <resultado verificable o umbral específico> | <comando, informe, artefacto o documento> |

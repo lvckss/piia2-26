@@ -41,6 +41,22 @@ assignees: ''
 - Implementation PR (distinta de la Planning PR):
 - Evidencia de TDD y verificación de AC:
 
-<!-- Cerrar al verificar todos los AC e integrar la Implementation PR revisada.
-     Para trabajo exclusivamente documental, marcar Ready/TDD/implementación
-     como “no aplica” con motivo y enlazar la PR y su verificación documental. -->
+## Definition of Done
+
+- [ ] Todos los Acceptance Criteria incluidos en el alcance están implementados.
+- [ ] Cada Acceptance Criterion tiene tests o evidencia verificable trazable mediante `Spec path + AC ID`.
+- [ ] Todos los tests y verificaciones requeridos se han ejecutado y están en verde.
+- [ ] No existen regresiones conocidas introducidas por el cambio.
+- [ ] La verificación final está documentada en la Implementation PR.
+- [ ] La Implementation PR ha sido revisada y aprobada.
+- [ ] La Implementation PR ha sido integrada en `main`.
+- [ ] No quedan bloqueos ni pendientes pertenecientes al alcance definido de esta Issue.
+- [ ] La documentación afectada por el cambio está actualizada.
+
+<!-- Marcar cada punto con referencia a su evidencia en la PR, los tests o los
+     documentos correspondientes. Cumplir también la DoD específica de las Specs
+     enlazadas antes de cerrar la Issue o pasarla a Hechas.
+     Para trabajo exclusivamente documental, Ready/TDD/implementación funcional
+     pueden ser “no aplica” con motivo; usar la PR documental para verificación,
+     revisión, aprobación e integración. Los checks documentales siguen siendo
+     obligatorios. -->
