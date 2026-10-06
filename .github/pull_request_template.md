@@ -8,8 +8,10 @@
 
 - GitHub Issue:
 - Spec(s):
-- ADR(s) y estado:
-- Test Plan:
+- ADR decision y justificación en Spec:
+- ADR(s) y estado (si no aplica: ADR: No requerido — justificado en Spec):
+- Test/Eval Plan (sección de la Spec):
+- Implementation Plan (sección de la Spec):
 - Planning PR (para Implementation):
 
 <!-- Planning: usar “Refs #N”; no cerrar la Issue antes de implementar.
@@ -20,9 +22,11 @@
 
 <!-- Completar si es Planning; en los otros tipos indicar “no aplica”. -->
 
-- [ ] Contiene Spec, ADR y Test Plan; no introduce código productivo.
-- [ ] AC verificables con IDs estables; el Test Plan cubre todos los AC.
-- [ ] ADR aceptado por un revisor, con aceptación registrada antes de integrar.
+- [ ] Contiene Spec y planes; ADR cuando aplique; no introduce código productivo.
+- [ ] AC verificables con IDs estables; Test/Eval Plan e Implementation Plan cubren todos los AC.
+- [ ] Comportamiento preservado y failure modes/NFRs relevantes tratados; clarify/analyze sin gaps bloqueantes.
+- [ ] Spec revisada por humano; aceptación, autor y versión registrados.
+- [ ] ADR decision revisada: NEW_ADR aceptado; REUSE_ADR con cobertura confirmada; NO_ADR_REQUIRED con justificación aceptada.
 - [ ] Pendientes que bloquean Ready resueltos.
 
 ## Checklist de Implementation
@@ -30,15 +34,16 @@
 <!-- Completar si es Implementation; en los otros tipos indicar “no aplica”. -->
 
 - [ ] Issue existente y Planning PR distinta e integrada antes de implementar.
-- [ ] Spec revisada y ADR aceptado cubren el cambio.
-- [ ] Desarrollo funcional realizado mediante TDD.
+- [ ] Spec revisada y ADR decision resuelta; ADR aceptado y cobertura confirmada cuando aplique.
+- [ ] Estrategia TDD/eval-first/híbrida realizada según Spec, con evidencia.
 - [ ] Tests trazables mediante ruta de Spec e ID de AC.
 - [ ] Todos los AC tienen evidencia de verificación final.
 
 ## Evidencia de verificación
 
 <!-- Incluir comandos/pasos, entorno, resultados y logs relevantes.
-     Implementation: evidencia Red (fallo esperado), Green y Refactor.
+     Implementation: evidencia Red (fallo esperado), Green y Refactor para TDD;
+     baseline, gap, reevaluación y comparación para eval-first, según Spec.
      Documentación: revisión de contenido, enlaces y diff.
      No presentar checks no ejecutados como éxitos. -->
 

@@ -5,20 +5,30 @@ Las decisiones de transición y las comprobaciones de DoR/DoD siguen siendo
 manuales y explícitas. Las invariantes están en [AGENTS.md](../AGENTS.md).
 
 ```text
-GitHub Issue → Spec → ADR → Test Plan → Planning PR → Ready
-             → TDD → Implementation PR → CI / traceability / review → Done
+GitHub Issue → Spec → ADR decision (ADR si aplica) → Test/Eval Plan
+             → Planning PR → Ready → TDD/eval-first → Implementation PR
+             → CI / traceability / review → Done
 ```
+
+Orquestadores de alto nivel:
+
+```text
+Issue → piia2-plan-task → Ready → piia2-implement-task → En revisión
+      → piia2-ship-task → Hechas
+```
+
+Solo `piia2-plan-task` existe actualmente; las otras dos skills son fases futuras.
 
 | Fase | Resultado y condición para avanzar |
 |---|---|
 | GitHub Issue | Problema y alcance registrados con el template de Issue. Es requisito antes de cualquier código productivo. |
 | Spec | Comportamiento y AC verificables con IDs estables, enlazados a la Issue. Usar el template en `docs/templates/` y guardar en `entregas/<caso>/specs/`. |
-| ADR | Decisión propuesta en `docs/adr/`, enlazada a la Issue y a las Specs que cubre. |
-| Test Plan | Casos, datos, entorno y comandos previstos para cada AC; puede ser una sección de la Spec o un documento versionado enlazado. |
-| Planning PR | PR de documentación que revisa Spec, ADR y Test Plan. El revisor acepta explícitamente el ADR; registrar esa aceptación e integrar la PR antes de implementar. |
-| Ready | Issue enlazada, Spec revisada, ADR aceptado, Test Plan que cubre todos los AC, Planning PR integrada y sin pendientes que bloqueen implementación. Registrar la comprobación de DoR en la Issue y solicitar explícitamente el cambio a Ready en el Project. |
-| TDD | En una nueva feature branch desde `main` con la planificación integrada, ejecutar Red → Green → Refactor por comportamiento y registrar evidencia. |
-| Implementation PR | PR distinta que enlaza Issue, Spec, ADR, Test Plan y Planning PR, con tests trazables y evidencia de verificación. |
+| ADR decision | NEW_ADR, REUSE_ADR o NO_ADR_REQUIRED, con justificación en Spec. Toda decisión relevante requiere un ADR aceptado antes de implementar. |
+| Test/Eval Plan e Implementation Plan | Secciones obligatorias de la Spec: verificaciones por AC y estrategia TDD/eval; vertical slices pequeñas con objetivo observable, AC, contratos, dependencias y verificación. |
+| Planning PR | Revisión humana de Spec, planes y ADR decision; acepta ADR nuevo, confirma cobertura del reutilizado o justifica no requerirlo. Registrar la aceptación y hacer merge humano antes de implementar. |
+| Ready | DoR completa desde main: Spec Revisada, ADR decision resuelta y revisada, ambos planes cubren todos los AC y Planning PR revisada e integrada, sin bloqueos. Registrar evidencia y verificar promoción explícita por piia2-plan-task. |
+| TDD/eval-first | En una nueva feature branch desde `main` con planificación integrada, ejecutar la estrategia determinista, ML o híbrida definida en Spec y registrar evidencia. |
+| Implementation PR | PR distinta que enlaza Issue, Spec, Test/Eval Plan, Planning PR y ADR cuando aplique; en otro caso, `ADR: No requerido — justificado en Spec`. Tests/evals trazables y evidencia de verificación. |
 | CI / traceability / review | Revisar resultados de verificación, cobertura de AC y diff. La CI queda para una fase posterior; en esta foundation se aportan comandos y resultados manuales. |
 | Done | DoD global y requisitos específicos de las Specs completamente satisfechos, con evidencia. Solo entonces cerrar la Issue y pasarla a Hechas. |
 
@@ -42,8 +52,9 @@ el Project; los IDs de campos, opciones e items se descubren en cada operación.
 | GitHub Issue | Unidad de trabajo: alcance, referencias, bloqueos y evidencia de cierre. |
 | GitHub Project | Fuente de verdad del estado operacional. |
 | Spec | Comportamiento requerido y AC verificables. |
-| ADR | Decisión técnica aceptada. |
-| Test Plan | Estrategia de verificación de cada AC. |
+| ADR | Decisión técnica/arquitectónica relevante aceptada; no es obligatorio crear uno por tarea. |
+| Test/Eval Plan | Estrategia de verificación de cada AC. |
+| Implementation Plan | Secuencia de vertical slices verificables dentro de la Spec. |
 | Planning PR | Aprobación de la planificación antes de implementar. |
 | Implementation PR | Implementación y evidencia de verificación. |
 
@@ -53,7 +64,7 @@ determina por sí sola su estado operacional, ni una columna prueba DoR o DoD.
 | Status | Significado |
 |---|---|
 | Por hacer | Trabajo identificado, todavía no planificado. |
-| Especificando | Elaboración o revisión de Spec, ADR y Test Plan. |
+| Especificando | Elaboración o revisión de Spec, decisión ADR y planes. |
 | Ready | DoR cumplida y planificación integrada; permite implementar. |
 | En curso | Implementación activa. |
 | En revisión | Implementation PR abierta. |
@@ -96,10 +107,110 @@ subagentes o sincronización autónoma. Se usan CLI/API oficiales, sin scraping.
 
 ## Definition of Ready y Definition of Done
 
-La **Definition of Ready (DoR)** permite comenzar implementación: confirma que
-la Issue, la Spec revisada, el ADR aceptado y el Test Plan están disponibles,
-la Planning PR está integrada y no hay bloqueos de planificación. No acredita
-que el comportamiento esté implementado ni verificado.
+La entrada oficial de planificación es
+[piia2-plan-task](../.agents/skills/piia2-plan-task/SKILL.md), invocada con una
+Issue existente (`#12` o `12`). Reutiliza las skills operacionales y de entrega:
+
+```text
+Por hacer → Especificando → investigación + clarify → Spec Borrador
+          → ADR decision (NEW_ADR: Propuesto; REUSE_ADR; NO_ADR_REQUIRED)
+          → Test/Eval Plan + Implementation Plan → analyze → Planning PR
+          → revisión humana → Spec Revisada + ADR decision revisada
+          → merge humano → DoR desde main → Ready
+```
+
+Explora código/documentación antes de redactar y ejecuta **clarify** conceptualmente:
+requisitos/términos ambiguos, decisiones ausentes, supuestos como hechos, umbrales
+sin evidencia, edge cases y contradicciones con comportamiento existente. Clasifica
+cada incertidumbre como resuelta con evidencia, supuesto explícito aceptable,
+pregunta no bloqueante o bloqueante. Primero inspecciona el repo; pregunta solo
+por criterio humano necesario. No completa el plan si no puede definir AC verificables.
+
+La Spec registra comportamiento que debe preservarse (contratos, compatibilidad,
+esquemas e invariantes), failure modes y NFRs relevantes, con protección trazable
+mediante AC/verificaciones. No inventa requisitos o umbrales. Mapea todos los AC a
+seams observables, verificaciones y vertical slices del Implementation Plan, sin
+código ni internals innecesarios. Si hay demasiadas slices o varios objetivos
+independientes, recomienda dividir antes de una mega-Spec; no crea child Issues.
+
+La estrategia por comportamiento es TDD para lo determinista: Red → Green →
+Refactor. Para objetivos ML/probabilísticos/heurísticos que TDD unitario no representa:
+Baseline → criterio/eval que demuestra el gap → cambio → reevaluación → comparación.
+Puede ser híbrida. No inventa un test rojo artificial para métricas ML.
+
+La decisión ADR queda explícita y justificada:
+
+| ADR decision | Condición de planificación y aprobación |
+|---|---|
+| NEW_ADR | Decisión relevante nueva/modificada: arquitectura, boundaries, contrato público, datos/persistencia, integración/protocolo, concurrencia, seguridad, ML/serving/evaluación o trade-off duradero. ADR nuevo Propuesto; el humano acepta la decisión y se registra Aceptado. |
+| REUSE_ADR | ADR existente Aceptado cubre realmente decisión y alcance; ruta y explicación concreta. El humano confirma cobertura, sin reescribir la decisión ni crear duplicado. |
+| NO_ADR_REQUIRED | No introduce/cambia una decisión relevante; justificación en Spec aceptada en review. No crear ADR artificial. Un bug local/refactor que preserva contratos puede encajar; un cambio pequeño de contrato público no. |
+
+Las referencias/checklists anteriores que exijan ADR incondicional se interpretan
+según esta política y AGENTS.md: registrar no aplicable y justificación para
+NO_ADR_REQUIRED, sin marcar un ADR inexistente como aceptado ni sustituir el body
+de la Issue. Toda decisión relevante pendiente sigue bloqueando implementación.
+
+Después de redactar, **analyze** contrasta Issue, alcance/fuera de alcance,
+comportamiento preservado, failure modes/NFRs, AC, ADR decision/ADR y ambos planes.
+Detecta requisitos omitidos, AC/slices fuera de alcance, AC sin verificación o
+slice, verificación sin AC, regresiones/fallos sin protección, supuestos como
+hechos, contradicciones y decisión ADR artificial/oculta o reutilización sin
+cobertura. Corrige con evidencia inequívoca; si requiere criterio humano, registra
+y pregunta. Con gaps bloqueantes no publica como lista para revisión completa;
+puede abrir draft para discutir incertidumbres explícitas. Repite clarify/analyze
+ante cambios sustantivos. Reanuda sin duplicar Specs, decisiones, ramas o PRs;
+no escribe código productivo, tests ni fixtures.
+
+La invocación autoriza las operaciones no destructivas de este recorrido sobre
+esa Issue, incluidas referencias y comentarios mínimos sin sustituir su body,
+y promoción acreditada a Ready. No se pide confirmación por cada paso.
+
+Abrir la Planning PR significa presentar el plan a revisión. Mientras siga abierta,
+la Issue permanece abierta en `Especificando`, aunque los documentos ya estén
+revisados/aceptados. Si faltan decisiones que
+impiden definir contratos verificables, el plan sigue como borrador y su eventual
+PR es draft, con los pendientes visibles. Una tarea bloqueada solo se investiga
+con petición expresa y si su impedimento lo permite; no se desbloquea por suposición.
+La misma skill, al reejecutarse, localiza esa PR y busca evidencia humana explícita
+de aceptación del plan: claridad y alcance, comportamiento preservado,
+failure modes/NFRs, AC/seams, estrategia TDD/eval, ambos planes, riesgos,
+preguntas, ADR decision y consistencia global. No pide revisar internals inexistentes.
+Solo con evidencia suficiente registra quién, referencia y versión revisada,
+y actualiza Spec a Revisada y, en NEW_ADR, ADR a Aceptado en la misma rama/PR.
+Para REUSE_ADR registra cobertura confirmada; NO_ADR_REQUIRED, justificación
+aceptada. No infiere aceptación por silencio ni merge.
+Después de cada push comprueba la aprobación real: si GitHub la invalida, debe
+renovarse. El humano comprueba y aprueba el head final y hace el merge.
+
+Tras el merge, una reejecución verifica los documentos del snapshot actualizado
+de main, aceptación humana y aprobación final, Issue abierta y en el Project,
+cobertura de todos los AC en ambos planes, ADR decision según su caso,
+clarify/analyze sin gaps bloqueantes, y ausencia de preguntas, dependencias
+o bloqueos que impidan implementar. Solo con DoR completa mueve Especificando
+→ Ready, relee y verifica el resultado y registra evidencia mínima en la Issue.
+La Issue sigue abierta y aquí termina piia2-plan-task, sin rama de implementación.
+Si el merge dejó NEW_ADR Propuesto, ADR decision incompleta, Spec Borrador u otra
+carencia, conserva Especificando e informa: hace falta corrección documental revisada, sin arreglos
+silenciosos para pasar DoR ni duplicar planificación.
+
+La **Definition of Ready (DoR)** permite comenzar implementación. Requiere:
+
+- Issue abierta y perteneciente al Project; Planning PR correcta revisada por
+  humano, con aprobación final válida antes del merge humano.
+- Spec Revisada en main, aceptación humana referenciada y AC verificables.
+- Test/Eval Plan e Implementation Plan en Spec cubren todos los AC; seams,
+  estrategia, datos y verificación previstos; slices dentro del alcance.
+- Comportamiento preservado y failure modes/NFRs relevantes tratados/protegidos.
+- Sin ambigüedades bloqueantes, analyze sin gaps bloqueantes, sin dependencias
+  que impidan implementar ni bloqueo operacional vigente.
+- ADR decision resuelta y revisada: NEW_ADR con ADR Aceptado en main;
+  REUSE_ADR con ADR existente Aceptado en main y cobertura confirmada en review;
+  NO_ADR_REQUIRED con justificación en Spec revisada y aceptada en Planning PR.
+
+Los documentos se comprueban desde un snapshot actualizado de main, incluyendo
+correcciones revisadas si las hubo. DoR no acredita implementación ni verificación
+final; la columna Ready por sí sola tampoco acredita estos requisitos.
 
 La **Definition of Done (DoD)** permite considerar terminada y cerrar la tarea,
 y pasarla a `Hechas`. La checklist global está en el
@@ -121,7 +232,9 @@ Para la trazabilidad manual, usar siempre la ruta de la Spec junto al ID del
 AC. El Test Plan relaciona AC y casos; los tests incluyen esa referencia; la
 Implementation PR relaciona tests y evidencia. Para TDD, registrar el comando
 y el fallo esperado en Red, el resultado en Green y la comprobación posterior
-a Refactor. Indicar cualquier verificación pendiente con su motivo.
+a Refactor. Para eval-first, registrar baseline, evaluación del gap, datos/versiones,
+reevaluación y comparación reproducible según Spec. Indicar cualquier verificación
+pendiente con su motivo.
 
 Los cambios exclusivamente documentales usan una PR documental y evidencia
 de revisión de contenido, enlaces y diff. No requieren un ciclo TDD funcional
@@ -135,9 +248,10 @@ Nota histórica de la foundation: se establecieron reglas y templates sin exigir
 la migración retroactiva del código existente. Esta capa operacional incorpora
 Projects v2 y tres skills específicas del repositorio, sin enforcement automático.
 La comprobación de DoD sigue siendo manual; su validación automática queda pendiente.
-Las futuras `piia2-plan-task`, `piia2-implement-task` y `piia2-ship-task` decidirán
-cuándo solicitar las transiciones. Esta fase no las implementa ni genera Specs,
-ADRs, tests o TDD; tampoco incorpora `traceability-check`, Actions/CI adicional,
+`piia2-plan-task` cubre Por hacer → Especificando → Ready, con aceptación
+explícita en Planning PR, merge humano y comprobación completa de DoR desde main.
+Las futuras `piia2-implement-task` y `piia2-ship-task` cubrirán implementación
+con TDD/eval-first según Spec y entrega. No se implementan todavía tests, TDD, `traceability-check`, Actions/CI adicional,
 `babysit-pr`, branch protection ni automatismos de eventos Issue/PR a Status.
 
 Templates: [Spec](templates/spec-template.md), [ADR](adr/template.md),
