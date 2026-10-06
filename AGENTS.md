@@ -6,6 +6,12 @@ Estas reglas se aplican a personas y agentes en todo el repositorio.
 
 - La entrada oficial para planificar trabajo funcional nuevo es
   [piia2-plan-task](.agents/skills/piia2-plan-task/SKILL.md), desde una Issue existente.
+  Cubre Por hacer → Especificando → Ready: registra aceptación humana explícita
+  en la misma Planning PR y promueve a Ready solo después del merge humano,
+  con Spec Revisada, ADR Aceptado y DoR completa verificados desde main.
+  La invocación autoriza las operaciones no destructivas de planificación sobre
+  esa Issue, incluidas referencias y promoción acreditada; no aprobar/mergear,
+  cerrar, borrar contenido ni implementar. Su responsabilidad termina en Ready.
 - Ningún código productivo se implementa sin una GitHub Issue que describa el trabajo.
 - Toda implementación debe estar cubierta por una Spec y por un ADR con estado
   `Aceptado`. Ambos documentos deben existir antes de comenzar la implementación.

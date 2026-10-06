@@ -9,6 +9,15 @@ GitHub Issue → Spec → ADR → Test Plan → Planning PR → Ready
              → TDD → Implementation PR → CI / traceability / review → Done
 ```
 
+Orquestadores de alto nivel:
+
+```text
+Issue → piia2-plan-task → Ready → piia2-implement-task → En revisión
+      → piia2-ship-task → Hechas
+```
+
+Solo `piia2-plan-task` existe actualmente; las otras dos skills son fases futuras.
+
 | Fase | Resultado y condición para avanzar |
 |---|---|
 | GitHub Issue | Problema y alcance registrados con el template de Issue. Es requisito antes de cualquier código productivo. |
@@ -101,7 +110,9 @@ La entrada oficial de planificación es
 Issue existente (`#12` o `12`). Reutiliza las skills operacionales y de entrega:
 
 ```text
-Issue → Especificando → investigación → Spec → ADR Propuesto → Test Plan → Planning PR
+Por hacer → Especificando → investigación → Spec Borrador → ADR Propuesto
+          → Test Plan → Planning PR → revisión humana
+          → Spec Revisada + ADR Aceptado → merge humano → DoR desde main → Ready
 ```
 
 Explora código/documentación antes de redactar, declara incertidumbres y mapea
@@ -110,13 +121,32 @@ Puede reutilizar justificadamente un ADR aceptado que cubra el cambio.
 Reanuda planes existentes sin duplicar Specs, decisiones o PRs; no escribe
 código productivo, tests ni fixtures.
 
-Abrir la Planning PR significa presentar el plan a revisión. La Issue permanece
-abierta en `Especificando`; no se promueve a `Ready`. Si faltan decisiones que
+La invocación autoriza las operaciones no destructivas de este recorrido sobre
+esa Issue, incluidas referencias y comentarios mínimos sin sustituir su body,
+y promoción acreditada a Ready. No se pide confirmación por cada paso.
+
+Abrir la Planning PR significa presentar el plan a revisión. Mientras siga abierta,
+la Issue permanece abierta en `Especificando`, aunque los documentos ya estén
+revisados/aceptados. Si faltan decisiones que
 impiden definir contratos verificables, el plan sigue como borrador y su eventual
 PR es draft, con los pendientes visibles. Una tarea bloqueada solo se investiga
 con petición expresa y si su impedimento lo permite; no se desbloquea por suposición.
-El paso a Ready exige revisión humana, ADR aceptado, Planning PR integrada y
-DoR completamente satisfecha mediante una operación posterior explícita.
+La misma skill, al reejecutarse, localiza esa PR y busca evidencia humana explícita
+de aceptación de Spec/AC/Test Plan y decisión del ADR. Solo con evidencia suficiente
+registra quién, referencia y versión revisada, y actualiza Spec a Revisada y ADR
+nuevo a Aceptado en la misma rama/PR. No infiere aceptación por silencio ni merge.
+Después de cada push comprueba la aprobación real: si GitHub la invalida, debe
+renovarse. El humano comprueba y aprueba el head final y hace el merge.
+
+Tras el merge, una reejecución verifica los documentos del snapshot actualizado
+de main, aceptación humana y aprobación final, Issue abierta y en el Project,
+cobertura de todos los AC en Test Plan, y ausencia de preguntas, dependencias
+o bloqueos que impidan implementar. Solo con DoR completa mueve Especificando
+→ Ready, relee y verifica el resultado y registra evidencia mínima en la Issue.
+La Issue sigue abierta y aquí termina piia2-plan-task, sin rama de implementación.
+Si el merge dejó ADR Propuesto, Spec Borrador u otra carencia, conserva
+Especificando e informa: hace falta corrección documental revisada, sin arreglos
+silenciosos para pasar DoR ni duplicar planificación.
 
 La **Definition of Ready (DoR)** permite comenzar implementación: confirma que
 la Issue, la Spec revisada, el ADR aceptado y el Test Plan están disponibles,
@@ -157,7 +187,8 @@ Nota histórica de la foundation: se establecieron reglas y templates sin exigir
 la migración retroactiva del código existente. Esta capa operacional incorpora
 Projects v2 y tres skills específicas del repositorio, sin enforcement automático.
 La comprobación de DoD sigue siendo manual; su validación automática queda pendiente.
-`piia2-plan-task` orquesta la planificación hasta su PR, sin promover a Ready.
+`piia2-plan-task` cubre Por hacer → Especificando → Ready, con aceptación
+explícita en Planning PR, merge humano y comprobación completa de DoR desde main.
 Las futuras `piia2-implement-task` y `piia2-ship-task` cubrirán implementación
 con TDD y entrega. No se implementan todavía tests, TDD, `traceability-check`, Actions/CI adicional,
 `babysit-pr`, branch protection ni automatismos de eventos Issue/PR a Status.
