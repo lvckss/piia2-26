@@ -39,6 +39,16 @@ Estas reglas se aplican a personas y agentes en todo el repositorio.
 
 ## Git y revisión
 
+- GitHub Issue es la unidad de trabajo; el GitHub Project v2 configurado en
+  `.github/project-config.json` es la fuente de verdad del estado operacional.
+  No sustituye a la Spec, el ADR ni la evidencia de verificación.
+- Antes de operar sobre Issues o Projects, verificar el contexto con
+  `.agents/skills/gh-verifying-context/SKILL.md`. Toda escritura requiere alcance
+  autorizado, lectura previa, cambio mínimo, relectura y comprobación del resultado.
+  No escribir con contexto ambiguo, permisos insuficientes o estados ausentes.
+- Los cambios de estado deben ser explícitos y respetar DoR y DoD. Mover a
+  `Bloqueadas` exige registrar en la Issue motivo, impedimento y siguiente acción;
+  salir del bloqueo exige documentar su resolución y el estado operativo de destino.
 - `main` nunca recibe commits directos; todo entra mediante Pull Request desde
   una feature branch. Los agentes no fusionan ni aprueban sus propias PRs.
 - La Implementation PR enlaza Issue, Spec, ADR aceptado, Test Plan y Planning PR,
