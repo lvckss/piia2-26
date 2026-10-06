@@ -8,28 +8,39 @@ Estas reglas se aplican a personas y agentes en todo el repositorio.
   [piia2-plan-task](.agents/skills/piia2-plan-task/SKILL.md), desde una Issue existente.
   Cubre Por hacer → Especificando → Ready: registra aceptación humana explícita
   en la misma Planning PR y promueve a Ready solo después del merge humano,
-  con Spec Revisada, ADR Aceptado y DoR completa verificados desde main.
+  con Spec Revisada, ADR decision resuelta y revisada, y DoR completa
+  verificados desde main.
   La invocación autoriza las operaciones no destructivas de planificación sobre
   esa Issue, incluidas referencias y promoción acreditada; no aprobar/mergear,
   cerrar, borrar contenido ni implementar. Su responsabilidad termina en Ready.
 - Ningún código productivo se implementa sin una GitHub Issue que describa el trabajo.
-- Toda implementación debe estar cubierta por una Spec y por un ADR con estado
-  `Aceptado`. Ambos documentos deben existir antes de comenzar la implementación.
+- Toda implementación funcional requiere Issue, Spec `Revisada`, Test/Eval Plan,
+  Implementation Plan y Planning PR revisada e integrada antes de comenzar.
+- Durante planificación se resuelve explícitamente `ADR decision`: `NEW_ADR`,
+  `REUSE_ADR` o `NO_ADR_REQUIRED`, con justificación revisada por un humano.
+  Toda decisión técnica/arquitectónica relevante debe estar cubierta por un ADR
+  `Aceptado` antes de implementar. Un cambio pequeño de contrato público también
+  es una decisión relevante; el tamaño del cambio no permite omitir el ADR.
 - La Spec debe describir el comportamiento, alcance, restricciones y Acceptance
   Criteria (AC) verificables: entradas, resultado observable y condición de éxito.
 - Cada AC debe tener un identificador estable dentro de su Spec (`AC-001`, etc.).
   La referencia completa incluye la ruta de la Spec y el identificador.
 - Las fases de planificación e implementación son PRs distintas. La Planning PR
-  revisa Spec, ADR y Test Plan, sin código productivo. Solo se comienza a
-  implementar después de integrar esa PR y confirmar que el trabajo está Ready.
-- Si falta la Issue, la Spec, el ADR aceptado o la planificación revisada,
+  revisa Spec, decisión ADR, Test/Eval Plan e Implementation Plan, sin código
+  productivo. Solo se comienza a implementar después de integrar esa PR y
+  confirmar que el trabajo está Ready.
+- Si falta alguno de esos requisitos o existe una decisión relevante pendiente,
   el agente debe indicar qué falta y continuar únicamente con la planificación.
 
 ## Desarrollo y verificación
 
-- Todo desarrollo funcional utiliza TDD: escribir un test que falle por el
+- El comportamiento determinista utiliza TDD: escribir un test que falle por el
   comportamiento ausente (Red), implementar lo mínimo para que pase (Green)
   y refactorizar manteniendo los tests en verde (Refactor).
+- Para objetivos ML/probabilísticos/heurísticos que TDD unitario no representa,
+  utilizar eval-first: Baseline → criterio/eval que demuestra el gap → cambio
+  → reevaluación → comparación. Una tarea puede combinar ambas estrategias;
+  la Spec las justifica, sin tests rojos artificiales ni umbrales sin evidencia.
 - Los tests deben poder trazarse hasta los AC mediante la ruta de la Spec y sus
   identificadores, en el Test Plan y en el nombre, comentario o documentación del
   test. Cada AC debe tener una verificación prevista y evidencia al terminar.
@@ -59,8 +70,10 @@ Estas reglas se aplican a personas y agentes en todo el repositorio.
   salir del bloqueo exige documentar su resolución y el estado operativo de destino.
 - `main` nunca recibe commits directos; todo entra mediante Pull Request desde
   una feature branch. Los agentes no fusionan ni aprueban sus propias PRs.
-- La Implementation PR enlaza Issue, Spec, ADR aceptado, Test Plan y Planning PR,
-  y aporta evidencia de TDD y de la verificación final.
+- La Implementation PR enlaza Issue, Spec, Test/Eval Plan y Planning PR, además
+  del ADR aceptado cuando aplique. En otro caso indica
+  `ADR: No requerido — justificado en Spec`. Aporta evidencia de la estrategia
+  TDD/eval prevista y de la verificación final.
 - No subir secretos, credenciales ni datos privados. Respetar los cambios
   existentes y no incluir trabajo ajeno al alcance de la PR.
 
@@ -68,8 +81,11 @@ Estas reglas se aplican a personas y agentes en todo el repositorio.
 
 Las specs actuales permanecen en `entregas/<caso>/specs/`. No se presupone que
 las decisiones descritas en ellas sean ADRs aceptados: antes de una nueva
-implementación, completar sus referencias y AC, y registrar o enlazar un ADR
-aceptado.
+implementación, completar sus referencias, AC y planes, y resolver/revisar la
+decisión ADR según estas reglas. Referencias antiguas a un ADR obligatorio se
+aplican únicamente cuando la decisión lo requiere; no inventar un ADR ni marcar
+como aceptado un documento inexistente. Registrar el caso no aplicable y su
+justificación en la Spec y en las referencias de planificación de la Issue.
 
 Los cambios exclusivamente documentales no son desarrollo
 funcional: se verifican mediante revisión de contenido, enlaces y diff. Esta
