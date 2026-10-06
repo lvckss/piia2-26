@@ -96,6 +96,28 @@ subagentes o sincronización autónoma. Se usan CLI/API oficiales, sin scraping.
 
 ## Definition of Ready y Definition of Done
 
+La entrada oficial de planificación es
+[piia2-plan-task](../.agents/skills/piia2-plan-task/SKILL.md), invocada con una
+Issue existente (`#12` o `12`). Reutiliza las skills operacionales y de entrega:
+
+```text
+Issue → Especificando → investigación → Spec → ADR Propuesto → Test Plan → Planning PR
+```
+
+Explora código/documentación antes de redactar, declara incertidumbres y mapea
+cada AC a un test seam observable y una verificación prevista en la Spec.
+Puede reutilizar justificadamente un ADR aceptado que cubra el cambio.
+Reanuda planes existentes sin duplicar Specs, decisiones o PRs; no escribe
+código productivo, tests ni fixtures.
+
+Abrir la Planning PR significa presentar el plan a revisión. La Issue permanece
+abierta en `Especificando`; no se promueve a `Ready`. Si faltan decisiones que
+impiden definir contratos verificables, el plan sigue como borrador y su eventual
+PR es draft, con los pendientes visibles. Una tarea bloqueada solo se investiga
+con petición expresa y si su impedimento lo permite; no se desbloquea por suposición.
+El paso a Ready exige revisión humana, ADR aceptado, Planning PR integrada y
+DoR completamente satisfecha mediante una operación posterior explícita.
+
 La **Definition of Ready (DoR)** permite comenzar implementación: confirma que
 la Issue, la Spec revisada, el ADR aceptado y el Test Plan están disponibles,
 la Planning PR está integrada y no hay bloqueos de planificación. No acredita
@@ -135,9 +157,9 @@ Nota histórica de la foundation: se establecieron reglas y templates sin exigir
 la migración retroactiva del código existente. Esta capa operacional incorpora
 Projects v2 y tres skills específicas del repositorio, sin enforcement automático.
 La comprobación de DoD sigue siendo manual; su validación automática queda pendiente.
-Las futuras `piia2-plan-task`, `piia2-implement-task` y `piia2-ship-task` decidirán
-cuándo solicitar las transiciones. Esta fase no las implementa ni genera Specs,
-ADRs, tests o TDD; tampoco incorpora `traceability-check`, Actions/CI adicional,
+`piia2-plan-task` orquesta la planificación hasta su PR, sin promover a Ready.
+Las futuras `piia2-implement-task` y `piia2-ship-task` cubrirán implementación
+con TDD y entrega. No se implementan todavía tests, TDD, `traceability-check`, Actions/CI adicional,
 `babysit-pr`, branch protection ni automatismos de eventos Issue/PR a Status.
 
 Templates: [Spec](templates/spec-template.md), [ADR](adr/template.md),

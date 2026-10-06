@@ -4,6 +4,8 @@ Estas reglas se aplican a personas y agentes en todo el repositorio.
 
 ## Antes de implementar
 
+- La entrada oficial para planificar trabajo funcional nuevo es
+  [piia2-plan-task](.agents/skills/piia2-plan-task/SKILL.md), desde una Issue existente.
 - Ningún código productivo se implementa sin una GitHub Issue que describa el trabajo.
 - Toda implementación debe estar cubierta por una Spec y por un ADR con estado
   `Aceptado`. Ambos documentos deben existir antes de comenzar la implementación.
