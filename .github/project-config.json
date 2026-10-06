@@ -1,0 +1,21 @@
+{
+  "repository": {
+    "owner": "lvckss",
+    "name": "piia2-26"
+  },
+  "project": {
+    "owner": "lvckss",
+    "owner_type": "User",
+    "number": 1
+  },
+  "status_field": "Status",
+  "statuses": [
+    "Por hacer",
+    "Especificando",
+    "Ready",
+    "En curso",
+    "En revisión",
+    "Bloqueadas",
+    "Hechas"
+  ]
+}
