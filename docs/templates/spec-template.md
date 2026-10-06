@@ -1,6 +1,6 @@
 # Spec: <nombre de la funcionalidad>
 
-<!-- Copiar a entregas/<caso>/specs/<nombre-kebab-case>.md.
+<!-- Copiar a entregas/<caso>/specs/<issue>-<slug-kebab-case>.md.
      Sustituir placeholders y eliminar instrucciones antes de revisión. -->
 
 - GitHub Issue: <URL>
