@@ -1,7 +1,11 @@
 # Registro de decisiones (ADRs)
 
-Las nuevas decisiones que cubren implementaciones se registran aquí. Copiar el
-[template](template.md) a `NNNN-nombre-kebab-case.md`, con un número de cuatro
+Las decisiones técnicas/arquitectónicas suficientemente fundamentales, duraderas
+o costosas de revertir se registran aquí. Los cambios observables locales sin
+decisión estructural no requieren ADR; resolver y revisar explícitamente
+NEW_ADR, REUSE_ADR o NO_ADR_REQUIRED según el [lifecycle](../workflow.md).
+Para un ADR nuevo, copiar el [template](template.md) a `NNNN-nombre-kebab-case.md`,
+con un número de cuatro
 dígitos no utilizado (empezando por `0001`). Enlazar la Issue y las Specs cubiertas.
 El template y este README no son decisiones aceptadas.
 
@@ -19,7 +23,7 @@ reutilizar un ADR aceptado si cubre explícitamente su alcance y restricciones;
 no basta con que exista cualquier ADR en el repositorio.
 
 El ejemplo docente en `entregas/cu00-ejemplo/decisions/` se conserva en su
-ubicación. Las decisiones de las specs antiguas deben revisarse y registrarse
-como ADRs antes de implementar nuevos cambios que dependan de ellas.
+ubicación. Las decisiones estructurales relevantes de las specs antiguas deben
+revisarse y registrarse como ADRs antes de implementar nuevos cambios que dependan de ellas.
 
 Ver el [lifecycle](../workflow.md) para la revisión y el paso a Ready.

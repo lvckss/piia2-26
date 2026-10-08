@@ -205,19 +205,41 @@ petición/autorización explícita.
 ### ADR decision condicional
 
 Resolver exactamente un caso y registrar valor, ruta/estado o No requerido y
-justificación en Spec/PR. El tamaño del diff no decide si hace falta ADR:
+justificación en Spec/PR. Distinguir cambio observable local de decisión
+arquitectónica/frontera estable/trade-off duradero. Investigar consumidores,
+boundaries, consecuencias y coste de reversión antes de clasificar; ni el tamaño
+del diff ni un cambio observable por sí solos deciden si hace falta ADR:
 
 | ADR decision | Criterio y resultado |
 |---|---|
-| NEW_ADR | Introduce/cambia una decisión técnica/arquitectónica relevante: arquitectura, boundaries, contrato público, modelo de datos/persistencia, integración/protocolo, concurrencia, seguridad, estrategia ML/serving/evaluación o trade-off duradero/costoso de revertir. Crear ADR Propuesto; requerir aceptación humana. |
+| NEW_ADR | Introduce/cambia una decisión suficientemente fundamental, duradera o costosa de revertir: arquitectura; boundaries entre agentes/servicios/componentes independientes; contratos externos o fronteras estables; APIs externas; schemas/formatos persistentes o compartidos; datos/persistencia; integración/protocolo; deployment/serving; concurrencia; seguridad; dependencia externa estructural; estrategia ML/serving/evaluación duradera; trade-off importante difícil de revertir. Crear ADR Propuesto; requerir aceptación humana. |
 | REUSE_ADR | Un ADR ya Aceptado cubre explícitamente decisión y alcance. Enlazarlo y justificar cobertura concreta, que debe confirmarse en review. No crear otro ni modificar el aceptado si la decisión no cambia. |
-| NO_ADR_REQUIRED | No introduce/cambia una decisión relevante: por ejemplo bug localizado, validación adicional, refactor local preservando contratos o documentación. Justificación breve, revisada por humano. No crear un ADR artificial. |
+| NO_ADR_REQUIRED | No introduce/cambia una decisión estructural relevante: validaciones locales, error/excepción/precondición de API interna, comportamiento de funciones dentro del componente, bugfix/mejora localizada, algoritmo interno, refactor que preserva arquitectura/boundaries, tests o documentación. Justificación breve revisada por humano; no crear ADR artificial. Un cambio observable local puede encajar. |
 
 Buscar decisiones existentes antes de elegir. Un ADR rechazado, sustituido o solo
 parecido no permite REUSE_ADR. Si cambia una decisión aceptada, elegir NEW_ADR
-con referencias a la anterior, conservando su historia. Un cambio pequeño que
-modifica un contrato público no puede clasificarse NO_ADR_REQUIRED. Si la
-relevancia o cobertura es ambigua, clarify exige la decisión, sin esconderla.
+con referencias a la anterior, conservando su historia.
+
+Para ADR, contrato público relevante es una frontera estable consumida externamente
+o entre componentes/agentes que pueden evolucionar independientemente: API externa,
+contrato Agente 1 → Agente 2, schema JSON compartido, protocolo, formato persistente
+o interfaz estable usada fuera del componente. Una función Python sin prefijo `_`
+o importada por otro módulo del mismo componente no es tal frontera por ese hecho.
+Elegir ValueError, cambiar su mensaje o una precondición interna no dispara NEW_ADR
+por sí solo. Una API interna con consecuencias estructurales, consumidores
+independientes o coste de reversión importante sí puede requerir ADR. Cambios
+pequeños en fronteras estables también lo requieren: valorar relevancia/durabilidad,
+no cantidad de líneas. Si sigue ambigua después de investigar, usar clarify,
+sin crear ADR por precaución ni NO_ADR_REQUIRED para ocultar una decisión real.
+Spec, AC, Test/Eval Plan, Implementation Plan y TDD/eval siguen siendo requisitos
+para los cambios funcionales locales sin ADR.
+
+Escenarios documentales de regresión (sin escribir producto ni tests):
+
+| Situación | Decisión prevista |
+|---|---|
+| Función interna valida datos y ahora lanza ValueError, sin cambiar boundaries, schemas, protocolos ni establecer un trade-off estructural. | NO_ADR_REQUIRED, con justificación revisada; mantener Spec/AC y ambos planes. |
+| Diff pequeño cambia schema JSON estable entre Agente 1 y Agente 2. | NEW_ADR si la decisión no está cubierta; REUSE_ADR solo si un ADR Aceptado cubre explícitamente ese cambio. Nunca NO_ADR_REQUIRED por tamaño. |
 
 Solo para NEW_ADR, elegir el siguiente número de cuatro dígitos libre,
 comprobando main y planes abiertos, y crear `docs/adr/<NNNN>-<slug>.md` desde el
