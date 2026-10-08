@@ -5,7 +5,7 @@
 - ADR decision: NEW_ADR
 - ADR: [0001 — Rechazo explícito de scores inválidos](../../../docs/adr/0001-rechazo-scores-confianza-invalidos.md), Propuesto.
 - Justificación: se concreta un nuevo contrato observable de error para las funciones públicas de confianza; los scores inválidos dejarán de devolver un tier. No existe un ADR aceptado que cubra ese contrato.
-- Planning PR: pendiente de apertura; se completará en esta misma rama.
+- Planning PR: https://github.com/lvckss/piia2-26/pull/16
 - Revisión humana de Spec, planes y ADR decision: pendiente en la Planning PR; sin aceptación acreditada.
 
 ## Qué construir

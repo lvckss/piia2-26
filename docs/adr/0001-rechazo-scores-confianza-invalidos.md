@@ -4,7 +4,7 @@
 - Fecha: 2026-10-08
 - GitHub Issue: https://github.com/lvckss/piia2-26/issues/14
 - Specs cubiertas: [14-validar-scores-confianza.md](../../entregas/cu-19-interpretacion-danos/specs/14-validar-scores-confianza.md), contrato de error de clasificación y tier final, incluidos callers cuando la candidata llega a clasificación.
-- Planning PR: pendiente de apertura; se completará en esta misma rama.
+- Planning PR: https://github.com/lvckss/piia2-26/pull/16
 - Aceptación: pendiente de revisión humana explícita en la Planning PR; no habilita implementación.
 - Sustituye / sustituido por: no aplica.
 
