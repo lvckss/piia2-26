@@ -1,12 +1,39 @@
 # ADR 0001: Rechazo explícito de scores de confianza inválidos
 
-- Estado: Propuesto
+- Estado: Rechazado
 - Fecha: 2026-10-08
 - GitHub Issue: https://github.com/lvckss/piia2-26/issues/14
-- Specs cubiertas: [14-validar-scores-confianza.md](../../entregas/cu-19-interpretacion-danos/specs/14-validar-scores-confianza.md), contrato de error de clasificación y tier final, incluidos callers cuando la candidata llega a clasificación.
+- Specs relacionadas: [14-validar-scores-confianza.md](../../entregas/cu-19-interpretacion-danos/specs/14-validar-scores-confianza.md). Historial de la propuesta inicial; no cubre una decisión arquitectónica aplicable a la implementación.
 - Planning PR: https://github.com/lvckss/piia2-26/pull/16
-- Aceptación: pendiente de revisión humana explícita en la Planning PR; no habilita implementación.
+- Aceptación: no aceptado. Descarte documental al reevaluar el plan con la política vigente; no se atribuye aceptación ni rechazo humano del comportamiento propuesto. La justificación de NO_ADR_REQUIRED en Spec sigue pendiente de revisión humana.
 - Sustituye / sustituido por: no aplica.
+
+## Motivo del descarte
+
+La planificación se reevalúa por petición del usuario aplicando la política
+ADR de main `c043af54f7cb97dbc5747974e861071864dfb18b`. Esa política distingue
+un comportamiento observable local de una decisión estructural relevante;
+una función Python importable no es por ese hecho una frontera estable externa.
+
+Los consumidores productivos encontrados son `hallazgos.py`, `confianza.py`
+y `vision.py`, todos dentro del Agente 1. La validación y `ValueError` no
+cambian schemas JSON entre agentes, protocolo, persistencia, arquitectura,
+dependencias estructurales o un trade-off duradero/costoso de revertir.
+La clasificación original como NEW_ADR ya no corresponde: el caso activo es
+**NO_ADR_REQUIRED**, justificado en la Spec para revisión humana en #16.
+
+Se descarta **la necesidad de este ADR**, no el comportamiento `ValueError`
+propuesto en la Spec. El documento se conserva para explicar su historia y
+evitar borrar contenido previo. No requiere aceptación, no habilita implementar
+y no es un pendiente para Ready. Tampoco acredita aceptación humana del plan.
+
+Las secciones siguientes conservan la propuesta original bajo la política
+anterior; sus afirmaciones sobre obligatoriedad y aceptación del ADR son
+históricas y no gobiernan la planificación actual. Para el plan vigente,
+consultar la Spec y la justificación de NO_ADR_REQUIRED.
+
+Política aplicada: [AGENTS.md en main](https://github.com/lvckss/piia2-26/blob/c043af54f7cb97dbc5747974e861071864dfb18b/AGENTS.md)
+y [workflow en main](https://github.com/lvckss/piia2-26/blob/c043af54f7cb97dbc5747974e861071864dfb18b/docs/workflow.md).
 
 ## Contexto y motivación
 

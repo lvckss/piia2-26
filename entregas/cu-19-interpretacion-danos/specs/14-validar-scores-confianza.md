@@ -2,9 +2,9 @@
 
 - GitHub Issue: https://github.com/lvckss/piia2-26/issues/14
 - Estado: Borrador
-- ADR decision: NEW_ADR
-- ADR: [0001 — Rechazo explícito de scores inválidos](../../../docs/adr/0001-rechazo-scores-confianza-invalidos.md), Propuesto.
-- Justificación: se concreta un nuevo contrato observable de error para las funciones públicas de confianza; los scores inválidos dejarán de devolver un tier. No existe un ADR aceptado que cubra ese contrato.
+- ADR decision: NO_ADR_REQUIRED
+- ADR: No requerido — justificado en Spec.
+- Justificación: validación y excepción locales dentro del Agente 1, sin cambiar arquitectura, consumidores independientes, fronteras estables, schemas compartidos, protocolos, persistencia ni una decisión duradera/costosa de revertir. El carácter importable de las funciones y la elección de `ValueError` no requieren ADR por sí solos según la política vigente en main; la evidencia se detalla abajo.
 - Planning PR: https://github.com/lvckss/piia2-26/pull/16
 - Revisión humana de Spec, planes y ADR decision: pendiente en la Planning PR; sin aceptación acreditada.
 
@@ -20,7 +20,7 @@ y explique que «debe ser finito» y estar en «[0, 1]». Esos fragmentos forman
 el contrato verificable; no se fija el resto de la redacción ni la representación
 del valor recibido. No se recorta, normaliza, sustituye ni convierte el score.
 
-El contrato se aplica a `classify_confidence(category_name, score)` y
+El contrato interno se aplica a `classify_confidence(category_name, score)` y
 `decidir_tier(category_name, score, vision_verdict, pieza_id, regla_coste_aplicable)`.
 Para scores válidos se preserva exactamente la clasificación actual y la regla
 de consenso de score, visión y posibilidad de presupuestar.
@@ -62,6 +62,40 @@ Inspección de `origin/main` en el snapshot
   y `probar_agente1_stub.py` cubren consenso, filtro y contrato JSON con datos
   válidos. No se ha localizado una prueba específica de finitud/rango.
 
+### ADR decision: evidencia y política aplicada
+
+Reevaluación sobre `origin/main` en el snapshot
+`c043af54f7cb97dbc5747974e861071864dfb18b`, aplicando
+[AGENTS.md](https://github.com/lvckss/piia2-26/blob/c043af54f7cb97dbc5747974e861071864dfb18b/AGENTS.md),
+[workflow](https://github.com/lvckss/piia2-26/blob/c043af54f7cb97dbc5747974e861071864dfb18b/docs/workflow.md)
+y [piia2-plan-task](https://github.com/lvckss/piia2-26/blob/c043af54f7cb97dbc5747974e861071864dfb18b/.agents/skills/piia2-plan-task/SKILL.md)
+de ese mismo snapshot, aunque la rama del plan aún tenga la política anterior.
+
+- `git grep` sobre todos los Python de main encuentra consumidores productivos
+  de `classify_confidence` en `hallazgos.py` y `decidir_tier`, y de
+  `decidir_tier` en `vision.py`; el resto son pruebas/referencias dentro de
+  `app/agentes/agente_multimodal`. No se han encontrado consumidores externos
+  o componentes que evolucionen independientemente usando estas funciones.
+- Esas importaciones son colaboraciones internas del Agente 1. La frontera
+  estable Agente 1 → Agentes 2/3 es el JSON de findings; no cambia su schema,
+  nombres/campos, significado de tiers válidos, protocolo ni formato persistente.
+- Se modifica una precondición interna y su excepción para datos inválidos.
+  No se introduce excepción propia, API externa, dependencia estructural,
+  recuperación distribuida ni cambios de seguridad, deployment o estrategia ML.
+- El ajuste y una eventual revisión del error quedan localizados en el mismo
+  componente y sus tests; no exigen migrar datos, coordinar versiones de agentes
+  o mantener un trade-off estructural. No se usa el tamaño del diff como razón.
+- El código de `app/agentes/agente_multimodal` no cambió entre el snapshot
+  inicial y este main; el análisis previo de comportamiento sigue siendo válido.
+
+Por tanto, el caso activo es **NO_ADR_REQUIRED**, con justificación pendiente
+de revisión humana en #16. [ADR 0001](../../../docs/adr/0001-rechazo-scores-confianza-invalidos.md)
+se conserva como propuesta **Rechazada** por su clasificación innecesaria
+bajo la política actual, sin atribuir aceptación/rechazo humano del comportamiento.
+Es historial, no ADR aplicable ni dependencia para Ready. La propuesta de
+`ValueError`, los siete AC, seams, Test Plan e Implementation Plan siguen
+vigentes y requieren revisión; no se da el plan por aceptado.
+
 ## Alcance
 
 - Incluido: rechazo de los cinco grupos de valores inválidos indicados por la
@@ -92,10 +126,10 @@ Inspección de `origin/main` en el snapshot
 
 | Incertidumbre | Clasificación | Evidencia / supuesto / pregunta y efecto |
 |---|---|---|
-| Tipo y contenido del fallo | Propuesta explícita para revisión humana | `ValueError` y fragmentos de mensaje definidos en Qué construir; ADR 0001 registra decisión y alternativas. No se presenta como aceptada. |
+| Tipo y contenido del fallo | Pregunta no bloqueante | Se propone `ValueError` y los fragmentos de Qué construir, con AC verificables; confirmar en la revisión del plan. Su elección local no implica una decisión arquitectónica ni aceptación ya obtenida. |
 | ¿Se valida toda detección antes del filtro? | Resuelta con evidencia | La Issue excluye modificar `seleccion.py`; solo se garantiza rechazo de scores que llegan a confianza. |
-| ¿Afecta a ambas funciones de confianza? | Resuelta con evidencia | Ambas son públicas y `decidir_tier` delega ya en `classify_confidence`. AC-005 y AC-006 protegen esta frontera. |
-| ¿Hay ADR reutilizable? | Resuelta con evidencia | `docs/adr/` en main solo contiene README y template; no había Planning PRs abiertas al inspeccionar. Se propone ADR 0001. |
+| ¿Afecta a ambas funciones de confianza? | Resuelta con evidencia | Ambas son observables dentro del componente y `decidir_tier` delega ya en `classify_confidence`. AC-005 y AC-006 protegen estos seams; no son fronteras externas por ser importables. |
+| ¿Requiere ADR con la política vigente? | Resuelta con evidencia | Política y búsqueda de consumidores del snapshot `c043af5`: validación/excepción interna sin consecuencias estructurales, NO_ADR_REQUIRED. La justificación aún debe aceptarse en #16; no se necesita reutilizar/aceptar un ADR. |
 | Strings, `None`, booleanos u otros tipos | Supuesto explícito aceptable | No se redefine su tratamiento: la Issue pide finitud/rango de scores numéricos, no validación general de tipos. Confirmar el límite durante review. |
 | Restricción histórica del body a crear solamente la Issue | Resuelta por petición actual | «planifica la issue #14» autoriza ahora el ciclo de planificación; se conserva íntegro el body original y se añadirán referencias en un comentario. |
 
@@ -184,12 +218,12 @@ No hay eval-first: el comportamiento es determinista y no se recalibra ML.
 ## Implementation Plan
 
 Solo se comienza después de Ready, con esta Planning PR integrada, Spec
-Revisada y ADR Aceptado. Los slices son incrementos observables de un mismo
-contrato; no son rediseños independientes.
+Revisada y justificación de NO_ADR_REQUIRED revisada y aceptada. Los slices
+son incrementos observables de un mismo contrato; no son rediseños independientes.
 
 | Slice | Objetivo observable | AC relacionados | Componentes / contratos probablemente afectados | Dependencias | Verificación prevista |
 |---|---|---|---|---|---|
-| 1 — Clasificación rechaza datos inválidos | Las llamadas directas rechazan fuera de rango/no finitos con diagnóstico común, preservando todos los tiers válidos. | AC-001, AC-002, AC-003, AC-004 en `classify_confidence` | `confianza.py` y futuro `probar_confianza.py`; firmas y constantes preservadas. | DoR completa; contrato ADR 0001 aceptado. | Matrices y ciclo TDD de las cuatro filas del Test Plan; las regresiones válidas deben seguir verdes. |
+| 1 — Clasificación rechaza datos inválidos | Las llamadas directas rechazan fuera de rango/no finitos con diagnóstico común, preservando todos los tiers válidos. | AC-001, AC-002, AC-003, AC-004 en `classify_confidence` | `confianza.py` y futuro `probar_confianza.py`; firmas y constantes preservadas. | DoR completa; Spec/planes y justificación de NO_ADR_REQUIRED aceptados en Planning PR integrada. | Matrices y ciclo TDD de las cuatro filas del Test Plan; las regresiones válidas deben seguir verdes. |
 | 2 — Tier final conserva consenso y error | El tier final aplica el mismo rechazo sin que visión/pieza/regla lo oculten y mantiene la regla actual para scores válidos. | AC-004 en `decidir_tier`, AC-005, AC-006 | `decidir_tier`, delegación pública existente y tests; sin cambiar `vision.py` ni costes. | Slice 1. | Matrices del tier final y `probar_vision_stub.py`; añadir casos antes de cualquier ajuste necesario. La delegación puede satisfacerlos sin más código productivo. |
 | 3 — Hallazgos verifican el contrato y documentan el fallo | Las candidatas inválidas propagan el error y el flujo válido conserva findings/resumen/JSON; documentar finitud, rango y excepción en las funciones/README del módulo. | AC-007; documentación de AC-001–AC-006 | Tests sobre `construir_hallazgos`; documentación de `confianza.py`/README del Agente 1; sin modificar filtro ni formato JSON. | Slices 1 y 2; entorno con Pillow para regresiones stub. | Red/Green de integración, scripts de selección y Agente 1, suite nueva completa tras Refactor; revisión documental y diff final. |
 
@@ -198,9 +232,10 @@ contrato; no son rediseños independientes.
 - Revisar explícitamente Spec/AC, límites, comportamiento preservado, failure
   modes, seams, TDD, cobertura de ambos planes y propuesta de error en la
   misma Planning PR. Confirmar el límite sobre tipos no numéricos y filtro.
-- Aceptar humanamente el ADR 0001 y registrar humano, permalink, fecha y
-  versión revisada; registrar también aceptación del plan/ADR decision y
-  actualizar Spec a Revisada dentro de la misma PR.
+- Aceptar humanamente la justificación de NO_ADR_REQUIRED y confirmar que no
+  oculta una decisión estructural; registrar humano, permalink y versión
+  revisada del plan/ADR decision, y actualizar Spec a Revisada dentro de #16.
+  Aceptar un ADR no aplica; ADR 0001 es historial descartado, no una dependencia.
 - Revisión/aprobación final del head tras los metadatos y merge humano;
   comprobar DoR desde main y solo entonces promover a Ready.
 - No hay preguntas de requisitos que impidan proponer AC verificables; la
@@ -209,9 +244,12 @@ contrato; no son rediseños independientes.
 **Analyze documental:** los requisitos de la Issue se cubren en AC-001
 (válidos), AC-002 (negativos/mayores que uno), AC-003 (no finitos), AC-004
 (diagnóstico), AC-005/AC-006 (tier final) y AC-007 (integración/regresión).
-Todos tienen seam, datos, verificación y slice. El ADR coincide con el fallo
-propuesto y no cambia umbrales, arquitectura ML ni filtro. Las regresiones
-protegen lo válido; el límite del filtro impide prometer validación global.
+Todos tienen seam, datos, verificación y slice. La decisión NO_ADR_REQUIRED
+se apoya en consumidores internos, fronteras preservadas y reversión localizada,
+según la política de main `c043af5`. Se elimina de los gates la aceptación
+del ADR artificial anterior, conservando su historia; no cambian AC, Test Plan,
+objetivos de slices, fallo propuesto, umbrales, arquitectura ML ni filtro.
+Las regresiones protegen lo válido; el límite del filtro impide prometer validación global.
 No se han detectado contradicciones ni gaps bloqueantes para presentar el
 plan a revisión. La aceptación y el merge siguen pendientes, sin acreditarlos
 por la existencia de este documento.
