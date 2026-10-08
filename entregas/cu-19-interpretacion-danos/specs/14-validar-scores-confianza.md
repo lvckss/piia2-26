@@ -88,18 +88,15 @@ de ese mismo snapshot, aunque la rama del plan aún tenga la política anterior.
 - El código de `app/agentes/agente_multimodal` no cambió entre el snapshot
   inicial y este main; el análisis previo de comportamiento sigue siendo válido.
 
-Por tanto, el caso activo es **NO_ADR_REQUIRED**, con justificación pendiente
-de revisión humana en #16. [ADR 0001](../../../docs/adr/0001-rechazo-scores-confianza-invalidos.md)
-se conserva como propuesta **Rechazada** por su clasificación innecesaria
-bajo la política actual, sin atribuir aceptación/rechazo humano del comportamiento.
-Es historial, no ADR aplicable ni dependencia para Ready. La propuesta de
-`ValueError`, los siete AC, seams, Test Plan e Implementation Plan siguen
-vigentes y requieren revisión; no se da el plan por aceptado.
+Por tanto, el caso activo es **NO_ADR_REQUIRED**.
+ADR: No requerido — justificado en Spec. La justificación, la propuesta de
+`ValueError`, los siete AC, seams, Test Plan e Implementation Plan requieren
+revisión humana en #16; no se da el plan por aceptado.
 
 ## Alcance
 
 - Incluido: rechazo de los cinco grupos de valores inválidos indicados por la
-  Issue, contrato `ValueError`/mensaje, ambas funciones públicas de confianza,
+  Issue, contrato `ValueError`/mensaje, ambos seams observables internos de confianza,
   propagación natural a la construcción de hallazgos cuando la candidata llega
   a clasificación y regresión del comportamiento válido.
 - Fuera de alcance: cambiar umbrales, filtro previo, visión, reglas de costes,
@@ -178,9 +175,9 @@ vigentes y requieren revisión; no se da el plan por aceptado.
 
 | Frontera observable | Contrato y justificación |
 |---|---|
-| `confianza.classify_confidence` | Función pública determinista: tier o `ValueError`. Permite comprobar todas las clases y bordes sin modelo, mocks de internals ni nuevas interfaces. |
-| `confianza.decidir_tier` | Función pública del tier final: mismo error y consenso existente. Detecta que un retorno temprano no oculta entradas inválidas. |
-| `hallazgos.construir_hallazgos` | Salida de findings/resumen o propagación del fallo de una candidata. Es la integración pública más próxima; `filtrar=False` es un parámetro existente. |
+| `confianza.classify_confidence` | Seam observable interno determinista: tier o `ValueError`. Permite comprobar todas las clases y bordes sin modelo, mocks de internals ni nuevas interfaces. |
+| `confianza.decidir_tier` | Seam observable interno del tier final: mismo error y consenso existente. Detecta que un retorno temprano no oculta entradas inválidas. |
+| `hallazgos.construir_hallazgos` | Salida de findings/resumen o propagación del fallo de una candidata. Es el seam observable interno de integración más próximo; `filtrar=False` es un parámetro existente. |
 | Scripts stub existentes | Contrato válido del filtro, visión y pipeline/JSON. Se reutilizan para regresión, sin llamadas reales ni redefinir su comportamiento. |
 
 ## Test Plan
@@ -202,7 +199,7 @@ registrar versión e ID de commit en la evidencia. No se han ejecutado ahora.
 | `entregas/cu-19-interpretacion-danos/specs/14-validar-scores-confianza.md#AC-001` | `classify_confidence`: tier válido y umbrales | TDD; unitario de regresión | Seis clases y una desconocida; `0`, `-0.0`, `1`, enteros extremos y `math.nextafter(t, -inf)`, `t`, `math.nextafter(t, inf)`. Oráculo: tabla de umbrales del snapshot y comparación inclusiva. | Matriz sintética v1, biblioteca estándar; valores de umbral explícitos independientes de la implementación. | `python entregas/cu-19-interpretacion-danos/app/agentes/agente_multimodal/probar_confianza.py`; verificar que las constantes coinciden con la tabla previa. | Casos y resultado verde antes/después; no se exige rojo artificial para comportamiento preservado. |
 | `entregas/cu-19-interpretacion-danos/specs/14-validar-scores-confianza.md#AC-002` | `classify_confidence`: error fuera de rango | TDD; unitario | `-0.1`, `1.1`, `math.nextafter(0.0, -inf)` y `math.nextafter(1.0, inf)`; clases conocidas y desconocida; siempre `ValueError`. | Matriz sintética v1; sin tolerancia que permita valores fuera de rango. | Mismo script; ejecutar antes de cambiar confianza, después del cambio mínimo y tras refactor. | Red por tier devuelto en vez de error; Green y Refactor con todos los casos pasando. |
 | `entregas/cu-19-interpretacion-danos/specs/14-validar-scores-confianza.md#AC-003` | `classify_confidence`: error no finito | TDD; unitario | `float('nan')`, `float('inf')`, `float('-inf')`; todas las clases y desconocida; siempre `ValueError`. | Matriz sintética v1; sin dataset/modelo. | Mismo script en Red, Green y Refactor. | Fallo esperado por ausencia de validación; posterior rechazo de los tres valores. |
-| `entregas/cu-19-interpretacion-danos/specs/14-validar-scores-confianza.md#AC-004` | Excepción pública y mensaje de ambas funciones | TDD; contrato unitario | Todos los inválidos anteriores; comprobar tipo y los cuatro fragmentos sobre `str(error).lower()`, sin fijar texto completo. | Matriz sintética v1. | Mismo script en Red, Green y Refactor. | Registro de que ambas fronteras comunican finitud/rango; no un fallo accidental por import o dependencia. |
+| `entregas/cu-19-interpretacion-danos/specs/14-validar-scores-confianza.md#AC-004` | Excepción observable interna y mensaje de ambas funciones | TDD; contrato unitario | Todos los inválidos anteriores; comprobar tipo y los cuatro fragmentos sobre `str(error).lower()`, sin fijar texto completo. | Matriz sintética v1. | Mismo script en Red, Green y Refactor. | Registro de que ambas fronteras comunican finitud/rango; no un fallo accidental por import o dependencia. |
 | `entregas/cu-19-interpretacion-danos/specs/14-validar-scores-confianza.md#AC-005` | `decidir_tier`: prioridad de validación | TDD; unitario | Inválidos anteriores cruzados con visión `confirmado`/`rechazado`/`incierto`/`None`, pieza presente/ausente y regla `True`/`False`/`None`; siempre `ValueError`. | Matriz sintética v1; categorías conocidas y desconocida; sin mocks privados. | Mismo script en Red, Green y Refactor. | Rechazo independiente del resto de argumentos; ninguna combinación devuelve tier. |
 | `entregas/cu-19-interpretacion-danos/specs/14-validar-scores-confianza.md#AC-006` | `decidir_tier`: consenso válido | TDD; regresión unitaria e integración stub | Valores válidos/bordes de AC-001 y combinaciones de visión/pieza/regla. Reutilizar `probar_decidir_tier` y el cliente falso existente. | Matriz v1 y `MINI_CATALOGO` versionado en el snapshot; Python con Pillow para script stub. | Nuevo script y `python entregas/cu-19-interpretacion-danos/app/agentes/agente_multimodal/probar_vision_stub.py`. | Tiers esperados y exit code cero; registrar por separado la eventual omisión del catálogo real. |
 | `entregas/cu-19-interpretacion-danos/specs/14-validar-scores-confianza.md#AC-007` | `construir_hallazgos` y JSON válido | TDD; integración y regresión stub | Detección mínima con cada inválido sin filtro; una `lamp broken` `1.1` con filtro. Para válidos, comparar diccionario completo previsto, score sin modificar y resumen con/sin filtro; conservar pipeline stub. | Fixture sintética v1 futura; ejemplos JSON y scripts ya versionados; Pillow para pipeline. | Nuevo script; `python entregas/cu-19-interpretacion-danos/app/agentes/agente_multimodal/probar_seleccion_stub.py`; `python entregas/cu-19-interpretacion-danos/app/agentes/agente_multimodal/probar_agente1_stub.py`. | Red por resultado normal con candidata inválida; Green/Refactor; JSON/resumen válidos y scripts sin regresión. Registrar explícitamente omisiones de datos opcionales. |
@@ -224,8 +221,12 @@ son incrementos observables de un mismo contrato; no son rediseños independient
 | Slice | Objetivo observable | AC relacionados | Componentes / contratos probablemente afectados | Dependencias | Verificación prevista |
 |---|---|---|---|---|---|
 | 1 — Clasificación rechaza datos inválidos | Las llamadas directas rechazan fuera de rango/no finitos con diagnóstico común, preservando todos los tiers válidos. | AC-001, AC-002, AC-003, AC-004 en `classify_confidence` | `confianza.py` y futuro `probar_confianza.py`; firmas y constantes preservadas. | DoR completa; Spec/planes y justificación de NO_ADR_REQUIRED aceptados en Planning PR integrada. | Matrices y ciclo TDD de las cuatro filas del Test Plan; las regresiones válidas deben seguir verdes. |
-| 2 — Tier final conserva consenso y error | El tier final aplica el mismo rechazo sin que visión/pieza/regla lo oculten y mantiene la regla actual para scores válidos. | AC-004 en `decidir_tier`, AC-005, AC-006 | `decidir_tier`, delegación pública existente y tests; sin cambiar `vision.py` ni costes. | Slice 1. | Matrices del tier final y `probar_vision_stub.py`; añadir casos antes de cualquier ajuste necesario. La delegación puede satisfacerlos sin más código productivo. |
-| 3 — Hallazgos verifican el contrato y documentan el fallo | Las candidatas inválidas propagan el error y el flujo válido conserva findings/resumen/JSON; documentar finitud, rango y excepción en las funciones/README del módulo. | AC-007; documentación de AC-001–AC-006 | Tests sobre `construir_hallazgos`; documentación de `confianza.py`/README del Agente 1; sin modificar filtro ni formato JSON. | Slices 1 y 2; entorno con Pillow para regresiones stub. | Red/Green de integración, scripts de selección y Agente 1, suite nueva completa tras Refactor; revisión documental y diff final. |
+| 2 — Tier final conserva consenso y error | El tier final aplica el mismo rechazo sin que visión/pieza/regla lo oculten y mantiene la regla actual para scores válidos. | AC-004 en `decidir_tier`, AC-005, AC-006 | `decidir_tier`, delegación interna existente y tests; sin cambiar `vision.py` ni costes. | Slice 1. | Matrices del tier final y `probar_vision_stub.py`; añadir casos antes de cualquier ajuste necesario. La delegación puede satisfacerlos sin más código productivo. |
+| 3 — Hallazgos verifican el contrato | Las candidatas inválidas propagan el error y el flujo válido conserva findings/resumen/JSON; aclarar la precondición y `ValueError` en los docstrings de confianza afectados. | AC-007 | Tests sobre `construir_hallazgos` y docstrings afectados de `confianza.py`; sin modificar filtro ni formato JSON. | Slices 1 y 2; entorno con Pillow para regresiones stub. | Red/Green de integración, scripts de selección y Agente 1, suite nueva completa tras Refactor; revisión de docstrings afectados y diff final. |
+
+La documentación se limita a describir la precondición y el error de esta
+feature en los docstrings afectados. No se exige actualizar README ni añadir
+una entrega documental o una condición específica de DoD ajena a la Issue.
 
 ## Pendientes para Ready
 
@@ -235,7 +236,7 @@ son incrementos observables de un mismo contrato; no son rediseños independient
 - Aceptar humanamente la justificación de NO_ADR_REQUIRED y confirmar que no
   oculta una decisión estructural; registrar humano, permalink y versión
   revisada del plan/ADR decision, y actualizar Spec a Revisada dentro de #16.
-  Aceptar un ADR no aplica; ADR 0001 es historial descartado, no una dependencia.
+  ADR: No requerido — justificado en Spec.
 - Revisión/aprobación final del head tras los metadatos y merge humano;
   comprobar DoR desde main y solo entonces promover a Ready.
 - No hay preguntas de requisitos que impidan proponer AC verificables; la
@@ -246,9 +247,12 @@ son incrementos observables de un mismo contrato; no son rediseños independient
 (diagnóstico), AC-005/AC-006 (tier final) y AC-007 (integración/regresión).
 Todos tienen seam, datos, verificación y slice. La decisión NO_ADR_REQUIRED
 se apoya en consumidores internos, fronteras preservadas y reversión localizada,
-según la política de main `c043af5`. Se elimina de los gates la aceptación
-del ADR artificial anterior, conservando su historia; no cambian AC, Test Plan,
-objetivos de slices, fallo propuesto, umbrales, arquitectura ML ni filtro.
+según la política de main `c043af5`. ADR: No requerido — justificado en Spec.
+El diff final contiene solo esta Spec. Los AC, casos, comandos y resultados
+previstos del Test Plan y objetivos funcionales de slices se conservan;
+solo se aclara la terminología de seams internos y se limita la documentación
+a docstrings afectados, sin requisito de README ni DoD documental adicional.
+El fallo propuesto, umbrales, arquitectura ML y filtro no cambian.
 Las regresiones protegen lo válido; el límite del filtro impide prometer validación global.
 No se han detectado contradicciones ni gaps bloqueantes para presentar el
 plan a revisión. La aceptación y el merge siguen pendientes, sin acreditarlos
@@ -265,4 +269,3 @@ la relaja. Todos los AC deben tener evidencia mediante ruta de Spec + ID.
 | Rechazo de las cinco familias inválidas en ambas funciones, con diagnóstico acordado, y matrices válidas sin regresión. | Evidencia TDD y ejecución final del futuro script, trazable a AC-001–AC-006. |
 | Propagación desde candidatas y conservación de findings/resumen/JSON válido. | Casos de AC-007 y regresiones sintéticas/stub requeridas ejecutadas; omisiones opcionales identificadas. |
 | Umbrales y filtro previo intactos; ninguna calibración o llamada real necesaria para verificar esta tarea. | Diff de implementación revisado y comparación de constantes con el snapshot; comandos de verificación registrados. |
-| Documentación pública de confianza describe finitud, rango y `ValueError`, distinguiendo la validación del filtro previo. | Docstrings/README revisados y enlazados desde la Implementation PR. |
