@@ -1,4 +1,5 @@
 ---
+name: semantic-commits-and-push
 description: Group all current repository changes into meaningful semantic commits on a feature branch (never on main), push that branch, and open a pull request for the team to merge
 ---
 
