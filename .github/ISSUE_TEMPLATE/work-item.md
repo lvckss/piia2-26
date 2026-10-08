@@ -24,22 +24,28 @@ assignees: ''
 <!-- Completar progresivamente. No comenzar código productivo con referencias pendientes. -->
 
 - Spec:
-- ADR(s) y estado:
-- Test Plan (sección de Spec o documento versionado):
+- ADR decision (`NEW_ADR`, `REUSE_ADR` o `NO_ADR_REQUIRED`):
+- ADR(s) y estado cuando aplique, o No requerido con justificación en Spec:
+- Test/Eval Plan (sección de Spec):
+- Implementation Plan (sección de Spec):
 - Planning PR:
 
 ## Ready (comprobación manual)
 
-- [ ] Spec revisada con AC verificables e identificadores estables.
-- [ ] ADR aceptado que cubre la implementación, con referencia de revisión.
-- [ ] Test Plan con casos, datos y verificación prevista para todos los AC.
-- [ ] Planning PR integrada, sin código productivo.
+- [ ] Spec revisada en `main` con AC verificables e identificadores estables.
+- [ ] ADR decision resuelta y revisada, con referencia de revisión según el caso:
+  `NEW_ADR`: ADR `Aceptado`;
+  `REUSE_ADR`: ADR existente `Aceptado` y cobertura confirmada;
+  `NO_ADR_REQUIRED`: justificación revisada y aceptada.
+- [ ] Test/Eval Plan con casos, datos y verificación prevista para todos los AC.
+- [ ] Implementation Plan con slices verificables que cubren todos los AC.
+- [ ] Planning PR revisada e integrada, sin código productivo.
 - [ ] Dependencias y preguntas que bloquean la implementación resueltas.
 
 ## Implementación y cierre
 
 - Implementation PR (distinta de la Planning PR):
-- Evidencia de TDD y verificación de AC:
+- Evidencia de TDD/eval según Spec y verificación de AC:
 
 ## Definition of Done
 
