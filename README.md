@@ -158,6 +158,75 @@ La asignación sigue este proceso:
    entidad decide mediante una entrevista con los equipos interesados; el
    conflicto lo resuelve la entidad, no el equipo docente.
 
+## Codex CLI y Claude Code
+
+[AGENTS.md](AGENTS.md) es la única fuente de invariantes; los procedimientos
+canónicos están en [.agents/skills/](.agents/skills/). Codex descubre esas rutas
+nativamente. Claude carga [CLAUDE.md](CLAUDE.md), que solo importa `@AGENTS.md`,
+y descubre cinco adaptadores en [.claude/skills/](.claude/skills/): leen la skill
+canónica completa y transmiten los argumentos, sin copiar su procedimiento.
+No hay setup del repo, sincronización, hooks, plugins ni permisos preaprobados.
+
+Se requiere un CLI autenticado que soporte estas rutas de skills; Codex CLI
+`0.161.0` es la versión comprobada aquí. Para Claude, usar una versión vigente
+con skills de proyecto, `$ARGUMENTS` y `${CLAUDE_SKILL_DIR}`; no se ha probado
+un mínimo histórico. Git y GitHub CLI autenticado, con los permisos que exigen
+las skills, son requisitos existentes para operar en GitHub.
+
+| Alternativa | Elección |
+|---|---|
+| AGENTS.md nativo | Codex lo carga; Claude lo admite desde 2.1.277 en determinados modos. |
+| CLAUDE.md con importación | Cubre también sesiones sin soporte nativo; Claude deduplica AGENTS.md importado. No se copian reglas. |
+| Symlinks | Evitados: Git puede dejarlos como texto en Windows sin `core.symlinks`/permisos especiales. |
+| Wrappers Markdown | Archivos normales versionados; apuntan al original desde su propia ubicación, también en worktrees. |
+
+Iniciar `codex` o `claude` dentro del clone/worktree que contiene estos archivos.
+Los ejemplos son mensajes dentro de cada CLI, no comandos del shell:
+
+| Skill | Codex CLI | Claude Code |
+|---|---|---|
+| Contexto | `$gh-verifying-context` | `/gh-verifying-context` |
+| Issues | `$gh-issue-management <petición>` | `/gh-issue-management <petición>` |
+| Project | `$gh-project-management <petición>` | `/gh-project-management <petición>` |
+| Planificación | `$piia2-plan-task #N` | `/piia2-plan-task #N` |
+| Commits/PR | `$semantic-commits-and-push <contexto>` | `/semantic-commits-and-push <contexto>` |
+
+En Codex, los argumentos viajan en el mensaje; en Claude, el wrapper sustituye
+`$ARGUMENTS` por el texto original. Ese marcador en el procedimiento canónico
+significa el mismo contexto recibido, no una variable de entorno que ejecutar.
+Reutilizar otra skill significa leerla y aplicar su procedimiento en la sesión;
+no presupone subagentes ni capacidades de orquestación idénticas. Cada runtime
+usa sus herramientas de lectura/shell y permisos habituales (sandbox/aprobaciones
+de Codex, Read/Bash/PowerShell y permisos de Claude). La autorización del workflow
+no sustituye permisos del runtime. Los ejemplos POSIX pueden ejecutarse en
+Git Bash de Git for Windows, o traducirse a PowerShell conservando argumentos
+y garantías; el puente no instala herramientas ni necesita symlinks en ningún SO.
+
+Smoke test sin operaciones GitHub: en Codex abrir `/skills`; en Claude comprobar
+las cinco skills en el menú `/` y usar `/memory` o `/context` para confirmar
+AGENTS.md importado. Después pedir en ambas sesiones: «Solo lectura local:
+indica las invariantes cargadas, las cinco skills y sus rutas canónicas; lee
+piia2-plan-task sin ejecutarla y explica qué argumento recibiría para #123.
+No invoques skills operacionales ni ejecutes gh, escrituras o comandos Git que
+modifiquen estado». Debe identificar `#123` como número 123, conservar las
+referencias canónicas y describir los gates existentes. Repetir desde un subdirectorio
+y un worktree ya existente con estos archivos. No ejecutar `/piia2-plan-task #123`
+ni su equivalente Codex como prueba: una invocación real puede escribir en GitHub.
+
+Codex CLI 0.161.0 ha descubierto las cinco skills mediante `skills/list` desde
+raíz y subdirectorio; un smoke test en sandbox de solo lectura ha interpretado
+las invariantes y el argumento hipotético `#123` sin ejecutar el workflow.
+Claude Code no está instalado en el entorno de esta PR; su descubrimiento,
+expansión de argumentos y carga dinámica quedan pendientes de ese smoke test
+en el equipo de un compañero. Windows/macOS requieren también comprobación real;
+la portabilidad de archivos/rutas se valida estáticamente.
+
+Referencias oficiales: [Codex AGENTS.md](https://developers.openai.com/codex/guides/agents-md/),
+[Codex skills](https://developers.openai.com/codex/skills/),
+[Claude instrucciones/importaciones](https://code.claude.com/docs/en/memory),
+[Claude skills/argumentos](https://code.claude.com/docs/en/skills) y
+[Claude en Windows](https://code.claude.com/docs/en/setup#set-up-on-windows).
+
 ## Estructura del repositorio
 
 Las reglas de desarrollo están en [AGENTS.md](AGENTS.md). El
