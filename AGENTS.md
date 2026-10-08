@@ -16,11 +16,23 @@ Estas reglas se aplican a personas y agentes en todo el repositorio.
 - Ningún código productivo se implementa sin una GitHub Issue que describa el trabajo.
 - Toda implementación funcional requiere Issue, Spec `Revisada`, Test/Eval Plan,
   Implementation Plan y Planning PR revisada e integrada antes de comenzar.
-- Durante planificación se resuelve explícitamente `ADR decision`: `NEW_ADR`,
-  `REUSE_ADR` o `NO_ADR_REQUIRED`, con justificación revisada por un humano.
-  Toda decisión técnica/arquitectónica relevante debe estar cubierta por un ADR
-  `Aceptado` antes de implementar. Un cambio pequeño de contrato público también
-  es una decisión relevante; el tamaño del cambio no permite omitir el ADR.
+- Durante planificación se resuelve explícitamente exactamente una `ADR decision`:
+  `NEW_ADR`, `REUSE_ADR` o `NO_ADR_REQUIRED`, con justificación revisada por un humano.
+  Toda decisión técnica/arquitectónica suficientemente fundamental, duradera o
+  costosa de revertir debe estar cubierta por un ADR `Aceptado` antes de implementar.
+- Para ADR, un contrato público relevante es una frontera estable consumida
+  externamente o entre agentes/componentes que pueden evolucionar independientemente:
+  API externa, contrato entre agentes, schema compartido, protocolo, formato
+  persistente o interfaz estable usada fuera del componente. Un cambio pequeño
+  en esas fronteras puede requerir ADR. Una función Python sin prefijo `_` o importada
+  entre módulos del mismo componente no es tal frontera por ese mero hecho.
+- Validaciones, excepciones/precondiciones, bugfixes, mejoras y algoritmos internos
+  pueden ser `NO_ADR_REQUIRED` aunque cambie comportamiento observable local,
+  si no introducen una decisión estructural. Una API interna con consecuencias
+  estructurales, consumidores independientes o coste de reversión importante sí
+  puede requerir ADR. Ante ambigüedad, investigar y usar clarify; no crear ADR
+  por precaución ni ocultar una decisión arquitectónica real. Esto no reduce
+  los requisitos de Spec, AC, planes ni verificación.
 - La Spec debe describir el comportamiento, alcance, restricciones y Acceptance
   Criteria (AC) verificables: entradas, resultado observable y condición de éxito.
 - Cada AC debe tener un identificador estable dentro de su Spec (`AC-001`, etc.).

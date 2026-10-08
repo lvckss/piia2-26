@@ -138,13 +138,28 @@ Refactor. Para objetivos ML/probabilísticos/heurísticos que TDD unitario no re
 Baseline → criterio/eval que demuestra el gap → cambio → reevaluación → comparación.
 Puede ser híbrida. No inventa un test rojo artificial para métricas ML.
 
-La decisión ADR queda explícita y justificada:
+La decisión ADR queda explícita y justificada, eligiendo exactamente un caso.
+El criterio es su relevancia estructural y durabilidad/coste de reversión, no
+que cambie un comportamiento observable:
 
 | ADR decision | Condición de planificación y aprobación |
 |---|---|
-| NEW_ADR | Decisión relevante nueva/modificada: arquitectura, boundaries, contrato público, datos/persistencia, integración/protocolo, concurrencia, seguridad, ML/serving/evaluación o trade-off duradero. ADR nuevo Propuesto; el humano acepta la decisión y se registra Aceptado. |
+| NEW_ADR | Decisión suficientemente fundamental, duradera o costosa de revertir: arquitectura, boundaries entre componentes independientes, contratos externos/fronteras estables, schemas/formatos compartidos o persistentes, datos/persistencia, integración/protocolo, deployment/serving, concurrencia, seguridad, dependencia externa estructural, estrategia ML/evaluación duradera o trade-off importante difícil de revertir. ADR nuevo Propuesto; el humano acepta la decisión y se registra Aceptado. |
 | REUSE_ADR | ADR existente Aceptado cubre realmente decisión y alcance; ruta y explicación concreta. El humano confirma cobertura, sin reescribir la decisión ni crear duplicado. |
-| NO_ADR_REQUIRED | No introduce/cambia una decisión relevante; justificación en Spec aceptada en review. No crear ADR artificial. Un bug local/refactor que preserva contratos puede encajar; un cambio pequeño de contrato público no. |
+| NO_ADR_REQUIRED | Sin decisión estructural relevante: validación, excepción/precondición o comportamiento de función interna, bugfix/mejora localizada, algoritmo interno, refactor que preserva arquitectura/boundaries, tests o documentación. Puede cambiar comportamiento observable local. Justificación en Spec aceptada en review; no crear ADR artificial. |
+
+Para ADR, **contrato público** significa frontera estable consumida externamente
+o entre agentes/componentes que evolucionan independientemente: API externa,
+Agente 1 → Agente 2, schema JSON compartido, protocolo, formato persistente o
+interfaz estable usada fuera del componente. Ni carecer de prefijo `_` ni ser
+importable entre módulos convierte una función interna en esa frontera.
+Una API interna puede requerir ADR si adquiere consecuencias estructurales,
+consumidores independientes o un coste de reversión importante. Un cambio pequeño
+de schema entre agentes sigue requiriendo NEW_ADR o REUSE_ADR según cobertura.
+Investigar consumidores, boundaries y coste/durabilidad antes de decidir; ante
+ambigüedad restante usar clarify, sin ADR por precaución ni NO_ADR_REQUIRED para
+ocultar arquitectura. Los cambios funcionales locales siguen requiriendo Spec,
+AC, Test/Eval Plan, Implementation Plan y estrategia TDD/eval prevista.
 
 Las referencias/checklists anteriores que exijan ADR incondicional se interpretan
 según esta política y AGENTS.md: registrar no aplicable y justificación para
