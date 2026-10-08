@@ -37,8 +37,12 @@ pendientes. No crear recursos de prueba sin permiso expreso.
 gh issue create --repo lvckss/piia2-26 --title '<titulo autorizado>' --body-file <archivo>
 ```
 
-Actualizar solo los campos solicitados. Leer el estado actual y presentar el
-cambio mínimo concreto antes de ejecutarlo; no volver a pedir aprobación si la
+La autorización inicial para trabajar sobre una Issue permite adiciones mínimas
+de planificación, referencias, evidencia, bloqueos/resolución y comentarios dentro
+del alcance, sin pedir permiso por cada registro. No autoriza crear otra Issue,
+cerrar, retirar contenido, ampliar alcance ni aceptar decisiones humanas.
+Actualizar solo los campos solicitados o estas adiciones rutinarias autorizadas.
+Leer el estado actual y presentar el cambio mínimo concreto antes de ejecutarlo; no volver a pedir aprobación si la
 petición ya autoriza ese mismo cambio. Para body, conservar el texto existente
 íntegro y añadir únicamente el texto autorizado; preferir un comentario si
 solo se necesita registrar evidencia. No reescribir para ajustarse al workflow.

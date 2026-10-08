@@ -6,20 +6,24 @@ Estas reglas se aplican a personas y agentes en todo el repositorio.
 
 - La entrada oficial para planificar trabajo funcional nuevo es
   [piia2-plan-task](.agents/skills/piia2-plan-task/SKILL.md), desde una Issue existente.
-  Cubre Por hacer → Especificando → Ready: registra aceptación humana explícita
-  en la misma Planning PR y promueve a Ready solo después del merge humano,
-  con Spec Revisada, ADR decision resuelta y revisada, y DoR completa
-  verificados desde main.
-  La invocación autoriza las operaciones no destructivas de planificación sobre
-  esa Issue, incluidas referencias y promoción acreditada; no aprobar/mergear,
-  cerrar, borrar contenido ni implementar. Su responsabilidad termina en Ready.
+  Cubre Por hacer → Especificando → Ready con planificación proporcional al
+  riesgo, impacto, reversibilidad e incertidumbre; termina en Ready, sin implementar.
 - Ningún código productivo se implementa sin una GitHub Issue que describa el trabajo.
-- Toda implementación funcional requiere Issue, Spec `Revisada`, Test/Eval Plan,
-  Implementation Plan y Planning PR revisada e integrada antes de comenzar.
-- Durante planificación se resuelve explícitamente exactamente una `ADR decision`:
-  `NEW_ADR`, `REUSE_ADR` o `NO_ADR_REQUIRED`, con justificación revisada por un humano.
-  Toda decisión técnica/arquitectónica suficientemente fundamental, duradera o
-  costosa de revertir debe estar cubierta por un ADR `Aceptado` antes de implementar.
+- Toda implementación funcional requiere planificación accesible y DoR acreditada:
+  alcance, AC, restricciones, Test/Eval Plan e Implementation Plan proporcionales.
+  Pueden residir en la Issue o mini-spec. No exigir Spec independiente ni Planning
+  PR por defecto; justificar el camino y fijar la versión del plan en la Issue.
+- Decisión arquitectónica nueva/modificada, impacto crítico, reversión costosa o
+  incertidumbre sustantiva que requiera revisión humana del diseño para acordar
+  requisitos/contratos exigen Spec versionada Revisada y Planning PR aprobada e integrada por humano
+  antes de implementar. Respetar también revisión previa expresamente solicitada.
+  Preguntas de producto/alcance resolubles en la Issue no imponen una Planning
+  PR por sí solas si no persiste otro disparador de revisión previa.
+- Resolver exactamente una `ADR decision`: `NEW_ADR`, `REUSE_ADR` o
+  `NO_ADR_REQUIRED`, con justificación. Una decisión fundamental, duradera o
+  costosa de revertir exige ADR `Aceptado` antes de implementar. Un ADR aceptado
+  reutilizado requiere cobertura acreditada, no una aprobación nueva por defecto.
+  Sin revisión previa, la justificación de no requerir ADR se revisa en la PR de entrega.
 - Para ADR, un contrato público relevante es una frontera estable consumida
   externamente o entre agentes/componentes que pueden evolucionar independientemente:
   API externa, contrato entre agentes, schema compartido, protocolo, formato
@@ -32,15 +36,14 @@ Estas reglas se aplican a personas y agentes en todo el repositorio.
   estructurales, consumidores independientes o coste de reversión importante sí
   puede requerir ADR. Ante ambigüedad, investigar y usar clarify; no crear ADR
   por precaución ni ocultar una decisión arquitectónica real. Esto no reduce
-  los requisitos de Spec, AC, planes ni verificación.
-- La Spec debe describir el comportamiento, alcance, restricciones y Acceptance
-  Criteria (AC) verificables: entradas, resultado observable y condición de éxito.
-- Cada AC debe tener un identificador estable dentro de su Spec (`AC-001`, etc.).
-  La referencia completa incluye la ruta de la Spec y el identificador.
-- Las fases de planificación e implementación son PRs distintas. La Planning PR
-  revisa Spec, decisión ADR, Test/Eval Plan e Implementation Plan, sin código
-  productivo. Solo se comienza a implementar después de integrar esa PR y
-  confirmar que el trabajo está Ready.
+  los requisitos de planificación, AC, planes ni verificación.
+- El plan describe comportamiento, alcance, restricciones y AC verificables:
+  entradas, resultado observable y condición de éxito. Cada AC tiene ID estable
+  (`AC-001`, etc.); referencia completa: ruta de Spec o URL de Issue/comentario
+  de planificación, más ID. Conservar IDs y trazabilidad al mover documentos.
+- Planificación, ejecución y entrega son responsabilidades lógicas separadas.
+  Solo el camino con revisión previa requiere Planning PR distinta de la
+  Implementation PR. Una mini-spec puede entregarse junto a la implementación.
 - Si falta alguno de esos requisitos o existe una decisión relevante pendiente,
   el agente debe indicar qué falta y continuar únicamente con la planificación.
 
@@ -52,8 +55,8 @@ Estas reglas se aplican a personas y agentes en todo el repositorio.
 - Para objetivos ML/probabilísticos/heurísticos que TDD unitario no representa,
   utilizar eval-first: Baseline → criterio/eval que demuestra el gap → cambio
   → reevaluación → comparación. Una tarea puede combinar ambas estrategias;
-  la Spec las justifica, sin tests rojos artificiales ni umbrales sin evidencia.
-- Los tests deben poder trazarse hasta los AC mediante la ruta de la Spec y sus
+  el plan las justifica, sin tests rojos artificiales ni umbrales sin evidencia.
+- Los tests deben poder trazarse hasta los AC mediante la referencia del plan y sus
   identificadores, en el Test Plan y en el nombre, comentario o documentación del
   test. Cada AC debe tener una verificación prevista y evidencia al terminar.
 - Los agentes no pueden declarar trabajo terminado sin evidencia de verificación:
@@ -62,42 +65,51 @@ Estas reglas se aplican a personas y agentes en todo el repositorio.
 - Un agente no puede declarar una tarea terminada, cerrar su Issue ni marcarla
   como Done / Hechas mientras su Definition of Done no esté completamente
   satisfecha: tanto la DoD global del workflow/Issue como los requisitos
-  específicos de las Specs. Las Specs pueden ampliarla, nunca relajarla.
+  específicos del plan. El plan puede ampliarla, nunca relajarla.
 - Checks requeridos no ejecutados, fallos conocidos introducidos por el cambio
   o trabajo pendiente dentro del alcance impiden marcar la tarea como Done.
 - Si cambia el alcance o una decisión aceptada, actualizar y revisar la
-  planificación en una PR separada antes de implementar el nuevo comportamiento.
+  planificación y reevaluar riesgo/DoR antes de implementar la parte afectada.
+  Exigir decisión humana para cambios de producto/alcance y Planning PR separada
+  si corresponde revisión previa según el workflow. Ajustes técnicos internos
+  que preservan AC, contratos y decisiones quedan a criterio del implementador;
+  el Implementation Plan orienta, no prescribe todos los detalles.
 
 ## Git y revisión
 
 - GitHub Issue es la unidad de trabajo; el GitHub Project v2 configurado en
   `.github/project-config.json` es la fuente de verdad del estado operacional.
-  No sustituye a la Spec, el ADR ni la evidencia de verificación.
+  No sustituye al plan, el ADR ni la evidencia de verificación.
 - Antes de operar sobre Issues o Projects, verificar el contexto con
   `.agents/skills/gh-verifying-context/SKILL.md`. Toda escritura requiere alcance
   autorizado, lectura previa, cambio mínimo, relectura y comprobación del resultado.
   No escribir con contexto ambiguo, permisos insuficientes o estados ausentes.
+- La autorización inicial sobre una Issue incluye operaciones rutinarias no
+  destructivas dentro del alcance: referencias/evidencia, incorporación al Project
+  y transiciones justificadas con condiciones verificadas, sin permiso por paso.
+  Permite coordinación técnica entre agentes mediante capacidades disponibles;
+  no autoriza comunicación ajena al trabajo ni sustituye permisos del runtime.
+  Crear Issues sigue requiriendo petición explícita. No cerrar, borrar, aprobar,
+  mergear ni cambiar estructura/workflows por esta autorización.
 - Los cambios de estado deben ser explícitos y respetar DoR y DoD. Mover a
   `Bloqueadas` exige registrar en la Issue motivo, impedimento y siguiente acción;
-  salir del bloqueo exige documentar su resolución y el estado operativo de destino.
+  salir del bloqueo exige documentar su resolución y acreditar el destino apropiado.
 - `main` nunca recibe commits directos; todo entra mediante Pull Request desde
   una feature branch. Los agentes no fusionan ni aprueban sus propias PRs.
-- La Implementation PR enlaza Issue, Spec, Test/Eval Plan y Planning PR, además
-  del ADR aceptado cuando aplique. En otro caso indica
-  `ADR: No requerido — justificado en Spec`. Aporta evidencia de la estrategia
-  TDD/eval prevista y de la verificación final.
+- La Implementation PR enlaza Issue, versión del plan y Test/Eval Plan, además
+  de Planning PR y ADR aceptado cuando apliquen; justificar no aplicables.
+  Aporta evidencia de TDD/eval y verificación final. La revisión y aprobación
+  humana de la PR cubren también la planificación pertinente antes del merge.
 - No subir secretos, credenciales ni datos privados. Respetar los cambios
   existentes y no incluir trabajo ajeno al alcance de la PR.
 
 ## Documentos existentes y cambios documentales
 
-Las specs actuales permanecen en `entregas/<caso>/specs/`. No se presupone que
-las decisiones descritas en ellas sean ADRs aceptados: antes de una nueva
-implementación, completar sus referencias, AC y planes, y resolver/revisar la
-decisión ADR según estas reglas. Referencias antiguas a un ADR obligatorio se
-aplican únicamente cuando la decisión lo requiere; no inventar un ADR ni marcar
-como aceptado un documento inexistente. Registrar el caso no aplicable y su
-justificación en la Spec y en las referencias de planificación de la Issue.
+Las specs actuales permanecen en `entregas/<caso>/specs/`. No asumir ADRs
+aceptados por referencias antiguas. Las tareas ya planificadas conservan su alcance,
+decisiones, referencias y gates de revisión; no rebajarlos retroactivamente.
+Una adaptación requiere decisión humana explícita y trazabilidad de versiones
+según el workflow. Nuevas tareas usan planificación proporcional.
 
 Los cambios exclusivamente documentales no son desarrollo
 funcional: se verifican mediante revisión de contenido, enlaces y diff. Esta

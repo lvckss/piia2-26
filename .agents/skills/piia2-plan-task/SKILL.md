@@ -1,6 +1,6 @@
 ---
 name: piia2-plan-task
-description: "Orquestar la planificación de PIIA2 desde una Issue existente: Por hacer, Especificando, Spec, decisión ADR y planes, Planning PR y Ready tras revisión humana, merge humano y DoR completa. No implementar ni escribir tests."
+description: "Orquestar la planificación de PIIA2 desde una Issue existente: Por hacer, Especificando y Ready con planificación proporcional en Issue/mini-spec o revisión previa versionada según riesgo y DoR. No implementar ni escribir tests."
 ---
 
 # Planificar una tarea de PIIA2
@@ -22,9 +22,13 @@ estas reglas sobre las referencias externas.
 Una invocación explícita para una Issue concreta autoriza las operaciones no
 destructivas de este ciclo: incorporación al Project, Por hacer si falta Status,
 Por hacer → Especificando, creación/actualización de Spec/planes y ADR si aplica,
-rama y Planning PR, referencias/comentarios mínimos en la Issue sin borrar
-contenido, y Especificando → Ready después del merge si toda la DoR se acredita.
-No pedir confirmación individual por esos pasos; respetar límites adicionales
+rama y Planning PR cuando corresponda, referencias/comentarios mínimos en la Issue sin borrar
+contenido, y Especificando → Ready al acreditar DoR del camino elegido (tras merge solo
+si requiere Planning PR). Autoriza bloqueo/desbloqueo documentado y justificado
+dentro de esta planificación; no exige otra petición para operaciones rutinarias.
+También permite coordinación técnica con otros agentes sobre la tarea mediante
+capacidades disponibles, respetando permisos del runtime y restricciones de datos.
+No exige delegación ni implementa crews. No pedir confirmación individual por esos pasos; respetar límites adicionales
 del usuario. Esta autorización no incluye cerrar, Hechas, borrar/sustituir el
 body, aprobar/mergear PRs, aceptar sin evidencia humana, estructura/workflows del
 Project, producto ni tests ejecutables. No crear la Issue de entrada ni recursos
@@ -51,17 +55,15 @@ reinterpretarlas como un número local. Si falta la entrada, pedir la Issue.
 | No pertenece | Añadir una vez y verificar pertenencia; después leer Status. |
 | Sin Status | Asignar explícitamente Por hacer dentro de esta operación y verificar. |
 | Por hacer | Solicitar Especificando para esta Issue y verificar la transición. |
-| Especificando | Localizar el mismo plan y continuar según su PR: abierta (review) o mergeada (DoR). |
+| Especificando | Localizar el mismo plan; comprobar riesgo y DoR, o continuar review/merge si requiere Planning PR. |
 | Ready | Informar que la planificación ya finalizó; no-op, sin nuevos artefactos ni rama de implementación. |
 | En curso / En revisión | Detenerse: ya empezó implementación. No regenerar ni retroceder. |
-| Bloqueadas | Leer registro de bloqueo. Continuar solo si no impide planificación y el usuario lo solicita expresamente. |
+| Bloqueadas | Leer registro de bloqueo. Investigar si el impedimento permite planificación dentro del alcance autorizado; conservar bloqueo hasta acreditar resolución. |
 | Hechas | Rechazar sin cambios. |
 
-Si el bloqueo sigue vigente, solo investigar o preparar borradores bajo esa
-petición, conservando Bloqueadas. Para completar el flujo en Especificando,
-exigir resolución registrada y petición explícita de volver a Especificando,
-según gh-project-management. No asumir que permiso para investigar equivale a
-desbloquear. Si el bloqueo impide especificar, pedir la decisión que falta.
+Si el bloqueo sigue vigente, conservar Bloqueadas. Para volver a Especificando,
+registrar y verificar resolución y justificar el destino según gh-project-management.
+No asumir resolución por silencio; pedir la decisión real si impide especificar.
 
 Antes de cada escritura GitHub, verificar contexto, leer estado actual,
 determinar cambio mínimo, ejecutar, releer, comparar e informar mediante la
@@ -69,11 +71,16 @@ skill responsable. Un fallo detiene esa operación; no repetir mutaciones a cieg
 
 ## 3. Reanudar antes de crear artefactos
 
-Buscar primero referencias en Issue y comentarios, Specs relacionadas,
+Buscar primero planes en Issue y comentarios (incluida versión vigente), Specs relacionadas,
 [ADRs](../../../docs/adr/), ramas `plan/<issue>-*` y PRs (abiertas, cerradas e
 integradas) del repositorio que referencien la Issue. Leer los artefactos en la
 rama/head de la PR existente, no solo lo presente en main. Una búsqueda por título
 no prueba identidad; comparar número/URL, alcance y enlaces de planificación.
+
+Las tareas ya planificadas conservan sus compromisos: no sustituir una Planning PR
+por un plan compacto ni rebajar gates sin decisión humana explícita y trazabilidad.
+Para plan compacto vigente, reutilizar su ubicación/AC, resolver gaps y ejecutar
+§4 y §4b; no abrir PR ni crear Spec solo por reejecutar.
 
 Si hay una Spec válida, una decisión ADR explícita y una Planning PR abierta, continuar
 ese mismo plan: revisar gaps y añadir solo lo necesario, conservando IDs de AC.
@@ -93,7 +100,7 @@ Contrastar documentos con comportamiento real; no tratar guías antiguas o
 código de referencia como un ADR aceptado ni como funcionalidad ya verificada.
 Priorizar comportamientos y decisiones existentes frente a nuevas abstracciones.
 
-Registrar en la Spec un resumen con evidencia (paths/símbolos relevantes):
+Registrar en el plan un resumen con evidencia (paths/símbolos relevantes):
 comportamiento actual, cambio requerido, componentes afectados, contratos
 públicos, incertidumbres, riesgos y comportamiento observable desde tests.
 Esto debe permitir continuar en otra sesión sin reconstruir la conversación.
@@ -105,12 +112,12 @@ Spec que finja certeza. Diferenciar hechos observados, decisiones propuestas y
 supuestos explícitos; registrar todas las preguntas relevantes en pendientes.
 Un umbral ML sin evidencia queda pendiente de experimento, sin inventar un valor.
 
-### Clarify antes de cerrar la Spec
+### Clarify antes de completar el plan
 
 Contrastar requisitos ambiguos, términos con varias interpretaciones, decisiones
 del usuario ausentes, supuestos presentados como hechos, métricas/thresholds sin
 evidencia, edge cases sin resolver y contradicciones entre Issue y comportamiento
-existente. Clasificar cada incertidumbre y registrar su evidencia/efecto en la Spec:
+existente. Clasificar cada incertidumbre y registrar su evidencia/efecto en el plan:
 resuelta mediante repo/documentación; supuesto explícito aceptable; pregunta no
 bloqueante; pregunta bloqueante. Un supuesto no puede sustituir una decisión humana
 necesaria ni una condición objetiva de éxito. Resolver por inspección antes de
@@ -118,7 +125,50 @@ preguntar; solicitar criterio humano solo cuando realmente falte. Si una pregunt
 bloqueante impide AC verificables, la planificación no está completa. Repetir
 clarify al recibir feedback que cambie requisitos; no ocultar incertidumbres.
 
-## 5. Rama y documentos de planificación
+## 4b. Elegir y completar el camino proporcional
+
+Aplicar los disparadores de revisión previa de docs/workflow.md: NEW_ADR,
+impacto crítico, reversión costosa, incertidumbre sustantiva que requiera
+revisión humana del diseño para acordar requisitos/contratos o revisión previa expresamente solicitada.
+Registrar riesgo real (consumidores, impacto, seguridad, reversibilidad,
+incertidumbre), justificación y si exige revisión previa. No usar categorías
+rígidas, tamaño del diff ni número de AC como gate.
+
+Sin revisión previa, registrar en la Issue (preferir comentario nuevo con
+permalink) o mini-spec las garantías comunes del workflow: comportamiento,
+alcance/fuera de alcance, AC estables, restricciones/preservación, failure modes,
+ADR decision justificada, Test/Eval Plan por AC, orientación de implementación,
+dependencias, riesgos/pendientes y DoD adicional. Para tareas pequeñas pueden
+ser unas líneas y una tabla AC/verificación; no crear documentos artificiales.
+REUSE_ADR exige comprobar ADR Aceptado desde main actualizado y justificar cobertura.
+NO_ADR_REQUIRED se revisará en la PR de entrega; no simular aceptación previa.
+
+Analyze contrasta bidireccionalmente alcance/AC/preservación/decisión/verificaciones
+sin gaps bloqueantes. No escribir producto, tests ni fixtures. Publicar el plan
+con gh-issue-management conservando el body anterior. Fijar versión/permalink y copiar el contenido evaluado en el registro DoR.
+No editar registros anteriores del plan; actualizaciones en nuevos comentarios
+con referencia al anterior. Un permalink solo no prueba que el texto no cambió.
+Para mini-spec versionada, usar rama publicada y archivo/commit accesibles;
+no exigir Planning PR ni estado Revisada. Referenciar `URL del plan + AC ID`
+o `ruta de Spec + AC ID`; conservar mapeo si se mueve.
+
+Con plan accesible y todas las condiciones comunes de DoR acreditadas, registrar
+la comprobación y promover Especificando → Ready mediante gh-project-management,
+releer y verificar Issue abierta y Status Ready. No exigir merge de planificación
+ni aceptación humana del plan cuando no corresponda; sí decisiones humanas
+necesarias explícitamente referenciadas. Si faltan requisitos, conservar
+Especificando o registrar bloqueo real. Informar ubicación/versión, evidencia y
+pendientes; terminar aquí sin ejecutar §§5–9 ni iniciar implementación.
+
+Con revisión previa, continuar §§5–9. Una nueva incertidumbre sustantiva exige
+reevaluar riesgo y detener la parte afectada. Cambios de producto/alcance requieren
+decisión humana sobre nueva versión; ajustes internos dentro de AC/contratos son
+autonomía técnica, no motivo automático de otra Planning PR. La replanificación
+de tareas activas requiere autorización sobre esa tarea, registro del cambio y
+retorno justificado a Especificando; no regenerar planes mediante una invocación
+normal que detecte En curso/En revisión.
+
+## 5. Rama y documentos cuando se requiere revisión previa
 
 Para un plan nuevo, partir de `main` actualizado mediante lectura/fetch de origin,
 sin rebase, merge ni reescritura de historial; crear `plan/<issue>-<slug>` desde
@@ -130,8 +180,9 @@ limpio. No cambiar de rama ni mezclar commits para facilitar la entrega.
 ### Spec y AC
 
 Crear una única Spec por Issue en
-`entregas/cu-19-interpretacion-danos/specs/<issue>-<slug-kebab-case>.md`,
-basada en el template del repo. Para otro caso, confirmar su ubicación.
+`entregas/<caso>/specs/<issue>-<slug-kebab-case>.md`,
+basada en el template del repo. Inferir el caso de la Issue y estructura existente;
+si no puede determinarse, pedir únicamente esa ubicación.
 Mantener sus secciones y referencias: Issue, estado Borrador, ADR decision,
 ADR (ruta/estado o No requerido), justificación, Planning PR cuando exista,
 qué construir/por qué, alcance y fuera de alcance, restricciones/supuestos,
@@ -214,7 +265,7 @@ del diff ni un cambio observable por sí solos deciden si hace falta ADR:
 |---|---|
 | NEW_ADR | Introduce/cambia una decisión suficientemente fundamental, duradera o costosa de revertir: arquitectura; boundaries entre agentes/servicios/componentes independientes; contratos externos o fronteras estables; APIs externas; schemas/formatos persistentes o compartidos; datos/persistencia; integración/protocolo; deployment/serving; concurrencia; seguridad; dependencia externa estructural; estrategia ML/serving/evaluación duradera; trade-off importante difícil de revertir. Crear ADR Propuesto; requerir aceptación humana. |
 | REUSE_ADR | Un ADR ya Aceptado cubre explícitamente decisión y alcance. Enlazarlo y justificar cobertura concreta, que debe confirmarse en review. No crear otro ni modificar el aceptado si la decisión no cambia. |
-| NO_ADR_REQUIRED | No introduce/cambia una decisión estructural relevante: validaciones locales, error/excepción/precondición de API interna, comportamiento de funciones dentro del componente, bugfix/mejora localizada, algoritmo interno, refactor que preserva arquitectura/boundaries, tests o documentación. Justificación breve revisada por humano; no crear ADR artificial. Un cambio observable local puede encajar. |
+| NO_ADR_REQUIRED | No introduce/cambia una decisión estructural relevante: validaciones locales, error/excepción/precondición de API interna, comportamiento de funciones dentro del componente, bugfix/mejora localizada, algoritmo interno, refactor que preserva arquitectura/boundaries, tests o documentación. En este camino, justificación breve revisada por humano; no crear ADR artificial. Un cambio observable local puede encajar. |
 
 Buscar decisiones existentes antes de elegir. Un ADR rechazado, sustituido o solo
 parecido no permite REUSE_ADR. Si cambia una decisión aceptada, elegir NEW_ADR
@@ -231,14 +282,14 @@ independientes o coste de reversión importante sí puede requerir ADR. Cambios
 pequeños en fronteras estables también lo requieren: valorar relevancia/durabilidad,
 no cantidad de líneas. Si sigue ambigua después de investigar, usar clarify,
 sin crear ADR por precaución ni NO_ADR_REQUIRED para ocultar una decisión real.
-Spec, AC, Test/Eval Plan, Implementation Plan y TDD/eval siguen siendo requisitos
-para los cambios funcionales locales sin ADR.
+Planificación, AC, Test/Eval Plan, Implementation Plan y TDD/eval siguen siendo
+requisitos para cambios locales; la ubicación y revisión se deciden en §4b.
 
 Escenarios documentales de regresión (sin escribir producto ni tests):
 
 | Situación | Decisión prevista |
 |---|---|
-| Función interna valida datos y ahora lanza ValueError, sin cambiar boundaries, schemas, protocolos ni establecer un trade-off estructural. | NO_ADR_REQUIRED, con justificación revisada; mantener Spec/AC y ambos planes. |
+| Función interna valida datos y ahora lanza ValueError, sin cambiar boundaries, schemas, protocolos ni establecer un trade-off estructural. | NO_ADR_REQUIRED, con justificación; plan en Issue/mini-spec, AC y verificaciones, salvo otro riesgo. |
 | Diff pequeño cambia schema JSON estable entre Agente 1 y Agente 2. | NEW_ADR si la decisión no está cubierta; REUSE_ADR solo si un ADR Aceptado cubre explícitamente ese cambio. Nunca NO_ADR_REQUIRED por tamaño. |
 
 Solo para NEW_ADR, elegir el siguiente número de cuatro dígitos libre,
@@ -290,13 +341,13 @@ Documentar cualquier necesidad de código y dejarla para la siguiente fase.
 
 ## 7. Planning PR y referencias de Issue
 
-Con cambios comprendidos y diff permitido, delegar commits/push/PR a
+Con cambios comprendidos y diff permitido, aplicar commits/push/PR con
 [semantic-commits-and-push](../semantic-commits-and-push/SKILL.md) desde la rama
 plan. Respetar su prohibición de editar archivos: redactar antes de entregarlos.
 La rama dedicada y la reanudación autorizadas por esta orquestación prevalecen
 sobre quedarse en una rama previa ajena. No publicar todas las modificaciones
 si incluyen trabajo no relacionado; resolver la ambigüedad primero.
-Si ya existe la Planning PR del plan, reutilizarla y delegar solo commit/push;
+Si ya existe la Planning PR del plan, reutilizarla y aplicar solo commit/push;
 omitir el paso de creación de PR de la skill de entrega. La idempotencia de esta
 orquestación prevalece sobre abrir una PR nueva en cada invocación.
 
@@ -331,7 +382,7 @@ si el usuario limitó esta escritura, respetarlo e informar lo pendiente.
 
 ## 8. Reejecución con Planning PR abierta: revisión humana
 
-La Planning PR es el único mecanismo de aprobación del plan. Leer estado,
+En este camino con revisión previa, la Planning PR acredita aprobación del plan. Leer estado,
 head SHA, reviews/comentarios, autores, fechas, commit revisado, revisiones
 vigentes y solicitudes de cambios en GitHub. Releer los documentos del head
 actual. Buscar evidencia humana explícita que cubra el plan completo: Spec/AC,
@@ -368,7 +419,7 @@ Con aceptación humana suficiente del contenido actual, registrar en la misma PR
   registrando también humano, referencia y versión revisada junto a sus metadatos.
 
 La actualización registra una decisión humana; no es aprobación del agente.
-Delegar solo commit/push sobre la misma rama/PR. Informar que el humano debe
+Aplicar la skill de entrega solo a commit/push sobre la misma rama/PR. Informar que el humano debe
 comprobar el diff final y aprobarlo antes del merge. Releer reviews/head después
 de cada push: una aprobación invalidada por nuevos commits no sigue vigente.
 La aceptación del contenido anterior puede documentar el origen del cambio de
@@ -442,7 +493,7 @@ Mientras la PR esté abierta, indicar Especificando y qué revisión/merge falta
 Tras promoción verificada, informar planificación finalizada en Ready; la Issue
 permanece abierta y finaliza toda responsabilidad de planificación.
 
-Una reejecución en Ready es no-op. Puede completar un registro post-promoción
+Una reejecución en Ready es no-op en ambos caminos; no imponer nuevos artefactos. Puede completar un registro post-promoción
 fallido ya identificado, sin recrear artefactos ni repetir la transición. Nunca
 crear la rama de implementación, empezar TDD, escribir producto/tests, cerrar
 Issues, marcar DoD/Hechas o modificar estructura/workflows del Project.
@@ -452,5 +503,5 @@ a ciegas. Solo la futura piia2-implement-task comienza implementación tras Read
 Adaptación conceptual de [mattpocock/to-spec](https://github.com/mattpocock/skills/blob/main/skills/engineering/to-spec/SKILL.md):
 explorar antes de especificar, preferir seams existentes y comportamiento externo,
 y conservar contexto de testing. PIIA2 mantiene sus templates/paths, AC estables,
-ADR separado cuando hay decisión relevante y revisión humana; no adopta publicación del plan como body único,
+ADR separado cuando hay decisión relevante y revisión humana proporcional; no adopta publicación del plan como body único,
 etiquetas de ready, omisión de preguntas necesarias ni prototipos de código.

@@ -48,7 +48,8 @@ no desarchivar ni añadir un duplicado. No inferir ausencia de un listado parcia
 
 ## Añadir una Issue
 
-Solo ante solicitud autorizada, después de comprobar que no pertenece al Project:
+Solo con autorización sobre la Issue (petición inicial o invocación de su ciclo),
+después de comprobar que no pertenece al Project:
 
 ```bash
 gh project item-add <numero-project> --owner <owner> --url <url-canonica-issue> --format json
@@ -57,21 +58,32 @@ gh project item-add <numero-project> --owner <owner> --url <url-canonica-issue> 
 Si ya pertenece, no-op. Reenumerar tras añadir y verificar una sola coincidencia,
 identidad del item y Status actual, sin cambiar campos ni Issue. Añadir no decide
 un estado: si queda sin Status, informarlo; asignar `Por hacer` también exige
-petición explícita y verificación independiente.
+destino elegido explícitamente y verificación independiente; la autorización
+inicial sobre la Issue basta para esta operación rutinaria.
 
 ## Cambiar Status
 
-Requerir número de Issue, destino exacto de config y autorización explícita.
-Las futuras skills de planificación/implementación/entrega decidirán el momento;
+Requerir número de Issue, destino exacto de config y autorización sobre esa tarea.
+La petición inicial de trabajar sobre la Issue o la invocación de una skill de
+su ciclo autoriza operaciones rutinarias no destructivas dentro del alcance,
+incluidos añadir/asignar estado, bloqueo y desbloqueo acreditados; no pedir
+confirmación por paso. Registrar destino y justificación concretos. Una consulta
+read-only no autoriza escritura; respetar límites adicionales del usuario.
+La skill de planificación existente y las futuras de ejecución/entrega, o el
+agente autorizado aplicando el workflow, acreditan las condiciones y el momento;
 esta skill no decide por commits, PRs o eventos ni implementa validadores de DoR/DoD.
-Exigir referencias aportadas que acrediten DoR para `Ready` y DoD para `Hechas`;
+Exigir referencias del plan y su versión que acrediten DoR del camino elegido
+para `Ready` y DoD para `Hechas`;
 si faltan, negarse a mover. No cerrar la Issue al mover a `Hechas`.
 
 Transiciones normales:
 `Por hacer → Especificando → Ready → En curso → En revisión → Hechas`.
 Cualquier estado salvo `Bloqueadas`/`Hechas` puede pasar a `Bloqueadas`.
-Otras transiciones requieren petición y justificación explícitas, sin saltarse
-DoR/DoD. Para un item nuevo sin Status, permitir un destino explícito justificado.
+Ready / En curso / En revisión → Especificando permite replanificación registrada
+si cambia el acuerdo o aparece riesgo que exige revisión previa; detener ejecución
+afectada y reevaluar DoR. Otras transiciones requieren petición y justificación
+explícitas, sin saltarse DoR/DoD. Para un item nuevo sin Status, permitir un
+destino explícito justificado.
 Si origen y destino coinciden, no-op; no emitir una mutación innecesaria.
 
 ### Bloqueo y desbloqueo
@@ -89,7 +101,7 @@ referenciar un registro existente que contenga los tres), releer y verificar ese
 registro, y solo entonces mover. Informar su URL junto con el cambio de Status.
 Si el movimiento falla, conservar el registro y comunicar el estado observado.
 Para salir de `Bloqueadas`, requerir evidencia de resolución registrada en la
-Issue y destino operativo explícito, apropiado al trabajo realmente completado.
+Issue y destino operativo elegido y justificado, apropiado al trabajo realmente completado.
 No probar el bloqueo de una tarea real solo para demostrar la skill.
 
 ### Mutación y comprobación
