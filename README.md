@@ -163,12 +163,12 @@ La asignación sigue este proceso:
 [AGENTS.md](AGENTS.md) es la única fuente de invariantes; los procedimientos
 canónicos están en [.agents/skills/](.agents/skills/). Codex descubre esas rutas
 nativamente. Claude carga [CLAUDE.md](CLAUDE.md), que solo importa `@AGENTS.md`,
-y descubre seis adaptadores en [.claude/skills/](.claude/skills/): leen la skill
+y descubre siete adaptadores en [.claude/skills/](.claude/skills/): leen la skill
 canónica completa y transmiten los argumentos, sin copiar su procedimiento.
 No hay setup del repo, sincronización, hooks, plugins ni permisos preaprobados.
 
 Se requiere un CLI autenticado que soporte estas rutas de skills; Codex CLI
-`0.161.0` es la versión comprobada aquí. Para Claude, usar una versión vigente
+`0.162.0` es la versión comprobada aquí. Para Claude, usar una versión vigente
 con skills de proyecto, `$ARGUMENTS` y `${CLAUDE_SKILL_DIR}`; no se ha probado
 un mínimo histórico. Git y GitHub CLI autenticado, con los permisos que exigen
 las skills, son requisitos existentes para operar en GitHub.
@@ -190,6 +190,7 @@ Los ejemplos son mensajes dentro de cada CLI, no comandos del shell:
 | Project | `$gh-project-management <petición>` | `/gh-project-management <petición>` |
 | Planificación | `$plan-issue #N` | `/plan-issue #N` |
 | Implementación | `$implement-issue N` | `/implement-issue N` |
+| Entrega | `$finish-issue N` | `/finish-issue N` |
 | Commits/PR | `$semantic-commits-and-push <contexto>` | `/semantic-commits-and-push <contexto>` |
 
 En Codex, los argumentos viajan en el mensaje; en Claude, el wrapper sustituye
@@ -204,18 +205,19 @@ Git Bash de Git for Windows, o traducirse a PowerShell conservando argumentos
 y garantías; el puente no instala herramientas ni necesita symlinks en ningún SO.
 
 Smoke test sin operaciones GitHub: en Codex abrir `/skills`; en Claude comprobar
-las seis skills en el menú `/` y usar `/memory` o `/context` para confirmar
+las siete skills en el menú `/` y usar `/memory` o `/context` para confirmar
 AGENTS.md importado. Después pedir en ambas sesiones: «Solo lectura local:
-indica las invariantes cargadas, las seis skills y sus rutas canónicas; lee
-plan-issue e implement-issue sin ejecutarlas y explica sus argumentos para #123 y 123.
+indica las invariantes cargadas, las siete skills y sus rutas canónicas; lee
+plan-issue, implement-issue y finish-issue sin ejecutarlas y explica sus argumentos
+para #123 y 123.
 No invoques skills operacionales ni ejecutes gh, escrituras o comandos Git que
 modifiquen estado». Debe identificar `#123` como número 123, conservar las
 referencias canónicas y describir los gates existentes. Repetir desde un subdirectorio
 y un worktree ya existente con estos archivos. No ejecutar `/plan-issue #123`
-ni `/implement-issue 14` ni sus equivalentes Codex como prueba de descubrimiento:
-una invocación real puede escribir en GitHub e implementar producto.
+ni `/implement-issue 14` ni `/finish-issue 14` ni sus equivalentes Codex como prueba
+de descubrimiento: una invocación real puede escribir en GitHub o implementar producto.
 
-Codex CLI 0.162.0 ha descubierto las seis skills habilitadas mediante `skills/list`
+Codex CLI 0.162.0 ha descubierto las siete skills habilitadas mediante `skills/list`
 desde raíz y `docs/`, sin errores ni el nombre antiguo. Esta comprobación no
 inicia hilos ni ejecuta skills; no acredita todavía una implementación real.
 Claude Code no está instalado en el entorno de esta PR; su descubrimiento,

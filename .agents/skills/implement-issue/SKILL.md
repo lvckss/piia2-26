@@ -155,5 +155,5 @@ ese paso en la siguiente ejecución.
 
 Salida: PR/rama/head, plan vigente, AC y comprobaciones con resultados/pendientes,
 estado verificado y revisión/aprobación/merge humanos pendientes. Terminar en
-En revisión, sin declarar tarea Done: la entrega final pertenece a la futura
-`finish-issue`. No aprobar, fusionar, cerrar ni marcar Hechas.
+En revisión, sin declarar tarea Done: la entrega final pertenece a
+[finish-issue](../finish-issue/SKILL.md). No aprobar, fusionar, cerrar ni marcar Hechas.

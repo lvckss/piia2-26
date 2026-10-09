@@ -70,7 +70,7 @@ incluidos añadir/asignar estado, bloqueo y desbloqueo acreditados; no pedir
 confirmación por paso. Registrar destino y justificación concretos. Una consulta
 read-only no autoriza escritura; respetar límites adicionales del usuario.
 [plan-issue](../plan-issue/SKILL.md), [implement-issue](../implement-issue/SKILL.md),
-la futura `finish-issue` o el agente autorizado aplicando el workflow acreditan
+[finish-issue](../finish-issue/SKILL.md) o el agente autorizado aplicando el workflow acreditan
 las condiciones y el momento;
 esta skill no decide por commits, PRs o eventos ni implementa validadores de DoR/DoD.
 Exigir referencias del plan y su versión que acrediten DoR del camino elegido
