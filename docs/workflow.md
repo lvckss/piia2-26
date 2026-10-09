@@ -43,6 +43,7 @@ referenciada en la Issue sin imponer una Planning PR si no concurren los riesgos
 anteriores. Nunca interpretar silencio, tiempo transcurrido o aprobación del agente
 como una decisión humana. Si se necesita revisión previa, usar el camino versionado.
 
+Para tareas pequeñas, preferir la propia Issue si permite registrar el plan suficiente.
 La mini-spec usa las secciones pertinentes del [template de Spec](templates/spec-template.md),
 sin una plantilla o entidad nueva. Puede vivir en la Issue o en
 `entregas/<caso>/specs/<issue>-<slug>.md`. Sin revisión previa, su estado sigue
@@ -51,6 +52,10 @@ Revisada. Su versión para Ready queda fijada en un comentario de planificación
 con permalink y copia del texto evaluado (o archivo y commit); un archivo aún no integrado debe quedar
 accesible en una rama publicada. No depender de archivos locales ni del chat.
 La revisión final cubre también esa planificación en la Implementation PR.
+Si la mini-spec es un archivo que forma parte de la implementación, debe incluirse
+e integrarse en main mediante esa Implementation PR. Su disponibilidad en una
+rama publicada permite acreditar Ready, pero no constituye entrega definitiva
+ni permite Done mientras siga únicamente en una rama temporal no integrada.
 
 ### Garantías comunes
 
@@ -107,6 +112,15 @@ de tests mientras respete AC, restricciones, contratos y decisiones aceptadas.
 Registrar ajustes relevantes y su evidencia en la PR; no pedir revisión previa
 por cada detalle técnico ni por reordenar el Implementation Plan.
 
+Una invocación normal de piia2-plan-task sobre Ready es no-op, sin escrituras.
+Una solicitud explícita, vigente y autorizada de replanificación, con motivo concreto,
+permite Ready → Especificando. Registrar solicitud, motivo y versión de partida;
+reutilizar el plan y conservar versiones, IDs de AC y decisiones anteriores.
+Reevaluar riesgo, necesidad de revisión previa y DoR para la nueva versión antes
+de volver a Ready. La solicitud no autoriza por sí sola cambiar el alcance ni
+eludir aprobaciones: decisiones humanas necesarias y revisiones aplicables se
+acreditan para la versión pertinente, sin atribuir aceptación antigua a cambios nuevos.
+
 Si cambia alcance, AC, contrato o decisión aceptada, detener la parte afectada,
 registrar el cambio sin sobrescribir el acuerdo anterior y reevaluar riesgo/DoR.
 Una decisión de producto/alcance requiere aceptación humana explícita de la nueva
@@ -155,6 +169,8 @@ y los requisitos específicos del plan deben estar completamente satisfechos:
   Planning PR cuando aplique (o no aplicable con motivo). Incluye verificación final.
 - PR y planificación pertinente revisadas y aprobadas por humano; head final
   integrado en main por humano. Los agentes no aprueban ni fusionan sus propias PRs.
+- Mini-specs en archivo que formen parte de la implementación incluidas en la
+  Implementation PR e integradas en main; no basta su presencia en una rama temporal.
 - Documentación actualizada y ningún bloqueo, check pendiente ni trabajo dentro
   del alcance sin resolver. Evidencia de cierre registrada en la Issue.
 

@@ -39,6 +39,10 @@ de prueba persistentes sin permiso.
 Aceptar solo un número entero positivo en decimal, con `#` opcional. Rechazar
 cero, negativos, texto adicional, URLs y referencias a otro repositorio; no
 reinterpretarlas como un número local. Si falta la entrada, pedir la Issue.
+La solicitud de replanificación es contexto explícito adicional de la sesión o
+un registro autorizado en la Issue, no un nuevo formato de argumento. Debe
+identificar esa Issue y un motivo concreto; no inferirla de la invocación normal.
+Un registro histórico ya atendido no activa otra replanificación.
 
 1. Ejecutar [gh-verifying-context](../gh-verifying-context/SKILL.md).
 2. Leer la Issue mediante [gh-issue-management](../gh-issue-management/SKILL.md):
@@ -56,10 +60,22 @@ reinterpretarlas como un número local. Si falta la entrada, pedir la Issue.
 | Sin Status | Asignar explícitamente Por hacer dentro de esta operación y verificar. |
 | Por hacer | Solicitar Especificando para esta Issue y verificar la transición. |
 | Especificando | Localizar el mismo plan; comprobar riesgo y DoR, o continuar review/merge si requiere Planning PR. |
-| Ready | Informar que la planificación ya finalizó; no-op, sin nuevos artefactos ni rama de implementación. |
+| Ready | Invocación normal: no-op sin escrituras. Con solicitud explícita y autorizada de replanificación y motivo concreto, aplicar el recorrido indicado debajo. |
 | En curso / En revisión | Detenerse: ya empezó implementación. No regenerar ni retroceder. |
 | Bloqueadas | Leer registro de bloqueo. Investigar si el impedimento permite planificación dentro del alcance autorizado; conservar bloqueo hasta acreditar resolución. |
 | Hechas | Rechazar sin cambios. |
+
+Para replanificar desde Ready, verificar que la solicitud sigue vigente y no está
+atendida, así como su alcance autorizado;
+si faltan autorización o motivo concreto, no escribir ni mover. Localizar primero
+el plan vigente (§3), registrar solicitud/motivo y versión de partida mediante
+gh-issue-management y verificar el registro. Con gh-project-management ejecutar
+Ready → Especificando y releer el resultado. Reutilizar los artefactos, conservar
+versiones anteriores, IDs de AC y decisiones/aceptaciones con su evidencia, y
+continuar §4/§4b para reevaluar riesgo y revisión previa. Propuestas de alcance
+nuevo quedan pendientes de autorización humana; replanificar no las autoriza.
+No eludir gates anteriores ni atribuir aprobación antigua a contenido modificado.
+Solo volver a Ready tras acreditar DoR para la versión pertinente.
 
 Si el bloqueo sigue vigente, conservar Bloqueadas. Para volver a Especificando,
 registrar y verificar resolución y justificar el destino según gh-project-management.
@@ -88,7 +104,11 @@ Si ya está completo, continuar con la comprobación de revisión humana (§8) o
 DoR post-merge (§9), sin recrear artefactos. Si aún falta review, informar URLs
 y pendientes sin nuevos commits ni comentarios duplicados. No invocar entrega
 sin cambios que publicar. Una PR integrada con Status Especificando se procesa
-en §9 desde main, sin abrir otro plan.
+en §9 desde main, sin abrir otro plan, salvo replanificación explícita: en ese
+caso su plan es la versión de partida, no evidencia de que los cambios solicitados
+ya estén aceptados. Continuar §4/§4b antes de acreditar nuevamente DoR; conservar
+el historial y reutilizar los documentos. Si los cambios requieren revisión previa,
+publicar su nueva versión para revisión sin alterar PRs anteriores integradas.
 Ante PR cerrada sin merge, varios candidatos, rama con cambios ajenos o artefactos
 incompatibles, detenerse y pedir una decisión concreta. No sobreescribir ni borrar.
 
@@ -139,7 +159,8 @@ permalink) o mini-spec las garantías comunes del workflow: comportamiento,
 alcance/fuera de alcance, AC estables, restricciones/preservación, failure modes,
 ADR decision justificada, Test/Eval Plan por AC, orientación de implementación,
 dependencias, riesgos/pendientes y DoD adicional. Para tareas pequeñas pueden
-ser unas líneas y una tabla AC/verificación; no crear documentos artificiales.
+ser unas líneas y una tabla AC/verificación; preferir la Issue si es suficiente,
+sin crear documentos artificiales.
 REUSE_ADR exige comprobar ADR Aceptado desde main actualizado y justificar cobertura.
 NO_ADR_REQUIRED se revisará en la PR de entrega; no simular aceptación previa.
 
@@ -149,7 +170,11 @@ con gh-issue-management conservando el body anterior. Fijar versión/permalink y
 No editar registros anteriores del plan; actualizaciones en nuevos comentarios
 con referencia al anterior. Un permalink solo no prueba que el texto no cambió.
 Para mini-spec versionada, usar rama publicada y archivo/commit accesibles;
-no exigir Planning PR ni estado Revisada. Referenciar `URL del plan + AC ID`
+no exigir Planning PR ni estado Revisada. Registrar que, si ese archivo forma
+parte de la implementación, debe incluirse e integrarse en main mediante la
+Implementation PR: la rama publicada basta para acceso en Ready, no para entrega
+definitiva ni Done. Esta skill deja esa integración a la fase de implementación.
+Referenciar `URL del plan + AC ID`
 o `ruta de Spec + AC ID`; conservar mapeo si se mueve.
 
 Con plan accesible y todas las condiciones comunes de DoR acreditadas, registrar
@@ -493,8 +518,9 @@ Mientras la PR esté abierta, indicar Especificando y qué revisión/merge falta
 Tras promoción verificada, informar planificación finalizada en Ready; la Issue
 permanece abierta y finaliza toda responsabilidad de planificación.
 
-Una reejecución en Ready es no-op en ambos caminos; no imponer nuevos artefactos. Puede completar un registro post-promoción
-fallido ya identificado, sin recrear artefactos ni repetir la transición. Nunca
+Una reejecución normal en Ready es no-op en ambos caminos, sin escrituras ni
+nuevos artefactos. Una solicitud explícita y autorizada de replanificación con
+motivo concreto sigue §2/§3 y reevalúa el plan; no es una reejecución normal. Nunca
 crear la rama de implementación, empezar TDD, escribir producto/tests, cerrar
 Issues, marcar DoD/Hechas o modificar estructura/workflows del Project.
 Si otro actor cambió estado o cerró la Issue, informar conflicto sin restaurar

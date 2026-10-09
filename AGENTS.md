@@ -43,7 +43,9 @@ Estas reglas se aplican a personas y agentes en todo el repositorio.
   de planificación, más ID. Conservar IDs y trazabilidad al mover documentos.
 - Planificación, ejecución y entrega son responsabilidades lógicas separadas.
   Solo el camino con revisión previa requiere Planning PR distinta de la
-  Implementation PR. Una mini-spec puede entregarse junto a la implementación.
+  Implementation PR. Preferir la Issue para tareas pequeñas si es suficiente.
+  Una mini-spec en archivo que forme parte de la implementación debe integrarse
+  en `main` mediante la Implementation PR; una rama temporal no acredita entrega.
 - Si falta alguno de esos requisitos o existe una decisión relevante pendiente,
   el agente debe indicar qué falta y continuar únicamente con la planificación.
 
@@ -68,6 +70,11 @@ Estas reglas se aplican a personas y agentes en todo el repositorio.
   específicos del plan. El plan puede ampliarla, nunca relajarla.
 - Checks requeridos no ejecutados, fallos conocidos introducidos por el cambio
   o trabajo pendiente dentro del alcance impiden marcar la tarea como Done.
+- Una invocación normal de piia2-plan-task en Ready es no-op, sin escrituras.
+  Solo una solicitud explícita, vigente y autorizada de replanificación con motivo concreto
+  permite volver a Especificando, reutilizando el plan y conservando versiones,
+  IDs de AC y decisiones anteriores. Reevaluar riesgo/DoR y revisión previa;
+  no eludir aprobaciones ni cambiar alcance sin autorización humana.
 - Si cambia el alcance o una decisión aceptada, actualizar y revisar la
   planificación y reevaluar riesgo/DoR antes de implementar la parte afectada.
   Exigir decisión humana para cambios de producto/alcance y Planning PR separada
