@@ -14,8 +14,10 @@ Issue → investigación + planificación proporcional → DoR → Ready
 Por hacer → Especificando → Ready.
 [implement-issue](../.agents/skills/implement-issue/SKILL.md) cubre Ready → En curso
 → Implementation PR → En revisión, con comprobación del plan, TDD/eval-first y
-verificación de AC. `finish-issue` es una fase futura para la entrega final.
-Ninguna de las skills actuales aprueba, fusiona ni cierra automáticamente la tarea.
+verificación de AC. [finish-issue](../.agents/skills/finish-issue/SKILL.md) comprueba
+integración en main y DoD, reutiliza evidencia y completa el registro de entrega
+y En revisión → Hechas de forma idempotente. Ninguna de estas skills aprueba o
+fusiona PRs ni cierra la GitHub Issue.
 
 ## Planificación proporcional
 
@@ -177,6 +179,13 @@ y los requisitos específicos del plan deben estar completamente satisfechos:
 - Documentación actualizada y ningún bloqueo, check pendiente ni trabajo dentro
   del alcance sin resolver. Evidencia de cierre registrada en la Issue.
 
+La revisión/aprobación de entrega puede acreditarse mediante review válida o
+aceptación humana explícita referenciada, con autor/origen y versión final
+identificados, que cubra también la planificación pertinente. No exigir el estado
+formal APPROVED de GitHub si existe esa evidencia suficiente; no inferir aceptación
+por merge, silencio o autoaprobación del agente. Esto no sustituye los gates de
+revisión previa de diseño ni rebaja compromisos de tareas anteriores.
+
 Un plan puede ampliar la DoD, nunca relajarla. Una PR mergeada con checks requeridos
 pendientes no permite Hechas. La Planning PR usa `Refs #N`; la Implementation PR
 solo puede usar `Closes #N` si la DoD se cumple al integrar. `implement-issue` usa
@@ -200,7 +209,7 @@ Project la fuente de verdad operacional; no sustituyen el plan ni los ADRs.
 | Especificando | Investigación, planificación o revisión previa necesaria. |
 | Ready | DoR acreditada para el camino elegido. |
 | En curso | Ejecución activa dentro de la planificación vigente. |
-| En revisión | PR de entrega abierta, evidencia y pendientes visibles. |
+| En revisión | PR de entrega publicada, evidencia y pendientes visibles; tras merge, pendiente acreditar DoD y registro de entrega. |
 | Bloqueadas | Motivo, impedimento y siguiente acción registrados en la Issue. |
 | Hechas | DoD completa y cambio integrado por humano. |
 
