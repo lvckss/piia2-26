@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from math import isfinite
 from typing import Literal
 
 ConfidenceTier = Literal["confirmed", "needs_review"]
@@ -27,7 +28,11 @@ def classify_confidence(category_name: str, score: float) -> ConfidenceTier:
     Un falso positivo con score alto seria una afirmacion economica falsa en
     el informe; un falso negativo simplemente omite un dano real. Por eso el
     umbral es por clase, no un unico numero global (ver spec).
+
+    Lanza ValueError si el score no es finito o no pertenece a [0, 1].
     """
+    if not 0 <= score <= 1 or not isfinite(score):
+        raise ValueError("Score de confianza inválido: debe ser finito y estar en [0, 1].")
     threshold = CATEGORY_REVIEW_THRESHOLD.get(category_name, DEFAULT_REVIEW_THRESHOLD)
     return "confirmed" if score >= threshold else "needs_review"
 
@@ -47,6 +52,9 @@ def decidir_tier(
     2. el modelo de vision confirma el dano (segunda opinion),
     3. se sabe sobre que pieza esta y la tool de costes tiene una regla para
        esa clase + pieza + severidad (si no, no se puede presupuestar).
+
+    Lanza ValueError para un score no finito o fuera de [0, 1], antes de
+    comprobar vision, pieza o regla de coste.
     """
     if classify_confidence(category_name, score) != "confirmed":
         return "needs_review"
