@@ -163,7 +163,7 @@ La asignación sigue este proceso:
 [AGENTS.md](AGENTS.md) es la única fuente de invariantes; los procedimientos
 canónicos están en [.agents/skills/](.agents/skills/). Codex descubre esas rutas
 nativamente. Claude carga [CLAUDE.md](CLAUDE.md), que solo importa `@AGENTS.md`,
-y descubre cinco adaptadores en [.claude/skills/](.claude/skills/): leen la skill
+y descubre seis adaptadores en [.claude/skills/](.claude/skills/): leen la skill
 canónica completa y transmiten los argumentos, sin copiar su procedimiento.
 No hay setup del repo, sincronización, hooks, plugins ni permisos preaprobados.
 
@@ -188,7 +188,8 @@ Los ejemplos son mensajes dentro de cada CLI, no comandos del shell:
 | Contexto | `$gh-verifying-context` | `/gh-verifying-context` |
 | Issues | `$gh-issue-management <petición>` | `/gh-issue-management <petición>` |
 | Project | `$gh-project-management <petición>` | `/gh-project-management <petición>` |
-| Planificación | `$piia2-plan-task #N` | `/piia2-plan-task #N` |
+| Planificación | `$plan-issue #N` | `/plan-issue #N` |
+| Implementación | `$implement-issue N` | `/implement-issue N` |
 | Commits/PR | `$semantic-commits-and-push <contexto>` | `/semantic-commits-and-push <contexto>` |
 
 En Codex, los argumentos viajan en el mensaje; en Claude, el wrapper sustituye
@@ -203,19 +204,20 @@ Git Bash de Git for Windows, o traducirse a PowerShell conservando argumentos
 y garantías; el puente no instala herramientas ni necesita symlinks en ningún SO.
 
 Smoke test sin operaciones GitHub: en Codex abrir `/skills`; en Claude comprobar
-las cinco skills en el menú `/` y usar `/memory` o `/context` para confirmar
+las seis skills en el menú `/` y usar `/memory` o `/context` para confirmar
 AGENTS.md importado. Después pedir en ambas sesiones: «Solo lectura local:
-indica las invariantes cargadas, las cinco skills y sus rutas canónicas; lee
-piia2-plan-task sin ejecutarla y explica qué argumento recibiría para #123.
+indica las invariantes cargadas, las seis skills y sus rutas canónicas; lee
+plan-issue e implement-issue sin ejecutarlas y explica sus argumentos para #123 y 123.
 No invoques skills operacionales ni ejecutes gh, escrituras o comandos Git que
 modifiquen estado». Debe identificar `#123` como número 123, conservar las
 referencias canónicas y describir los gates existentes. Repetir desde un subdirectorio
-y un worktree ya existente con estos archivos. No ejecutar `/piia2-plan-task #123`
-ni su equivalente Codex como prueba: una invocación real puede escribir en GitHub.
+y un worktree ya existente con estos archivos. No ejecutar `/plan-issue #123`
+ni `/implement-issue 14` ni sus equivalentes Codex como prueba de descubrimiento:
+una invocación real puede escribir en GitHub e implementar producto.
 
-Codex CLI 0.161.0 ha descubierto las cinco skills mediante `skills/list` desde
-raíz y subdirectorio; un smoke test en sandbox de solo lectura ha interpretado
-las invariantes y el argumento hipotético `#123` sin ejecutar el workflow.
+Codex CLI 0.162.0 ha descubierto las seis skills habilitadas mediante `skills/list`
+desde raíz y `docs/`, sin errores ni el nombre antiguo. Esta comprobación no
+inicia hilos ni ejecuta skills; no acredita todavía una implementación real.
 Claude Code no está instalado en el entorno de esta PR; su descubrimiento,
 expansión de argumentos y carga dinámica quedan pendientes de ese smoke test
 en el equipo de un compañero. Windows/macOS requieren también comprobación real;

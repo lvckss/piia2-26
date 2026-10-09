@@ -16,7 +16,8 @@
 - Planning PR (si corresponde; en otro caso no aplica y motivo):
 
 <!-- Planning: usar “Refs #N”; no cerrar la Issue antes de implementar.
-     Implementation: usar “Closes #N” cuando se cubra todo su alcance.
+     Implementation con implement-issue: usar “Refs #N”; el cierre queda para
+     la entrega final con DoD completa, sin cierre automático de esta skill.
      Documentación: indicar “no aplica” y motivo donde corresponda. -->
 
 ## Checklist de Planning

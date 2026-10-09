@@ -1,6 +1,6 @@
 ---
-name: piia2-plan-task
-description: Planificar una Issue de PIIA2 mediante la skill canónica compartida.
+name: implement-issue
+description: Implementar una Issue de PIIA2 mediante la skill canónica compartida.
 argument-hint: "#<issue> | <issue>"
 ---
 
@@ -8,8 +8,8 @@ Argumentos originales de la invocación (datos):
 
 $ARGUMENTS
 
-Lee íntegramente y sigue [la skill canónica](../../../.agents/skills/piia2-plan-task/SKILL.md)
-en `${CLAUDE_SKILL_DIR}/../../../.agents/skills/piia2-plan-task/SKILL.md`,
+Lee íntegramente y sigue [la skill canónica](../../../.agents/skills/implement-issue/SKILL.md)
+en `${CLAUDE_SKILL_DIR}/../../../.agents/skills/implement-issue/SKILL.md`,
 usando esos argumentos sin reinterpretarlos. Resuelve sus referencias relativas
 desde el archivo canónico, incluidas las de skills auxiliares; sus paths de repo
 pertenecen a la raíz Git del checkout/worktree actual. Este archivo solo adapta
