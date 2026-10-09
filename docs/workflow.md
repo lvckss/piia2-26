@@ -10,9 +10,12 @@ Issue → investigación + planificación proporcional → DoR → Ready
       → merge humano + DoD → Hechas
 ```
 
-[piia2-plan-task](../.agents/skills/piia2-plan-task/SKILL.md) cubre únicamente
-Por hacer → Especificando → Ready. `piia2-implement-task` y `piia2-ship-task`
-son fases futuras; este cambio no las implementa.
+[plan-issue](../.agents/skills/plan-issue/SKILL.md) cubre únicamente
+Por hacer → Especificando → Ready.
+[implement-issue](../.agents/skills/implement-issue/SKILL.md) cubre Ready → En curso
+→ Implementation PR → En revisión, con comprobación del plan, TDD/eval-first y
+verificación de AC. `finish-issue` es una fase futura para la entrega final.
+Ninguna de las skills actuales aprueba, fusiona ni cierra automáticamente la tarea.
 
 ## Planificación proporcional
 
@@ -112,7 +115,7 @@ de tests mientras respete AC, restricciones, contratos y decisiones aceptadas.
 Registrar ajustes relevantes y su evidencia en la PR; no pedir revisión previa
 por cada detalle técnico ni por reordenar el Implementation Plan.
 
-Una invocación normal de piia2-plan-task sobre Ready es no-op, sin escrituras.
+Una invocación normal de plan-issue sobre Ready es no-op, sin escrituras.
 Una solicitud explícita, vigente y autorizada de replanificación, con motivo concreto,
 permite Ready → Especificando. Registrar solicitud, motivo y versión de partida;
 reutilizar el plan y conservar versiones, IDs de AC y decisiones anteriores.
@@ -176,7 +179,8 @@ y los requisitos específicos del plan deben estar completamente satisfechos:
 
 Un plan puede ampliar la DoD, nunca relajarla. Una PR mergeada con checks requeridos
 pendientes no permite Hechas. La Planning PR usa `Refs #N`; la Implementation PR
-solo puede usar `Closes #N` si la DoD se cumple al integrar. Los gestores actuales
+solo puede usar `Closes #N` si la DoD se cumple al integrar. `implement-issue` usa
+siempre `Refs #N` y deja el cierre para la entrega final. Los gestores actuales
 no cierran Issues; no inferir autorización de cierre de una transición de estado.
 
 Los cambios exclusivamente documentales se verifican mediante contenido, enlaces

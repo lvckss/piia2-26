@@ -5,7 +5,7 @@ Estas reglas se aplican a personas y agentes en todo el repositorio.
 ## Antes de implementar
 
 - La entrada oficial para planificar trabajo funcional nuevo es
-  [piia2-plan-task](.agents/skills/piia2-plan-task/SKILL.md), desde una Issue existente.
+  [plan-issue](.agents/skills/plan-issue/SKILL.md), desde una Issue existente.
   Cubre Por hacer → Especificando → Ready con planificación proporcional al
   riesgo, impacto, reversibilidad e incertidumbre; termina en Ready, sin implementar.
 - Ningún código productivo se implementa sin una GitHub Issue que describa el trabajo.
@@ -70,7 +70,7 @@ Estas reglas se aplican a personas y agentes en todo el repositorio.
   específicos del plan. El plan puede ampliarla, nunca relajarla.
 - Checks requeridos no ejecutados, fallos conocidos introducidos por el cambio
   o trabajo pendiente dentro del alcance impiden marcar la tarea como Done.
-- Una invocación normal de piia2-plan-task en Ready es no-op, sin escrituras.
+- Una invocación normal de plan-issue en Ready es no-op, sin escrituras.
   Solo una solicitud explícita, vigente y autorizada de replanificación con motivo concreto
   permite volver a Especificando, reutilizando el plan y conservando versiones,
   IDs de AC y decisiones anteriores. Reevaluar riesgo/DoR y revisión previa;

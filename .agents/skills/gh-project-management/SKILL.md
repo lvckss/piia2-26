@@ -69,8 +69,9 @@ su ciclo autoriza operaciones rutinarias no destructivas dentro del alcance,
 incluidos añadir/asignar estado, bloqueo y desbloqueo acreditados; no pedir
 confirmación por paso. Registrar destino y justificación concretos. Una consulta
 read-only no autoriza escritura; respetar límites adicionales del usuario.
-La skill de planificación existente y las futuras de ejecución/entrega, o el
-agente autorizado aplicando el workflow, acreditan las condiciones y el momento;
+[plan-issue](../plan-issue/SKILL.md), [implement-issue](../implement-issue/SKILL.md),
+la futura `finish-issue` o el agente autorizado aplicando el workflow acreditan
+las condiciones y el momento;
 esta skill no decide por commits, PRs o eventos ni implementa validadores de DoR/DoD.
 Exigir referencias del plan y su versión que acrediten DoR del camino elegido
 para `Ready` y DoD para `Hechas`;

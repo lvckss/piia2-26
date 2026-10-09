@@ -1,12 +1,12 @@
 ---
-name: piia2-plan-task
+name: plan-issue
 description: "Orquestar la planificación de PIIA2 desde una Issue existente: Por hacer, Especificando y Ready con planificación proporcional en Issue/mini-spec o revisión previa versionada según riesgo y DoR. No implementar ni escribir tests."
 ---
 
 # Planificar una tarea de PIIA2
 
-Entrada oficial para comenzar trabajo funcional nuevo: `piia2-plan-task #12`
-o `piia2-plan-task 12`. Orquestar las skills existentes; no reimplementar sus
+Entrada oficial para comenzar trabajo funcional nuevo: `plan-issue #12`
+o `plan-issue 12`. Orquestar las skills existentes; no reimplementar sus
 comandos, permisos, paginación ni verificaciones.
 
 ## Fuentes y alcance
@@ -524,7 +524,7 @@ motivo concreto sigue §2/§3 y reevalúa el plan; no es una reejecución normal
 crear la rama de implementación, empezar TDD, escribir producto/tests, cerrar
 Issues, marcar DoD/Hechas o modificar estructura/workflows del Project.
 Si otro actor cambió estado o cerró la Issue, informar conflicto sin restaurar
-a ciegas. Solo la futura piia2-implement-task comienza implementación tras Ready.
+a ciegas. implement-issue comienza implementación tras Ready.
 
 Adaptación conceptual de [mattpocock/to-spec](https://github.com/mattpocock/skills/blob/main/skills/engineering/to-spec/SKILL.md):
 explorar antes de especificar, preferir seams existentes y comportamiento externo,
