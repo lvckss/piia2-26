@@ -1,19 +1,26 @@
 # Spec: <nombre de la funcionalidad>
 
 <!-- Copiar a entregas/<caso>/specs/<issue>-<slug-kebab-case>.md.
-     Sustituir placeholders y eliminar instrucciones antes de revisión. -->
+     Sustituir placeholders y eliminar instrucciones antes de revisión.
+     Para mini-spec, conservar solo secciones pertinentes y las garantías comunes
+     del workflow; también puede residir en la Issue. No exigir documento aparte.
+     Este template completo se usa para el camino con revisión previa. -->
 
 - GitHub Issue: <URL>
 - Estado: Borrador / Revisada (elegir uno)
 - ADR decision: NEW_ADR | REUSE_ADR | NO_ADR_REQUIRED (elegir uno)
 - ADR: <ruta y estado | No requerido>
 - Justificación: <decisión relevante nueva; cobertura concreta del ADR aceptado reutilizado; o por qué no hay decisión relevante>
-- Planning PR: <URL; completar al abrirla>
+- Plan vigente / versión: <permalink o archivo + commit>
+- Riesgo y revisión previa: <impacto, reversibilidad, incertidumbre; sí/no y motivo>
+- Planning PR: <URL cuando corresponda; no aplica con motivo en otro caso>
 
 <!-- No dejar la decisión ADR ambigua. NEW_ADR: Propuesto hasta aceptación humana.
-     REUSE_ADR: ya Aceptado, cobertura confirmada en review; no reescribirlo.
-     NO_ADR_REQUIRED: justificación aceptada en review; nunca ocultar una decisión
-     relevante, aunque el cambio sea pequeño. Al pasar a Revisada registrar quién,
+     REUSE_ADR: ya Aceptado, cobertura acreditada; humano confirma si hay
+     revisión previa. No reescribirlo.
+     NO_ADR_REQUIRED: justificación revisada en PR de entrega o Planning PR; nunca ocultar una decisión
+     relevante, aunque el cambio sea pequeño. Borrador no impide Ready si no
+     se exige revisión previa y DoR está acreditada. Al pasar a Revisada registrar quién,
      permalink y versión de la aceptación humana del plan y de la decisión ADR. -->
 
 ## Qué construir
@@ -77,13 +84,15 @@ si no aplican, justificar brevemente.>
      Puede ser híbrido; justificar estrategia por comportamiento. No escribir
      tests/fixtures ahora ni fingir un rojo artificial para una métrica ML. -->
 
-| Referencia (ruta de Spec + AC) | Seam / contrato | Estrategia y nivel | Caso / resultado esperado | Datos / entorno | Comando o pasos previstos | Evidencia prevista |
+| Referencia (ruta de Spec o URL del plan + AC) | Seam / contrato | Estrategia y nivel | Caso / resultado esperado | Datos / entorno | Comando o pasos previstos | Evidencia prevista |
 |---|---|---|---|---|---|---|
 | <ruta de esta Spec>#AC-001 | <frontera observable> | <TDD / eval-first; unitario/integración/contrato/evaluación> | <caso y éxito objetivo> | <fixture o dataset, versión/split/baseline> | <pasos reproducibles> | <resultado/informe> |
 
 ## Implementation Plan
 
-<!-- Vertical slices pequeñas con resultado observable y verificable; no código,
+<!-- Orientación proporcional y ajustable por el implementador dentro de AC,
+     contratos y decisiones. No requiere nueva revisión por ajustes internos.
+     Vertical slices pequeñas con resultado observable y verificable; no código,
      pseudocódigo detallado ni prediseño de internals. Cubrir todos los AC.
      Si mezcla objetivos independientes o demasiadas slices para un plan coherente,
      recomendar dividir la Issue; no crear child Issues automáticamente. -->
@@ -95,7 +104,8 @@ si no aplican, justificar brevemente.>
 ## Pendientes para Ready
 
 <Preguntas y dependencias que bloquean implementación. Resolverlas en la
-Planning PR; “ninguno” solo cuando se hayan resuelto. Registrar también resultado
+Issue o Planning PR según el camino; “ninguno” solo cuando se hayan resuelto.
+Registrar también resultado
 de analyze: consistencia Issue/alcance/AC/ADR decision/planes, protección del
 comportamiento existente y failure modes; gaps, resolución y evidencia. No declarar
 lista para revisión completa con contradicciones o gaps bloqueantes; puede ser draft.>
@@ -105,7 +115,7 @@ lista para revisión completa con contradicciones o gaps bloqueantes; puede ser 
 La DoD global está definida por el workflow y la checklist de la Issue enlazada.
 Esta sección añade condiciones verificables de esta funcionalidad; nunca puede
 relajar ni sustituir la DoD global. Todos los AC de esta Spec deben estar
-verificados con evidencia trazable mediante `Spec path + AC ID`.
+verificados con evidencia trazable mediante `ruta de Spec o URL del plan en Issue + AC ID`.
 
 <!-- Completar solo los requisitos específicos aplicables, con condición de éxito
      y evidencia prevista. Si no hay requisitos adicionales, indicarlo.

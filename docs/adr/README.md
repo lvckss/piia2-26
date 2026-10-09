@@ -6,7 +6,8 @@ decisión estructural no requieren ADR; resolver y revisar explícitamente
 NEW_ADR, REUSE_ADR o NO_ADR_REQUIRED según el [lifecycle](../workflow.md).
 Para un ADR nuevo, copiar el [template](template.md) a `NNNN-nombre-kebab-case.md`,
 con un número de cuatro
-dígitos no utilizado (empezando por `0001`). Enlazar la Issue y las Specs cubiertas.
+dígitos no utilizado (empezando por `0001`). Enlazar la Issue y los planes
+cubiertos (Issue/mini-spec/Spec).
 El template y este README no son decisiones aceptadas.
 
 Estados:

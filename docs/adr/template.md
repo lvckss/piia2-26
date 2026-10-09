@@ -5,7 +5,7 @@
 - Estado: Propuesto
 - Fecha: <AAAA-MM-DD>
 - GitHub Issue: <URL>
-- Specs cubiertas: <rutas y alcance de la decisión>
+- Planes cubiertos (Issue/mini-spec/Spec): <rutas y alcance de la decisión>
 - Planning PR: <URL; completar al abrirla>
 - Aceptación: <revisor y referencia de revisión; completar al aceptar>
 - Sustituye / sustituido por: <ADR o “no aplica”>
@@ -16,7 +16,7 @@
 
 ## Decisión
 
-<Qué se propone hacer y cómo cubre la implementación prevista en las Specs.>
+<Qué se propone hacer y cómo cubre la implementación prevista en los planes.>
 
 ## Alternativas consideradas
 
@@ -28,7 +28,7 @@
 ## Consecuencias
 
 <Beneficios, costes, riesgos y límites aceptados. Implicaciones para los tests
-y para los AC de las Specs cubiertas.>
+y para los AC de los planes cubiertos.>
 
 ## Referencias y evidencia
 
