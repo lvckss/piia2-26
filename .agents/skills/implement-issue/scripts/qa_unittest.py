@@ -90,7 +90,7 @@ def run(request):
                 suite.run(result)
             finally:
                 result.stopTestRun()
-        receipt['completed'] = True
+        receipt['completed'] = not result.shouldStop
     except BaseException:
         receipt['issues'].append({'test_id': 'controlled-runner', 'kind': 'error', 'detail': traceback.format_exc()})
     # Keep public result collections even when the suite was interrupted.
@@ -103,7 +103,6 @@ def run(request):
         receipt['issues'].extend({'test_id': test.id(), 'kind': kind, 'detail': detail} for test, detail in entries)
     receipt['issues'].extend({'test_id': test.id(), 'kind': 'unexpected_success',
                               'detail': 'Unexpected success of an expected-failure case.'} for test in result.unexpectedSuccesses)
-    receipt['completed'] = receipt['completed'] and all(r['started'] == r['stopped'] == 1 for r in receipt['tests'])
     receipt['exit_code'] = 0 if result.wasSuccessful() else 1
     try:
         receipt['files_unchanged'] = unchanged()

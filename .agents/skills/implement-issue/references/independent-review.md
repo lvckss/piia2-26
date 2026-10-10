@@ -89,6 +89,12 @@ métodos heredados/alias de archivos existentes y procedencia ambigua no obtiene
 crédito. No hay tracing, inspección de frames ni acceso a internos de unittest.
 Un caso obtiene crédito solo si registra exactamente un inicio, éxito y cierre,
 en una ejecución completa, con tests intactos y recibo ligado al candidato.
+`completed` indica que la ejecución controlada retornó normalmente, sin errores
+del runner, interrupción ni petición pública de parada (`TestResult.shouldStop`).
+No exige callbacks de todos los casos cargados: los skips de fixtures pueden
+dejarlos sin iniciar. Estos casos siguen visibles con sus contadores y diagnósticos
+de skip, como cobertura no ejecutada; nunca reciben crédito ni invalidan por sí
+solos el caso exitoso de otra clase o módulo.
 Skips, expected failures, unexpected successes, errores y casos incompletos no
 acreditan éxito. No se distingue por la pila preparación/cuerpo: fallos y errores
 se conservan como evidencia, sin atribuirles ejecución satisfactoria.

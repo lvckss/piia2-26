@@ -13,6 +13,7 @@ import time
 import unittest
 from unittest import mock
 import review_candidate as worker
+import qa_unittest as runner
 
 
 class ResultGates(unittest.TestCase):
@@ -250,7 +251,8 @@ class QAExecutionEvidence(unittest.TestCase):
     def result_for(self, command='python -m unittest nested.test_new -v', selected=None):
         fixture = ResultGates(); fixture.setUp()
         result = fixture.result; result['report']['role'] = 'qa'
-        result['exploratory_files'] = ['nested/test_new.py']
+        result['exploratory_files'] = sorted(str(p.relative_to(self.root)) for p in self.root.rglob('*.py')
+                                             if p != self.root / 'test_control.py')
         result['report']['exploratory_tests'] = selected if selected is not None else result['exploratory_files']
         run = subprocess.run(command, shell=True, cwd=self.root, capture_output=True, text=True)
         result['report']['exploration'] = [{'command': command, 'exit_code': run.returncode}]
@@ -325,6 +327,79 @@ class QAExecutionEvidence(unittest.TestCase):
         self.assertEqual(result['report']['verdict'], 'clear')  # Agent claim stays intact.
         self.assertEqual(worker.review_state({'qa': result}), 'findings')
         self.assertIn('retain this defect', result['runner_findings'][0]['observed'])
+
+    def test_AC005_fixture_skips_preserve_successful_sibling_credit(self):
+        self.path.write_text('import unittest\nclass Good(unittest.TestCase):\n def test_good(self): pass\n')
+        omitted = self.root / 'nested/test_omitted.py'
+        for source in (
+            "import unittest\nclass Skipped(unittest.TestCase):\n @classmethod\n def setUpClass(cls): raise unittest.SkipTest('class omitted')\n def test_body(self): self.fail('must not run')\n",
+            "import unittest\ndef setUpModule(): raise unittest.SkipTest('module omitted')\nclass Skipped(unittest.TestCase):\n def test_body(self): self.fail('must not run')\n",
+        ):
+            with self.subTest(source=source):
+                omitted.write_text(source)
+                _, result = self.verify()
+                receipt = result['qa_execution_evidence']['receipt']
+                self.assertTrue(receipt['completed'])
+                self.assertEqual(result['qa_execution_evidence']['returncode'], 0)
+                good, skipped = sorted(receipt['tests'], key=lambda t: t['file'])
+                self.assertEqual((good['started'], good['successes'], good['stopped']), (1, 1, 1))
+                self.assertEqual((skipped['started'], skipped['successes'], skipped['stopped']), (0, 0, 0))
+                self.assertEqual(receipt['issues'][0]['kind'], 'skip')
+
+    def test_AC005_fixture_errors_remain_findings_alongside_success(self):
+        self.path.write_text('import unittest\nclass Good(unittest.TestCase):\n def test_good(self): pass\n')
+        broken = self.root / 'nested/test_broken.py'
+        for source in (
+            "import unittest\nclass Broken(unittest.TestCase):\n @classmethod\n def setUpClass(cls): raise RuntimeError('class preparation failed')\n def test_body(self): pass\n",
+            "import unittest\ndef setUpModule(): raise RuntimeError('module preparation failed')\nclass Broken(unittest.TestCase):\n def test_body(self): pass\n",
+        ):
+            with self.subTest(source=source):
+                broken.write_text(source)
+                _, result = self.verify()
+                self.assertTrue(result['qa_execution_evidence']['receipt']['completed'])
+                self.assertEqual(result['qa_execution_evidence']['returncode'], 1)
+                self.assertEqual(worker.review_state({'qa': result}), 'findings')
+                self.assertIn('preparation failed', str(result['runner_findings']))
+
+    def test_AC005_only_fixture_skips_complete_without_execution_credit(self):
+        for source in (
+            "import unittest\nclass New(unittest.TestCase):\n @classmethod\n def setUpClass(cls): raise unittest.SkipTest('class omitted')\n def test_body(self): self.fail('must not run')\n",
+            "import unittest\ndef setUpModule(): raise unittest.SkipTest('module omitted')\nclass New(unittest.TestCase):\n def test_body(self): self.fail('must not run')\n",
+        ):
+            with self.subTest(source=source):
+                self.path.write_text(source)
+                _, result = self.verify(False)
+                receipt = result['qa_execution_evidence']['receipt']
+                self.assertTrue(receipt['completed'])
+                self.assertEqual(result['qa_execution_evidence']['returncode'], 0)
+                self.assertEqual(receipt['tests'][0]['successes'], 0)
+                self.assertEqual(receipt['issues'][0]['kind'], 'skip')
+                self.assertEqual(worker.review_state({'qa': result}), 'incomplete')
+
+    def test_AC005_success_before_interrupt_does_not_credit_incomplete_run(self):
+        self.path.write_text("import unittest\nclass New(unittest.TestCase):\n def test_a_good(self): pass\n def test_z_abort(self): raise KeyboardInterrupt('interrupted')\n")
+        fixture, result = self.verify(False, command='python -c "print(1)"')
+        proof = result['qa_execution_evidence']
+        self.assertTrue(any(t['successes'] == 1 for t in proof['receipt']['tests']))
+        self.assertFalse(proof['receipt']['completed'])
+        self.assertEqual(proof['returncode'], 2)
+        self.assertFalse(worker.qa_execution_ok(proof, fixture.candidate, result['exploratory_files']))
+
+    def test_AC005_public_stop_request_keeps_successful_run_incomplete(self):
+        # Inject cancellation through public TestResult.stop(), without custom test cycles.
+        self.path.write_text('import unittest\nclass New(unittest.TestCase):\n def test_new(self): pass\n')
+        class StoppingResult(runner.Result):
+            def stopTest(self, test):
+                super().stopTest(test)
+                self.stop()
+        request = {'candidate': {'head': 'a' * 40, 'content_sha256': 'b' * 64},
+                   'files': worker.source_hashes(self.root, ['nested/test_new.py'])}
+        with mock.patch.object(runner, 'Result', StoppingResult), mock.patch.object(pathlib.Path, 'cwd', return_value=self.root), \
+                mock.patch.object(sys, 'path', list(sys.path)), mock.patch.dict(os.environ):
+            receipt = runner.run(request)
+        self.assertEqual(receipt['tests'][0]['successes'], 1)
+        self.assertFalse(receipt['completed'])
+        self.assertEqual(receipt['exit_code'], 2)
 
     def test_AC005_expected_failure_cannot_hide_behind_another_success(self):
         self.path.write_text("import unittest\nclass New(unittest.TestCase):\n def test_good(self): pass\n @unittest.expectedFailure\n def test_known(self): self.fail('expected but unresolved')\n")
