@@ -20,7 +20,9 @@ y transiciones rutinarias hasta En revisión; no pedir permiso por paso. Respeta
 permisos del runtime y límites del usuario. No crear Issues, dar por aceptadas
 decisiones que requieren humano, eliminar registros, aprobar/mergear, habilitar
 auto-merge, cerrar ni marcar Hechas.
-No crear orquestación, crews, worktrees ni QA multiagente.
+Permitir únicamente coordinación local del implementador con reviewer y QA
+independientes según §3b; no crear Captain, crews, workers por Issues, worktrees
+a escala ni infraestructura de orquestación.
 
 ## 1. Recuperar el acuerdo y comprobar entrada
 
@@ -124,6 +126,43 @@ y aplicar replanificación a Especificando o bloqueo acreditado según workflow.
 No modificar unilateralmente el plan ni usar esta invocación como autorización
 de ampliar alcance; reanudar solo con nueva versión/DoR acreditadas.
 
+## 3b. Revisión independiente proporcional
+
+Antes de presentar la PR, elegir y registrar profundidad por riesgo, impacto,
+complejidad e incertidumbre. Reviewer examina corrección, contratos, arquitectura
+y regresiones; QA busca defectos nuevos fuera de AC/tests mediante exploración
+reproducible. Ambos pueden ser breves para tareas localizadas. Solo documentación
+trivial admite QA no aplicable con justificación explícita; nunca simularlo.
+
+Leer [el soporte operativo](references/independent-review.md) al ejecutar esta
+fase. Usar procesos reales con historial y snapshots separados del mismo candidato
+identificable; no entregar conversación del autor ni conclusiones del otro rol.
+Verificar permisos efectivos: reviewer solo lectura; QA escribe en su copia y
+no puede modificar el checkout original por rutas absolutas, relativas o symlink.
+Solo el implementador escribe su rama. Aislamiento fallido bloquea entrega.
+
+Recibir informes automáticamente, agrupar duplicados, reproducir y contrastar
+hallazgos. Corregir defectos fundamentados por lotes; rechazar falsos positivos
+con evidencia sin alterar el contrato para satisfacer una sugerencia. Registrar
+candidata/IDs, decisión, repro y resultado en el registro existente, preservando
+la evidencia previa. No reinvestigar descartes sin evidencia nueva.
+
+Tras cambios, verificar tests/evals y delegar revalidación independiente del nuevo
+candidato: delta, correcciones y efectos colaterales, ampliando por riesgo. No
+repetir todo el análisis por defecto. Dos lotes de corrección y un retry técnico
+por rol son el presupuesto inicial orientativo; agotarlo informa/escala, conserva
+pendientes y no rebaja garantías. Revisiones incompletas no acreditan aprobación.
+
+Registrar por agente/intento tokens input/output/cached disponibles del runtime,
+duración, retries y hallazgos útiles aceptados; desconocido sigue desconocido.
+Reportar el mecanismo realmente probado: Codex y Claude pueden diferir; mantener
+canon único y marcar mecanismos no verificados sin fallback inseguro.
+
+Un CLI con exit 0 no basta: comprobar turno, informe, candidata, checks realmente
+ejecutados, exploración QA y hallazgos resueltos. Fallos, timeout, permisos,
+verificaciones incompletas o defectos relevantes pendientes impiden presentar
+entrega verificada. Esta fase complementa AC/DoD y la revisión humana de la PR.
+
 ## 4. Implementation PR y En revisión
 
 Contrastar todos los AC, preservación y DoD técnica con evidencia del estado final.
@@ -133,9 +172,11 @@ la implementación como lista; mantener En curso o bloqueo real. Si hace falta
 feedback sobre trabajo incompleto, puede existir PR draft con pendientes visibles,
 pero no acredita entrega para revisión completa ni justifica promover por sí sola.
 
-Con verificación completa, preparar el template con tipo Implementation:
+Con verificación y revisión independiente completas, preparar el template con tipo Implementation:
 Issue (`Refs #N`, sin keywords de cierre), plan/versión, Test/Eval Plan, AC →
-tests/evals → resultados, evidencia TDD/eval, decisiones/ajustes y riesgos.
+tests/evals → resultados, evidencia TDD/eval, decisiones/ajustes y riesgos. Añadir
+candidata revisada, roles/profundidad, hallazgos y decisiones, revalidación, coste
+real y límites del runtime; checks no ejecutados siguen pendientes.
 Enlazar Planning PR/ADR solo cuando apliquen; justificar los no aplicables.
 Incluir mini-spec en archivo pendiente de integración cuando forme parte del plan.
 
