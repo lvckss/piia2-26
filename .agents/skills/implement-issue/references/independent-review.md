@@ -73,7 +73,11 @@ sustituye los AC/DoD ni el criterio del implementador. El gate contrasta informe
 y eventos de ejecución; no acepta checks descritos sin ejecución real correcta,
 versión equivocada, turnos fallidos, timeout, fuente alterada o QA sin exploración.
 QA debe crear y ejecutar un test Python nuevo en su copia; repetir un check
-requerido con otra etiqueta no cuenta. El timeout termina el grupo completo,
+requerido con otra etiqueta no cuenta. El gate reconoce invocaciones explícitas
+`python ruta_relativa.py`, `python -m unittest modulo` y `python -m unittest
+discover` con patrón/directorio compatibles. Leer o mencionar el archivo no
+cuenta. Otros runners/wrappers se consideran incompletos: usar la forma directa
+o verificar explícitamente un mecanismo equivalente antes de acreditarlo. El timeout termina el grupo completo,
 incluidos descendientes que ignoran SIGTERM.
 
 ## Corrección, revalidación y coste

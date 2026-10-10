@@ -2,6 +2,7 @@
 """Private support for one implement-issue review round, using native Codex only."""
 import argparse
 import concurrent.futures
+import fnmatch
 import hashlib
 import json
 import os
@@ -82,6 +83,50 @@ def executed(commands, command, code):
                                c.get('exit_code') == code and c.get('status') in (('completed',) if code == 0 else ('completed', 'failed')) for c in commands)
 
 
+def runs_new_python_test(command, created):
+    """Recognize explicit Python/unittest launches, never arbitrary filename mentions.
+
+    Conservatively reject unknown shell wrappers and runner options. Unsupported
+    forms must use `python relative_test.py`; they cannot receive false credit.
+    """
+    argv = normalize_command(command)
+    if len(argv) < 2 or argv[0] != 'python' or any(a in (';', '&&', '||', '|', '&', '>', '<') for a in argv):
+        return False
+    args = argv[1:]
+    while args and args[0] in ('-B', '-E', '-s', '-S', '-u'):
+        args = args[1:]
+    files = {str(PurePosixPath(name)) for name in created}
+    if args and not args[0].startswith('-'):
+        return str(PurePosixPath(args[0])) in files
+    if args[:2] != ['-m', 'unittest']:
+        return False
+    args = args[2:]
+    flags = {'-v', '--verbose', '-q', '--quiet', '-f', '--failfast', '-c', '--catch', '-b', '--buffer'}
+    if args and args[0] == 'discover':
+        start, pattern, i = '.', 'test*.py', 1
+        while i < len(args):
+            if args[i] in flags:
+                i += 1
+            elif args[i] in ('-s', '--start-directory', '-p', '--pattern') and i + 1 < len(args):
+                if args[i] in ('-s', '--start-directory'):
+                    start = args[i + 1]
+                else:
+                    pattern = args[i + 1]
+                i += 2
+            else:
+                return False
+        directory = PurePosixPath(start)
+        if directory.is_absolute() or '..' in directory.parts:
+            return False
+        return any(PurePosixPath(name).is_relative_to(directory) and
+                   fnmatch.fnmatchcase(PurePosixPath(name).name, pattern) for name in files)
+    selectors = [a for a in args if a not in flags]
+    if any(a.startswith('-') for a in selectors):
+        return False
+    modules = {name[:-3].replace('/', '.') for name in files if name.endswith('.py')}
+    return any(str(PurePosixPath(a)) in files or any(a == m or a.startswith(m + '.') for m in modules) for a in selectors)
+
+
 def summarize_events(events):
     usage = {key: None for key in USAGE_KEYS}
     turns = [e.get('usage', {}) for e in events if e.get('type') == 'turn.completed']
@@ -140,7 +185,7 @@ def validate_result(result, candidate, role, required):
                 problems.append('QA relabeled a required check as exploration')
         if role == 'qa':
             created = result.get('exploratory_files', [])
-            if not created or not any(any(name in normalize_command(check.get('command', '')) for name in created) for check in exploration if isinstance(check, dict)):
+            if not created or not any(runs_new_python_test(check.get('command', ''), created) for check in exploration if isinstance(check, dict)):
                 problems.append('QA did not execute a newly created exploratory test file')
     return problems
 

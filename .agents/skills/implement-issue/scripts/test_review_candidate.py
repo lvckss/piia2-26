@@ -110,6 +110,25 @@ class ResultGates(unittest.TestCase):
         self.result['exploratory_files'] = ['unused.py']
         self.assertTrue(worker.validate_result(self.result, self.candidate, 'qa', self.required))
 
+    def test_AC003_QA_file_mention_is_not_execution(self):
+        self.result['report']['role'] = 'qa'
+        self.result['exploratory_files'] = ['fresh.py']
+        for command in ('cat fresh.py', 'echo fresh.py', 'python -c "print(1)" fresh.py'):
+            with self.subTest(command=command):
+                self.result['report']['exploration'] = [{'command': command, 'exit_code': 0}]
+                self.result['events']['commands'].append({'command': command, 'exit_code': 0, 'status': 'completed'})
+                self.assertTrue(worker.validate_result(self.result, self.candidate, 'qa', self.required))
+
+    def test_AC003_QA_unittest_module_and_discovery_execute_new_test(self):
+        self.result['report']['role'] = 'qa'
+        self.result['exploratory_files'] = ['test_fresh.py']
+        for command in ('python -m unittest test_fresh -v',
+                        'python -m unittest discover -p test_fresh.py -v'):
+            with self.subTest(command=command):
+                self.result['report']['exploration'] = [{'command': command, 'exit_code': 0}]
+                self.result['events']['commands'].append({'command': command, 'exit_code': 0, 'status': 'completed'})
+                self.assertEqual(worker.validate_result(self.result, self.candidate, 'qa', self.required), [])
+
     def test_AC007_absent_usage_is_unknown(self):
         usage = worker.summarize_events([])["usage"]
         self.assertEqual(usage, {"input_tokens": None, "output_tokens": None, "cached_input_tokens": None})
