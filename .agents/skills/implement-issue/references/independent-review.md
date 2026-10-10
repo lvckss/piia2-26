@@ -46,7 +46,8 @@ temporal fuera del repo con `plan` (permalink/versión y AC pertinentes), `files
 (paths Git exactos, incluidos cambios y dependencias), `checks` (comandos locales
 requeridos separados), contratos/restricciones concisos y riesgo. No incluir chat,
 conclusiones del otro rol ni todo el historial. Máximo de contexto explícito:
-24.000 caracteres; prompt con diff <=48.000. Si no cabe, acotar o dividir revisión
+24.000 caracteres; prompt <=48.000. El diff/delta se entrega como archivo
+de solo lectura del snapshot, no se duplica íntegro en el prompt. Si no cabe, acotar o dividir revisión
 sin perder cobertura, no truncar silenciosamente. Se rechazan symlinks/submodules, archivos eliminados
 y `.codex/` como scope activo para evitar carga de configuración no examinada;
 estos cambios requieren revisar como datos aislados y acreditar la cobertura por

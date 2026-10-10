@@ -42,7 +42,7 @@ def freeze(repo, names, destination):
     destination.mkdir()
     for name in names:
         path = PurePosixPath(name)
-        if path.is_absolute() or '..' in path.parts or name != str(path) or name.startswith('.codex/') or name in ('CANDIDATE.json', 'original-link', 'permission-canary.txt'):
+        if path.is_absolute() or '..' in path.parts or name != str(path) or name.startswith('.codex/') or name in ('CANDIDATE.json', 'original-link', 'permission-canary.txt', '.review-delta.patch'):
             raise ValueError('Unsafe scope path or startup configuration: ' + name)
         entry = git(repo, 'ls-tree', head, '--', name).decode().strip()
         if not entry or entry.split()[0] not in ('100644', '100755'):
@@ -280,7 +280,11 @@ def main():
             raise ValueError('One technical retry per role exhausted.')
         incremental = incremental_context(previous, role, candidate, decisions, args.repo)
         # Do not duplicate the initial full diff on revalidation.
-        own_context = {k: v for k, v in context.items() if k != 'diff' or not previous}
+        own_context = {k: v for k, v in context.items() if k != 'diff'}
+        own_context['diff_path'] = '.review-delta.patch'
+        delta_patch = incremental.pop('delta', context['diff'])
+        if previous:
+            incremental['delta_path'] = '.review-delta.patch'
         attempts = []
         for attempt in range(2 - old_retries):
             cwd = args.out / f'{role}-{attempt}'; cwd.mkdir()
@@ -288,9 +292,10 @@ def main():
                 target = cwd / name; target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_bytes((source / name).read_bytes())
             dump(cwd / 'CANDIDATE.json', candidate)
+            (cwd / '.review-delta.patch').write_text(delta_patch)
             (cwd / 'original-link').symlink_to(original_file)
             # Only QA exploratory files are writable; manifests and source remain read-only.
-            filesystem = {'/': 'read', str(logs): 'deny', str(args.out / 'runtime'): 'deny', str(cwd): 'write' if role == 'qa' else 'read', str(cwd / 'CANDIDATE.json'): 'read'}
+            filesystem = {'/': 'read', str(logs): 'deny', str(args.out / 'runtime'): 'deny', str(cwd): 'write' if role == 'qa' else 'read', str(cwd / 'CANDIDATE.json'): 'read', str(cwd / '.review-delta.patch'): 'read'}
             for name in candidate['files']:
                 filesystem[str(cwd / name)] = 'read'
             profile = 'permissions.worker={ filesystem={ ' + ', '.join(json.dumps(k) + '=' + json.dumps(v) for k, v in filesystem.items()) + ' }, network={enabled=false} }'
