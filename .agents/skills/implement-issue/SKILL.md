@@ -133,6 +133,9 @@ complejidad e incertidumbre. Reviewer examina corrección, contratos, arquitectu
 y regresiones; QA busca defectos nuevos fuera de AC/tests mediante exploración
 reproducible. Ambos pueden ser breves para tareas localizadas. Solo documentación
 trivial admite QA no aplicable con justificación explícita; nunca simularlo.
+El contrato no fija lenguaje ni runner: la exploración debe aportar evidencia
+reproducible ligada al candidato. El soporte operativo inicial es limitado;
+otros mecanismos requieren acreditar sus garantías antes de usarlos como gate.
 
 Leer [el soporte operativo](references/independent-review.md) al ejecutar esta
 fase. Usar procesos reales con historial y snapshots separados del mismo candidato

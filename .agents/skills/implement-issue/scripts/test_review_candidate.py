@@ -11,6 +11,7 @@ import sys
 import tempfile
 import time
 import unittest
+from unittest import mock
 import review_candidate as worker
 
 
@@ -25,11 +26,14 @@ class ResultGates(unittest.TestCase):
                                   "verdict": "clear", "checks": [{"command": self.required[0], "exit_code": 0}],
                                   "findings": [], "exploration": []}}
 
-    def observation(self, command, name):
-        return {'command': command, 'timed_out': False, 'returncode': 0,
+    def evidence(self, name):
+        return {'timed_out': False, 'returncode': 0, 'files_unchanged': True,
                 'expected_files': {name: 'd' * 64},
-                'observation': {'completed': True, 'exit_code': 0, 'files_unchanged': True,
-                                'tests': [{'test_id': 'New.test_new', 'file': name, 'sha256': 'd' * 64}]}}
+                'receipt': {'completed': True, 'exit_code': 0, 'files_unchanged': True,
+                            'candidate': {k: self.candidate[k] for k in ('head', 'content_sha256')},
+                            'files': {name: 'd' * 64},
+                            'tests': [{'test_id': 'New.test_new', 'file': name, 'sha256': 'd' * 64,
+                                       'defined_here': True, 'started': 1, 'stopped': 1, 'successes': 1}]}}
 
     def test_AC005_rejects_exit_zero_with_incomplete_report(self):
         self.result["report"]["status"] = "incomplete"
@@ -112,7 +116,7 @@ class ResultGates(unittest.TestCase):
         self.result['exploratory_files'] = ['fresh.py']
         self.result['report']['exploration'] = [{'command': 'python fresh.py', 'exit_code': 0}]
         self.result['events']['commands'].append({'command': 'python fresh.py', 'exit_code': 0, 'status': 'completed'})
-        self.result['qa_execution_evidence'] = [self.observation('python fresh.py', 'fresh.py')]
+        self.result['qa_execution_evidence'] = self.evidence('fresh.py')
         self.assertEqual(worker.validate_result(self.result, self.candidate, 'qa', self.required), [])
         self.result['exploratory_files'] = ['unused.py']
         self.assertTrue(worker.validate_result(self.result, self.candidate, 'qa', self.required))
@@ -134,24 +138,28 @@ class ResultGates(unittest.TestCase):
             with self.subTest(command=command):
                 self.result['report']['exploration'] = [{'command': command, 'exit_code': 0}]
                 self.result['events']['commands'].append({'command': command, 'exit_code': 0, 'status': 'completed'})
-                self.result['qa_execution_evidence'] = [self.observation(command, 'test_fresh.py')]
+                self.result['qa_execution_evidence'] = self.evidence('test_fresh.py')
                 self.assertEqual(worker.validate_result(self.result, self.candidate, 'qa', self.required), [])
 
-    def test_AC005_QA_observation_must_be_complete_and_bound_to_command_and_bytes(self):
+    def test_AC005_QA_receipt_requires_completed_new_case_and_exact_candidate_bytes(self):
         self.result['report']['role'] = 'qa'
         self.result['exploratory_files'] = ['fresh.py']
         self.result['report']['exploration'] = [{'command': 'python fresh.py', 'exit_code': 0}]
         self.result['events']['commands'].append({'command': 'python fresh.py', 'exit_code': 0, 'status': 'completed'})
-        for change in ('missing', 'timeout', 'command', 'hash', 'empty', 'incomplete', 'changed'):
+        for change in ('missing', 'timeout', 'candidate', 'hash', 'empty', 'incomplete', 'changed', 'imported', 'started_only', 'failed', 'ambiguous'):
             with self.subTest(change=change):
-                proof = self.observation('python fresh.py', 'fresh.py')
+                proof = self.evidence('fresh.py'); receipt = proof['receipt']
                 if change == 'timeout': proof['timed_out'] = True
-                if change == 'command': proof['command'] = 'python another.py'
-                if change == 'hash': proof['observation']['tests'][0]['sha256'] = 'e' * 64
-                if change == 'empty': proof['observation']['tests'] = []
-                if change == 'incomplete': proof['observation']['completed'] = False
-                if change == 'changed': proof['observation']['files_unchanged'] = False
-                self.result['qa_execution_evidence'] = [] if change == 'missing' else [proof]
+                if change == 'candidate': receipt['candidate']['head'] = 'e' * 40
+                if change == 'hash': receipt['tests'][0]['sha256'] = 'e' * 64
+                if change == 'empty': receipt['tests'] = []
+                if change == 'incomplete': receipt['completed'] = False
+                if change == 'changed': proof['files_unchanged'] = False
+                if change == 'imported': receipt['tests'][0]['defined_here'] = False
+                if change == 'started_only': receipt['tests'][0]['stopped'] = 0
+                if change == 'failed': receipt['tests'][0]['successes'] = 0
+                if change == 'ambiguous': receipt['tests'][0]['started'] = 2
+                self.result['qa_execution_evidence'] = {} if change == 'missing' else proof
                 self.assertTrue(worker.validate_result(self.result, self.candidate, 'qa', self.required))
 
     def test_AC007_absent_usage_is_unknown(self):
@@ -235,111 +243,171 @@ class QAExecutionEvidence(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.root = pathlib.Path(self.temp.name)
         (self.root / 'nested').mkdir()
-        (self.root / 'test_control.py').write_text('import unittest\nclass Control(unittest.TestCase):\n def test_existing(self): self.assertEqual(1,1)\n')
-        (self.root / 'nested/test_new.py').write_text("import pathlib,unittest\nclass New(unittest.TestCase):\n def test_new(self): pathlib.Path('test-ran').write_text('yes')\nif __name__ == '__main__': unittest.main()\n")
+        (self.root / 'test_control.py').write_text('import unittest\nclass Existing(unittest.TestCase):\n def test_existing(self): self.assertEqual(1,1)\n')
+        self.path = self.root / 'nested/test_new.py'
+        self.path.write_text("import pathlib,unittest\nclass New(unittest.TestCase):\n def test_new(self): pathlib.Path('test-ran').write_text('yes')\nif __name__ == '__main__': unittest.main()\n")
 
-    def result_for(self, command):
+    def result_for(self, command='python -m unittest nested.test_new -v', selected=None):
         fixture = ResultGates(); fixture.setUp()
         result = fixture.result; result['report']['role'] = 'qa'
         result['exploratory_files'] = ['nested/test_new.py']
+        result['report']['exploratory_tests'] = selected if selected is not None else result['exploratory_files']
         run = subprocess.run(command, shell=True, cwd=self.root, capture_output=True, text=True)
         result['report']['exploration'] = [{'command': command, 'exit_code': run.returncode}]
         result['events']['commands'].append({'command': command, 'exit_code': run.returncode, 'status': 'completed' if run.returncode == 0 else 'failed'})
         return fixture, result, run
 
-    def test_AC005_discovery_skipping_new_test_blocks_even_when_existing_tests_pass(self):
+    def verify(self, expected=True, command='python -m unittest nested.test_new -v', timeout=5, selected=None):
+        fixture, result, run = self.result_for(command, selected)
+        result['qa_execution_evidence'] = worker.run_qa_tests(result, fixture.candidate, self.root, [], self.root / 'qa-0.unittest', timeout)
+        result['problems'] = worker.validate_result(result, fixture.candidate, 'qa', fixture.required)
+        self.assertEqual(not result['problems'], expected, (run.stderr, result['qa_execution_evidence'], result['problems']))
+        return fixture, result
+
+    def test_AC005_command_discovery_does_not_credit_an_undiscovered_case(self):
         fixture, result, run = self.result_for('python -m unittest discover -v')
-        self.assertEqual(run.returncode, 0, run.stderr)
+        self.assertEqual(run.returncode, 0)
         self.assertIn('Ran 1 test', run.stderr)
         self.assertFalse((self.root / 'test-ran').exists())
-        self.assertTrue(worker.validate_result(result, fixture.candidate, 'qa', fixture.required),
-                        'exit 0 and matching nested filename wrongly credit a test unittest skipped')
+        self.assertTrue(worker.validate_result(result, fixture.candidate, 'qa', fixture.required))
 
-    def verify(self, command, expected=True):
-        fixture, result, run = self.result_for(command)
-        result['qa_execution_evidence'] = worker.prove_qa_execution(result, self.root, [], self.root / 'observation', 5)
-        problems = worker.validate_result(result, fixture.candidate, 'qa', fixture.required)
-        self.assertEqual(not problems, expected, (run.stderr, result['qa_execution_evidence'], problems))
-        return result['qa_execution_evidence']
+    def test_AC005_controlled_file_loading_executes_case_without_package_init(self):
+        fixture, result = self.verify(command='python -m unittest discover -v')
+        proof = result['qa_execution_evidence']
+        self.assertTrue((self.root / 'test-ran').exists())
+        self.assertTrue(proof['receipt']['tests'][0]['defined_here'])
+        self.assertTrue(worker.qa_execution_ok(proof, fixture.candidate, result['exploratory_files']))
+        self.assertEqual(worker.review_state({'qa': result}), 'clear')
 
-    def test_AC005_positive_direct_module_and_explicit_nonpackage_discovery(self):
-        for command in ('python nested/test_new.py -v',
-                        'python -m unittest nested.test_new -v',
+    def test_AC005_direct_module_discovery_are_exploration_not_certification_rules(self):
+        for command in ('python nested/test_new.py -v', 'python -m unittest nested.test_new -v',
                         'python -m unittest discover -s nested -v'):
             with self.subTest(command=command):
-                proof = self.verify(command)
-                self.assertTrue((self.root / 'test-ran').exists())
-                self.assertEqual(proof[0]['observation']['tests'][0]['file'], 'nested/test_new.py')
+                self.verify(command=command)
 
-    def test_AC005_discovery_traverses_package_and_observes_new_method(self):
-        (self.root / 'nested/__init__.py').write_text('')
-        self.verify('python -m unittest discover -v')
-        self.assertTrue((self.root / 'test-ran').exists())
+    def test_AC005_async_receiver_name_does_not_change_execution_credit(self):
+        self.path.write_text("import asyncio,pathlib,unittest\nclass New(unittest.IsolatedAsyncioTestCase):\n async def test_new(case):\n  await asyncio.sleep(0)\n  pathlib.Path('test-ran').write_text('yes')\n  case.assertEqual(7,7)\n")
+        self.verify()
 
-    def test_AC005_observed_discovery_skipping_nonpackage_is_rejected(self):
-        proof = self.verify('python -m unittest discover -v', False)
-        self.assertEqual(proof[0]['observation']['tests'], [])
-        self.assertFalse((self.root / 'test-ran').exists())
+    def test_AC005_static_method_is_supported(self):
+        self.path.write_text("import pathlib,unittest\nclass New(unittest.TestCase):\n @staticmethod\n def test_new(): pathlib.Path('test-ran').write_text('yes')\n")
+        self.verify()
 
-    def test_AC005_module_running_only_existing_test_has_no_new_credit(self):
-        self.verify('python -m unittest test_control -v', False)
+    def test_AC005_deferred_bodies_outside_standard_cycle_are_not_credited(self):
+        for parent, method in (('TestCase', 'async def test_new(self): pass'),
+                               ('TestCase', 'def test_new(self): yield 1'),
+                               ('IsolatedAsyncioTestCase', 'async def test_new(self): yield 1')):
+            with self.subTest(parent=parent, method=method):
+                self.path.write_text('import unittest\nclass New(unittest.' + parent + '):\n ' + method + '\n')
+                _, result = self.verify(False)
+                self.assertEqual(result['qa_execution_evidence']['returncode'], 2)
 
-    def test_AC005_import_only_and_direct_without_unittest_run_have_no_credit(self):
-        (self.root / 'import_only.py').write_text('import nested.test_new\n')
-        self.verify('python import_only.py', False)
-        p = self.root / 'nested/test_new.py'
-        p.write_text(p.read_text().split("if __name__")[0])
-        self.verify('python nested/test_new.py', False)
+    def test_AC005_imported_class_inherited_or_aliased_method_cannot_credit_new_case(self):
+        for source in ('from test_control import Existing as New\n',
+                       'from test_control import Existing\nclass New(Existing): pass\n',
+                       'import unittest\nfrom test_control import Existing\nclass New(unittest.TestCase):\n test_new = Existing.test_existing\n'):
+            with self.subTest(source=source):
+                self.path.write_text(source)
+                _, result = self.verify(False)
+                self.assertFalse(any(t['defined_here'] for t in result['qa_execution_evidence']['receipt']['tests']))
 
-    def test_AC005_skipped_unittest_has_no_method_execution_credit(self):
-        p = self.root / 'nested/test_new.py'
-        p.write_text(p.read_text().replace(' def test_new', " @unittest.skip('not executed')\n def test_new"))
-        self.verify('python -m unittest nested.test_new -v', False)
+    def test_AC005_failed_exploration_is_preserved_but_not_success_credit(self):
+        self.path.write_text("import unittest\nclass New(unittest.TestCase):\n def test_new(self): self.fail('real defect')\n")
+        _, result = self.verify(False)
+        self.assertEqual(result['qa_execution_evidence']['returncode'], 1)
+        self.assertIn('real defect', result['runner_findings'][0]['observed'])
+        self.assertEqual(result['runner_findings'][0]['severity'], 'untriaged')
+        self.assertEqual(worker.review_state({'qa': result}), 'incomplete')
 
-    def test_AC005_failing_new_method_is_observed_as_defect_evidence(self):
-        p = self.root / 'nested/test_new.py'
-        p.write_text(p.read_text().replace("pathlib.Path('test-ran').write_text('yes')", 'self.fail("real defect")'))
-        proof = self.verify('python nested/test_new.py -v')
-        self.assertEqual(proof[0]['observation']['exit_code'], 1)
-        self.assertTrue(proof[0]['observation']['tests'])
+    def test_AC005_success_does_not_hide_another_failed_case(self):
+        self.path.write_text("import unittest\nclass New(unittest.TestCase):\n def test_good(self): self.assertEqual(1,1)\n def test_bad(self): self.fail('retain this defect')\n")
+        _, result = self.verify()
+        self.assertEqual(result['report']['verdict'], 'clear')  # Agent claim stays intact.
+        self.assertEqual(worker.review_state({'qa': result}), 'findings')
+        self.assertIn('retain this defect', result['runner_findings'][0]['observed'])
 
-    def test_AC005_production_observation_prefix_preserves_original_role_logs(self):
-        fixture, result, run = self.result_for('python nested/test_new.py -v')
-        self.assertEqual(run.returncode, 0)
+    def test_AC005_expected_failure_cannot_hide_behind_another_success(self):
+        self.path.write_text("import unittest\nclass New(unittest.TestCase):\n def test_good(self): pass\n @unittest.expectedFailure\n def test_known(self): self.fail('expected but unresolved')\n")
+        _, result = self.verify()
+        self.assertEqual(worker.review_state({'qa': result}), 'findings')
+        self.assertIn('expected but unresolved', str(result['runner_findings']))
+
+    def test_AC005_multiple_cleanup_failures_keep_distinct_adjudication_ids(self):
+        self.path.write_text("import unittest\nclass New(unittest.TestCase):\n def test_new(self):\n  self.addCleanup(self.fail, 'cleanup one')\n  self.addCleanup(self.fail, 'cleanup two')\n")
+        _, result = self.verify(False)
+        self.assertEqual(len(result['runner_findings']), 2)
+        self.assertEqual(len({f['id'] for f in result['runner_findings']}), 2)
+
+    def test_AC005_interruption_preserves_failures_already_collected(self):
+        self.path.write_text("import unittest\nclass New(unittest.TestCase):\n def test_a_fail(self): self.fail('first defect survives interruption')\n def test_z_abort(self): raise KeyboardInterrupt('interrupted')\n")
+        _, result = self.verify(False)
+        self.assertFalse(result['qa_execution_evidence']['receipt']['completed'])
+        self.assertIn('first defect survives interruption', str(result['runner_findings']))
+
+    def test_AC005_skips_errors_and_special_outcomes_do_not_get_success_credit(self):
+        sources = (
+            "import unittest\nclass New(unittest.TestCase):\n @unittest.skip('no execution')\n def test_new(self): pass\n",
+            "import unittest\nclass New(unittest.TestCase):\n def setUp(self): raise RuntimeError('prepare failed')\n def test_new(self): pass\n",
+            "import unittest\nclass New(unittest.TestCase):\n @classmethod\n def setUpClass(cls): raise RuntimeError('class failed')\n def test_new(self): pass\n",
+            "import unittest\ndef setUpModule(): raise RuntimeError('module failed')\nclass New(unittest.TestCase):\n def test_new(self): pass\n",
+            "import unittest\nclass New(unittest.IsolatedAsyncioTestCase):\n async def asyncSetUp(self): self.skipTest('no body')\n async def test_new(self): pass\n",
+            "import unittest\nclass New(unittest.TestCase):\n @unittest.expectedFailure\n def test_new(self): self.fail('expected')\n",
+            "import unittest\nclass New(unittest.TestCase):\n @unittest.expectedFailure\n def test_new(self): pass\n",
+            "import unittest\nclass New(unittest.TestCase):\n def test_new(self):\n  with self.subTest(x=1): self.fail('subtest failed')\n",
+            "import unittest\nclass New(unittest.TestCase):\n def test_new(self):\n  with self.subTest(x=1): self.skipTest('subtest skipped')\n",
+            "import unittest\nclass New(unittest.TestCase):\n def test_new(self): self.addCleanup(self.fail,'cleanup failed')\n",
+            "import unittest\nclass New(unittest.TestCase):\n def tearDown(self): raise RuntimeError('teardown failed')\n def test_new(self): pass\n",
+        )
+        for source in sources:
+            with self.subTest(source=source):
+                self.path.write_text(source)
+                self.verify(False)
+
+    def test_AC005_empty_load_errors_and_custom_cycles_are_incomplete(self):
+        for source in ("assert 1 == 1\n", "raise RuntimeError('import failed')\n",
+                       "import unittest\nclass New(unittest.TestCase):\n def run(self,result=None): return result\n def test_new(self): pass\n",
+                       "import unittest\ndef load_tests(loader,tests,pattern): return tests\nclass New(unittest.TestCase):\n def test_new(self): pass\n"):
+            with self.subTest(source=source):
+                self.path.write_text(source)
+                _, result = self.verify(False, command='python -c "print(1)"')
+                self.assertEqual(result['qa_execution_evidence']['returncode'], 2)
+
+    def test_AC005_selected_files_must_be_explicit_new_regular_files(self):
+        for selected in ([], ['test_control.py'], ['../escape.py'], ['nested/test_new.py'] * 2):
+            with self.subTest(selected=selected):
+                self.verify(False, selected=selected)
+        self.path.unlink(); self.path.symlink_to(self.root / 'test_control.py')
+        self.verify(False, selected=['nested/test_new.py'])
+
+    def test_AC005_controlled_runner_timeout_and_source_changes_block(self):
+        self.path.write_text("import time,unittest\nclass New(unittest.TestCase):\n def test_new(self): time.sleep(10)\n")
+        _, result = self.verify(False, command='python -c "print(1)"', timeout=0.1)
+        self.assertTrue(result['qa_execution_evidence']['timed_out'])
+        self.path.write_text("import pathlib,unittest\nclass New(unittest.TestCase):\n def test_new(self): pathlib.Path(__file__).write_text('changed')\n")
+        _, result = self.verify(False, command='python -c "print(1)"')
+        self.assertFalse(result['qa_execution_evidence']['files_unchanged'])
+
+    def test_AC005_controlled_runner_preserves_original_role_logs(self):
         original = {}
         for suffix in ('jsonl', 'stderr'):
             path = self.root / ('qa-0.' + suffix)
-            path.write_text('original model ' + suffix)
-            original[path] = path.read_bytes()
-        result['qa_execution_evidence'] = worker.prove_qa_execution(result, self.root, [], self.root / 'qa-0.observation', 5)
-        self.assertEqual(worker.validate_result(result, fixture.candidate, 'qa', fixture.required), [])
-        self.assertTrue((self.root / 'qa-0.observation-0.stderr').exists())
-        for path, content in original.items(): self.assertEqual(path.read_bytes(), content)
+            path.write_text('original agent ' + suffix); original[path] = path.read_bytes()
+        self.verify()
+        self.assertTrue((self.root / 'qa-0.unittest.stderr').exists())
+        for path, content in original.items():
+            self.assertEqual(path.read_bytes(), content)
 
-    def test_AC005_async_method_is_actually_executed_and_credited(self):
-        p = self.root / 'nested/test_new.py'
-        p.write_text("import asyncio,pathlib,unittest\nclass New(unittest.IsolatedAsyncioTestCase):\n async def test_new(self):\n  await asyncio.sleep(0)\n  pathlib.Path('test-ran').write_text('yes')\nif __name__ == '__main__': unittest.main()\n")
-        for command in ('python nested/test_new.py -v', 'python -m unittest nested.test_new -v', 'python -m unittest discover -s nested -v'):
-            with self.subTest(command=command):
-                self.verify(command)
-                self.assertTrue((self.root / 'test-ran').exists())
-
-    def test_AC005_async_setup_skip_has_no_body_credit(self):
-        p = self.root / 'nested/test_new.py'
-        p.write_text("import pathlib,unittest\nclass New(unittest.IsolatedAsyncioTestCase):\n async def asyncSetUp(self): self.skipTest('no method body')\n async def test_new(self): pathlib.Path('test-ran').write_text('yes')\n")
-        self.verify('python -m unittest nested.test_new -v', False)
-        self.assertFalse((self.root / 'test-ran').exists())
-
-    def test_AC005_async_called_outside_unittest_run_has_no_framework_credit(self):
-        p = self.root / 'nested/test_new.py'
-        p.write_text("import asyncio,pathlib,unittest\nclass New(unittest.IsolatedAsyncioTestCase):\n async def test_new(self): pathlib.Path('test-ran').write_text('yes')\nif __name__ == '__main__': asyncio.run(New().test_new())\n")
-        self.verify('python nested/test_new.py', False)
-        self.assertTrue((self.root / 'test-ran').exists())
-
-    def test_AC005_sync_static_test_keeps_execution_credit(self):
-        p = self.root / 'nested/test_new.py'
-        p.write_text("import pathlib,unittest\nclass New(unittest.TestCase):\n @staticmethod\n def test_new(): pathlib.Path('test-ran').write_text('yes')\n")
-        self.verify('python -m unittest nested.test_new -v')
+    def test_AC004_runner_findings_need_adjudication_before_incremental_review(self):
+        fixture, result = self.verify()
+        result['runner_findings'] = [{'id': 'QA-RUN-1'}]
+        previous = {'candidate': fixture.candidate, 'roles': {'qa': result}}
+        with self.assertRaises(ValueError):
+            worker.incremental_context(previous, 'qa', fixture.candidate, [], self.root)
+        decision = {'role': 'qa', 'finding': 'QA-RUN-1', 'candidate': fixture.candidate['content_sha256'],
+                    'decision': 'rejected', 'evidence': 'independent contract repro'}
+        with mock.patch.object(worker, 'git', return_value=b''):
+            context = worker.incremental_context(previous, 'qa', fixture.candidate, [decision], self.root)
+        self.assertEqual(context['own_previous_report']['runner_findings'], result['runner_findings'])
 
 
 if __name__ == "__main__":

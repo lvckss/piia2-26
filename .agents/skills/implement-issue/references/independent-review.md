@@ -72,19 +72,48 @@ hallazgos que requieren adjudicación; 2 = circuito incompleto. Exit 0 tampoco
 sustituye los AC/DoD ni el criterio del implementador. El gate contrasta informe
 y eventos de ejecución; no acepta checks descritos sin ejecución real correcta,
 versión equivocada, turnos fallidos, timeout, fuente alterada o QA sin exploración.
-QA debe crear un test stdlib `unittest` nuevo en su copia y ejecutar al menos un
-método de test. El launcher contrasta el comando con los eventos reales y lo
-reejecuta de forma determinista, con Python local y el mismo perfil nativo QA.
-Una observación de entrada efectiva al método, emitida por el launcher y ligada
-al archivo nuevo y su SHA256, acredita ejecución; no lo hacen rutas, imports,
-patrones de discovery, test skips ni exit 0. Se admiten ejecución directa de un
-archivo, `python -m unittest modulo` y discovery según lo que realmente ejecuten.
-Un archivo directo debe invocar unittest; assertions top-level u otros runners
-no acreditan este gate. Mantener tests deterministas, locales y sin efectos
-externos: la observación vuelve a ejecutar el comando y registra su duración,
-exit y métodos observados. Timeout, observación ausente/incompleta, archivo
-alterado o ningún método nuevo observado dejan QA incompleto. Los informes del
-modelo no aportan esta evidencia. No reetiquetar un check requerido como QA.
+El contrato canónico exige exploración real, reproducible y ligada al candidato,
+sin imponer lenguaje o runner. Este helper inicial solo acredita el ciclo estándar
+de `unittest.TestCase` e `IsolatedAsyncioTestCase`. QA indica archivos nuevos en
+`exploratory_tests` (paths relativos exactos); el launcher verifica su procedencia
+y hashes, y ejecuta una vez [qa_unittest.py](../scripts/qa_unittest.py) con Python
+local y el mismo perfil nativo QA. Sus tests deben ser importables por archivo y
+usar imports absolutos desde la copia. No se ejecuta el bloque `__main__` ni se
+interpreta/reproduce el comando exploratorio para acreditar tests.
+
+El runner carga mediante `TestLoader` y ejecuta una `TestSuite` estándar con un
+`TestResult` propio: registra `startTest`, `addSuccess` y `stopTest`. La clase y
+el método deben estar definidos en el archivo nuevo; comprobarlo usa la API
+pública `inspect.getsourcefile`, únicamente para procedencia. Clases importadas,
+métodos heredados/alias de archivos existentes y procedencia ambigua no obtienen
+crédito. No hay tracing, inspección de frames ni acceso a internos de unittest.
+Un caso obtiene crédito solo si registra exactamente un inicio, éxito y cierre,
+en una ejecución completa, con tests intactos y recibo ligado al candidato.
+Skips, expected failures, unexpected successes, errores y casos incompletos no
+acreditan éxito. No se distingue por la pila preparación/cuerpo: fallos y errores
+se conservan como evidencia, sin atribuirles ejecución satisfactoria.
+
+Todos los fallos/errores/expected failures/unexpected successes recogidos por el runner se entregan
+automáticamente como `runner_findings`, con ID, repro y diagnóstico, incluso ante
+interrupción o si el agente informó `clear`. Son pendientes de adjudicación,
+`untriaged`, no defectos automáticamente aceptados; requieren corrección o descarte
+con evidencia antes de la siguiente revisión. Un caso exitoso no oculta los demás
+fallos. Una ejecución sin éxito nuevo queda incompleta y conserva sus hallazgos;
+estos no provocan reintentos técnicos ciegos para sustituir una corrección.
+
+Soporte deliberadamente acotado: no `load_tests`, suites personalizadas ni overrides
+de `run`, `__call__` o `id`, métodos generadores ni métodos async en `TestCase`
+sin `IsolatedAsyncioTestCase`; tampoco afirmar garantías frente a manipulación
+deliberada del framework por los tests. Decoradores/procedencia no confirmable y
+otros runners no reciben acreditación automática. Ejecución directa, por módulo
+y discovery pueden aportar evidencia exploratoria, pero ni esas formas, imports,
+patrones, assertions top-level ni exit 0 sustituyen el recibo controlado.
+Timeout, recibo ausente/incompleto o archivo alterado bloquean la entrega.
+Mantener tests deterministas, locales y sin efectos externos; logs/request/recibo
+del runner tienen prefijo separado del agente, con duración y exit propios.
+No reetiquetar un check requerido como QA ni aceptar evidencia del modelo como
+certificado del runner. Esta adaptación aprobada preserva AC-001–AC-008 del plan;
+la evidencia histórica no acredita automáticamente un candidato refactorizado.
 El timeout termina el grupo completo, incluidos descendientes resistentes a SIGTERM.
 
 ## Corrección, revalidación y coste
@@ -101,7 +130,7 @@ Preparar un array temporal de decisiones: objetos con `role`, `finding` (ID),
 `candidate` (hash anterior), `decision` (`fixed`/`rejected`) y `evidence` (repro,
 resultado y referencia). No marcar `fixed` sin comprobar la corrección. Invocar
 con `--previous /tmp/<salida-anterior> --decisions /tmp/<decisiones>.json`.
-Cada rol recibe solo su informe anterior, sus decisiones y el delta; no el chat
+Cada rol recibe solo su informe anterior (incluidos sus `runner_findings`), sus decisiones y el delta; no el chat
 del autor ni el informe de su par. Examinar delta, regresiones y efectos posibles;
 ampliar si cambia riesgo/contrato, sin repetir exploración descartada sin evidencia.
 Si el scope crece, cubrir también el contenido nuevo, no solo el delta.
