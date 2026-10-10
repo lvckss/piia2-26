@@ -72,13 +72,20 @@ hallazgos que requieren adjudicación; 2 = circuito incompleto. Exit 0 tampoco
 sustituye los AC/DoD ni el criterio del implementador. El gate contrasta informe
 y eventos de ejecución; no acepta checks descritos sin ejecución real correcta,
 versión equivocada, turnos fallidos, timeout, fuente alterada o QA sin exploración.
-QA debe crear y ejecutar un test Python nuevo en su copia; repetir un check
-requerido con otra etiqueta no cuenta. El gate reconoce invocaciones explícitas
-`python ruta_relativa.py`, `python -m unittest modulo` y `python -m unittest
-discover` con patrón/directorio compatibles. Leer o mencionar el archivo no
-cuenta. Otros runners/wrappers se consideran incompletos: usar la forma directa
-o verificar explícitamente un mecanismo equivalente antes de acreditarlo. El timeout termina el grupo completo,
-incluidos descendientes que ignoran SIGTERM.
+QA debe crear un test stdlib `unittest` nuevo en su copia y ejecutar al menos un
+método de test. El launcher contrasta el comando con los eventos reales y lo
+reejecuta de forma determinista, con Python local y el mismo perfil nativo QA.
+Una observación de entrada efectiva al método, emitida por el launcher y ligada
+al archivo nuevo y su SHA256, acredita ejecución; no lo hacen rutas, imports,
+patrones de discovery, test skips ni exit 0. Se admiten ejecución directa de un
+archivo, `python -m unittest modulo` y discovery según lo que realmente ejecuten.
+Un archivo directo debe invocar unittest; assertions top-level u otros runners
+no acreditan este gate. Mantener tests deterministas, locales y sin efectos
+externos: la observación vuelve a ejecutar el comando y registra su duración,
+exit y métodos observados. Timeout, observación ausente/incompleta, archivo
+alterado o ningún método nuevo observado dejan QA incompleto. Los informes del
+modelo no aportan esta evidencia. No reetiquetar un check requerido como QA.
+El timeout termina el grupo completo, incluidos descendientes resistentes a SIGTERM.
 
 ## Corrección, revalidación y coste
 

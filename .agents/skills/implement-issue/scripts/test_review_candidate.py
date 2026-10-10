@@ -25,6 +25,12 @@ class ResultGates(unittest.TestCase):
                                   "verdict": "clear", "checks": [{"command": self.required[0], "exit_code": 0}],
                                   "findings": [], "exploration": []}}
 
+    def observation(self, command, name):
+        return {'command': command, 'timed_out': False, 'returncode': 0,
+                'expected_files': {name: 'd' * 64},
+                'observation': {'completed': True, 'exit_code': 0, 'files_unchanged': True,
+                                'tests': [{'test_id': 'New.test_new', 'file': name, 'sha256': 'd' * 64}]}}
+
     def test_AC005_rejects_exit_zero_with_incomplete_report(self):
         self.result["report"]["status"] = "incomplete"
         self.assertTrue(worker.validate_result(self.result, self.candidate, "reviewer", self.required))
@@ -106,6 +112,7 @@ class ResultGates(unittest.TestCase):
         self.result['exploratory_files'] = ['fresh.py']
         self.result['report']['exploration'] = [{'command': 'python fresh.py', 'exit_code': 0}]
         self.result['events']['commands'].append({'command': 'python fresh.py', 'exit_code': 0, 'status': 'completed'})
+        self.result['qa_execution_evidence'] = [self.observation('python fresh.py', 'fresh.py')]
         self.assertEqual(worker.validate_result(self.result, self.candidate, 'qa', self.required), [])
         self.result['exploratory_files'] = ['unused.py']
         self.assertTrue(worker.validate_result(self.result, self.candidate, 'qa', self.required))
@@ -127,7 +134,25 @@ class ResultGates(unittest.TestCase):
             with self.subTest(command=command):
                 self.result['report']['exploration'] = [{'command': command, 'exit_code': 0}]
                 self.result['events']['commands'].append({'command': command, 'exit_code': 0, 'status': 'completed'})
+                self.result['qa_execution_evidence'] = [self.observation(command, 'test_fresh.py')]
                 self.assertEqual(worker.validate_result(self.result, self.candidate, 'qa', self.required), [])
+
+    def test_AC005_QA_observation_must_be_complete_and_bound_to_command_and_bytes(self):
+        self.result['report']['role'] = 'qa'
+        self.result['exploratory_files'] = ['fresh.py']
+        self.result['report']['exploration'] = [{'command': 'python fresh.py', 'exit_code': 0}]
+        self.result['events']['commands'].append({'command': 'python fresh.py', 'exit_code': 0, 'status': 'completed'})
+        for change in ('missing', 'timeout', 'command', 'hash', 'empty', 'incomplete', 'changed'):
+            with self.subTest(change=change):
+                proof = self.observation('python fresh.py', 'fresh.py')
+                if change == 'timeout': proof['timed_out'] = True
+                if change == 'command': proof['command'] = 'python another.py'
+                if change == 'hash': proof['observation']['tests'][0]['sha256'] = 'e' * 64
+                if change == 'empty': proof['observation']['tests'] = []
+                if change == 'incomplete': proof['observation']['completed'] = False
+                if change == 'changed': proof['observation']['files_unchanged'] = False
+                self.result['qa_execution_evidence'] = [] if change == 'missing' else [proof]
+                self.assertTrue(worker.validate_result(self.result, self.candidate, 'qa', self.required))
 
     def test_AC007_absent_usage_is_unknown(self):
         usage = worker.summarize_events([])["usage"]
@@ -202,6 +227,81 @@ class CandidateIsolation(unittest.TestCase):
         finally:
             try: os.killpg(result['pid'], signal.SIGKILL)
             except ProcessLookupError: pass
+
+
+class QAExecutionEvidence(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.root = pathlib.Path(self.temp.name)
+        (self.root / 'nested').mkdir()
+        (self.root / 'test_control.py').write_text('import unittest\nclass Control(unittest.TestCase):\n def test_existing(self): self.assertEqual(1,1)\n')
+        (self.root / 'nested/test_new.py').write_text("import pathlib,unittest\nclass New(unittest.TestCase):\n def test_new(self): pathlib.Path('test-ran').write_text('yes')\nif __name__ == '__main__': unittest.main()\n")
+
+    def result_for(self, command):
+        fixture = ResultGates(); fixture.setUp()
+        result = fixture.result; result['report']['role'] = 'qa'
+        result['exploratory_files'] = ['nested/test_new.py']
+        run = subprocess.run(command, shell=True, cwd=self.root, capture_output=True, text=True)
+        result['report']['exploration'] = [{'command': command, 'exit_code': run.returncode}]
+        result['events']['commands'].append({'command': command, 'exit_code': run.returncode, 'status': 'completed' if run.returncode == 0 else 'failed'})
+        return fixture, result, run
+
+    def test_AC005_discovery_skipping_new_test_blocks_even_when_existing_tests_pass(self):
+        fixture, result, run = self.result_for('python -m unittest discover -v')
+        self.assertEqual(run.returncode, 0, run.stderr)
+        self.assertIn('Ran 1 test', run.stderr)
+        self.assertFalse((self.root / 'test-ran').exists())
+        self.assertTrue(worker.validate_result(result, fixture.candidate, 'qa', fixture.required),
+                        'exit 0 and matching nested filename wrongly credit a test unittest skipped')
+
+    def verify(self, command, expected=True):
+        fixture, result, run = self.result_for(command)
+        result['qa_execution_evidence'] = worker.prove_qa_execution(result, self.root, [], self.root / 'observation', 5)
+        problems = worker.validate_result(result, fixture.candidate, 'qa', fixture.required)
+        self.assertEqual(not problems, expected, (run.stderr, result['qa_execution_evidence'], problems))
+        return result['qa_execution_evidence']
+
+    def test_AC005_positive_direct_module_and_explicit_nonpackage_discovery(self):
+        for command in ('python nested/test_new.py -v',
+                        'python -m unittest nested.test_new -v',
+                        'python -m unittest discover -s nested -v'):
+            with self.subTest(command=command):
+                proof = self.verify(command)
+                self.assertTrue((self.root / 'test-ran').exists())
+                self.assertEqual(proof[0]['observation']['tests'][0]['file'], 'nested/test_new.py')
+
+    def test_AC005_discovery_traverses_package_and_observes_new_method(self):
+        (self.root / 'nested/__init__.py').write_text('')
+        self.verify('python -m unittest discover -v')
+        self.assertTrue((self.root / 'test-ran').exists())
+
+    def test_AC005_observed_discovery_skipping_nonpackage_is_rejected(self):
+        proof = self.verify('python -m unittest discover -v', False)
+        self.assertEqual(proof[0]['observation']['tests'], [])
+        self.assertFalse((self.root / 'test-ran').exists())
+
+    def test_AC005_module_running_only_existing_test_has_no_new_credit(self):
+        self.verify('python -m unittest test_control -v', False)
+
+    def test_AC005_import_only_and_direct_without_unittest_run_have_no_credit(self):
+        (self.root / 'import_only.py').write_text('import nested.test_new\n')
+        self.verify('python import_only.py', False)
+        p = self.root / 'nested/test_new.py'
+        p.write_text(p.read_text().split("if __name__")[0])
+        self.verify('python nested/test_new.py', False)
+
+    def test_AC005_skipped_unittest_has_no_method_execution_credit(self):
+        p = self.root / 'nested/test_new.py'
+        p.write_text(p.read_text().replace(' def test_new', " @unittest.skip('not executed')\n def test_new"))
+        self.verify('python -m unittest nested.test_new -v', False)
+
+    def test_AC005_failing_new_method_is_observed_as_defect_evidence(self):
+        p = self.root / 'nested/test_new.py'
+        p.write_text(p.read_text().replace("pathlib.Path('test-ran').write_text('yes')", 'self.fail("real defect")'))
+        proof = self.verify('python nested/test_new.py -v')
+        self.assertEqual(proof[0]['observation']['exit_code'], 1)
+        self.assertTrue(proof[0]['observation']['tests'])
 
 
 if __name__ == "__main__":
