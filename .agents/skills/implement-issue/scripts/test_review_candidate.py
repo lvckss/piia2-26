@@ -3,9 +3,13 @@
 Deterministic gates complement, and do not replace, the live Codex evaluation.
 """
 import copy
+import os
 import pathlib
 import subprocess
+import signal
+import sys
 import tempfile
+import time
 import unittest
 import review_candidate as worker
 
@@ -82,6 +86,30 @@ class ResultGates(unittest.TestCase):
         self.result["report"]["role"] = "qa"
         self.assertTrue(worker.validate_result(self.result, self.candidate, "qa", self.required))
 
+    def test_AC003_QA_cannot_relabel_required_check_as_exploration(self):
+        self.result['report']['role'] = 'qa'
+        self.result['report']['exploration'] = self.result['report']['checks'].copy()
+        self.result['exploratory_files'] = ['fresh.py']
+        self.assertTrue(worker.validate_result(self.result, self.candidate, 'qa', self.required))
+
+    def test_AC005_resume_incomplete_role_with_full_coverage_and_preserved_budget(self):
+        previous = {'technical_retries': {'reviewer': 0}, 'roles': {'reviewer': {'problems': ['preflight failure']}}}
+        context, retries = worker.next_review_context(previous, 'reviewer', {}, [], pathlib.Path('.'))
+        self.assertEqual(context, {})
+        self.assertEqual(retries, 1)
+        previous['technical_retries']['reviewer'] = 1
+        with self.assertRaises(ValueError):
+            worker.next_review_context(previous, 'reviewer', {}, [], pathlib.Path('.'))
+
+    def test_AC003_QA_new_test_must_be_executed(self):
+        self.result['report']['role'] = 'qa'
+        self.result['exploratory_files'] = ['fresh.py']
+        self.result['report']['exploration'] = [{'command': 'python fresh.py', 'exit_code': 0}]
+        self.result['events']['commands'].append({'command': 'python fresh.py', 'exit_code': 0, 'status': 'completed'})
+        self.assertEqual(worker.validate_result(self.result, self.candidate, 'qa', self.required), [])
+        self.result['exploratory_files'] = ['unused.py']
+        self.assertTrue(worker.validate_result(self.result, self.candidate, 'qa', self.required))
+
     def test_AC007_absent_usage_is_unknown(self):
         usage = worker.summarize_events([])["usage"]
         self.assertEqual(usage, {"input_tokens": None, "output_tokens": None, "cached_input_tokens": None})
@@ -142,6 +170,19 @@ class CandidateIsolation(unittest.TestCase):
         previous['roles']['reviewer']['problems'] = ['timeout']
         with self.assertRaises(ValueError):
             worker.incremental_context(previous, 'reviewer', candidate, decisions, self.repo)
+
+    def test_AC005_timeout_kills_sigterm_resistant_descendant(self):
+        child = "import signal,time,pathlib; signal.signal(signal.SIGTERM,signal.SIG_IGN); pathlib.Path('ready').write_text('ready'); time.sleep(1); pathlib.Path('survived').write_text('alive'); time.sleep(20)"
+        parent = "import subprocess,sys,time; subprocess.Popen([sys.executable,'-c',sys.argv[1]]); time.sleep(20)"
+        result = worker.run_process([sys.executable, '-c', parent, child], self.root, '', self.root / 'attempt', 0.5)
+        try:
+            self.assertTrue(result['timed_out'])
+            self.assertTrue((self.root / 'ready').exists())
+            time.sleep(1)
+            self.assertFalse((self.root / 'survived').exists())
+        finally:
+            try: os.killpg(result['pid'], signal.SIGKILL)
+            except ProcessLookupError: pass
 
 
 if __name__ == "__main__":

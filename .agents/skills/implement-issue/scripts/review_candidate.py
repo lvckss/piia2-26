@@ -136,6 +136,12 @@ def validate_result(result, candidate, role, required):
         for check in exploration:
             if not isinstance(check, dict) or not executed(commands, check.get('command', ''), check.get('exit_code')):
                 problems.append('exploration not actually executed')
+            elif role == 'qa' and any(normalize_command(check['command']) == normalize_command(c) for c in required):
+                problems.append('QA relabeled a required check as exploration')
+        if role == 'qa':
+            created = result.get('exploratory_files', [])
+            if not created or not any(any(name in normalize_command(check.get('command', '')) for name in created) for check in exploration if isinstance(check, dict)):
+                problems.append('QA did not execute a newly created exploratory test file')
     return problems
 
 
@@ -168,12 +174,21 @@ def run_process(command, cwd, stdin, prefix, timeout):
             timed_out = False
         except subprocess.TimeoutExpired:
             timed_out = True
-            os.killpg(process.pid, signal.SIGTERM)
+            try:
+                os.killpg(process.pid, signal.SIGTERM)
+            except ProcessLookupError:
+                pass
             try:
                 process.wait(timeout=3)
             except subprocess.TimeoutExpired:
+                pass
+            # The parent may exit while a descendant ignores SIGTERM. Always
+            # terminate the remaining group, even after process.wait succeeded.
+            try:
                 os.killpg(process.pid, signal.SIGKILL)
-                process.wait()
+            except ProcessLookupError:
+                pass
+            process.wait()
     events = []
     for line in prefix.with_suffix('.jsonl').read_text().splitlines():
         try:
@@ -209,6 +224,18 @@ def correction_batches(previous, candidate):
     if batches > 2:
         raise ValueError('Two correction batches exhausted: escalate; do not weaken checks.')
     return batches
+
+
+def next_review_context(previous, role, candidate, decisions, repo):
+    retries = previous.get('technical_retries', {}).get(role, 0) if previous else 0
+    own = previous.get('roles', {}).get(role) if previous else None
+    if own is None:
+        return {}, retries
+    if own.get('problems'):
+        if retries >= 1:
+            raise ValueError('Incomplete role exhausted its technical retry: escalate.')
+        return {}, retries + 1  # full coverage; never credit the incomplete report
+    return incremental_context(previous, role, candidate, decisions, repo), retries
 
 
 def make_prompt(role, candidate, context, depth, probe_command, delta):
@@ -275,13 +302,13 @@ def main():
     runtime_version = subprocess.check_output(['codex', '--version'], text=True).strip()
 
     def run_role(role):
-        old_retries = previous.get('technical_retries', {}).get(role, 0) if previous else 0
+        incremental, old_retries = next_review_context(previous, role, candidate, decisions, args.repo)
         if old_retries not in (0, 1):
             raise ValueError('One technical retry per role exhausted.')
-        incremental = incremental_context(previous, role, candidate, decisions, args.repo)
         # Do not duplicate the initial full diff on revalidation.
         own_context = {k: v for k, v in context.items() if k != 'diff'}
         own_context['diff_path'] = '.review-delta.patch'
+        own_context['review_mode'] = 'incremental' if incremental.get('own_previous_report') else 'full'
         delta_patch = incremental.pop('delta', context['diff'])
         if previous:
             incremental['delta_path'] = '.review-delta.patch'
@@ -325,6 +352,7 @@ def main():
                 result['report'] = None
             actual = result['events']['commands']
             result['probe_ok'] = bool(actual) and executed(actual[:1], probe_command, 0)
+            result['exploratory_files'] = sorted(str(p.relative_to(cwd)) for p in cwd.rglob('*.py') if str(p.relative_to(cwd)) not in candidate['files'])
             try:
                 result['source_unchanged'] = source_hashes(cwd, candidate['files']) == candidate['files']
             except OSError:

@@ -72,6 +72,9 @@ hallazgos que requieren adjudicación; 2 = circuito incompleto. Exit 0 tampoco
 sustituye los AC/DoD ni el criterio del implementador. El gate contrasta informe
 y eventos de ejecución; no acepta checks descritos sin ejecución real correcta,
 versión equivocada, turnos fallidos, timeout, fuente alterada o QA sin exploración.
+QA debe crear y ejecutar un test Python nuevo en su copia; repetir un check
+requerido con otra etiqueta no cuenta. El timeout termina el grupo completo,
+incluidos descendientes que ignoran SIGTERM.
 
 ## Corrección, revalidación y coste
 
@@ -95,7 +98,9 @@ Si el scope crece, cubrir también el contenido nuevo, no solo el delta.
 Máximo inicial orientativo: dos lotes de corrección, un retry técnico por rol en
 el circuito. El helper conserva intentos y acota esos contadores; una revisión
 previa incompleta no justifica incrementalidad. Tras un fallo, corregir su causa
-y completar el rol que falta antes de continuar. Alcanzar límites informa/escala
+y completar el rol que falta antes de continuar. Con `--previous`, un rol
+incompleto y presupuesto disponible se vuelve a ejecutar con cobertura completa,
+sin usar su informe para justificar incrementalidad; el reintento queda consumido. Alcanzar límites informa/escala
 y deja la entrega pendiente; no aflojar garantías para terminar. No reiniciar los
 contadores creando otra salida ni ocultar un fallo anterior. Extender un presupuesto
 requiere motivo explícito y límites nuevos, sin autorización implícita de scope.
