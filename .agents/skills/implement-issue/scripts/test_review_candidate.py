@@ -303,6 +303,44 @@ class QAExecutionEvidence(unittest.TestCase):
         self.assertEqual(proof[0]['observation']['exit_code'], 1)
         self.assertTrue(proof[0]['observation']['tests'])
 
+    def test_AC005_production_observation_prefix_preserves_original_role_logs(self):
+        fixture, result, run = self.result_for('python nested/test_new.py -v')
+        self.assertEqual(run.returncode, 0)
+        original = {}
+        for suffix in ('jsonl', 'stderr'):
+            path = self.root / ('qa-0.' + suffix)
+            path.write_text('original model ' + suffix)
+            original[path] = path.read_bytes()
+        result['qa_execution_evidence'] = worker.prove_qa_execution(result, self.root, [], self.root / 'qa-0.observation', 5)
+        self.assertEqual(worker.validate_result(result, fixture.candidate, 'qa', fixture.required), [])
+        self.assertTrue((self.root / 'qa-0.observation-0.stderr').exists())
+        for path, content in original.items(): self.assertEqual(path.read_bytes(), content)
+
+    def test_AC005_async_method_is_actually_executed_and_credited(self):
+        p = self.root / 'nested/test_new.py'
+        p.write_text("import asyncio,pathlib,unittest\nclass New(unittest.IsolatedAsyncioTestCase):\n async def test_new(self):\n  await asyncio.sleep(0)\n  pathlib.Path('test-ran').write_text('yes')\nif __name__ == '__main__': unittest.main()\n")
+        for command in ('python nested/test_new.py -v', 'python -m unittest nested.test_new -v', 'python -m unittest discover -s nested -v'):
+            with self.subTest(command=command):
+                self.verify(command)
+                self.assertTrue((self.root / 'test-ran').exists())
+
+    def test_AC005_async_setup_skip_has_no_body_credit(self):
+        p = self.root / 'nested/test_new.py'
+        p.write_text("import pathlib,unittest\nclass New(unittest.IsolatedAsyncioTestCase):\n async def asyncSetUp(self): self.skipTest('no method body')\n async def test_new(self): pathlib.Path('test-ran').write_text('yes')\n")
+        self.verify('python -m unittest nested.test_new -v', False)
+        self.assertFalse((self.root / 'test-ran').exists())
+
+    def test_AC005_async_called_outside_unittest_run_has_no_framework_credit(self):
+        p = self.root / 'nested/test_new.py'
+        p.write_text("import asyncio,pathlib,unittest\nclass New(unittest.IsolatedAsyncioTestCase):\n async def test_new(self): pathlib.Path('test-ran').write_text('yes')\nif __name__ == '__main__': asyncio.run(New().test_new())\n")
+        self.verify('python nested/test_new.py', False)
+        self.assertTrue((self.root / 'test-ran').exists())
+
+    def test_AC005_sync_static_test_keeps_execution_credit(self):
+        p = self.root / 'nested/test_new.py'
+        p.write_text("import pathlib,unittest\nclass New(unittest.TestCase):\n @staticmethod\n def test_new(): pathlib.Path('test-ran').write_text('yes')\n")
+        self.verify('python -m unittest nested.test_new -v')
+
 
 if __name__ == "__main__":
     unittest.main()

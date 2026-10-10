@@ -101,11 +101,16 @@ os.environ['TMPDIR']=str(root)
 paths={str((root/name).resolve()):name for name in expected}
 observed=[]; seen=set(); caller=unittest.TestCase._callTestMethod.__code__
 def observe(frame,event,arg):
- if event=='line' and frame.f_back is not None and frame.f_back.f_code is caller:
-  method=frame.f_back.f_locals.get('method'); code=getattr(method,'__code__',None)
+ if event=='line':
+  # Sync calls (including static methods) retain the direct unittest caller.
+  # Async methods resume through asyncio; bind their body to the active case.
+  case=frame.f_back.f_locals.get('self') if frame.f_back is not None and frame.f_back.f_code is caller else frame.f_locals.get('self')
+  if not isinstance(case,unittest.TestCase) or getattr(case,'_outcome',None) is None: return observe
+  method=getattr(case,case._testMethodName,None); code=getattr(method,'__code__',None)
+  if code is not frame.f_code: return observe
   filename=str(pathlib.Path(frame.f_code.co_filename).resolve())
-  if code is frame.f_code and filename in paths:
-   case=frame.f_back.f_locals.get('self'); key=(case.id(),paths[filename])
+  if filename in paths:
+   key=(case.id(),paths[filename])
    if key not in seen:
     seen.add(key); observed.append({'test_id':key[0],'file':key[1],'sha256':expected[key[1]]})
  return observe
@@ -263,7 +268,7 @@ assert result==expected, result
 
 def run_process(command, cwd, stdin, prefix, timeout):
     start = time.time()
-    with prefix.with_suffix('.jsonl').open('w') as out, prefix.with_suffix('.stderr').open('w') as err:
+    with prefix.with_name(prefix.name + '.jsonl').open('w') as out, prefix.with_name(prefix.name + '.stderr').open('w') as err:
         process = subprocess.Popen(command, cwd=cwd, stdin=subprocess.PIPE, stdout=out, stderr=err,
                                    text=True, start_new_session=True)
         try:
@@ -287,7 +292,7 @@ def run_process(command, cwd, stdin, prefix, timeout):
                 pass
             process.wait()
     events = []
-    for line in prefix.with_suffix('.jsonl').read_text().splitlines():
+    for line in prefix.with_name(prefix.name + '.jsonl').read_text().splitlines():
         try:
             event = json.loads(line)
             if not isinstance(event, dict):
