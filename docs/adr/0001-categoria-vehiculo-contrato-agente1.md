@@ -4,7 +4,7 @@
 - Fecha: 2026-10-13
 - GitHub Issue: https://github.com/lvckss/piia2-26/issues/28
 - Planes cubiertos (Issue/mini-spec/Spec): [entregas/cu-19-interpretacion-danos/specs/28-categoria-vehiculo.md](../../entregas/cu-19-interpretacion-danos/specs/28-categoria-vehiculo.md) — la decisión de contrato (campo `vehiculo`, origen del coche, aviso en el informe) y la consulta por imagen. No cubre la elección ni la comparación de modelos de visión.
-- Planning PR: pendiente (se completa al abrirla)
+- Planning PR: https://github.com/lvckss/piia2-26/pull/29
 - Aceptación: pendiente (revisor y referencia de revisión; la completa quien acepte)
 - Sustituye / sustituido por: no aplica. Modifica parcialmente una decisión anterior que no tiene ADR (ver Contexto).
 
