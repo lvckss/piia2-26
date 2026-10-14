@@ -6,8 +6,8 @@
 - ADR: No requerido — justificado en Spec.
 - Justificación: esta Issue implementa, sin cambiarlo, el contrato Agente 2 → Agente 3 ya acordado en `specs/piia2-arquitectura-multiagente.md` y fijado por `ejemplos_contrato/agente2_salida.json`. No introduce una decisión estructural nueva: usa la herramienta de costes de la empresa (decisión previa) y replica reglas de cobertura deterministas ya descritas. Registrar como ADR las decisiones previas (contrato entre agentes, herramienta de la empresa) es el alcance de la Issue #37, no de esta. El único cambio de contrato que toca esta Issue (`vehiculo_id` opcional y `vehiculo_origen`) lo decide el ADR 0001 de la Issue #28; aquí solo se consume (AC-009). **A confirmar en la revisión:** que esta justificación no oculta una decisión relevante.
 - Plan vigente / versión: este archivo, en la rama `plan/30-costes-cobertura`; el commit exacto se registra en un comentario de la Issue.
-- Riesgo y revisión previa: no requiere revisión previa según el workflow (sin NEW_ADR, reversible, contrato preservado). Por acuerdo del equipo (reparto de la Entrega 1), la mini-spec se entrega en su propia PR revisada por Lucas antes de implementar. Consumidores: Agente 3 (#31) y la función `agente2()` de la integración (#32/#34). Impacto medio (las cifras llegan al informe), reversibilidad alta (función nueva, sin datos persistentes), incertidumbre baja (código de referencia probado en la guía).
-- Planning PR: no aplica como gate del workflow; la PR de esta mini-spec se enlaza en la Issue al abrirla.
+- Riesgo y revisión previa: **sí, por solicitud expresa**. Por riesgo no haría falta (sin NEW_ADR, reversible, contrato preservado), pero el equipo acordó en el reparto de la Entrega 1 que esta mini-spec la revise Lucas antes de implementar. Según AGENTS.md («respetar también revisión previa expresamente solicitada») y el workflow, eso activa el camino con revisión previa: Spec Revisada y Planning PR aprobada e integrada por un humano antes de implementar. Consumidores: Agente 3 (#31) y la función `agente2()` de la integración (#32/#34). Impacto medio (las cifras llegan al informe), reversibilidad alta (función nueva, sin datos persistentes), incertidumbre baja (código de referencia probado en la guía).
+- Planning PR: https://github.com/lvckss/piia2-26/pull/40 (revisa Lucas). Al aprobarla, la spec pasa a Revisada y se registran quién la acepta, el permalink y la versión.
 
 ## Qué construir
 
@@ -72,12 +72,19 @@ pueda verificar.
 - No se suben a git el paquete de la empresa, ni CarDD, ni claves.
 - El paquete se localiza en `<raíz del repo>/piia2_paquete_datos/`. Si falta, el módulo falla con un
   mensaje que dice dónde extraerlo (no con un error opaco).
-- La indemnización es **orientativa**: los datos de pólizas y precios son sintéticos.
+- La indemnización es **orientativa**: los datos de pólizas y precios son sintéticos (relacionado
+  con la #35, alcance del README del caso).
+- Contexto obligatorio: `vehiculo_id` (opcional solo si se acepta la #28, AC-009), `region`,
+  `tipo_taller`, `acabado`, `tipo_pieza`, `rol`, `edad_anios` y `km`. `poliza_id` es obligatorio y
+  debe existir en `polizas.csv` solo si `rol == "propio"`; con `tercero_perjudicado` se ignora
+  (puede venir vacío, AC-003).
 
 | Incertidumbre | Clasificación | Evidencia / supuesto / pregunta y efecto |
 |---|---|---|
 | ¿Requiere ADR el contrato de salida del Agente 2, que consume el Agente 3? | Pregunta no bloqueante, a confirmar en la revisión | Se elige NO_ADR_REQUIRED porque el contrato ya está acordado y no cambia; su registro como ADR corresponde a la #37. Si el revisor lo pide, se crea el ADR en la #37 y esta Issue lo reutiliza (REUSE_ADR) sin cambiar los AC. |
-| ¿Se aprueba la #28 (`vehiculo_id` opcional y `vehiculo_origen`)? | Pregunta no bloqueante para AC-001 a AC-008 y AC-010 y AC-011; bloqueante solo para AC-009 | Si el ADR 0001 se acepta, AC-009 se implementa tal cual. Si se rechaza, AC-009 se retira (sin renumerar) y `vehiculo_id` sigue siendo obligatorio (AC-010). |
+| ¿Se aprueba la #28 (`vehiculo_id` opcional y `vehiculo_origen`)? | Pregunta no bloqueante para AC-001 a AC-008 y AC-010 y AC-011; bloqueante solo para AC-009 | Si el ADR 0001 se acepta, AC-009 se implementa tal cual. Si se rechaza, AC-009 se retira (sin renumerar) y `vehiculo_id` sigue siendo obligatorio (AC-010). La #28 (slice 4) añade `contexto.vehiculo_origen` a `ejemplos_contrato/agente2_salida.json`: AC-001 compara siempre con el ejemplo vigente en `main` cuando se ejecuta, así que, si la #28 se integra antes que esta Issue, AC-001 incluye ese campo. |
+| Un hallazgo `confirmed` siempre trae pieza, severidad y `regla_coste_aplicable == true`. | Resuelta con evidencia | `decidir_tier` (`agente_multimodal/confianza.py`) solo devuelve `confirmed` si `pieza_id` existe y la regla es `true`, y `vision.py` solo calcula la regla si hay pieza y severidad. El Agente 2 confía en esa invariante y no vuelve a comprobar los confirmados. |
+| ¿Qué pólizas concretas usan AC-004, AC-005 y AC-006 y qué importes esperados salen? | Supuesto a comprobar con `polizas.csv` antes de Ready | El paquete de la empresa no está extraído en la máquina donde se revisó el plan. Hay que comprobar que `P-TERC-BASICO` existe y no cubre colisión, el criterio de pérdida total y la franquicia de `P-TR-FR300` (para fijar la indemnización de AC-005) y qué póliza cubre lunas (AC-006), y anotar los importes esperados en los AC. |
 | ¿`estimar_coste` acepta una lista de daños vacía? | Supuesto a comprobar al implementar | La guía la llama con la lista vacía cuando no hay confirmados. Si la herramienta falla con `[]`, el escenario vacío se construye sin llamarla, con importes 0 y la cobertura «Sin daños presupuestables» (AC-007). |
 | Umbral de la evaluación de costes (AC-011). | Resuelta con evidencia (parcial) | El ≈ 9 % de MAPE es de la herramienta de la empresa con los daños reales, no de este código (que solo le pasa los daños): se reproduce como suelo, no como objetivo a mejorar. Lo que sí mide este código es la concordancia de `perdida_total` y `cobertura_aplica` con el CSV; se espera 100 % porque replica la lógica del generador. Si no, se documenta cada discrepancia. |
 | Valores exactos del caso de pérdida total (V14). | Resuelta con evidencia (guía) | La guía da 935,85 € (`con_pendientes`) frente a un umbral de 870 € (75 % de 1.160 €) y 560,80 € (`confirmados`). Se usan como referencia en AC-005. |
@@ -105,7 +112,7 @@ pueda verificar.
 
 | ID | Dado / Cuando | Resultado esperado y condición de éxito |
 |---|---|---|
-| AC-001 | Los ejemplos del contrato (`agente1_salida.json`, `contexto_siniestro.json`) y se llama a `estimar_siniestro`. | La salida es **igual** a `agente2_salida.json` ignorando `normativa`, y `normativa == []`. Importes de referencia: 1.019,46 € / 933,55 € (`confirmados`) y 1.488,23 € / 1.500,76 € (`con_pendientes`). |
+| AC-001 | Los ejemplos del contrato (`agente1_salida.json`, `contexto_siniestro.json`) y se llama a `estimar_siniestro`. | La salida es **igual** a `agente2_salida.json` (versión vigente en `main`) ignorando `normativa`, y `normativa == []`. Importes de referencia: 1.019,46 € / 933,55 € (`confirmados`) y 1.488,23 € / 1.500,76 € (`con_pendientes`). |
 | AC-002 | Hallazgos con cada combinación: `confirmed`; `needs_review` con pieza, severidad y regla; `rechazado`; sin pieza o sin severidad; con `regla_coste_aplicable` `false` o `null`. | Los confirmados están en los dos escenarios; los pendientes, solo en `con_pendientes`; el resto, en `hallazgos_fuera_del_coste` con su motivo exacto. Cada `finding_id` aparece en un único grupo y ninguno se pierde. |
 | AC-003 | El contexto del ejemplo con `rol = "tercero_perjudicado"` y `poliza_id` vacío. | `umbral_perdida_total == 1.0`; en cada escenario con daños `cubierto == true`, `franquicia_eur == 0`, motivo de RC obligatoria e indemnización igual al total con IVA (o al valor venal si hay pérdida total). |
 | AC-004 | El contexto del ejemplo con una póliza que no cubre daños propios por colisión (`P-TERC-BASICO`) y daños que no son solo cristales. | `cubierto == false` e `indemnizacion_estimada_eur == 0` en los dos escenarios. |
@@ -113,9 +120,9 @@ pueda verificar.
 | AC-006 | Solo daños sobre piezas de zona `cristal` con una póliza que cubre lunas. | Motivo «Cobertura de lunas», franquicia de lunas de la póliza e indemnización = `min(total con IVA, límite anual de lunas) − franquicia de lunas`. |
 | AC-007 | Una salida del Agente 1 sin hallazgos presupuestables (todos rechazados, o `findings` vacío). | No se lanza excepción; los dos escenarios tienen importes 0, `hallazgos_incluidos == []` y cobertura `cubierto == false`, «Sin daños presupuestables», indemnización 0. |
 | AC-008 | Se ejecuta dos veces con la misma entrada, sin `OPENAI_API_KEY` y sin red. | Las dos salidas son idénticas y la ejecución no necesita clave ni red. |
-| AC-009 | (Condicionado a la aceptación del ADR 0001, #28.) Un contexto con `vehiculo_id` («con»), otro sin él ante una salida del Agente 1 con `vehiculo` («sin») y otro sin él ante una salida sin `vehiculo` («ninguno»). | «Con»: se presupuesta con ese coche y `vehiculo_origen == "dato_de_entrada"`. «Sin»: se usa `vehiculo.vehiculo_id_referencia` y `vehiculo_origen == "estimado_por_vision"`. «Ninguno»: error explícito. |
-| AC-010 | Un contexto con `poliza_id` inexistente, `vehiculo_id` inexistente, `rol` fuera de `propio`/`tercero_perjudicado` o un campo obligatorio ausente; o el paquete de la empresa no está en su ruta. | Se lanza una excepción cuyo mensaje nombra el campo o la ruta problemática; no se devuelve salida. |
-| AC-011 | Los siniestros de `siniestros_sinteticos.csv` con `split` `val` o `test`. | Se documentan, con un script reproducible: el MAPE de `estimar_coste` con `danos_json` frente a `coste_facturado_sin_iva_eur` (referencia ≈ 9 %), y la concordancia de `perdida_total` y de la cobertura frente a `perdida_total` y `cobertura_aplica` del CSV (se espera 100 %; si no, cada discrepancia queda explicada). |
+| AC-009 | (Condicionado a la aceptación del ADR 0001, #28.) Un contexto con `vehiculo_id` («con»), otro sin él ante una salida del Agente 1 con `vehiculo` («sin») y otro sin él ante una salida sin `vehiculo` («ninguno»). | «Con»: se presupuesta con ese coche y `contexto.vehiculo_origen == "dato_de_entrada"`. «Sin»: se usa `vehiculo.vehiculo_id_referencia` (y queda en `contexto.vehiculo_id`) y `contexto.vehiculo_origen == "estimado_por_vision"`. «Ninguno»: error explícito. Misma referencia que `specs/28-categoria-vehiculo.md#AC-009`. |
+| AC-010 | Un contexto con `poliza_id` inexistente (con `rol == "propio"`), `vehiculo_id` inexistente, `rol` fuera de `propio`/`tercero_perjudicado` o un campo obligatorio ausente; o el paquete de la empresa no está en su ruta. | Se lanza una excepción cuyo mensaje nombra el campo o la ruta problemática; no se devuelve salida. |
+| AC-011 | Los siniestros de `siniestros_sinteticos.csv` con `split` `val` o `test`. | Se documentan, con un script reproducible: el MAPE de `estimar_coste` con `danos_json` frente a `coste_facturado_sin_iva_eur` (referencia ≈ 9 %), y la concordancia de `cobertura.perdida_total` frente a `perdida_total` y de `cobertura.cubierto` frente a `cobertura_aplica` del CSV, construyendo el contexto con las columnas de cada siniestro (se espera 100 %; si no, cada discrepancia queda explicada). |
 
 ## Test Plan
 
@@ -141,9 +148,9 @@ comprobación lleva en su nombre o comentario `30-costes-cobertura.md#AC-0XX`.
 | `specs/30-costes-cobertura.md#AC-005` | S1 + S2 | TDD | Pérdida total solo en `con_pendientes` con V14 | V14, 16 años, 300.000 km | `python probar_costes.py` | Red y Green |
 | `specs/30-costes-cobertura.md#AC-006` | S1 + S2 | TDD | Cobertura de lunas con límite y franquicia | Hallazgo único sobre `PARABRISAS`; póliza que cubre lunas según `polizas.csv` | `python probar_costes.py` | Red y Green |
 | `specs/30-costes-cobertura.md#AC-007` | S1 + S2 | TDD | Sin daños presupuestables: importes 0, sin excepción | `findings` vacío y todo rechazado | `python probar_costes.py` | Red y Green |
-| `specs/30-costes-cobertura.md#AC-008` | S1 | TDD | Dos ejecuciones idénticas sin clave | Variable `OPENAI_API_KEY` eliminada del entorno del proceso | `python probar_costes.py` | Green (comprobación de igualdad) |
+| `specs/30-costes-cobertura.md#AC-008` | S1 | TDD | Dos ejecuciones idénticas sin clave ni red | Variable `OPENAI_API_KEY` eliminada del entorno del proceso y `socket.socket` sustituido durante la prueba por una función que lanza excepción | `python probar_costes.py` | Green (comprobación de igualdad, sin intento de conexión) |
 | `specs/30-costes-cobertura.md#AC-009` | S1 + S2 | TDD (si se acepta el ADR 0001) | «Con», «sin», «ninguno» | Ejemplos con y sin `vehiculo` según la #28 | `python probar_costes.py` | Red y Green, o AC retirado con referencia a la decisión |
-| `specs/30-costes-cobertura.md#AC-010` | S1 | TDD | Excepción que nombra campo o ruta | Contextos inválidos; ruta del paquete inexistente | `python probar_costes.py` | Red y Green |
+| `specs/30-costes-cobertura.md#AC-010` | S1 | TDD | Excepción que nombra campo o ruta | Contextos inválidos; para el paquete ausente, copia del módulo en un directorio temporal con un `.git` vacío y sin `piia2_paquete_datos/`, importada en un subproceso | `python probar_costes.py` | Red y Green |
 | `specs/30-costes-cobertura.md#AC-011` | S2 + S3 | Eval (medición reproducible, sin rojo artificial) | MAPE ≈ 9 % y concordancia de banderas | `siniestros_sinteticos.csv`, `split` val + test, versión del paquete local | `python evaluar_costes.py` | Tabla con n, MAPE y concordancias en la PR de implementación |
 
 ## Implementation Plan
@@ -161,7 +168,9 @@ Al terminar, el README de `agente_recuperacion/` indica cómo ejecutar las prueb
 ## Pendientes para Ready
 
 - **Decisión de la #28 (bloquea solo AC-009 y la slice 4):** aceptación o rechazo del ADR 0001 en la PR #29. Las slices 1, 2, 3 y 5 no dependen de ella.
+- **Revisión previa (solicitud del equipo):** Planning PR #40 aprobada por Lucas e integrada por un humano; spec en estado Revisada, con quién la acepta, el permalink y la versión registrados en la Issue.
 - **Confirmación en la revisión** de la ADR decision (NO_ADR_REQUIRED) y de su relación con la #37.
+- **Importes esperados de AC-004 a AC-006** fijados a partir de `polizas.csv` (ver Restricciones y supuestos).
 - **Prerrequisito de implementación (no de planificación):** extraer `piia2_paquete_datos/` en la raíz del repo.
 
 Resultado de analyze:
@@ -173,7 +182,7 @@ Resultado de analyze:
 | Cada AC tiene verificación y slice | Sí (AC-001 a AC-011). |
 | Comportamiento preservado | El contrato, protegido por AC-001. |
 | ADR decision coherente | NO_ADR_REQUIRED justificado; se señala para confirmación. |
-| Gaps | Ninguno bloqueante para AC-001 a AC-008, AC-010 y AC-011. |
+| Gaps | Importes concretos de AC-004 a AC-006 pendientes de `polizas.csv`; AC-009 depende de la #28. El resto no tiene gaps bloqueantes. |
 
 ## Definition of Done
 
