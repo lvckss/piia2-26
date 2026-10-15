@@ -114,6 +114,20 @@ regla para una combinación (por ejemplo `dent` sobre un parabrisas): devuelve
 coste 0 con una línea de aviso. Un hallazgo así "confirmado" saldría en el
 informe con coste 0 €, sin que nadie lo note.
 
+## Alcance
+
+- **Incluido:** el filtro previo de detecciones por clase
+  ([`seleccion.py`](../app/agentes/agente_multimodal/seleccion.py)); el nivel de
+  confianza solo por score (`classify_confidence`); el nivel final que combina
+  score, veredicto de visión y posibilidad de presupuestar (`decidir_tier`); el
+  registro de lo que el filtro descarta.
+- **Fuera de alcance:** detectar daños (PIIA-1); la consulta al modelo de visión
+  y la validación de su respuesta, que se especifican en
+  [`interpretacion-danos-imagen.md`](interpretacion-danos-imagen.md); calcular
+  costes (Agente 2) y redactar el informe (Agente 3), que consumen el nivel de
+  confianza; calibrar los umbrales con el modelo real, que está pendiente
+  (AC-006).
+
 ## Restricciones y supuestos
 
 - Esta capa vive en el Agente 1 de PIIA2, no en PIIA-1: no cambia ninguna
@@ -133,24 +147,29 @@ informe con coste 0 €, sin que nadie lo note.
 - El veredicto del modelo se **valida**: un `pieza_id` que no esté en el
   catálogo, o un `veredicto`/`severidad` fuera de los valores permitidos, se
   descarta (el hallazgo queda `incierto` o sin pieza), nunca se acepta tal cual.
+- **No se puede medir si la pieza y la severidad que da el modelo son
+  correctas:** CarDD no trae esas etiquetas. Eso requiere revisar a mano una
+  muestra; `is_true_positive` solo mide si la detección de PIIA-1 acertó.
 - `needs_review` no significa "se descarta": significa que el informe lo debe
   presentar como pendiente de confirmación, nunca como hecho.
 
 ## Criterios de aceptación
 
-1. Todo hallazgo que llega al agente de costes tiene `confidence_tier`
-   (`confirmed` o `needs_review`) asignado antes de presupuestarse.
-2. Un hallazgo es `confirmed` solo si pasan las tres condiciones (se prueba en
-   `probar_vision_stub.py::probar_decidir_tier`).
-3. Los hallazgos `needs_review` nunca aparecen en el informe con la misma
-   redacción que los `confirmed`.
-4. El coste total puede calcularse solo con los hallazgos `confirmed` y, por
-   separado, con los pendientes presupuestables, para que quien lea sepa cuánto
-   de la estimación es firme y cuánto provisional.
-5. Los umbrales por clase están centralizados (`CATEGORY_REVIEW_THRESHOLD`),
-   no repartidos por el código.
-6. Antes de dar la tabla por definitiva, los 6 umbrales tienen detrás la curva
-   medida con las detecciones etiquetadas.
-7. Se mide la segunda opinión: con `is_true_positive` como verdad, cuántos
-   falsos positivos rechaza cada modelo de visión y cuántos aciertos reales
-   descarta por error.
+**Cómo leer la columna de verificación.** *Verificado*: el comando se ejecuta y
+pasa. *Parcial*: parte del criterio está verificada y se indica cuál.
+*Pendiente*: no hay verificación todavía, con el motivo o la Issue que la
+cubrirá. Los comandos se ejecutan desde `app/agentes/agente_multimodal/`; los
+que usan el export de 500 imágenes o el paquete de datos de la empresa se saltan
+con un aviso si no están en local. Los criterios AC-001 a AC-007 son los siete
+criterios originales, con el mismo orden.
+
+| ID | Dado / Cuando | Resultado esperado | Verificación y estado |
+|---|---|---|---|
+| AC-001 | Cualquier hallazgo que el Agente 1 entrega al agente de costes. | Tiene `confidence_tier` con valor `confirmed` o `needs_review` antes de presupuestarse. | `python probar_agente1_stub.py` comprueba los niveles de los tres hallazgos de un ejemplo. **Verificado.** |
+| AC-002 | Un hallazgo con score, veredicto de visión, pieza y regla de coste. | Es `confirmed` solo si el score pasa el umbral de su clase, la visión lo confirma, hay pieza y existe regla de coste; cualquier otra combinación es `needs_review`. | `python probar_vision_stub.py` (`probar_decidir_tier`, 7 combinaciones). **Verificado.** |
+| AC-003 | Un informe con hallazgos `confirmed` y `needs_review`. | Los `needs_review` nunca aparecen con la misma redacción que los `confirmed`. | **Pendiente.** Depende del Agente 3 ([Issue #31](https://github.com/lvckss/piia2-26/issues/31)). |
+| AC-004 | El Agente 2 presupuesta los hallazgos. | Calcula el coste total solo con los `confirmed` y, por separado, con los pendientes presupuestables, para que quien lea sepa cuánto de la estimación es firme y cuánto provisional. | **Pendiente.** Depende del Agente 2 ([Issue #30](https://github.com/lvckss/piia2-26/issues/30)). El ejemplo [`agente2_salida.json`](../app/agentes/ejemplos_contrato/agente2_salida.json) muestra los dos escenarios. |
+| AC-005 | Los umbrales de revisión por clase. | Están definidos en un único sitio, `CATEGORY_REVIEW_THRESHOLD` de [`confianza.py`](../app/agentes/agente_multimodal/confianza.py), sin repetirse en otros módulos. | `git grep -n "CATEGORY_REVIEW_THRESHOLD" -- "*.py"`: una definición y una lectura, ambas en `confianza.py`; la otra coincidencia es un comentario. **Verificado.** |
+| AC-006 | La tabla de umbrales por clase, antes de darla por definitiva. | Cada uno de los 6 umbrales tiene detrás la curva medida de precisión y recall con las detecciones etiquetadas. | **Pendiente.** Los valores actuales son placeholders. Las curvas se calculan con `analizar_detecciones.py` y `evaluar_vision.py`, pero falta la evaluación con el modelo real y no hay Issue que la cubra. |
+| AC-007 | Las detecciones etiquetadas con `is_true_positive` como verdad. | Se mide la segunda opinión: cuántos falsos positivos rechaza cada modelo de visión y cuántos aciertos reales descarta por error. | **Parcial.** La herramienta `evaluar_vision.py` está verificada con un modelo simulado (`python probar_evaluar_vision_stub.py`); la medición con el modelo real está pendiente. |
+| AC-008 | Las 500 imágenes exportadas (18.507 detecciones) y el filtro previo de `seleccion.py`. | Quedan 3.712 candidatas (el 20 %): `glass shatter` con score ≥ 0,5 y las 2 mejores por imagen en las demás clases. Se conserva al menos el 97 % del recall de PIIA-1 en `glass shatter`, el 99 % en `tire flat` y el 93 % en `lamp broken`. | `python probar_seleccion_stub.py` (`probar_export_real`). **Verificado** con el export presente. |
