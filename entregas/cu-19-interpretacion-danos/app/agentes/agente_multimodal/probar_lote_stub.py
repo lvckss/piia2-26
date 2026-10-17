@@ -23,6 +23,7 @@ from PIL import Image
 
 from agente1 import analizar_imagen
 from analizar_detecciones import CLASES, cargar
+from catalogo import cargar_catalogo
 from evaluar_vision import ruta_foto
 from generar_lote import (
     elegir_lote, fotos_que_faltan, generar_lote, llamadas_previstas, main, rutas_por_defecto, validar_salida_agente1,
@@ -508,6 +509,39 @@ def probar_ac008_nada_sensible_en_git_ni_en_lo_escrito() -> None:
                 assert str(tmp_dir) not in contenido and not absoluta.search(contenido), f"ruta absoluta en {ruta.name}"
 
 
+MUESTRA = Path(__file__).resolve().parents[1] / "ejemplos_contrato" / "agente1_real"
+
+
+def probar_ac010_muestra_versionada() -> None:
+    """PLAN + AC-010: 5 salidas reales versionadas, validas, sin fotos ni recortes ni rutas de esta maquina."""
+    assert MUESTRA.is_dir(), f"falta la muestra {MUESTRA}"
+    ficheros = sorted(MUESTRA.glob("*.json"))
+    assert len(ficheros) == 5, [f.name for f in ficheros]
+    otros = sorted(p.name for p in MUESTRA.iterdir() if p.suffix != ".json")
+    assert otros == ["README.md"], f"solo puede haber JSON y README.md (nada de fotos ni recortes): {otros}"
+
+    try:
+        catalogo = cargar_catalogo()
+    except FileNotFoundError:
+        catalogo = None
+        print("(catalogo real no encontrado: se salta la validacion de la muestra contra el catalogo)")
+    privada = re.compile(r"[A-Za-z]:[\\/]|/Users/|/home/|/content/drive|Luc[ií]a")
+    niveles: set[str] = set()
+    for ruta in ficheros:
+        texto = ruta.read_text(encoding="utf-8")
+        assert not privada.search(texto), f"{ruta.name}: ruta absoluta o nombre de usuario"
+        datos = json.loads(texto)
+        if catalogo is not None:
+            assert validar_salida_agente1(datos, catalogo, ruta.name) == [], ruta.name
+        for finding in datos["findings"]:
+            assert not Path(finding["crop_image_path"]).is_absolute(), finding["finding_id"]
+            niveles.add(finding["confidence_tier"])
+    assert niveles == {"confirmed", "needs_review"}, f"la muestra debe tener confirmed y needs_review: {niveles}"
+
+    readme = (MUESTRA / "README.md").read_text(encoding="utf-8")
+    assert "CarDD" in readme and "gpt-6-luna" in readme, "el README debe decir que son salidas reales sobre CarDD y con que modelo"
+
+
 def probar_ac001_ac002_con_datos_reales() -> None:
     """PLAN + AC-001 y AC-002 con el export de 500 imagenes y las fotos locales (se salta si faltan)."""
     rutas = rutas_por_defecto()
@@ -535,6 +569,7 @@ def probar_ac001_ac002_con_datos_reales() -> None:
 
 def main_pruebas() -> None:
     probar_ac001_ac002_con_datos_reales()
+    probar_ac010_muestra_versionada()
     probar_ac001_seleccion_reproducible()
     probar_ac002_plan_sin_gastar_y_tope()
     probar_ac003_un_json_por_imagen_con_cache()

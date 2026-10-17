@@ -1,0 +1,112 @@
+{
+  "image_id": 341,
+  "resumen_filtro_previo": {
+    "detecciones_totales": 22,
+    "candidatas": 5,
+    "descartadas_por_clase": {
+      "crack": 17
+    }
+  },
+  "findings": [
+    {
+      "finding_id": "341-1",
+      "category": "glass shatter",
+      "clase_tool": "glass_shatter",
+      "score": 0.9560546875,
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
+      "bbox_xywh": [
+        499.0,
+        34.0,
+        501.0,
+        273.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARABRISAS",
+      "severidad": "grave",
+      "regla_coste_aplicable": true,
+      "vision_description": "El parabrisas presenta una rotura extensa, con múltiples grietas y varios puntos de impacto en la zona marcada.",
+      "crop_image_path": "crops/341_glass_shatter_1.jpg"
+    },
+    {
+      "finding_id": "341-2",
+      "category": "glass shatter",
+      "clase_tool": "glass_shatter",
+      "score": 0.951171875,
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
+      "bbox_xywh": [
+        0.0,
+        34.0,
+        494.0,
+        265.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARABRISAS",
+      "severidad": "grave",
+      "regla_coste_aplicable": true,
+      "vision_description": "El parabrisas presenta una rotura extensa, con múltiples grietas radiales y patrón de telaraña en la zona marcada. El daño afecta gran parte del cristal.",
+      "crop_image_path": "crops/341_glass_shatter_2.jpg"
+    },
+    {
+      "finding_id": "341-3",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.76220703125,
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
+      "bbox_xywh": [
+        0.0,
+        387.0,
+        62.0,
+        41.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "CAPO",
+      "severidad": "leve",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se observa una pequeña línea irregular oscura, compatible con una fisura o desconchón superficial, en el capó.",
+      "crop_image_path": "crops/341_crack_3.jpg"
+    },
+    {
+      "finding_id": "341-4",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.755859375,
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
+      "bbox_xywh": [
+        499.0,
+        34.0,
+        501.0,
+        273.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARABRISAS",
+      "severidad": "grave",
+      "regla_coste_aplicable": true,
+      "vision_description": "El parabrisas presenta múltiples grietas y una fractura extensa en la zona marcada. El daño afecta ampliamente el vidrio.",
+      "crop_image_path": "crops/341_crack_4.jpg"
+    },
+    {
+      "finding_id": "341-7",
+      "category": "lamp broken",
+      "clase_tool": "lamp_broken",
+      "score": 0.59521484375,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        0.0,
+        31.0,
+        1000.0,
+        278.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "No se observa una lámpara rota; el daño visible corresponde al parabrisas, que está muy agrietado.",
+      "crop_image_path": "crops/341_lamp_broken_7.jpg"
+    }
+  ]
+}
