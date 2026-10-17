@@ -1,0 +1,113 @@
+{
+  "image_id": 1008,
+  "resumen_filtro_previo": {
+    "detecciones_totales": 28,
+    "candidatas": 5,
+    "descartadas_por_clase": {
+      "crack": 22,
+      "dent": 1
+    }
+  },
+  "findings": [
+    {
+      "finding_id": "1008-1",
+      "category": "tire flat",
+      "clase_tool": "tire_flat",
+      "score": 0.91796875,
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
+      "bbox_xywh": [
+        253.0,
+        42.0,
+        468.0,
+        393.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "NEUMATICO",
+      "severidad": "grave",
+      "regla_coste_aplicable": true,
+      "vision_description": "El neumático está completamente desinflado y aplastado contra el suelo en la parte inferior. La llanta queda muy cerca del pavimento.",
+      "crop_image_path": "crops/1008_tire_flat_1.jpg"
+    },
+    {
+      "finding_id": "1008-2",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.6279296875,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        130.0,
+        409.0,
+        94.0,
+        258.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "La zona marcada muestra una grieta en el pavimento junto al vehículo, no un daño en una pieza del vehículo.",
+      "crop_image_path": "crops/1008_crack_2.jpg"
+    },
+    {
+      "finding_id": "1008-3",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.6279296875,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        531.0,
+        491.0,
+        196.0,
+        25.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "La zona marcada muestra una grieta en el pavimento bajo el vehículo, no un daño en una pieza del vehículo.",
+      "crop_image_path": "crops/1008_crack_3.jpg"
+    },
+    {
+      "finding_id": "1008-4",
+      "category": "dent",
+      "clase_tool": "dent",
+      "score": 0.5625,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        0.0,
+        103.0,
+        201.0,
+        207.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "La zona no muestra una deformación clara compatible con un dent; las irregularidades parecen reflejos y suciedad superficial.",
+      "crop_image_path": "crops/1008_dent_4.jpg"
+    },
+    {
+      "finding_id": "1008-19",
+      "category": "dent",
+      "clase_tool": "dent",
+      "score": 0.33056640625,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        179.0,
+        104.0,
+        46.0,
+        202.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "La zona marcada muestra el contorno y la sombra del paso de rueda, sin una abolladura visible.】【。} પડી karto? Wait final produced malformed? It says JSON but Spanish sentence ending. valid yes? Actual has weird",
+      "crop_image_path": "crops/1008_dent_19.jpg"
+    }
+  ]
+}

@@ -1,0 +1,195 @@
+{
+  "image_id": 3020,
+  "resumen_filtro_previo": {
+    "detecciones_totales": 44,
+    "candidatas": 9,
+    "descartadas_por_clase": {
+      "crack": 21,
+      "lamp broken": 1,
+      "dent": 8,
+      "scratch": 5
+    }
+  },
+  "findings": [
+    {
+      "finding_id": "3020-1",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.8935546875,
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
+      "bbox_xywh": [
+        521.0,
+        98.0,
+        233.0,
+        139.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARAG_TRAS",
+      "severidad": "moderado",
+      "regla_coste_aplicable": true,
+      "vision_description": "La cubierta del paragolpes presenta una zona agrietada y desprendida, con material oscuro expuesto. El daño es localizado, pero de tamaño considerable.",
+      "crop_image_path": "crops/3020_crack_1.jpg"
+    },
+    {
+      "finding_id": "3020-2",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.8427734375,
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
+      "bbox_xywh": [
+        181.0,
+        276.0,
+        56.0,
+        195.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARAG_DEL",
+      "severidad": "moderado",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se observa una grieta vertical irregular que atraviesa la cubierta amarilla del paragolpes, con material oscuro expuesto. Por su ubicación y la abertura de un faro auxiliar en la zona, corresponde al paragolpes delantero.",
+      "crop_image_path": "crops/3020_crack_2.jpg"
+    },
+    {
+      "finding_id": "3020-5",
+      "category": "lamp broken",
+      "clase_tool": "lamp_broken",
+      "score": 0.7236328125,
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
+      "bbox_xywh": [
+        556.0,
+        497.0,
+        121.0,
+        54.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PILOTO_TRAS_I",
+      "severidad": "moderado",
+      "regla_coste_aplicable": true,
+      "vision_description": "El piloto trasero integrado en la zona del paragolpes presenta la cubierta rota o ausente, dejando expuesto el interior. Está situado en la esquina trasera izquierda del vehículo.",
+      "crop_image_path": "crops/3020_lamp_broken_5.jpg"
+    },
+    {
+      "finding_id": "3020-9",
+      "category": "tire flat",
+      "clase_tool": "tire_flat",
+      "score": 0.638671875,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        854.0,
+        373.0,
+        63.0,
+        119.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "La zona marcada corresponde a una moldura del paragolpes, no a un neumático desinflado. No se aprecia daño de tipo «tire flat».",
+      "crop_image_path": "crops/3020_tire_flat_9.jpg"
+    },
+    {
+      "finding_id": "3020-10",
+      "category": "dent",
+      "clase_tool": "dent",
+      "score": 0.60498046875,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        521.0,
+        98.0,
+        233.0,
+        139.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "La zona marcada presenta pérdida o desprendimiento de pintura, pero no se aprecia una abolladura.",
+      "crop_image_path": "crops/3020_dent_10.jpg"
+    },
+    {
+      "finding_id": "3020-11",
+      "category": "dent",
+      "clase_tool": "dent",
+      "score": 0.576171875,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        181.0,
+        275.0,
+        57.0,
+        196.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "La zona marcada muestra una grieta o desgarro vertical con pérdida de pintura, no una abolladura.",
+      "crop_image_path": "crops/3020_dent_11.jpg"
+    },
+    {
+      "finding_id": "3020-16",
+      "category": "scratch",
+      "clase_tool": "scratch",
+      "score": 0.496337890625,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        521.0,
+        98.0,
+        233.0,
+        139.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARAG_TRAS",
+      "severidad": "moderado",
+      "regla_coste_aplicable": true,
+      "vision_description": "En la zona marcada se observa pérdida irregular de pintura, con material oscuro expuesto; no parece un simple arañazo superficial. Está en la cubierta del paragolpes trasero.",
+      "crop_image_path": "crops/3020_scratch_16.jpg"
+    },
+    {
+      "finding_id": "3020-19",
+      "category": "scratch",
+      "clase_tool": "scratch",
+      "score": 0.46728515625,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        94.0,
+        253.0,
+        14.0,
+        73.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARAG_TRAS",
+      "severidad": "leve",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se aprecia una marca estrecha y oscura compatible con un arañazo superficial en la cubierta del paragolpes trasero.",
+      "crop_image_path": "crops/3020_scratch_19.jpg"
+    },
+    {
+      "finding_id": "3020-21",
+      "category": "lamp broken",
+      "clase_tool": "lamp_broken",
+      "score": 0.451171875,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        0.0,
+        0.0,
+        1000.0,
+        676.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PILOTO_TRAS_I",
+      "severidad": "moderado",
+      "regla_coste_aplicable": true,
+      "vision_description": "El piloto rectangular integrado en la esquina del paragolpes trasero está roto, con la lente y parte del conjunto dañadas. También se aprecian grietas y rozaduras en el paragolpes.",
+      "crop_image_path": "crops/3020_lamp_broken_21.jpg"
+    }
+  ]
+}

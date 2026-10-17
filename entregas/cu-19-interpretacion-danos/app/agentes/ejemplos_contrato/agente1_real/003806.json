@@ -1,0 +1,130 @@
+{
+  "image_id": 3806,
+  "resumen_filtro_previo": {
+    "detecciones_totales": 6,
+    "candidatas": 6,
+    "descartadas_por_clase": {}
+  },
+  "findings": [
+    {
+      "finding_id": "3806-1",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.94287109375,
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
+      "bbox_xywh": [
+        466.0,
+        282.0,
+        534.0,
+        273.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARABRISAS",
+      "severidad": "grave",
+      "regla_coste_aplicable": true,
+      "vision_description": "El parabrisas presenta una rotura extensa, con múltiples grietas y el vidrio fragmentado en gran parte de su superficie.",
+      "crop_image_path": "crops/3806_crack_1.jpg"
+    },
+    {
+      "finding_id": "3806-2",
+      "category": "glass shatter",
+      "clase_tool": "glass_shatter",
+      "score": 0.94140625,
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
+      "bbox_xywh": [
+        458.0,
+        282.0,
+        542.0,
+        273.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARABRISAS",
+      "severidad": "grave",
+      "regla_coste_aplicable": true,
+      "vision_description": "El parabrisas está ampliamente fracturado, con la superficie cubierta de grietas y fragmentos de vidrio. El daño es extenso y afecta a gran parte de la luna.",
+      "crop_image_path": "crops/3806_glass_shatter_2.jpg"
+    },
+    {
+      "finding_id": "3806-3",
+      "category": "dent",
+      "clase_tool": "dent",
+      "score": 0.78564453125,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        467.0,
+        282.0,
+        533.0,
+        273.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "No se aprecia una abolladura en la zona marcada; el daño visible es la rotura extensa del parabrisas.",
+      "crop_image_path": "crops/3806_dent_3.jpg"
+    },
+    {
+      "finding_id": "3806-4",
+      "category": "lamp broken",
+      "clase_tool": "lamp_broken",
+      "score": 0.55078125,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        462.0,
+        282.0,
+        538.0,
+        273.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "El parabrisas está fuertemente agrietado y con el vidrio roto. No se observa una lámpara dañada en la zona marcada.",
+      "crop_image_path": "crops/3806_lamp_broken_4.jpg"
+    },
+    {
+      "finding_id": "3806-5",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.332275390625,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        563.0,
+        435.0,
+        41.0,
+        42.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARABRISAS",
+      "severidad": "grave",
+      "regla_coste_aplicable": true,
+      "vision_description": "El parabrisas presenta grietas extensas y está fragmentado en múltiples zonas. El daño también se aprecia dentro del área marcada.",
+      "crop_image_path": "crops/3806_crack_5.jpg"
+    },
+    {
+      "finding_id": "3806-6",
+      "category": "scratch",
+      "clase_tool": "scratch",
+      "score": 0.3125,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        469.0,
+        282.0,
+        531.0,
+        273.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "El parabrisas está muy agrietado y fracturado, pero no se aprecia un arañazo del tipo detectado.",
+      "crop_image_path": "crops/3806_scratch_6.jpg"
+    }
+  ]
+}

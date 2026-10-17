@@ -513,12 +513,20 @@ MUESTRA = Path(__file__).resolve().parents[1] / "ejemplos_contrato" / "agente1_r
 
 
 def probar_ac010_muestra_versionada() -> None:
-    """PLAN + AC-010: 5 salidas reales versionadas, validas, sin fotos ni recortes ni rutas de esta maquina."""
+    """PLAN + AC-010 (ajustado en la actualizacion v1.1 del plan: las 30 salidas del lote, no 5): salidas
+    reales versionadas, validas, sin fotos ni recortes ni rutas de esta maquina."""
     assert MUESTRA.is_dir(), f"falta la muestra {MUESTRA}"
     ficheros = sorted(MUESTRA.glob("*.json"))
-    assert len(ficheros) == 5, [f.name for f in ficheros]
+    assert len(ficheros) == 30, f"deben ser las 30 salidas del lote, hay {len(ficheros)}"
+    assert all(re.fullmatch(r"\d{6}\.json", f.name) for f in ficheros), [f.name for f in ficheros]
     otros = sorted(p.name for p in MUESTRA.iterdir() if p.suffix != ".json")
     assert otros == ["README.md"], f"solo puede haber JSON y README.md (nada de fotos ni recortes): {otros}"
+
+    # son exactamente las imagenes del lote reproducible (semilla 42, 30 imagenes, >=3 aciertos por clase)
+    rutas = rutas_por_defecto()
+    if rutas["detecciones"].exists():
+        lote = elegir_lote(cargar(rutas["detecciones"]), n=30, min_aciertos=3, seed=42)
+        assert sorted(f"{i['image_id']:06d}.json" for i in lote) == [f.name for f in ficheros], "no coinciden con el lote reproducible"
 
     try:
         catalogo = cargar_catalogo()

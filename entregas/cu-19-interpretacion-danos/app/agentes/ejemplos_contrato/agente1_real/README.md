@@ -1,6 +1,8 @@
-# Salidas reales del Agente 1 (muestra)
+# Salidas reales del Agente 1 (lote de 30 imágenes)
 
-Cinco salidas **reales** del Agente 1 sobre fotos de CarDD, para que el Agente 2 y el Agente 3 se prueben con datos que salen de ejecutar el sistema y no solo con el ejemplo escrito a mano (`../agente1_salida.json`). Las generó [`generar_lote.py`](../../agente_multimodal/generar_lote.py) (Issue #43) con el modelo `gpt-6-luna` el 2026-10-17, dentro de un lote de 30 imágenes, y se eligieron para cubrir casos distintos.
+Las 30 salidas **reales** del Agente 1 sobre fotos de CarDD (`val` y `test`), para que el Agente 2 y el Agente 3 se prueben con datos que salen de ejecutar el sistema y no solo con el ejemplo escrito a mano (`../agente1_salida.json`). Las generó [`generar_lote.py`](../../agente_multimodal/generar_lote.py) (Issue #43) con el modelo `gpt-6-luna` el 2026-10-17: 30 imágenes elegidas con semilla 42 y al menos 3 aciertos de PIIA-1 por clase. En total hay 234 hallazgos: 48 `confirmed` y 186 `needs_review`.
+
+Un fichero por imagen, con el `image_id` de seis cifras (`001236.json`). Cinco para empezar, por los casos límite que cubren:
 
 | Fichero | Imagen | Hallazgos | `confirmed` | Qué sirve para probar |
 |---|---|---|---|---|
@@ -17,3 +19,4 @@ Qué hay y qué no:
 - **No traen datos del siniestro** (vehículo, taller, póliza): para probar el Agente 2 hay que combinarlas con un contexto de prueba, por ejemplo `../contexto_siniestro.json`.
 - Los textos de `vision_description` son salida del modelo; una persona no los ha revisado uno a uno.
 - El lote se eligió para cubrir las seis clases con aciertos de PIIA-1, así que el reparto entre `confirmed` y `needs_review` no es representativo ni es una evaluación del sistema.
+- Para regenerarlas hacen falta el export de PIIA-1, las fotos de CarDD y la clave de la empresa (ver el README de `agente_multimodal`); la caché de respuestas evita volver a pagar las consultas ya hechas.

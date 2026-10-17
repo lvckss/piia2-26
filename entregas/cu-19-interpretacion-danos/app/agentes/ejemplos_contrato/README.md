@@ -19,9 +19,8 @@ las rutas de `crop_image_path` son ilustrativas.
 
 ## Salidas reales del Agente 1
 
-[`agente1_real/`](agente1_real/README.md) tiene 5 salidas **reales** del Agente 1
-(modelo `gpt-6-luna` sobre fotos de CarDD, sin las fotos ni los recortes), por si
-el Agente 2 o el Agente 3 necesitan probar con datos que salen de ejecutar el
-sistema. A diferencia de `agente1_salida.json`, no están escritas a mano y no
-traen contexto de siniestro. Las generó
+[`agente1_real/`](agente1_real/README.md) tiene las 30 salidas **reales** del Agente 1 de un lote de 30 imágenes
+(234 hallazgos; modelo `gpt-6-luna` sobre fotos de CarDD, sin las fotos ni los recortes), por si el
+Agente 2 o el Agente 3 necesitan probar con datos que salen de ejecutar el sistema. A diferencia de
+`agente1_salida.json`, no están escritas a mano y no traen contexto de siniestro. Las generó
 [`generar_lote.py`](../agente_multimodal/generar_lote.py).

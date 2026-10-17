@@ -1,0 +1,154 @@
+{
+  "image_id": 1746,
+  "resumen_filtro_previo": {
+    "detecciones_totales": 43,
+    "candidatas": 7,
+    "descartadas_por_clase": {
+      "crack": 14,
+      "dent": 10,
+      "scratch": 12
+    }
+  },
+  "findings": [
+    {
+      "finding_id": "1746-1",
+      "category": "tire flat",
+      "clase_tool": "tire_flat",
+      "score": 0.93115234375,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        827.0,
+        154.0,
+        173.0,
+        512.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "El neumático mantiene una forma redondeada y no se aprecia desinflado ni deformación compatible con un pinchazo. Los roces visibles están en la carrocería, fuera del neumático.",
+      "crop_image_path": "crops/1746_tire_flat_1.jpg"
+    },
+    {
+      "finding_id": "1746-2",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.900390625,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        733.0,
+        280.0,
+        73.0,
+        99.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "En la zona marcada se aprecia pintura raspada y desconchada, no una grieta definida; parece un arañazo o roce.",
+      "crop_image_path": "crops/1746_crack_2.jpg"
+    },
+    {
+      "finding_id": "1746-3",
+      "category": "dent",
+      "clase_tool": "dent",
+      "score": 0.8251953125,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        731.0,
+        280.0,
+        75.0,
+        99.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "En la zona marcada se observa principalmente pintura raspada y material expuesto junto a una unión de paneles. No se aprecia una abolladura clara.",
+      "crop_image_path": "crops/1746_dent_3.jpg"
+    },
+    {
+      "finding_id": "1746-4",
+      "category": "scratch",
+      "clase_tool": "scratch",
+      "score": 0.80517578125,
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
+      "bbox_xywh": [
+        733.0,
+        280.0,
+        73.0,
+        99.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "ALETA_TRAS_I",
+      "severidad": "leve",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se observa un raspón vertical con pérdida de pintura en la aleta trasera izquierda, junto al paso de rueda.",
+      "crop_image_path": "crops/1746_scratch_4.jpg"
+    },
+    {
+      "finding_id": "1746-5",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.7734375,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        360.0,
+        231.0,
+        261.0,
+        93.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "En la zona marcada se aprecia un arañazo con pintura desconchada y material oscuro expuesto, no una grieta identificable.",
+      "crop_image_path": "crops/1746_crack_5.jpg"
+    },
+    {
+      "finding_id": "1746-6",
+      "category": "dent",
+      "clase_tool": "dent",
+      "score": 0.744140625,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        264.0,
+        136.0,
+        357.0,
+        188.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "Se observa un arañazo diagonal con pintura saltada en la puerta, pero no se aprecia una deformación tipo abolladura.",
+      "crop_image_path": "crops/1746_dent_6.jpg"
+    },
+    {
+      "finding_id": "1746-9",
+      "category": "scratch",
+      "clase_tool": "scratch",
+      "score": 0.69287109375,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        261.0,
+        137.0,
+        360.0,
+        187.0
+      ],
+      "vision_verdict": "incierto",
+      "pieza_id": null,
+      "severidad": "moderado",
+      "regla_coste_aplicable": null,
+      "vision_description": "Se observa un arañazo largo con pérdida de pintura en una puerta, pero no es posible determinar con seguridad si corresponde al lado izquierdo o derecho del vehículo.",
+      "crop_image_path": "crops/1746_scratch_9.jpg"
+    }
+  ]
+}

@@ -1,0 +1,154 @@
+{
+  "image_id": 3637,
+  "resumen_filtro_previo": {
+    "detecciones_totales": 35,
+    "candidatas": 7,
+    "descartadas_por_clase": {
+      "crack": 7,
+      "dent": 1,
+      "scratch": 20
+    }
+  },
+  "findings": [
+    {
+      "finding_id": "3637-1",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.80859375,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        195.0,
+        137.0,
+        637.0,
+        528.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "Se observan rozaduras y arañazos superficiales alrededor del arco de rueda, pero no una grieta.",
+      "crop_image_path": "crops/3637_crack_1.jpg"
+    },
+    {
+      "finding_id": "3637-2",
+      "category": "dent",
+      "clase_tool": "dent",
+      "score": 0.74853515625,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        195.0,
+        133.0,
+        637.0,
+        532.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "Se observan arañazos y rozaduras en el panel junto al paso de rueda, pero no se aprecia una abolladura.",
+      "crop_image_path": "crops/3637_dent_2.jpg"
+    },
+    {
+      "finding_id": "3637-3",
+      "category": "scratch",
+      "clase_tool": "scratch",
+      "score": 0.744140625,
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
+      "bbox_xywh": [
+        195.0,
+        84.0,
+        637.0,
+        581.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "ALETA_TRAS_I",
+      "severidad": "moderado",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se observan múltiples arañazos largos con transferencia de material claro sobre el panel alrededor del paso de rueda. La orientación de la imagen no permite determinar con seguridad si corresponde al lado izquierdo o derecho.",
+      "crop_image_path": "crops/3637_scratch_3.jpg"
+    },
+    {
+      "finding_id": "3637-4",
+      "category": "tire flat",
+      "clase_tool": "tire_flat",
+      "score": 0.72021484375,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        549.0,
+        445.0,
+        451.0,
+        222.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "El neumático visible conserva su forma y presenta dibujo de banda de rodadura; no se aprecia que esté desinflado. Los arañazos visibles están en la carrocería junto al paso de rueda.",
+      "crop_image_path": "crops/3637_tire_flat_4.jpg"
+    },
+    {
+      "finding_id": "3637-5",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.69189453125,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        198.0,
+        456.0,
+        201.0,
+        209.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "La zona marcada muestra arañazos y rozaduras superficiales, pero no se aprecia una grieta.",
+      "crop_image_path": "crops/3637_crack_5.jpg"
+    },
+    {
+      "finding_id": "3637-6",
+      "category": "scratch",
+      "clase_tool": "scratch",
+      "score": 0.66650390625,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        198.0,
+        456.0,
+        201.0,
+        209.0
+      ],
+      "vision_verdict": "incierto",
+      "pieza_id": null,
+      "severidad": "leve",
+      "regla_coste_aplicable": null,
+      "vision_description": "Se observan varias marcas lineales claras compatibles con arañazos superficiales. No se puede identificar con seguridad si la pieza alrededor del paso de rueda es la aleta delantera o la trasera.",
+      "crop_image_path": "crops/3637_scratch_6.jpg"
+    },
+    {
+      "finding_id": "3637-12",
+      "category": "dent",
+      "clase_tool": "dent",
+      "score": 0.469970703125,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        198.0,
+        456.0,
+        201.0,
+        208.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "En la zona marcada se observan arañazos y rozaduras superficiales junto al paso de rueda, pero no se aprecia una deformación o hundimiento tipo dent.",
+      "crop_image_path": "crops/3637_dent_12.jpg"
+    }
+  ]
+}
