@@ -25,6 +25,7 @@ Diseño del filtro de confianza:
 | `recorte.py` | Recorta cada hallazgo (con 15 % de margen) y dibuja la caja sobre la foto completa. |
 | `vision.py` | Manda a un modelo de OpenAI la foto con la caja + el recorte; valida su respuesta JSON (veredicto, pieza, severidad); cache opcional para no pagar dos veces lo mismo. |
 | `agente1.py` | Encadena todo: `analizar_imagen(...)` devuelve (y opcionalmente guarda) el JSON final. |
+| `generar_lote.py` | Genera la salida real del Agente 1 para un lote reproducible de imágenes del export (un JSON por imagen), la valida contra el contrato y resume llamadas, tokens y reparto de niveles. Ver «Generar un lote real». |
 | `colab/` | Notebook para exportar las detecciones de PIIA-1 (SAM3) de ~500 imágenes, una sola vez, con cada detección marcada como acierto/falso positivo. |
 
 ## Uso
@@ -67,12 +68,51 @@ demasiado grande. Resultados en `piia2_detecciones/evaluacion_vision/`.
 No puede medir si la pieza y la severidad son correctas (CarDD no trae esas
 etiquetas): eso se revisa a mano en una muestra.
 
+## Generar un lote real
+
+`generar_lote.py` ejecuta el Agente 1 (`analizar_imagen`) sobre un lote
+reproducible del export de 500 imágenes y deja la salida lista para los
+Agentes 2 y 3 (Issue #43). Elige 30 imágenes con semilla 42 y al menos 3
+aciertos de PIIA-1 por clase (unas 234 llamadas al modelo).
+
+```bash
+# 1. plan: cuenta las llamadas y las fotos que faltan. NO llama a la API ni escribe nada
+python generar_lote.py
+
+# 2. prueba barata con pocas imágenes (necesita OPENAI_API_KEY y OPENAI_MODEL)
+python generar_lote.py --n-imagenes 3 --min-aciertos 1 --ejecutar
+
+# 3. el lote completo (cuesta lo que diga el plan; --max-llamadas 300 es el tope por defecto)
+python generar_lote.py --ejecutar
+```
+
+- **Qué deja** (por defecto en `piia2_detecciones/salida_agente1/`, ignorada por
+  git): un `<image_id>.json` por imagen con el contrato del Agente 1
+  (`../ejemplos_contrato/agente1_salida.json`), los recortes en `crops/` (con
+  `crop_image_path` relativo a esa carpeta) y `resumen_lote.json`.
+- **Qué comprueba**: cada salida pasa `validar_salida_agente1` (campos exactos,
+  veredicto, nivel de confianza coherente con `decidir_tier`, pieza del
+  catálogo). Una imagen que falla (foto ausente o ilegible, error de la API,
+  salida no válida) no tira el lote: se lista al final y el código de salida es
+  distinto de 0. Al repetir, lo ya consultado sale de la caché
+  (`piia2_detecciones/cache_vision/`) y no se factura de nuevo.
+- **Qué cuenta**: llamadas y tokens realmente facturados (lo servido desde la
+  caché no cuenta) y el reparto de `confidence_tier` y `vision_verdict`. El coste
+  en euros solo se calcula si pasas `--precio-entrada` y `--precio-salida` (euros
+  por millón de tokens); no hay precios por defecto.
+- **Ojo**: el lote se elige con `is_true_positive` para cubrir las 6 clases, así
+  que el reparto de `confirmed` y `needs_review` no es representativo de la
+  distribución real.
+- Regenerar tras cambiar los umbrales de `confianza.py` no cuesta llamadas
+  mientras no cambien el prompt ni los recortes.
+
 ## Pruebas sin API Key
 
-`probar_vision_stub.py`, `probar_agente1_stub.py`, `probar_seleccion_stub.py` y
-`probar_evaluar_vision_stub.py` usan un cliente falso de OpenAI, así que no
-necesitan API Key ni el paquete `openai`. Estas dos últimas usan además el
-export real y las fotos del CarDD en local si están (si no, se saltan esa parte).
+`probar_vision_stub.py`, `probar_agente1_stub.py`, `probar_seleccion_stub.py`,
+`probar_evaluar_vision_stub.py` y `probar_lote_stub.py` usan un cliente falso de
+OpenAI, así que no necesitan API Key ni el paquete `openai`. Las dos últimas
+usan además el export real y las fotos del CarDD en local si están (si no, se
+saltan esa parte).
 `probar_con_imagenes_reales.py` prueba el recorte con fotos del CarDD en local
 (`CarDD_release/`, no se sube a git).
 
