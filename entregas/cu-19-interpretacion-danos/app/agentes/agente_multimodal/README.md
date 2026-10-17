@@ -96,6 +96,9 @@ python generar_lote.py --ejecutar
   salida no válida) no tira el lote: se lista al final y el código de salida es
   distinto de 0. Al repetir, lo ya consultado sale de la caché
   (`piia2_detecciones/cache_vision/`) y no se factura de nuevo.
+- **Qué muestra**: una línea por cada llamada facturada (con su duración y sus
+  tokens) y otra por cada imagen terminada, para ver que avanza; lo servido desde
+  la caché no imprime línea de llamada.
 - **Qué cuenta**: llamadas y tokens realmente facturados (lo servido desde la
   caché no cuenta) y el reparto de `confidence_tier` y `vision_verdict`. El coste
   en euros solo se calcula si pasas `--precio-entrada` y `--precio-salida` (euros

@@ -452,6 +452,28 @@ def probar_ac007_un_fallo_no_tumba_el_lote() -> None:
         assert len(list(salida.glob("[0-9]*.json"))) == 6
 
 
+def probar_progreso_por_llamada() -> None:
+    """Ajuste pedido por Lucia sobre la observabilidad del plan v1 de #43: una linea de consola por
+    cada llamada facturada (ademas de la de cada imagen); lo servido desde la cache no la imprime."""
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp_dir = Path(tmp)
+        export, cardd, imagenes = montar_datos(tmp_dir)
+        salida, cache = tmp_dir / "salida", tmp_dir / "cache"
+        consola = io.StringIO()
+        with contextlib.redirect_stdout(consola):
+            resumen = _generar(tmp_dir, export, cardd, imagenes, ClienteFalso(), salida, cache)
+        formato = re.compile(r"^\s+llamada (\d+) \(\d+\.\d s\): 1500 tokens de entrada, 40 de salida$")
+        coincidencias = [formato.match(linea) for linea in consola.getvalue().splitlines() if "llamada " in linea and "tokens" in linea]
+        assert all(coincidencias), consola.getvalue()
+        numeros = [int(m.group(1)) for m in coincidencias]
+        assert resumen["llamadas_facturadas"] > 0 and numeros == list(range(1, resumen["llamadas_facturadas"] + 1)), numeros
+
+        consola = io.StringIO()
+        with contextlib.redirect_stdout(consola):
+            _generar(tmp_dir, export, cardd, imagenes, ClienteFalso(), salida, cache)
+        assert "tokens de entrada" not in consola.getvalue(), "las respuestas de la cache no deben imprimir linea de llamada"
+
+
 def probar_ac008_nada_sensible_en_git_ni_en_lo_escrito() -> None:
     """PLAN + AC-008: rutas por defecto ignoradas por git, sin clave ni rutas absolutas en lo escrito."""
     rutas = rutas_por_defecto()
@@ -521,6 +543,7 @@ def main_pruebas() -> None:
     probar_ac005_uso_y_coste()
     probar_ac006_repartos()
     probar_ac007_un_fallo_no_tumba_el_lote()
+    probar_progreso_por_llamada()
     probar_ac008_nada_sensible_en_git_ni_en_lo_escrito()
     probar_ejecucion_completa_por_consola()
     print("Todo ok: generar_lote.")

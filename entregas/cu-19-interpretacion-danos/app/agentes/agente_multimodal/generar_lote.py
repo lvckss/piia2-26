@@ -72,11 +72,20 @@ class ClienteContador:
         self.completions = self
 
     def create(self, **peticion: Any) -> Any:
+        inicio = time.time()
         respuesta = self._cliente.chat.completions.create(**peticion)
         uso = getattr(respuesta, "usage", None)
+        entrada = int(getattr(uso, "prompt_tokens", 0) or 0)
+        salida = int(getattr(uso, "completion_tokens", 0) or 0)
         self.llamadas += 1
-        self.prompt_tokens += int(getattr(uso, "prompt_tokens", 0) or 0)
-        self.completion_tokens += int(getattr(uso, "completion_tokens", 0) or 0)
+        self.prompt_tokens += entrada
+        self.completion_tokens += salida
+        # una linea por llamada facturada, para ver que va avanzando
+        print(
+            f"    llamada {self.llamadas} ({time.time() - inicio:.1f} s): "
+            f"{entrada} tokens de entrada, {salida} de salida",
+            flush=True,
+        )
         return respuesta
 
 
