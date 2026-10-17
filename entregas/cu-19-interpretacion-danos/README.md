@@ -8,11 +8,11 @@ El punto de partida son los **resultados de detección de PIIA1 ya guardados**: 
 
 El sistema se organiza en tres agentes, coordinados por una orquestación:
 
-1. **Agente 1 — Analista de daños (multimodal).** Mira la foto, no solo el JSON de detecciones: da una segunda opinión con un modelo de visión sobre cada detección (¿hay un daño de verdad?), identifica la pieza afectada y su severidad, estima la categoría del vehículo y asigna a cada hallazgo un nivel de confianza (`confirmed` o `needs_review`).
-2. **Agente 2 — Costes, cobertura y normativa.** Calcula el coste de reparación con la herramienta de costes que entregó la empresa, determina la pérdida total, la cobertura de la póliza y una indemnización estimada, y recupera de una base de datos vectorial los fragmentos de pólizas y legislación que respaldan cada afirmación.
+1. **Agente 1 — Analista de daños (multimodal).** Mira la foto, no solo el JSON de detecciones: da una segunda opinión con un modelo de visión sobre cada detección (¿hay un daño de verdad?), identifica la pieza afectada y su severidad y asigna a cada hallazgo un nivel de confianza (`confirmed` o `needs_review`). Está propuesto que además estime la categoría del vehículo cuando el siniestro no trae el coche ([Issue #28](https://github.com/lvckss/piia2-26/issues/28), pendiente de aprobación): hoy el vehículo es un dato de entrada del siniestro.
+2. **Agente 2 — Costes, cobertura y normativa.** Calcula el coste de reparación con la herramienta de costes que entregó la empresa, determina la pérdida total, la cobertura de la póliza y una indemnización estimada, y recupera de una base de datos vectorial los fragmentos de pólizas y legislación que justifican la cobertura y la pérdida total, cuando los hay.
 3. **Agente 3 — Redactor.** Genera el informe de peritaje agregado en markdown. Las cifras las calcula el código, y una comprobación automática verifica que todas las cifras en euros del informe coinciden con las del Agente 2.
 
-El resultado se orienta a asistir a una persona técnica durante la inspección, no a sustituir su criterio profesional.
+El resultado se orienta a asistir a peritos o tramitadores de siniestros de una aseguradora durante la inspección, no a sustituir su criterio profesional.
 
 ## Motivación
 
@@ -25,7 +25,7 @@ El proyecto busca estudiar hasta qué punto un sistema de agentes puede converti
 El proyecto incluye:
 
 - la **entrada**: los resultados de detección de PIIA1 ya guardados para 500 imágenes de CarDD y los datos del siniestro (taller, póliza y demás parámetros que necesita la herramienta de costes), descritos en [`specs/interpretacion-danos-imagen.md`](specs/interpretacion-danos-imagen.md) y en [`specs/piia2-arquitectura-multiagente.md`](specs/piia2-arquitectura-multiagente.md);
-- el **Agente 1**: segunda opinión de visión, pieza, severidad y veredicto de cada hallazgo ([`specs/interpretacion-danos-imagen.md`](specs/interpretacion-danos-imagen.md)), niveles de confianza y filtro previo de detecciones ([`specs/agente-confianza-hallazgos.md`](specs/agente-confianza-hallazgos.md)) y categoría del vehículo ([Issue #28](https://github.com/lvckss/piia2-26/issues/28));
+- el **Agente 1**: segunda opinión de visión, pieza, severidad y veredicto de cada hallazgo ([`specs/interpretacion-danos-imagen.md`](specs/interpretacion-danos-imagen.md)), niveles de confianza y filtro previo de detecciones ([`specs/agente-confianza-hallazgos.md`](specs/agente-confianza-hallazgos.md)); la categoría del vehículo cuando el siniestro no trae el coche es una propuesta pendiente de aprobación ([Issue #28](https://github.com/lvckss/piia2-26/issues/28));
 - el **Agente 2**: costes, pérdida total, cobertura e indemnización orientativas ([Issue #30](https://github.com/lvckss/piia2-26/issues/30)) y recuperación de pólizas y legislación desde una base de datos vectorial ([Issue #32](https://github.com/lvckss/piia2-26/issues/32));
 - el **Agente 3**: informe de peritaje en markdown con cifras comprobadas ([Issue #31](https://github.com/lvckss/piia2-26/issues/31));
 - la **orquestación** de los tres agentes de punta a punta ([Issue #33](https://github.com/lvckss/piia2-26/issues/33), prueba de viabilidad de Google ADK, e [Issue #34](https://github.com/lvckss/piia2-26/issues/34));
