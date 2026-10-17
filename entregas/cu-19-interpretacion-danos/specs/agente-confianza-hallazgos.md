@@ -101,10 +101,11 @@ absoluta, un falso positivo con score alto se convierte en una afirmación
 económica falsa presentada con autoridad ("sustitución de neumático, 120 €")
 en un documento que se supone objetivo, mucho peor que omitir un daño real.
 
-Los datos de PIIA-1 lo confirman: la precisión bruta a threshold 0,3 es baja
-en **todas** las clases (`glass_shatter` 15,3 %, `lamp_broken` 18,6 %,
-`tire_flat` 19,0 %; y `dent`/`scratch`/`crack` peor, sin ningún threshold con
-precisión y recall aceptables a la vez). Por eso no se excluye ninguna clase
+Los datos de PIIA-1 lo confirman: con las 500 imágenes exportadas, la
+precisión bruta a threshold 0,3 es baja en **todas** las clases (`glass shatter`
+14,9 %, `lamp broken` 12,5 %, `tire flat` 8,2 %, `dent` 2,8 %, `scratch` 3,4 %
+y `crack` 0,9 %; ver la tabla de «Filtro previo»), y en `dent`/`scratch`/`crack`
+ningún threshold da a la vez una precisión y un recall aceptables. Por eso no se excluye ninguna clase
 (todas necesitan el mismo rigor), y por eso la empresa recomendó usar un LLM
 con visión como segunda opinión: dado el recorte y la caja, comprobar si hay
 consenso con la detección y así limpiar falsos positivos.
