@@ -3,7 +3,7 @@
 - GitHub Issue: https://github.com/lvckss/piia2-26/issues/28
 - Estado: Borrador
 - ADR decision: NEW_ADR
-- ADR: [docs/adr/0001-categoria-vehiculo-contrato-agente1.md](../../../docs/adr/0001-categoria-vehiculo-contrato-agente1.md) — Propuesto
+- ADR: [docs/adr/0001-categoria-vehiculo-contrato-agente1.md](https://github.com/lvckss/piia2-26/blob/main/docs/adr/0001-categoria-vehiculo-contrato-agente1.md) — Propuesto
 - Justificación: el cambio añade un campo estable (`vehiculo`) a la frontera Agente 1 → Agente 2/3, introduce una segunda consulta por imagen al proveedor de visión y modifica la decisión anterior «`vehiculo_id` es dato de entrada, no deducido» (`piia2-arquitectura-multiagente.md`, tabla de decisiones). Es un diff pequeño, pero toca un contrato entre agentes que evolucionan por separado: por la regla del workflow no puede ser `NO_ADR_REQUIRED`. No hay ningún ADR aceptado que lo cubra (`docs/adr/` solo contiene README y template).
 - Plan vigente / versión: este archivo, en la rama `plan/28-categoria-vehiculo`; el commit exacto se registra en el comentario de referencias de la Issue.
 - Riesgo y revisión previa: **sí requiere revisión previa** (disparador: NEW_ADR). Consumidores: Agente 2 y Agente 3 (otras personas del equipo). Reversibilidad alta: el campo es aditivo y quien lo ignore sigue funcionando. Incertidumbre media: el acierto de la categoría no se puede medir contra CarDD (no trae esa etiqueta) y la consulta aún no se ha probado con el modelo real.
