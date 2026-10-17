@@ -26,7 +26,7 @@ El Agente 1 (analista multimodal de PIIA2) convierte las detecciones de PIIA1 de
 | `vision_verdict`, `pieza_id`, `severidad`, `regla_coste_aplicable`, `vision_description` | Resultado de la segunda opinión de visión |
 | `crop_image_path` | Recorte de la zona, guardado en disco |
 
-**Dónde encaja.** Entre PIIA1 (detecciones guardadas) y el Agente 2 (costes y cobertura) y el Agente 3 (informe). El filtro previo de detecciones y el nivel de confianza se especifican en [`agente-confianza-hallazgos.md`](agente-confianza-hallazgos.md); la categoría del vehículo, que añadirá el campo `vehiculo` a la salida, en la [Issue #28](https://github.com/lvckss/piia2-26/issues/28).
+**Dónde encaja.** Entre PIIA1 (detecciones guardadas) y el Agente 2 (costes y cobertura) y el Agente 3 (informe). El filtro previo de detecciones y el nivel de confianza se especifican en [`agente-confianza-hallazgos.md`](agente-confianza-hallazgos.md); la categoría del vehículo, propuesta de la [Issue #28](https://github.com/lvckss/piia2-26/issues/28) pendiente de aprobación (hoy el vehículo es un dato de entrada del siniestro, ver [`piia2-arquitectura-multiagente.md`](piia2-arquitectura-multiagente.md)), que añadiría el campo `vehiculo` a la salida.
 
 ## Por qué
 
@@ -37,7 +37,7 @@ Esta funcionalidad convierte las detecciones en hallazgos con veredicto, pieza y
 ## Alcance
 
 - **Incluido:** leer las detecciones guardadas; aplicar el filtro previo; recortar cada hallazgo candidato; consultar al modelo de visión, una vez por hallazgo y con caché; validar la respuesta; calcular `regla_coste_aplicable`; asignar el nivel de confianza; devolver el JSON del contrato.
-- **Fuera de alcance:** detectar daños o ejecutar SAM3 (PIIA1 los deja guardados); una API, una interfaz o la visualización de resultados; validar ficheros subidos; estimar la categoría del vehículo (Issue #28); calcular costes o cobertura (Agente 2); redactar el informe (Agente 3); comparar modelos de visión.
+- **Fuera de alcance:** detectar daños o ejecutar SAM3 (PIIA1 los deja guardados); una API, una interfaz o la visualización de resultados; validar ficheros subidos; estimar la categoría del vehículo (propuesta de la Issue #28); calcular costes o cobertura (Agente 2); redactar el informe (Agente 3); comparar modelos de visión.
 
 ## Restricciones y supuestos
 
@@ -48,7 +48,7 @@ Esta funcionalidad convierte las detecciones en hallazgos con veredicto, pieza y
 - No se identifican personas, propietarios ni matrículas: la consulta solo pregunta por el daño de la zona marcada.
 - **La segunda opinión es orientativa.** No se puede medir contra CarDD si la pieza y la severidad son correctas, porque CarDD no trae esas etiquetas: hace falta revisar a mano una muestra.
 - La salida de los hallazgos no registra todavía el modelo de visión usado (la caché sí lo guarda).
-- Cuando se integre la Issue #28, la salida ganará el campo `vehiculo` y el criterio AC-001, que fija las claves de la salida, se actualizará.
+- El vehículo es hoy un dato de entrada del siniestro, no algo que el Agente 1 deduzca. Si se aprueba e integra la propuesta de la Issue #28, la salida ganaría el campo `vehiculo` y el criterio AC-001, que fija las claves de la salida, se actualizaría.
 
 ## Criterios de aceptación
 
