@@ -115,7 +115,7 @@ pendiente y se comprueba automáticamente que cada importe en euros procede del 
 | ¿Qué números de la salida del Agente 2 acepta `comprobar_cifras` como importes permitidos? | Resuelta en la revisión de la PR #41 | En la versión `f61a637` se dejaba como límite conocido que aceptara cualquier número del JSON. Lucía ([comentario](https://github.com/lvckss/piia2-26/pull/41#discussion_r4303254003)) y Lucas (revisión del 2026-10-17) piden restringirlo: con el límite, importes inventados como `160,00 €`, `42.000,00 €` o `3,00 €` pasaban por coincidir con `image_id`, `km` o `edad_anios`. Se restringe a los campos monetarios (ver «Qué construir») y se añade AC-013. |
 | ¿Se aprueba la #28 (aviso de origen del coche)? | Pregunta no bloqueante para AC-001 a AC-009 y AC-011 a AC-013; bloqueante solo para AC-010 | Estado registrado el 2026-10-19: PR #29 abierta, sin revisiones; ADR 0001 en estado Propuesto. Si el ADR 0001 se acepta, AC-010 se implementa tal cual. Si se rechaza, AC-010 se retira sin renumerar. Si cambia su alcance, se conserva el ID y se registra el cambio de versión. |
 | Nombre del vehículo y producto de la póliza del ejemplo. | Resuelta con evidencia | Comprobado por Lucía con los CSV de la empresa ([comentario](https://github.com/lvckss/piia2-26/pull/41#discussion_r4303254008)): `V05` = Volkswagen Golf y `P-TR-FR300` = «Todo Riesgo con franquicia 300 EUR». AC-001 fija esos literales. |
-| ¿Deben estar integrados los ADRs de la #37 antes de implementar esta Issue? (`docs/adr/README.md` pide registrar las decisiones estructurales previas antes de implementar cambios que dependan de ellas.) | Pregunta bloqueante para Ready, no para revisar el plan; decisión humana pendiente | Lucas pide decidirlo de forma expresa, y es común a #28, #30 y #31, así que conviene decidirlo una sola vez. Este plan no lo decide. Si la respuesta es sí, la Issue queda en Especificando (o en Bloqueadas, con el motivo registrado) hasta que se integren esos ADRs; si es no, se registra la decisión y su autor en la Issue. |
+| ¿Deben estar integrados los ADRs de la #37 antes de implementar esta Issue? (`docs/adr/README.md` pide registrar las decisiones estructurales previas antes de implementar cambios que dependan de ellas.) | Resuelta (decisión humana); bloqueante para Ready | Decisión del equipo, comunicada por Víctor en la sesión del 2026-10-19: **los ADRs se integran en `main` antes de la implementación** (común a #28, #30 y #31, como pedía Lucas). Efecto en esta Issue: no pasa a Ready hasta que los ADRs de la #37 que registran las decisiones de las que depende (el contrato Agente 1 → Agente 2 → Agente 3) estén Aceptados e integrados en `main`; mientras, sigue en Especificando. La ADR decision de esta Issue sigue siendo NO_ADR_REQUIRED, porque no introduce ni cambia ninguna decisión; si la revisión considera que debe referenciar esos ADRs, pasa a REUSE_ADR sin cambiar los AC. |
 | La #30 aún no está implementada. | Resuelta con evidencia | El Agente 3 solo depende del contrato (los ejemplos), no del código del Agente 2. |
 
 ## Comportamiento que debe preservarse
@@ -210,7 +210,7 @@ de ejemplo.
 - **Confirmaciones ya dadas en la revisión de `f61a637`** (Lucía, 2026-10-17): de acuerdo con NO_ADR_REQUIRED, con el texto del aviso legal (AC-001) y con dejar fuera de alcance el párrafo con LLM y la revisión de informes reales. Deben mantenerse para la versión final.
 - **Forma del escenario vacío (dependencia de AC-007):** fijada en `specs/30-costes-cobertura.md#AC-007` (PR #40) y comprobada por Lucía con la herramienta real. Para Ready, la PR #40 debe estar integrada con esa forma.
 - **Resolución de la #28 (bloquea solo AC-010 y la slice 5):** a 2026-10-19 la PR #29 sigue abierta y sin revisiones, y el ADR 0001 en estado Propuesto. Antes de Ready se registra en la Issue su resolución: aceptado (AC-010 tal cual), rechazado (AC-010 retirado sin renumerar) o modificado (AC-010 actualizado conservando su ID).
-- **Decisión humana sobre la #37:** si sus ADRs son prerrequisito para implementar. Pendiente; este plan no la toma.
+- **ADRs de la #37 integrados en `main`** (decisión del equipo del 2026-10-19: los ADRs se integran antes de implementar): al menos el que registra el contrato Agente 1 → Agente 2 → Agente 3, Aceptado.
 - **Prerrequisito de implementación (no de planificación):** extraer `piia2_paquete_datos/` en la raíz del repo.
 
 Resultado de analyze:
@@ -222,7 +222,7 @@ Resultado de analyze:
 | Cada AC tiene verificación y slice | Sí (AC-001 a AC-013). |
 | Comportamiento preservado | Los contratos de entrada, que no se modifican; los usan sin editar AC-001 a AC-003. |
 | ADR decision coherente | NO_ADR_REQUIRED justificado; se señala para confirmación. |
-| Gaps | AC-010 depende de la #28 (sin resolver a 2026-10-19). AC-007 depende de que se integre la PR #40. La decisión sobre la #37 es humana y está pendiente. Ninguno impide revisar el plan; los tres se resuelven antes de Ready. |
+| Gaps | AC-010 depende de la #28 (sin resolver a 2026-10-19). AC-007 depende de que se integre la PR #40. Por decisión del equipo (2026-10-19), Ready exige además que los ADRs de la #37 de los que depende estén integrados en `main`. Ninguno impide revisar el plan; los tres se resuelven antes de Ready. |
 
 ## Definition of Done
 
