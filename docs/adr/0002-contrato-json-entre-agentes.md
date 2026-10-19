@@ -4,7 +4,7 @@
 - Fecha: 2026-10-19
 - GitHub Issue: https://github.com/lvckss/piia2-26/issues/37
 - Planes cubiertos (Issue/mini-spec/Spec): [entregas/cu-19-interpretacion-danos/specs/37-adrs-decisiones-previas.md](../../entregas/cu-19-interpretacion-danos/specs/37-adrs-decisiones-previas.md) — registro de una decisión ya vigente. La consumen los planes de la #30 (`specs/30-costes-cobertura.md`) y la #31 (`specs/31-informe-peritaje.md`).
-- Planning PR: <URL; completar al abrirla>
+- Planning PR: https://github.com/lvckss/piia2-26/pull/51
 - Aceptación: <revisor y referencia de revisión; completar al aceptar>
 - Sustituye / sustituido por: no aplica. Registra una decisión anterior sin ADR (`specs/piia2-arquitectura-multiagente.md`, «Contrato de datos entre piezas»). El ADR 0001 (Issue #28, [PR #29](https://github.com/lvckss/piia2-26/pull/29), Propuesto y aún no integrado en `main`) propone ampliar este contrato con el campo `vehiculo`.
 

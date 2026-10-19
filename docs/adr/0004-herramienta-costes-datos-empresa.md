@@ -4,7 +4,7 @@
 - Fecha: 2026-10-19
 - GitHub Issue: https://github.com/lvckss/piia2-26/issues/37
 - Planes cubiertos (Issue/mini-spec/Spec): [entregas/cu-19-interpretacion-danos/specs/37-adrs-decisiones-previas.md](../../entregas/cu-19-interpretacion-danos/specs/37-adrs-decisiones-previas.md) — registro de una decisión ya vigente. La consume el plan de la #30 (`specs/30-costes-cobertura.md`) y, a través de sus cifras, el de la #31.
-- Planning PR: <URL; completar al abrirla>
+- Planning PR: https://github.com/lvckss/piia2-26/pull/51
 - Aceptación: <revisor y referencia de revisión; completar al aceptar>
 - Sustituye / sustituido por: no aplica. Registra una decisión anterior sin ADR (`specs/piia2-arquitectura-multiagente.md`, versión 2; `specs/agente2-costes-cobertura-guia.md`, «Qué cambió respecto a la primera versión de esta guía»).
 

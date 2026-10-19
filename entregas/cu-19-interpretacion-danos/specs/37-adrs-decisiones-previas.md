@@ -7,7 +7,7 @@
 - Justificación: el objeto de la Issue es registrar como ADR cuatro decisiones estructurales vigentes sin ADR (un contrato entre agentes, un proveedor externo, una dependencia estructural de datos y herramienta de terceros, y una estrategia de selección con coste). Son decisiones fundamentales y costosas de revertir, de las que dependen #28, #30 y #31; ningún ADR aceptado las cubre (`docs/adr/` solo tiene README y template en `main`). Cada ADR registra una decisión ya tomada; no se introduce ni se cambia ninguna.
 - Plan vigente / versión: este archivo, en la rama `plan/37-adrs-decisiones-previas`; el commit exacto se registra en un comentario de la Issue.
 - Riesgo y revisión previa: **sí** (disparador: NEW_ADR). Impacto medio-alto: los ADRs fijan decisiones que condicionan las Issues #28, #30 y #31, y el equipo decidió el 2026-10-19 que los ADRs se integran en `main` antes de implementar. Reversibilidad alta (documentos). Incertidumbre baja: las cuatro decisiones están escritas y medidas en el repo.
-- Planning PR: pendiente de abrir; se enlaza aquí y en los ADRs al abrirla. La aprueba una persona distinta del autor (revisor acordado en el reparto: Lucas).
+- Planning PR: https://github.com/lvckss/piia2-26/pull/51. La aprueba una persona distinta del autor (revisor acordado en el reparto: Lucas).
 
 ## Qué construir
 
