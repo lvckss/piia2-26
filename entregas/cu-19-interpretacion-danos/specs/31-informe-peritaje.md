@@ -1,8 +1,8 @@
 # Spec: Agente 3 — informe de peritaje en markdown con cifras verificadas
 
 - GitHub Issue: https://github.com/lvckss/piia2-26/issues/31
-- Estado: Borrador
-- ADR decision: NO_ADR_REQUIRED
+- Estado: Revisada — por Lucas García (`lvckss`), [revisión APPROVED del 2026-10-20](https://github.com/lvckss/piia2-26/pull/41#pullrequestreview-5588580320) sobre la versión `17502ac`, que cubre la spec y sus planes.
+- ADR decision: NO_ADR_REQUIRED — justificación aceptada por Lucas García en la misma [revisión](https://github.com/lvckss/piia2-26/pull/41#pullrequestreview-5588580320) (versión `17502ac`) y por Lucía Luis Castaño (revisión de `f61a637`).
 - ADR: No requerido — justificado en Spec.
 - Justificación: el Agente 3 es el último eslabón de la cadena. Consume los contratos ya acordados (salida del Agente 1 y del Agente 2, fijados por `ejemplos_contrato/`) sin cambiarlos y produce un documento markdown para una persona, no un formato que consuma otro agente ni que se persista como schema compartido. Su única interfaz, `generar_informe(agente1, agente2)`, la invocará la orquestación (#34) como una función más. No introduce dependencias externas (solo la librería estándar y los CSV de la empresa ya usados por el Agente 2) ni un trade-off difícil de revertir. El aviso de origen del coche lo decide el ADR 0001 de la Issue #28; aquí solo se consume (AC-010). **A confirmar en la revisión:** que esta justificación no oculta una decisión relevante.
 - Plan vigente / versión: este archivo, en la rama `plan/31-informe-peritaje`; el commit exacto se registra en un comentario de la Issue.
@@ -206,8 +206,8 @@ de ejemplo.
 
 ## Pendientes para Ready
 
-- **Revisión previa (solicitud del equipo):** Planning PR aprobada sobre el head final por una persona distinta del autor (revisor acordado en el reparto: Lucas) e integrada por un humano; spec en estado Revisada, con quién la acepta, el permalink y la versión registrados en la Issue. El comentario de planificación de la Issue debe señalar el commit finalmente aceptado.
-- **Confirmaciones ya dadas en la revisión de `f61a637`** (Lucía, 2026-10-17): de acuerdo con NO_ADR_REQUIRED, con el texto del aviso legal (AC-001) y con dejar fuera de alcance el párrafo con LLM y la revisión de informes reales. Deben mantenerse para la versión final.
+- **Revisión previa (solicitud del equipo):** contenido aprobado por Lucas García en la [revisión del 2026-10-20](https://github.com/lvckss/piia2-26/pull/41#pullrequestreview-5588580320) sobre `17502ac`; spec Revisada registrada en el commit de metadatos posterior. Falta la aprobación final del head con estos metadatos y la integración en `main` por un humano. El comentario de planificación de la Issue señala el commit finalmente aceptado.
+- **Confirmaciones ya dadas en la revisión de `f61a637`** (Lucía, 2026-10-17): de acuerdo con NO_ADR_REQUIRED, con el texto del aviso legal (AC-001) y con dejar fuera de alcance el párrafo con LLM y la revisión de informes reales. Se mantienen en la versión aprobada por Lucas (`17502ac`), que además incluye la restricción de `comprobar_cifras` a campos monetarios (AC-013).
 - **Forma del escenario vacío (dependencia de AC-007):** fijada en `specs/30-costes-cobertura.md#AC-007` (PR #40) y comprobada por Lucía con la herramienta real. Para Ready, la PR #40 debe estar integrada con esa forma.
 - **Resolución de la #28 (bloquea solo AC-010 y la slice 5):** a 2026-10-19 la PR #29 sigue abierta y sin revisiones, y el ADR 0001 en estado Propuesto. Antes de Ready se registra en la Issue su resolución: aceptado (AC-010 tal cual), rechazado (AC-010 retirado sin renumerar) o modificado (AC-010 actualizado conservando su ID).
 - **ADRs de la #37 integrados en `main`** (decisión del equipo del 2026-10-19: los ADRs se integran antes de implementar): al menos el que registra el contrato Agente 1 → Agente 2 → Agente 3, Aceptado.
@@ -221,7 +221,7 @@ Resultado de analyze:
 | AC sin requisito en la Issue | AC-009 (arrastres) viene del contrato y de la guía; AC-011 y AC-012 cubren failure modes. Ninguno amplía el alcance funcional. |
 | Cada AC tiene verificación y slice | Sí (AC-001 a AC-013). |
 | Comportamiento preservado | Los contratos de entrada, que no se modifican; los usan sin editar AC-001 a AC-003. |
-| ADR decision coherente | NO_ADR_REQUIRED justificado; se señala para confirmación. |
+| ADR decision coherente | NO_ADR_REQUIRED justificado; aceptado por Lucas y por Lucía (ver la cabecera). |
 | Gaps | AC-010 depende de la #28 (sin resolver a 2026-10-19). AC-007 depende de que se integre la PR #40. Por decisión del equipo (2026-10-19), Ready exige además que los ADRs de la #37 de los que depende estén integrados en `main`. Ninguno impide revisar el plan; los tres se resuelven antes de Ready. |
 
 ## Definition of Done
