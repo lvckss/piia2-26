@@ -6,6 +6,7 @@
 - Planes cubiertos (Issue/mini-spec/Spec): [32-rag-normativa.md](../../entregas/cu-19-interpretacion-danos/specs/32-rag-normativa.md), persistencia, contrato de citas y diagnóstico, composición y evaluación.
 - Planning PR: https://github.com/lvckss/piia2-26/pull/56 — draft.
 - Aceptación: pendiente de revisión humana sobre esta propuesta y el contrato con #31/#34.
+- Versión: propuesta v1.1; v1 conservada en `0197825`. Aclara el papel de la legislación y añade la comparación con recuperación directa de pólizas.
 - Sustituye / sustituido por: no sustituye un ADR aceptado. Sustituye la propuesta ChromaDB de la guía de RAG. Amplía el contrato previo registrado en el ADR 0002 Propuesto de #37/#51, cuya aceptación no se presupone.
 
 ## Contexto y motivación
@@ -21,6 +22,20 @@ paquete trae 25 preguntas con respuesta y documento esperados. El objetivo
 aceptado por Lucas es resolver al menos 24/25 con el modelo seleccionado; su
 viabilidad no está medida. Cambiar modelo puede cambiar dimensiones y geometría,
 por lo que compartir una generación de embeddings entre modelos es incorrecto.
+
+Las pólizas son cortas (2.415–3.283 caracteres), con ocho secciones homogéneas y
+parámetros de cálculo disponibles en CSV. Cuando se conocen la póliza y el
+concepto, la cláusula puede recuperarse directamente. Por eso no se presupone
+que los embeddings sean necesarios ni mejores para ese subconjunto.
+La arquitectura recoge el requisito de base vectorial y el corpus incluye
+legislación extensa y variada: se mantiene la recuperación semántica y se
+evalúa su utilidad por tipo de documento.
+
+Los textos legales se consultan en la parte normativa del Agente 2, después
+de los cálculos y antes del informe; aportan contexto general, especialmente
+en responsabilidad civil de terceros. Las condiciones concretas del producto
+proceden de su póliza y los números de la herramienta de costes. Recuperar una
+ley no valida jurídicamente el presupuesto ni obliga a citar todos los textos.
 
 El contrato actual admite `normativa: []` y el informe muestra «Sin fuentes».
 Ese único valor no distingue una búsqueda correcta sin resultados de un índice
@@ -69,6 +84,12 @@ frontera consumida por otras personas y requiere revisión previa.
    humana por pregunta, total y por tipo; tiempos, tokens y coste. Elegido con
    al menos 24 correctas; entre quienes cumplan, más aciertos y, en empate, menor
    coste. Si ninguno cumple, iterar con trazabilidad o replanificar con humano.
+10. **Referencia directa:** evaluar las 16 preguntas de póliza recuperando por
+    producto y tema/sección, sin embeddings ni consulta al gold. Aplicar la misma
+    rúbrica y comparar con small/large en ese subconjunto. Las nueve preguntas
+    legales son no aplicables a esta referencia; no se fabrica un total de 25
+    ni se presupone superioridad vectorial. La referencia es un control de la
+    evaluación, no un cambio de la interfaz ni del buscador productivo.
 
 ## Alternativas consideradas
 
@@ -77,7 +98,7 @@ frontera consumida por otras personas y requiere revisión previa.
 | PostgreSQL + pgvector, elegida | SQL, filtros y persistencia en la tecnología ya usada por el backend; encaja con el Compose solicitado. | Exige extensión, preparación de schema, volumen y disciplina de versiones/modelos. |
 | ChromaDB local, propuesta previa | Arranque sencillo desde Python; ya esbozada en la guía. | Lucas elige consolidar persistencia con PostgreSQL; cambiar ahora tiene poco coste porque el RAG no está implementado. |
 | Qdrant | Almacén especializado con filtros de metadatos y ejecución local. | Introduce otra tecnología de persistencia sin requisito identificado que la haga preferible en este corpus. |
-| SQL sin embeddings | Búsqueda léxica y filtros simples, sin coste de embeddings. | No cubre por sí sola el requisito de recuperación vectorial. Puede ser baseline auxiliar, no sustituto. |
+| Recuperación directa por póliza y sección | Predecible para cuatro documentos homogéneos; sin embeddings ni gasto de API. | Se incluye como referencia de evaluación de pólizas (AC-014). No cubre por sí sola la recuperación semántica del conjunto ni el requisito vectorial recogido en la arquitectura. |
 | Un único modelo sin comparación | Menos indexado y evaluación. | Omite la comparación small/large expresamente solicitada por Lucas. |
 | Mantener solo `normativa: []` | No cambia la forma del contrato. | Pierde la causa: consulta sin resultados, índice no preparado y fallo técnico se confundirían. |
 | Fallar todo el flujo ante cualquier ausencia de fuentes | Evita un informe sin citas. | Lucas acepta el diagnóstico preliminar con límites visibles; una ausencia de fuentes puede coexistir con datos y cálculos disponibles. |
@@ -95,6 +116,11 @@ frontera consumida por otras personas y requiere revisión previa.
 - El objetivo 24/25 es un requisito humano, sin baseline propio todavía. El
   benchmark es pequeño y conocido; no permite afirmar rendimiento general ni
   garantía normativa para cualquier siniestro.
+- La referencia directa permite comprobar si los embeddings aportan algo sobre
+  las pólizas y evita justificar la tecnología solo por su disponibilidad.
+  Los resultados legales se publican separados y no se atribuye una mejora sin
+  una referencia medida. El presupuesto sigue siendo determinista y no se
+  interpreta una cita como validación jurídica automática de la indemnización.
 - Los consumidores #31/#34 necesitan una adaptación explícita del contrato.
   La propuesta se mantiene como borrador hasta acordar esa compatibilidad.
 - TDD en indexado, filtros, errores y composición; eval-first en calidad. Cada

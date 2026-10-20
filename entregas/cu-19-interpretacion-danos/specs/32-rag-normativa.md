@@ -5,7 +5,7 @@
 - ADR decision: NEW_ADR
 - ADR: [0006 — RAG con PostgreSQL y estado de recuperación](https://github.com/lvckss/piia2-26/blob/main/docs/adr/0006-rag-postgresql-estado-recuperacion.md) — Propuesto; accesible en la rama de esta Planning PR hasta su integración.
 - Justificación: fija la persistencia vectorial, la separación de índices por modelo y una ampliación del contrato Agente 2 → Agente 3/orquestación para distinguir fuentes ausentes y fallos técnicos. Los ADRs previos de la #37 siguen Propuestos; no acreditan REUSE_ADR.
-- Plan vigente / versión: v1, este archivo en `plan/32-rag-normativa`; el comentario de planificación de la Issue fijará el commit publicado.
+- Plan vigente / versión: v1.1, este archivo en `plan/32-rag-normativa`; el comentario de planificación de la Issue fija el commit publicado. La v1 se conserva en `0197825`; v1.1 aclara la utilidad de la recuperación, el papel de la legislación y añade AC-014 sin renumerar los anteriores.
 - Riesgo y revisión previa: sí, por NEW_ADR y por la revisión de planes en PR acordada para la entrega. Impacto: fuentes de conclusiones económicas; consumidores independientes: #31 y #34. Reversión de la tecnología posible regenerando el índice; incertidumbre de calidad pendiente de evaluación.
 - Planning PR: https://github.com/lvckss/piia2-26/pull/56 — draft para revisar el contrato con consumidores.
 
@@ -14,6 +14,8 @@
 Un RAG en Python que indexa las cuatro pólizas sintéticas y los siete textos
 legales de Plexus en PostgreSQL con pgvector, recupera fragmentos literales con
 su fuente y los incorpora a los cálculos de la #30 mediante `agente2()`.
+Su utilidad se evaluará por separado en pólizas y legislación, incluyendo una
+referencia de recuperación directa por póliza y sección conocida.
 
 La interfaz de recuperación se conserva:
 
@@ -52,10 +54,51 @@ la corrección de todas las conclusiones ni produce una probabilidad de fiabilid
 Las fuentes pueden faltar o fallar técnicamente. El sistema debe conservar esa
 diferencia para que el informe explique sus límites y las siguientes acciones.
 
+### Utilidad y límites de la recuperación vectorial
+
+Las cuatro pólizas tienen entre 2.415 y 3.283 caracteres y las mismas ocho
+secciones. Sus reglas de cobertura, franquicia y límites están también en
+`polizas.csv`. Para calcular con esos datos y localizar una cláusula cuando
+ya se conocen póliza y tema, la búsqueda vectorial no es imprescindible: una
+recuperación directa por documento/sección es una referencia viable y más
+predecible que debe medirse.
+
+La recuperación semántica se justifica como capacidad a evaluar sobre el
+conjunto documental, especialmente para localizar pasajes en los siete textos
+legales, más extensos y variados, y para preguntas formuladas en lenguaje
+natural. La arquitectura del repositorio (`piia2-arquitectura-multiagente.md`,
+«Por qué esta arquitectura») recoge además el requisito de recuperar
+información de una base vectorial. Se mantiene ese alcance y se medirá su
+aportación, sin presumir que supera la recuperación directa en las pólizas.
+
+### Papel de los textos legales en el flujo
+
+La normativa se recupera en la parte C del Agente 2, después del cálculo de
+costes/cobertura y antes de la redacción del Agente 3. La póliza aporta las
+condiciones particulares del producto sintético; la legislación aporta contexto
+general sobre el contrato de seguro, responsabilidad civil y derechos u
+obligaciones relacionados con la consulta.
+
+| Fase / caso | Fuente pertinente y función |
+|---|---|
+| Identificación de daños y presupuesto | Imagen, hallazgos y datos estructurados; no se usan leyes para reconocer piezas ni fijar precios. |
+| Daños propios, franquicia, límites y regla de indemnización | La póliza concreta es la referencia directa de las condiciones aplicadas; legislación solo cuando sea pertinente para la explicación consultada. |
+| Tercero perjudicado | Legislación de responsabilidad civil; no se atribuyen al tercero las condiciones de otra póliza sintética. |
+| Redacción | Mostrar pasajes y fuentes por tema, distinguiendo condiciones de póliza y contexto legal, con los avisos de recuperación correspondientes. |
+
+No se deben citar todos los textos legales por defecto ni presentar una ley
+recuperada como validación jurídica automática del presupuesto. Los números
+siguen procediendo de #30. El papel del RAG es aportar documentos; comprobar
+exhaustivamente la conformidad legal del siniestro no forma parte de esta entrega.
+Las preguntas de evaluación sobre plazos pueden consultarse en el buscador;
+convertir esos plazos en advertencias automáticas del informe sigue perteneciendo
+a la evolución B.
+
 ## Alcance
 
 - Incluido: indexado reproducible e idempotente; PostgreSQL y pgvector; embeddings
-  de OpenAI small y large; recuperación filtrada con citas; evaluación de ambos;
+  de OpenAI small y large; recuperación filtrada con citas; evaluación de ambos
+  y referencia directa sin embeddings para las preguntas de póliza;
   `agente2()`; consultas según el caso; diagnóstico distinguible por tema y error;
   entorno del componente preparado para el Compose raíz.
 - Fuera de alcance: modificar cálculos o CSV de costes (#30), detección/visión,
@@ -189,6 +232,7 @@ tablas propias del RAG, sin alterar las tablas existentes.
 | Modelos y objetivo de calidad | Resuelta por Lucas | Comparar small y large. Objetivo del modelo seleccionado: al menos 24/25 correctas. Es requisito de producto, no resultado medido ni garantía del proveedor. |
 | Compatibilidad del contrato aditivo | Bloqueante para Ready | Acordar `diagnostico_rag` y su representación con responsables de #31 y #34, y actualizar sus planes con trazabilidad. Por eso este plan se publica como borrador. |
 | Calidad real y costes de ambos modelos | Pendiente de evaluación durante implementación | Sin baseline de este corpus. Medir siguiendo el protocolo antes de afirmar cumplimiento de AC-011. Un resultado insuficiente obliga a iterar o replanificar; no rebajar el objetivo. |
+| ¿Necesitan embeddings estas cuatro pólizas? | Resuelta en el diseño, aportación pendiente de medir | Son pequeñas, homogéneas y su póliza es conocida. Se conserva la búsqueda vectorial y se añade una referencia directa por póliza/sección (AC-014); se reportará si no aporta mejora en ese subconjunto. El caso de legislación se evalúa aparte. |
 | Relevancia de candidatos en ejecución | Límite declarado | El top-k no garantiza soporte. No se introduce un clasificador de soporte ni un umbral de distancia sin evidencia; el informe conserva la necesidad de revisión. |
 | Disponibilidad en la cuenta Plexus | Comprobación de entorno previa a implementación | Validar acceso a ambos modelos sin publicar la clave; una restricción requiere resolver el impedimento, no sustituir un modelo silenciosamente. |
 
@@ -236,6 +280,7 @@ tablas propias del RAG, sin alterar las tablas existentes.
 | AC-011 | La comparación y la revisión de fragmentos están terminadas. | El modelo seleccionado resuelve correctamente al menos 24/25 preguntas, según fuente y suficiencia definidas en el protocolo. Se publica el resultado de ambos; el otro modelo puede quedar por debajo. Si ninguno cumple, no se acredita DoD ni se rebaja el criterio sin decisión humana y replanificación. |
 | AC-012 | Un proceso de indexado o evaluación sin autorización explícita de gasto, y pruebas con cliente falso. | El arranque normal no genera embeddings ni ejecuta evaluación de pago; las pruebas deterministas se ejecutan sin clave ni red de OpenAI, usando PostgreSQL de prueba cuando corresponda. |
 | AC-013 | Entorno limpio con Docker y el paquete local; se arranca la parte del RAG desde el Compose raíz, se indexa, consulta y reinician contenedores. | Los comandos documentados preparan el componente, la consulta funciona y los fragmentos persisten tras recrear los contenedores conservando el volumen. Documentos montados en lectura, configuración por entorno; datos, claves y volumen ausentes del diff. |
+| AC-014 | Las 16 preguntas de póliza y las cuatro pólizas originales; se ejecuta la referencia directa definida en el protocolo. | Devuelve hasta cuatro secciones por pregunta, con la misma forma de cita y puntuación de suficiencia, sin embeddings ni consulta al gold durante recuperación. Se publican aciertos, fallos, tiempo y coste de API cero, junto a small/large sobre esas mismas 16 preguntas. Las nueve legales figuran como no aplicables a esta referencia, nunca como fallos ni como un total comparable de 25. Se documenta qué aporta o no aporta la búsqueda vectorial. |
 
 ## Test Plan
 
@@ -249,7 +294,9 @@ tablas propias del RAG, sin alterar las tablas existentes.
 - **S3 — `agente2(...)`:** composición pública consumida por #34; doble de
   `estimar_siniestro` hasta integrar #30, después verificación con herramienta real.
 - **S4 — informe comparativo sobre las 25 preguntas:** modelo real y revisión
-  humana de fragmentos. Eval-first para calidad; sin rojo artificial de métricas.
+  humana de fragmentos, con referencia directa sobre las 16 preguntas de póliza.
+  Eval-first para calidad; TDD para las reglas deterministas de esa referencia,
+  sin rojo artificial de métricas.
 - **S5 — contrato Agente 2 → #31/#34 y entorno Compose:** esquema y pasos de
   integración pactados; no probar funciones privadas como fronteras.
 
@@ -274,17 +321,27 @@ Durante esta planificación no se escriben ni ejecutan esos archivos.
 | `specs/32-rag-normativa.md#AC-011` | S4 | Eval-first + revisión humana | Modelo seleccionado con al menos 24/25 correctas. | Las mismas 25 preguntas, protocolo siguiente. | Revisar pasajes, registrar juicios y seleccionar modelo. | Tabla 25×2 y justificación de selección. |
 | `specs/32-rag-normativa.md#AC-012` | S1 + S2 + S4 | TDD y comprobación de arranque | Sin flag de ejecución no se llama OpenAI; cliente falso sin clave. | Entorno de prueba, contador/guardia de red. | `python probar_rag.py`; arranque sin clave. | Red/Green y cero llamadas externas. |
 | `specs/32-rag-normativa.md#AC-013` | S5 | Integración y comprobación de diff | Preparar/indexar/consultar/recrear; datos conservados. | Docker Compose y paquete en montaje de lectura. | Seguir README en entorno limpio; revisar diff de entrega. | Versiones, comandos y resultados reproducibles. |
+| `specs/32-rag-normativa.md#AC-014` | S4 | TDD del evaluador y reglas; evaluación de la referencia | Producto y concepto conocidos → secciones literales, sin API ni gold; 16 preguntas de póliza puntuadas como small/large. | Pólizas y CSV local congelados; textos de prueba con producto y tema controlados. | `python probar_rag.py`; ejecutar referencia directa de `evaluar_rag.py` y revisar los pasajes. | Red/Green de las reglas; tabla de las 16 preguntas por estrategia y explicación de aportación vectorial. |
 
 ### Protocolo de evaluación
 
 1. Congelar corpus, troceado, nombres de modelos, dimensiones, distancia coseno,
-   filtros y k=4; registrar versiones y hashes. Baseline: primera configuración
-   reproducible con small, aún sin resultado conocido; ejecutar luego large con
-   la misma configuración. No declarar que un modelo mejora antes de medirlo.
+   filtros y k=4; registrar versiones y hashes. Medir la referencia directa de
+   pólizas, la primera configuración reproducible con small y después large.
+   small y large comparten configuración salvo el modelo y sus dimensiones.
+   Ninguna estrategia tiene un resultado conocido antes de ejecutarla.
 2. Para preguntas de póliza, resolver el producto nombrado en la pregunta contra
    `polizas.csv`; registrar el ID usado. Para legales, usar póliza vacía. No usar
    la columna `fuente` ni `respuesta_esperada` para construir filtros o consultas.
    La evaluación mide búsqueda con contexto de póliza disponible, como el flujo real.
+   La referencia directa utiliza el mismo ID y clasifica el concepto de la
+   pregunta, omitiendo el nombre del producto al clasificar para que «franquicia»
+   dentro de un nombre no altere el tema. Mapa inicial congelado antes de puntuar:
+   cobertura → secciones 2 y 3 (incluidas/exclusiones); franquicia → sección 2;
+   criterio o indemnización de pérdida total → sección 5; elección de taller →
+   sección 4. Una pregunta sin tema reconocido devuelve cero secciones y cuenta
+   como fallo; no se elige la sección a partir de la respuesta esperada.
+   Se conservan texto y fuente originales, orden de documento y máximo k=4.
 3. **hit@4:** el path anterior a `#` de algún resultado coincide exactamente con
    la fuente esperada. Reportarlo por sí solo, total y por tipo.
 4. **Pregunta correcta:** además del hit, uno o varios pasajes de esa fuente
@@ -293,6 +350,8 @@ Durante esta planificación no se escriben ni ejecutan esos archivos.
    Una persona registra sí/no, el pasaje y motivo. Los resultados se presentan
    sin el nombre del modelo para reducir sesgo al juzgar suficiencia. Si el gold
    contradice el snapshot, documentar y resolver la discrepancia; no cambiarlo en silencio.
+   La misma rúbrica se aplica a las secciones de la referencia directa; su nombre
+   de estrategia tampoco se muestra a la persona que juzga suficiencia.
 5. El objetivo 24/25 (96 %) fue aceptado expresamente por Lucas en la sesión de
    diseño del 2026-10-20 como interpretación de «casi todas». No procede de un
    benchmark de OpenAI ni de una medición ya ejecutada.
@@ -305,6 +364,15 @@ Durante esta planificación no se escriben ni ejecutan esos archivos.
 7. Si se ajusta el troceado o consulta, versionar el experimento y reevaluar ambos
    con las mismas condiciones, conservando baseline y fallos. Estas 25 preguntas
    son un benchmark conocido, no un test ciego ni evidencia de generalización.
+8. Comparar recuperación directa, small y large sobre las mismas 16 preguntas
+   de póliza. Mostrar los nueve resultados legales por separado para small y
+   large, y sus totales sobre 25. La referencia directa no busca legislación:
+   en ese subconjunto se registra «no aplicable». El objetivo del modelo elegido
+   sigue siendo 24/25; la referencia no lo sustituye ni exige que ambos modelos
+   la superen. Una ventaja nula o negativa en pólizas también es un resultado
+   que debe explicarse. Cambiar el buscador productivo por una combinación de
+   estrategias requerirá registrar y revisar ese ajuste del plan; esta referencia
+   es parte de la evaluación y no cambia la firma de `buscar_normativa`.
 
 ## Implementation Plan
 
@@ -313,7 +381,7 @@ Durante esta planificación no se escriben ni ejecutan esos archivos.
 | 1 — Corpus persistente reproducible | Índice completo, repetible y separado por modelo; conserva generación activa ante fallos. | AC-001, AC-002, AC-012, AC-013 | PostgreSQL/pgvector, indexado y parte RAG del Compose raíz. | ADR aceptado; paquete local; Docker. | Filas AC-001, AC-002, AC-012, AC-013. |
 | 2 — Recuperación con citas y filtros | Búsqueda con la firma acordada, fuentes literales y errores distinguibles. | AC-003, AC-004, AC-005 | `normativa_rag.py`, contrato de errores RAG. | Slice 1. | Filas AC-003 a AC-005. |
 | 3 — Agente 2 completo | Cálculos intactos, temas por caso y diagnóstico para consumidores. | AC-006, AC-007, AC-008 | `agente2()`, `diagnostico_rag`, ejemplos/documentación de contrato. | Slice 2; #30 para integración final; contrato acordado con #31/#34. | Filas AC-006 a AC-008. |
-| 4 — Evaluación y comparación | Evaluador verificable; tabla de ambos modelos y selección con 24/25. | AC-009, AC-010, AC-011 | `evaluar_rag.py`, protocolo y resultados. | Slice 2; acceso a ambos modelos. | Filas AC-009 a AC-011. |
+| 4 — Evaluación y comparación | Evaluador verificable; referencia directa de pólizas, tabla de ambos modelos y selección con 24/25. | AC-009, AC-010, AC-011, AC-014 | `evaluar_rag.py`, protocolo y resultados. | Slice 2; acceso a ambos modelos. | Filas AC-009 a AC-011 y AC-014. |
 | 5 — Uso y entrega | Componente ejecutable desde Compose; documentación y evidencia final. | AC-012, AC-013 | README del RAG, guía actualizada y comandos del entorno. | Slices anteriores. | Arranque reproducible, checks y diff. |
 
 ## Pendientes para Ready
@@ -336,11 +404,12 @@ Durante esta planificación no se escriben ni ejecutan esos archivos.
 
 | Comprobación | Resultado |
 |---|---|
-| Issue y decisiones de Lucas cubiertas | Corpus e índice → AC-001/002/013; firma/citas/filtro → AC-003/004; errores y preliminar → AC-005/008; composición → AC-006/007; 25 preguntas y modelos → AC-009/010/011; gasto explícito → AC-012. |
-| Cada AC tiene verificación y slice | AC-001 a AC-013 con fila en Test Plan y al menos una slice. |
+| Issue y decisiones de Lucas cubiertas | Corpus e índice → AC-001/002/013; firma/citas/filtro → AC-003/004; errores y preliminar → AC-005/008; composición → AC-006/007; 25 preguntas y modelos → AC-009/010/011; gasto explícito → AC-012; justificación empírica frente a recuperación directa → AC-014. |
+| Cada AC tiene verificación y slice | AC-001 a AC-014 con fila en Test Plan y al menos una slice. |
 | Ampliaciones autorizadas | Lucas incluye `agente2()`, elige PostgreSQL y Compose, A ahora/B futura, diagnóstico preliminar, errores distintos y comparación small/large con objetivo 24/25. Registrar estas decisiones en la Issue con enlace a esta versión. |
 | Preservación | Costes, entradas y firma protegidos; adición de diagnóstico requiere revisión de consumidores. |
 | ADR decision | NEW_ADR por persistencia y frontera compartida; previos sin aceptar no se reutilizan como aceptados. |
+| Adaptación v1.1 | Solicitud explícita de Lucas tras discutir la necesidad del RAG: justificar pólizas/legislación, precisar su fase y añadir referencia directa. AC-001 a AC-013 y objetivo 24/25 conservados; AC-014 añadido. No había aceptación humana del documento que se atribuya a esta versión. |
 | Gaps | Contrato y coordinación con consumidores pendientes: publicación como draft; no Ready ni código productivo. Calidad y rendimiento aún no medidos; son verificaciones futuras, no checks superados. |
 
 ## Definition of Done
@@ -349,8 +418,9 @@ La DoD global del workflow y la Issue sigue vigente. Esta Spec añade:
 
 | Condición específica de cierre | Evidencia requerida |
 |---|---|
-| AC-001 a AC-013 verificados y regresiones pertinentes en verde. | Trazabilidad, comandos, Red/Green/Refactor y resultados finales en Implementation PR. |
+| AC-001 a AC-014 verificados y regresiones pertinentes en verde. | Trazabilidad, comandos, Red/Green/Refactor y resultados finales en Implementation PR. |
 | Ambos modelos evaluados; elegido con al menos 24/25 correctas. | Comparación completa, configuración, juicios humanos de suficiencia, coste y tiempos, baseline y cambios conservados. |
+| Referencia directa de las 16 preguntas de póliza comparada con ambos modelos. | Misma rúbrica, resultados por estrategia y subconjunto, fallos conservados y explicación de cuándo aporta valor la recuperación vectorial. |
 | Composición con el cálculo real de #30 integrada y sin cambio de cifras. | Ejecución con paquete presente y comparación con salida de costes. |
 | Consumidores pueden distinguir ausencia, parcialidad y errores. | Contrato aceptado y comprobación de integración con #31/#34; no basta con que exista el campo en un productor aislado. |
 | Parte RAG del Compose reproducible y persistente. | Pasos desde entorno limpio, consulta tras reinicio y versiones. El arranque de todo el proyecto se verificará en su integración global. |
