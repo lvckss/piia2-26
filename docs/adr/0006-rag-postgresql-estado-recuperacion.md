@@ -4,7 +4,7 @@
 - Fecha: 2026-10-20
 - GitHub Issue: https://github.com/lvckss/piia2-26/issues/32
 - Planes cubiertos (Issue/mini-spec/Spec): [32-rag-normativa.md](../../entregas/cu-19-interpretacion-danos/specs/32-rag-normativa.md), persistencia, contrato de citas y diagnóstico, composición y evaluación.
-- Planning PR: pendiente de publicación del borrador.
+- Planning PR: https://github.com/lvckss/piia2-26/pull/56 — draft.
 - Aceptación: pendiente de revisión humana sobre esta propuesta y el contrato con #31/#34.
 - Sustituye / sustituido por: no sustituye un ADR aceptado. Sustituye la propuesta ChromaDB de la guía de RAG. Amplía el contrato previo registrado en el ADR 0002 Propuesto de #37/#51, cuya aceptación no se presupone.
 

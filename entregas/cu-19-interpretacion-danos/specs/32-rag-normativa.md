@@ -7,7 +7,7 @@
 - Justificación: fija la persistencia vectorial, la separación de índices por modelo y una ampliación del contrato Agente 2 → Agente 3/orquestación para distinguir fuentes ausentes y fallos técnicos. Los ADRs previos de la #37 siguen Propuestos; no acreditan REUSE_ADR.
 - Plan vigente / versión: v1, este archivo en `plan/32-rag-normativa`; el comentario de planificación de la Issue fijará el commit publicado.
 - Riesgo y revisión previa: sí, por NEW_ADR y por la revisión de planes en PR acordada para la entrega. Impacto: fuentes de conclusiones económicas; consumidores independientes: #31 y #34. Reversión de la tecnología posible regenerando el índice; incertidumbre de calidad pendiente de evaluación.
-- Planning PR: pendiente de publicación del borrador.
+- Planning PR: https://github.com/lvckss/piia2-26/pull/56 — draft para revisar el contrato con consumidores.
 
 ## Qué construir
 
