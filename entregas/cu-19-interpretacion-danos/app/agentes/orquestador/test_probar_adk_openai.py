@@ -30,6 +30,22 @@ class ComprobacionLocal(unittest.TestCase):
     def test_ac002_evidencia_completa_e_importe_exacto(self):
         comprobar_evidencia(evidencia_correcta())
 
+    def test_ac002_resultado_con_envoltorio_publico_adk(self):
+        e = evidencia_correcta()
+        e["final"] = '{"result": "{\\"total\\": 1233.55}"}'
+        comprobar_evidencia(e)
+
+    def test_ac003_envoltorio_adk_no_oculta_resultados_invalidos(self):
+        for texto in ['{"result": "{\\"total\\": 0}"}',
+                      '{"result": "{\\"total\\": 1233.55}", "extra": 0}',
+                      '{"result": "{\\"total\\": 0}", "result": "{\\"total\\": 1233.55}"}',
+                      '{"result": "{\\"total\\": 0, \\"total\\": 1233.55}"}']:
+            with self.subTest(texto=texto):
+                e = evidencia_correcta()
+                e["final"] = texto
+                with self.assertRaises(ValueError):
+                    comprobar_evidencia(e)
+
     def test_ac003_no_acredita_importe_sin_ejecutar_tool(self):
         for campo in ["ejecuciones_tool", "llamadas", "respuestas"]:
             with self.subTest(campo=campo):

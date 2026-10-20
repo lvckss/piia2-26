@@ -1,0 +1,93 @@
+{
+  "attempt": 2,
+  "authorization": "Lucas: «prueba ahora», después de corregir un espacio interior del .env. No reinicia el intento 1.",
+  "execution_commit": "ffd7f5180aa67319fbc58080dd44a654a54b54ce",
+  "execution_script_sha256": "41c86079937cace340bc3b65daaa0232aee60a2cba097b8a6ae073872b3abcb8",
+  "process_result_original": {
+    "attempt": 2,
+    "returncode": 1,
+    "outer_duration_seconds": 20.44
+  },
+  "runtime_report_original": {
+    "fecha_utc": "2026-10-20T11:46:33.283909+00:00",
+    "modelo": "gpt-6.1-sol",
+    "reasoning_effort": "high",
+    "max_llm_calls": 2,
+    "max_output_tokens": 4096,
+    "timeout_seconds": 120,
+    "retries": 0,
+    "versions": {
+      "google-adk": "2.12.0",
+      "litellm": "1.106.0",
+      "openai": "2.54.0",
+      "python-dotenv": "1.2.4"
+    },
+    "evidencia": {
+      "completed": true,
+      "registro_tool": true,
+      "ejecuciones_tool": 1,
+      "llamadas": [
+        {
+          "id": "call_thYJBTyBIPPQVnKf1zLy3m0E",
+          "args": {},
+          "name": "importe_prueba",
+          "partial_args": null,
+          "will_continue": null
+        }
+      ],
+      "respuestas": [
+        {
+          "will_continue": null,
+          "scheduling": null,
+          "parts": null,
+          "id": "call_thYJBTyBIPPQVnKf1zLy3m0E",
+          "name": "importe_prueba",
+          "response": {
+            "result": "{\"total\": 1233.55}"
+          }
+        }
+      ],
+      "final": "{\"result\": \"{\\\"total\\\": 1233.55}\"}",
+      "usage": [
+        {
+          "cached_content_token_count": 0,
+          "candidates_token_count": 16,
+          "prompt_token_count": 90,
+          "total_token_count": 106
+        },
+        {
+          "cached_content_token_count": 0,
+          "candidates_token_count": 139,
+          "prompt_token_count": 132,
+          "thoughts_token_count": 120,
+          "total_token_count": 271
+        }
+      ]
+    },
+    "success": false,
+    "error": {
+      "type": "ValueError",
+      "status_code": null,
+      "message": "Respuesta ausente o no comprobable"
+    },
+    "duration_seconds": 18.038
+  },
+  "local_revalidation": {
+    "success": true,
+    "method": "Reproducción local de la captura completa con el comprobador corregido; ninguna llamada adicional a la API.",
+    "reason": "La respuesta final es exactamente el envoltorio result de ADK y contiene el importe decimal 1233.55 sin alteración.",
+    "validator_script_sha256": "bdd2090fc437b20f24b578e2b32cee512c3ba108b94b85a034cf5cfe02428da2",
+    "execution_code_unchanged": true,
+    "deterministic_tests": 17,
+    "deterministic_tests_duration_seconds": 11.795
+  },
+  "usage_reported": {
+    "input_tokens": 222,
+    "output_tokens": 155,
+    "total_tokens": 377,
+    "cached_tokens": 0,
+    "cost_reported": null
+  },
+  "attempts_real_total": 2,
+  "verdict": "Viabilidad mínima ADK + OpenAI acreditada: modelo real, tool ejecutada y cifra preservada. La adopción e integración de producto quedan para #34."
+}

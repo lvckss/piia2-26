@@ -39,6 +39,10 @@ def _importe(texto):
     try:
         dato = json.loads(texto, parse_float=Decimal, parse_int=Decimal,
                           object_pairs_hook=objeto)
+        # ADK envuelve los retornos str de una FunctionTool en {"result": str}.
+        if isinstance(dato, dict) and set(dato) == {"result"}:
+            dato = json.loads(dato["result"], parse_float=Decimal, parse_int=Decimal,
+                              object_pairs_hook=objeto)
         valor = dato["total"]
         if (set(dato) != {"total"} or not isinstance(valor, Decimal)
                 or not valor.is_finite() or valor != Decimal("1233.55")):
