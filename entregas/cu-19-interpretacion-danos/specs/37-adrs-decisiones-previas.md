@@ -1,9 +1,9 @@
 # Spec: Registrar como ADRs las decisiones estructurales previas del sistema
 
 - GitHub Issue: https://github.com/lvckss/piia2-26/issues/37
-- Estado: Borrador
-- ADR decision: NEW_ADR
-- ADR: [docs/adr/0002-contrato-json-entre-agentes.md](../../../docs/adr/0002-contrato-json-entre-agentes.md), [docs/adr/0003-proveedor-openai-clave-empresa.md](../../../docs/adr/0003-proveedor-openai-clave-empresa.md), [docs/adr/0004-herramienta-costes-datos-empresa.md](../../../docs/adr/0004-herramienta-costes-datos-empresa.md) y [docs/adr/0005-filtro-previo-detecciones-por-clase.md](../../../docs/adr/0005-filtro-previo-detecciones-por-clase.md) — los cuatro Propuestos.
+- Estado: Revisada — por Lucas García (`lvckss`), [revisión APPROVED del 2026-10-20](https://github.com/lvckss/piia2-26/pull/51#pullrequestreview-5588663399) sobre la versión `14b4b28`, que cubre la spec, sus planes y la ADR decision.
+- ADR decision: NEW_ADR — aceptada en la misma revisión (Lucas García, versión `14b4b28`), junto con la numeración 0002–0005 y el registro canónico en `docs/adr/` con la copia a `decisions/` en la #49.
+- ADR: [docs/adr/0002-contrato-json-entre-agentes.md](../../../docs/adr/0002-contrato-json-entre-agentes.md), [docs/adr/0003-proveedor-openai-clave-empresa.md](../../../docs/adr/0003-proveedor-openai-clave-empresa.md), [docs/adr/0004-herramienta-costes-datos-empresa.md](../../../docs/adr/0004-herramienta-costes-datos-empresa.md) y [docs/adr/0005-filtro-previo-detecciones-por-clase.md](../../../docs/adr/0005-filtro-previo-detecciones-por-clase.md) — los cuatro Aceptados (Lucas García, versión `14b4b28`).
 - Justificación: el objeto de la Issue es registrar como ADR cuatro decisiones estructurales vigentes sin ADR (un contrato entre agentes, un proveedor externo, una dependencia estructural de datos y herramienta de terceros, y una estrategia de selección con coste). Son decisiones fundamentales y costosas de revertir, de las que dependen #28, #30 y #31; ningún ADR aceptado las cubre (`docs/adr/` solo tiene README y template en `main`). Cada ADR registra una decisión ya tomada; no se introduce ni se cambia ninguna.
 - Plan vigente / versión: este archivo, en la rama `plan/37-adrs-decisiones-previas`; el commit exacto se registra en un comentario de la Issue.
 - Riesgo y revisión previa: **sí** (disparador: NEW_ADR). Impacto medio-alto: los ADRs fijan decisiones que condicionan las Issues #28, #30 y #31, y el equipo decidió el 2026-10-19 que los ADRs se integran en `main` antes de implementar. Reversibilidad alta (documentos). Incertidumbre baja: las cuatro decisiones están escritas y medidas en el repo.
@@ -109,8 +109,8 @@ Estrategia: **documental** (contenido, contraste con el repo, enlaces y diff). S
 
 ## Pendientes para Ready
 
-- **Revisión previa (NEW_ADR):** Planning PR aprobada sobre el head final por una persona distinta del autor (revisor acordado: Lucas) e integrada por un humano; spec Revisada y ADRs Aceptados, con quién, el permalink y la versión registrados.
-- **Confirmación en la revisión** de la numeración (0002 a 0005 con el 0001 de la #28 sin integrar) y de lo que queda fuera de alcance.
+- **Revisión previa (NEW_ADR):** contenido aceptado por Lucas García en la [revisión del 2026-10-20](https://github.com/lvckss/piia2-26/pull/51#pullrequestreview-5588663399) sobre `14b4b28`; spec Revisada y ADRs Aceptados registrados en el commit de metadatos posterior. Falta la aprobación final del head con estos metadatos y la integración en `main` por un humano.
+- Numeración (0002 a 0005, con el 0001 de la #28 sin integrar) y lo que queda fuera de alcance: confirmados en la misma revisión.
 
 Resultado de analyze:
 

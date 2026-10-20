@@ -1,11 +1,11 @@
 # ADR 0003: API de OpenAI con la clave de la empresa como proveedor de modelos
 
-- Estado: Propuesto
+- Estado: Aceptado
 - Fecha: 2026-10-19
 - GitHub Issue: https://github.com/lvckss/piia2-26/issues/37
 - Planes cubiertos (Issue/mini-spec/Spec): [entregas/cu-19-interpretacion-danos/specs/37-adrs-decisiones-previas.md](../../entregas/cu-19-interpretacion-danos/specs/37-adrs-decisiones-previas.md) — registro de una decisión ya vigente. La usan el Agente 1 (segunda opinión de visión) y, si se hace, el RAG (#32) y la orquestación (#33, #34).
 - Planning PR: https://github.com/lvckss/piia2-26/pull/51
-- Aceptación: <revisor y referencia de revisión; completar al aceptar>
+- Aceptación: Lucas García (`lvckss`), [revisión APPROVED del 2026-10-20](https://github.com/lvckss/piia2-26/pull/51#pullrequestreview-5588663399) sobre la versión `14b4b28` (aceptación expresa de los ADRs 0002, 0003, 0004 y 0005).
 - Sustituye / sustituido por: no aplica. Registra una decisión anterior sin ADR (`specs/piia2-arquitectura-multiagente.md`, tabla «Decisiones tomadas y pendientes», fila «Proveedor y modelos»).
 
 ## Contexto y motivación
