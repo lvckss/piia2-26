@@ -1,8 +1,8 @@
 # Spec: Agente 2 — costes y cobertura a partir de los hallazgos
 
 - GitHub Issue: https://github.com/lvckss/piia2-26/issues/30
-- Estado: Borrador
-- ADR decision: NO_ADR_REQUIRED
+- Estado: Revisada — por Lucas García (`lvckss`), [revisión APPROVED del 2026-10-20](https://github.com/lvckss/piia2-26/pull/40#pullrequestreview-5588541999) sobre la versión `c1e5b93`, que cubre la spec y sus planes.
+- ADR decision: NO_ADR_REQUIRED — justificación aceptada por Lucas García ([comentario del 2026-10-20](https://github.com/lvckss/piia2-26/pull/40#issuecomment-6290002285) y aprobación sobre `c1e5b93`) y por Lucía Luis Castaño (revisión de `408f393`).
 - ADR: No requerido — justificado en Spec.
 - Justificación: esta Issue implementa, sin cambiarlo, el contrato Agente 2 → Agente 3 ya acordado en `specs/piia2-arquitectura-multiagente.md` y fijado por `ejemplos_contrato/agente2_salida.json`. No introduce una decisión estructural nueva: usa la herramienta de costes de la empresa (decisión previa) y replica reglas de cobertura deterministas ya descritas. Registrar como ADR las decisiones previas (contrato entre agentes, herramienta de la empresa) es el alcance de la Issue #37, no de esta. El único cambio de contrato que toca esta Issue (`vehiculo_id` opcional y `vehiculo_origen`) lo decide el ADR 0001 de la Issue #28; aquí solo se consume (AC-009). **A confirmar en la revisión:** que esta justificación no oculta una decisión relevante.
 - Plan vigente / versión: este archivo, en la rama `plan/30-costes-cobertura`; el commit exacto se registra en un comentario de la Issue.
@@ -170,8 +170,8 @@ Al terminar, el README de `agente_recuperacion/` indica cómo ejecutar las prueb
 ## Pendientes para Ready
 
 - **Resolución de la #28 (bloquea solo AC-009 y la slice 4):** a 2026-10-19 la PR #29 sigue abierta y sin revisiones, y el ADR 0001 en estado Propuesto. Antes de Ready se registra en la Issue su resolución: aceptado (AC-009 tal cual), rechazado (AC-009 retirado sin renumerar) o modificado (AC-009 actualizado conservando su ID). Las slices 1, 2, 3 y 5 no dependen de ella.
-- **Revisión previa (solicitud del equipo):** Planning PR #40 aprobada sobre el head final por una persona distinta del autor (revisor acordado en el reparto: Lucas) e integrada por un humano; spec en estado Revisada, con quién la acepta, el permalink y la versión registrados en la Issue. El comentario de planificación de la Issue debe señalar el commit finalmente aceptado.
-- **ADR decision:** NO_ADR_REQUIRED, con el acuerdo de Lucía y de Lucas en la revisión de `408f393`; debe mantenerse para la versión final.
+- **Revisión previa (solicitud del equipo):** contenido aprobado por Lucas García en la [revisión del 2026-10-20](https://github.com/lvckss/piia2-26/pull/40#pullrequestreview-5588541999) sobre `c1e5b93`; spec Revisada registrada en el commit de metadatos posterior. Falta la aprobación final del head con estos metadatos y la integración en `main` por un humano. El comentario de planificación de la Issue señala el commit finalmente aceptado.
+- **ADR decision:** NO_ADR_REQUIRED, aceptada por Lucas y por Lucía (ver la cabecera).
 - **ADRs de la #37 integrados en `main`** (decisión del equipo del 2026-10-19: los ADRs se integran antes de implementar): al menos los que registran el contrato Agente 1 → Agente 2 → Agente 3 y el uso de la herramienta de costes y los datos de la empresa, Aceptados.
 - Importes esperados de AC-004 a AC-006: resueltos con evidencia (ver Restricciones y supuestos).
 - **Prerrequisito de implementación (no de planificación):** extraer `piia2_paquete_datos/` en la raíz del repo.
