@@ -143,7 +143,7 @@ comprobación lleva en su nombre o comentario `30-costes-cobertura.md#AC-0XX`.
 
 | Referencia (ruta de Spec + AC) | Seam / contrato | Estrategia y nivel | Caso / resultado esperado | Datos / entorno | Comando o pasos previstos | Evidencia prevista |
 |---|---|---|---|---|---|---|
-| `specs/30-costes-cobertura.md#AC-001` | S1 + S2 | TDD (Red → Green); contrato | Salida == `agente2_salida.json` salvo `normativa` | `ejemplos_contrato/`; paquete de la empresa | `python probar_costes.py` | Red (módulo ausente) y Green |
+| `specs/30-costes-cobertura.md#AC-001` | S1 + S2 | TDD (Red → Green); contrato | Salida == `agente2_salida.json` salvo `normativa` | `ejemplos_contrato/`; paquete de la empresa | `python probar_costes.py` | Red por el comportamiento: `costes_y_cobertura.py` importa sin error y `estimar_siniestro` existe, pero la prueba falla porque su salida aún no es igual a `agente2_salida.json` (un error de importación o un módulo ausente no acredita el Red); después, Green |
 | `specs/30-costes-cobertura.md#AC-002` | S1 | TDD; unitario sobre la frontera | Cada combinación en su grupo con su motivo; sin duplicados ni pérdidas | Hallazgos construidos a partir de `agente1_salida.json` | `python probar_costes.py` | Red y Green |
 | `specs/30-costes-cobertura.md#AC-003` | S1 + S2 | TDD | Tercero: umbral 1,0, franquicia 0, RC, total con IVA | Contexto del ejemplo modificado | `python probar_costes.py` | Red y Green |
 | `specs/30-costes-cobertura.md#AC-004` | S1 + S2 | TDD | Póliza sin colisión: no cubierto, 0,00 € | `poliza_id = "P-TERC-BASICO"` | `python probar_costes.py` | Red y Green |
