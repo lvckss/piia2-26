@@ -260,7 +260,7 @@ por la existencia de este documento.
 
 ## Definition of Done
 
-La DoD global está definida por el [workflow](../../../docs/workflow.md) y la
+La DoD global está definida por el [workflow](https://github.com/lvckss/piia2-26/blob/6b8ff989823fa69226679bf3e693a48488f14cff/docs/workflow.md) y la
 checklist de la Issue enlazada. Esta sección la amplía, nunca la sustituye ni
 la relaja. Todos los AC deben tener evidencia mediante ruta de Spec + ID.
 

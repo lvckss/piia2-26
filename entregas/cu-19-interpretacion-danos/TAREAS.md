@@ -78,7 +78,7 @@ Todas las tareas quedan asignadas a Lucía.
       Se mantiene el prompt original; ver decisión de alcance más abajo.
 - [x] 5. Extender CLIP + Tip-Adapter a `dent`. Añadido siguiendo exactamente
       el mismo patrón que `flat_tire`/`broken_lamp`:
-      - [export_dent_roi_crops.py](../app/ml/scripts/export_dent_roi_crops.py)
+      - [export_dent_roi_crops.py](app/ml/scripts/export_dent_roi_crops.py)
         (mismo patrón que `export_lamp_roi_crops.py`, derivado a su vez de
         `export_wheel_roi_crops.py`). `dent` no tiene un "objeto sano" claro
         como una rueda o un faro, así que el rol de negativo lo hace un panel
