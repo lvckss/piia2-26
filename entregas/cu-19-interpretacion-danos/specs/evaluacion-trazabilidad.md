@@ -13,7 +13,7 @@ Procesos reproducibles que miden el sistema y dejan registrado con qué datos, c
    - un registro de la configuración y versiones utilizadas.
 
    Los resultados de esa detección están guardados para 500 imágenes de CarDD; PIIA2 los consume y no los vuelve a calcular ejecutando SAM3.
-2. **Sistema PIIA2.** Evaluación de cada pieza con los datos disponibles: la segunda opinión del modelo de visión del Agente 1 y el techo que marcan las detecciones guardadas; el error de costes del Agente 2; la recuperación del RAG; la coincidencia de las cifras del informe con las del Agente 2; y, si se aprueba la propuesta de la Issue #28, la categoría del vehículo.
+2. **Sistema PIIA2.** Evaluación de cada pieza con los datos disponibles: la segunda opinión del modelo de visión del Agente 1 y el techo que marcan las detecciones guardadas; el error de costes del Agente 2; la recuperación del RAG; y la coincidencia de las cifras del informe con las del Agente 2. La evaluación de la categoría del vehículo (Issue #28) queda fuera: la Issue está aparcada.
 
 ## Por qué
 
@@ -23,7 +23,7 @@ En PIIA2 hay una razón más: cada pieza del sistema se apoya en datos distintos
 
 ## Alcance
 
-- **Incluido:** el proceso de evaluación de la detección de PIIA1 (heredado); la medición de la segunda opinión de visión; el análisis del techo de las detecciones guardadas; la evaluación del coste del Agente 2, del RAG, del informe y, si se aprueba la propuesta de la Issue #28, de la categoría del vehículo; el registro de la configuración y de los datos usados en cada evaluación.
+- **Incluido:** el proceso de evaluación de la detección de PIIA1 (heredado); la medición de la segunda opinión de visión; el análisis del techo de las detecciones guardadas; la evaluación del coste del Agente 2, del RAG, del informe (la evaluación de la categoría del vehículo queda fuera: la Issue #28 está aparcada); el registro de la configuración y de los datos usados en cada evaluación.
 - **Fuera de alcance:** ejecutar SAM3 o mejorar la detección de PIIA1; el cálculo de costes, la recuperación de normativa y la redacción del informe, que son de los Agentes 2 y 3; calibrar los umbrales de confianza (ver [`agente-confianza-hallazgos.md`](agente-confianza-hallazgos.md)); cambiar el código de evaluación.
 
 ## Restricciones y supuestos
@@ -67,4 +67,4 @@ Se conservan como especificación del `Evaluator` de PIIA1; no son requisitos de
 | AC-010 | Los siniestros sintéticos de la empresa (`split` val y test) con su coste facturado sin IVA. | Se mide el error de coste de la herramienta de la empresa con los daños reales (referencia ≈ 9 %), que es el suelo de error que hereda el Agente 2. | **Pendiente.** Depende del Agente 2 ([Issue #30](https://github.com/lvckss/piia2-26/issues/30)). |
 | AC-011 | Las 25 preguntas de evaluación de la empresa. | Se mide en cuántas aparece la fuente esperada entre los k fragmentos que devuelve el RAG. | **Pendiente.** Depende del RAG ([Issue #32](https://github.com/lvckss/piia2-26/issues/32)); la métrica mínima la fija su plan. |
 | AC-012 | Un informe generado a partir de la salida del Agente 2. | Todas las cifras en euros del informe coinciden con las de esa salida, y una comprobación automática lo verifica. | **Pendiente.** Depende del Agente 3 ([Issue #31](https://github.com/lvckss/piia2-26/issues/31)). |
-| AC-013 | Una muestra de fotos de CarDD y la categoría de vehículo estimada para cada una. | Se documenta, por foto, la categoría estimada y la que juzga una persona, y la tasa de coincidencia. | **Pendiente.** Solo aplica si se aprueba la propuesta de la [Issue #28](https://github.com/lvckss/piia2-26/issues/28); corresponde al criterio AC-011 de su planificación, que fija el umbral. |
+| AC-013 | Una muestra de fotos de CarDD y la categoría de vehículo estimada para cada una. | Se documenta, por foto, la categoría estimada y la que juzga una persona, y la tasa de coincidencia. | **Aparcado.** La [Issue #28](https://github.com/lvckss/piia2-26/issues/28) está aparcada, así que este criterio no se evalúa en este ciclo; corresponde al criterio AC-011 de su planificación, que fijaba el umbral. |

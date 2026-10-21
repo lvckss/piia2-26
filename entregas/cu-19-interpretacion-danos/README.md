@@ -8,7 +8,7 @@ El punto de partida son los **resultados de detección de PIIA1 ya guardados**: 
 
 El sistema se organiza en tres agentes, coordinados por una orquestación:
 
-1. **Agente 1 — Analista de daños (multimodal).** Mira la foto, no solo el JSON de detecciones: da una segunda opinión con un modelo de visión sobre cada detección (¿hay un daño de verdad?), identifica la pieza afectada y su severidad y asigna a cada hallazgo un nivel de confianza (`confirmed` o `needs_review`). Está propuesto que además estime la categoría del vehículo cuando el siniestro no trae el coche ([Issue #28](https://github.com/lvckss/piia2-26/issues/28), pendiente de aprobación): hoy el vehículo es un dato de entrada del siniestro.
+1. **Agente 1 — Analista de daños (multimodal).** Mira la foto, no solo el JSON de detecciones: da una segunda opinión con un modelo de visión sobre cada detección (¿hay un daño de verdad?), identifica la pieza afectada y su severidad y asigna a cada hallazgo un nivel de confianza (`confirmed` o `needs_review`). Se propuso que además estimara la categoría del vehículo cuando el siniestro no trae el coche ([Issue #28](https://github.com/lvckss/piia2-26/issues/28), aparcada): el vehículo es un dato de entrada obligatorio del siniestro.
 2. **Agente 2 — Costes, cobertura y normativa.** Calcula el coste de reparación con la herramienta de costes que entregó la empresa, determina la pérdida total, la cobertura de la póliza y una indemnización estimada, y recupera de una base de datos vectorial los fragmentos de pólizas y legislación que justifican la cobertura y la pérdida total, cuando los hay.
 3. **Agente 3 — Redactor.** Genera el informe de peritaje agregado en markdown. Las cifras las calcula el código, y una comprobación automática verifica que todas las cifras en euros del informe coinciden con las del Agente 2.
 
@@ -25,15 +25,15 @@ El proyecto busca estudiar hasta qué punto un sistema de agentes puede converti
 El proyecto incluye:
 
 - la **entrada**: los resultados de detección de PIIA1 ya guardados para 500 imágenes de CarDD y los datos del siniestro (taller, póliza y demás parámetros que necesita la herramienta de costes), descritos en [`specs/interpretacion-danos-imagen.md`](specs/interpretacion-danos-imagen.md) y en [`specs/piia2-arquitectura-multiagente.md`](specs/piia2-arquitectura-multiagente.md);
-- el **Agente 1**: segunda opinión de visión, pieza, severidad y veredicto de cada hallazgo ([`specs/interpretacion-danos-imagen.md`](specs/interpretacion-danos-imagen.md)), niveles de confianza y filtro previo de detecciones ([`specs/agente-confianza-hallazgos.md`](specs/agente-confianza-hallazgos.md)); la categoría del vehículo cuando el siniestro no trae el coche es una propuesta pendiente de aprobación ([Issue #28](https://github.com/lvckss/piia2-26/issues/28));
-- el **Agente 2**: costes, pérdida total, cobertura e indemnización orientativas ([Issue #30](https://github.com/lvckss/piia2-26/issues/30)) y recuperación de pólizas y legislación desde una base de datos vectorial ([Issue #32](https://github.com/lvckss/piia2-26/issues/32));
-- el **Agente 3**: informe de peritaje en markdown con cifras comprobadas ([Issue #31](https://github.com/lvckss/piia2-26/issues/31));
+- el **Agente 1**: segunda opinión de visión, pieza, severidad y veredicto de cada hallazgo ([`specs/interpretacion-danos-imagen.md`](specs/interpretacion-danos-imagen.md)), niveles de confianza y filtro previo de detecciones ([`specs/agente-confianza-hallazgos.md`](specs/agente-confianza-hallazgos.md)); la categoría del vehículo cuando el siniestro no trae el coche es una propuesta aparcada ([Issue #28](https://github.com/lvckss/piia2-26/issues/28)), por lo que el `vehiculo_id` es un dato de entrada obligatorio;
+- el **Agente 2**: costes, pérdida total, cobertura e indemnización orientativas ([`specs/30-costes-cobertura.md`](specs/30-costes-cobertura.md)) y recuperación de pólizas y legislación desde una base de datos vectorial ([Issue #32](https://github.com/lvckss/piia2-26/issues/32));
+- el **Agente 3**: informe de peritaje en markdown con cifras comprobadas ([`specs/31-informe-peritaje.md`](specs/31-informe-peritaje.md));
 - la **orquestación** de los tres agentes de punta a punta ([Issue #33](https://github.com/lvckss/piia2-26/issues/33), prueba de viabilidad de Google ADK, e [Issue #34](https://github.com/lvckss/piia2-26/issues/34));
 - la **evaluación** de cada pieza con datos etiquetados o sintéticos, y el registro de la configuración y la procedencia de los resultados ([`specs/evaluacion-trazabilidad.md`](specs/evaluacion-trazabilidad.md)).
 
 Los **procedimientos de reparación** salen de las reglas de la herramienta de costes de la empresa (clase de daño, zona y severidad determinan la acción de reparación); la base de datos vectorial recupera **pólizas y legislación**.
 
-Las capacidades enlazadas a una Issue tienen su especificación en elaboración: se publicarán en `specs/` conforme se integren.
+Las capacidades enlazadas a una Issue (la recuperación de pólizas y legislación y la orquestación) tienen su especificación en elaboración: se publicarán en `specs/` conforme se integren.
 
 Quedan fuera del alcance:
 
@@ -91,7 +91,10 @@ cu-19-interpretacion-danos/
 | [`interpretacion-danos-imagen.md`](specs/interpretacion-danos-imagen.md) | Spec funcional | Agente 1: de las detecciones guardadas y la foto a los hallazgos con pieza, severidad y veredicto. |
 | [`agente-confianza-hallazgos.md`](specs/agente-confianza-hallazgos.md) | Spec funcional | Niveles de confianza (`confirmed`, `needs_review`), filtro previo de detecciones y su medición. |
 | [`evaluacion-trazabilidad.md`](specs/evaluacion-trazabilidad.md) | Spec funcional | Evaluación y trazabilidad de los resultados. |
+| [`30-costes-cobertura.md`](specs/30-costes-cobertura.md) | Spec funcional | Agente 2: de los hallazgos y los datos del siniestro a costes, pérdida total, cobertura e indemnización orientativas. |
+| [`31-informe-peritaje.md`](specs/31-informe-peritaje.md) | Spec funcional | Agente 3: del resultado de los Agentes 1 y 2 al informe de peritaje en markdown, con las cifras comprobadas. |
 | [`piia2-arquitectura-multiagente.md`](specs/piia2-arquitectura-multiagente.md) | Arquitectura | Diseño del sistema, contrato JSON entre agentes, decisiones tomadas con la empresa y plan. |
 | [`agente2-costes-cobertura-guia.md`](specs/agente2-costes-cobertura-guia.md), [`agente2-rag-normativa-guia.md`](specs/agente2-rag-normativa-guia.md), [`agente3-informe-guia.md`](specs/agente3-informe-guia.md), [`integracion-adk-guia.md`](specs/integracion-adk-guia.md) | Guías | Guías de implementación de cada pieza, con código de referencia probado. |
 | [`mejora-robustez-tipos-vehiculo.md`](specs/mejora-robustez-tipos-vehiculo.md) | Spec histórica | Mejora de robustez del detector de PIIA1; la parte de `vehicle_type` se implementó y se revirtió, y así consta en el documento. |
 | [`14-validar-scores-confianza.md`](specs/14-validar-scores-confianza.md) | Plan de la [Issue #14](https://github.com/lvckss/piia2-26/issues/14) | Validación del rango del score antes de clasificar un hallazgo; su implementación se retiró y la tarea está pendiente de rehacerse. |
+| [`37-adrs-decisiones-previas.md`](specs/37-adrs-decisiones-previas.md) | Plan de la [Issue #37](https://github.com/lvckss/piia2-26/issues/37) | Registro como ADRs de las decisiones estructurales previas del sistema: contrato entre agentes, proveedor de modelos, herramienta de costes y filtro previo de detecciones. |
