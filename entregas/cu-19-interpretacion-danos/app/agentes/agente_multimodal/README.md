@@ -26,6 +26,7 @@ Diseño del filtro de confianza:
 | `vision.py` | Manda a un modelo de OpenAI la foto con la caja + el recorte; valida su respuesta JSON (veredicto, pieza, severidad); cache opcional para no pagar dos veces lo mismo. |
 | `agente1.py` | Encadena todo: `analizar_imagen(...)` devuelve (y opcionalmente guarda) el JSON final. |
 | `generar_lote.py` | Genera la salida real del Agente 1 para un lote reproducible de imágenes del export (un JSON por imagen), la valida contra el contrato y resume llamadas, tokens y reparto de niveles. Ver «Generar un lote real». |
+| `etiquetado.py` | Etiquetado manual para calibrar los umbrales (Issue #44): elige la muestra, genera la página de etiquetado y calcula la precisión por clase y tramo de score con intervalo. Ver «Etiquetar para calibrar los umbrales». |
 | `colab/` | Notebook para exportar las detecciones de PIIA-1 (SAM3) de ~500 imágenes, una sola vez, con cada detección marcada como acierto/falso positivo. |
 
 ## Uso
@@ -109,13 +110,48 @@ python generar_lote.py --ejecutar
 - Regenerar tras cambiar los umbrales de `confianza.py` no cuesta llamadas
   mientras no cambien el prompt ni los recortes.
 
+## Etiquetar para calibrar los umbrales
+
+`is_true_positive` no es una vara fiable en `dent`, `scratch` y `crack` (CarDD no
+anota todos los daños), así que la precisión de lo que la visión confirma se
+estima con etiquetas manuales (Issue #44). `etiquetado.py` hace tres cosas:
+
+```bash
+# 1. elegir la muestra y generar la página de etiquetado (no gasta API)
+python etiquetado.py muestra --salidas ../../../../../piia2_detecciones/salida_agente1_500
+# 2. etiquetar en el navegador y bajar el CSV; guardarlo (solo ids y etiquetas) en etiquetas/
+# 3. calcular la tabla de precisión por clase y tramo
+python etiquetado.py tabla --salidas ../../../../../piia2_detecciones/salida_agente1_500     --etiquetas etiquetas/confirmados_bajo_umbral.csv [--resultados <resultados_modelo.json>]
+```
+
+- **Muestra:** hallazgos que la visión confirmó, de `dent`, `scratch` y `crack`, con
+  score por debajo del umbral actual de su clase y dentro de dos tramos (0,3-0,5 y
+  0,5-0,7), hasta 10 por clase y tramo (semilla 42, reproducible). Lo que ya pasa el
+  umbral no se etiqueta: su nivel no cambia si el umbral baja. La **tanda 1** es el
+  tramo 0,5-0,7; la **tanda 2** (0,3-0,5), solo si la primera no deja clara la
+  conclusión.
+- **Página:** un solo archivo HTML, sin red, con los recortes incrustados. Se escribe
+  en `piia2_detecciones/etiquetado/` (ignorada por git) y no se deja escribir dentro
+  de `entregas/`, porque lleva recortes de CarDD. Teclas: `s` sí, `o` hay un daño de
+  otra clase, `n` no, `d` dudo, espacio para ver qué dice la IA (se mira primero el
+  recorte), flechas para moverse. Las marcas se guardan en el navegador y se bajan
+  con «Descargar CSV».
+- **Etiquetas:** CSV con la cabecera `finding_id,etiqueta`. Pregunta: «¿hay un daño de
+  esta clase en la caja?» (`si`, `otra`, `no`, `dudo`).
+- **Tabla:** precisión de `confirmado` con intervalo de Wilson al 95 %, en dos
+  versiones (solo `si`, y `si` + `otra` como daño real); `dudo` va aparte y no entra
+  en el denominador; toda celda con menos de 5 casos sale como no concluyente. Con
+  `--resultados` (el `resultados_<modelo>.json` de `evaluar_vision.py`) compara con
+  `is_true_positive`: cuántos confirmados que PIIA-1 daba por fallo eran daño real.
+
 ## Pruebas sin API Key
 
 `probar_vision_stub.py`, `probar_agente1_stub.py`, `probar_seleccion_stub.py`,
-`probar_evaluar_vision_stub.py` y `probar_lote_stub.py` usan un cliente falso de
-OpenAI, así que no necesitan API Key ni el paquete `openai`. Las dos últimas
-usan además el export real y las fotos del CarDD en local si están (si no, se
-saltan esa parte).
+`probar_evaluar_vision_stub.py`, `probar_lote_stub.py` y `probar_etiquetado_stub.py`
+usan un cliente falso de OpenAI o ninguno, así que no necesitan API Key ni el
+paquete `openai`. `probar_evaluar_vision_stub.py` usa además el export real y las
+fotos del CarDD en local, y `probar_etiquetado_stub.py`, las salidas reales del
+lote de la #43, si están (si no, se saltan esa parte).
 `probar_con_imagenes_reales.py` prueba el recorte con fotos del CarDD en local
 (`CarDD_release/`, no se sube a git).
 
