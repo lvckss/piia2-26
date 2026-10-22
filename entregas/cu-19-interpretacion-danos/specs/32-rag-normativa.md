@@ -4,8 +4,8 @@
 - Estado: Borrador
 - ADR decision: NEW_ADR
 - ADR: [0006 — RAG con PostgreSQL y estado de recuperación](https://github.com/lvckss/piia2-26/blob/main/docs/adr/0006-rag-postgresql-estado-recuperacion.md) — Propuesto; accesible en la rama de esta Planning PR hasta su integración.
-- Justificación: fija la persistencia vectorial, la separación de índices por modelo y una ampliación del contrato Agente 2 → Agente 3/orquestación para distinguir fuentes ausentes y fallos técnicos. Los ADRs previos de la #37 siguen Propuestos; no acreditan REUSE_ADR.
-- Plan vigente / versión: v1.1, este archivo en `plan/32-rag-normativa`; el comentario de planificación de la Issue fija el commit publicado. La v1 se conserva en `0197825`; v1.1 aclara la utilidad de la recuperación, el papel de la legislación y añade AC-014 sin renumerar los anteriores.
+- Justificación: fija la persistencia vectorial, la separación de índices por modelo y una ampliación del contrato Agente 2 → Agente 3/orquestación para distinguir fuentes ausentes y fallos técnicos. Los ADRs previos 0002, 0003 y 0004 están Aceptados e integrados por la #51; cubren el contrato base, el proveedor y el cálculo, pero no la persistencia vectorial ni el diagnóstico nuevo, por lo que se mantiene NEW_ADR.
+- Plan vigente / versión: v1.2, este archivo en `plan/32-rag-normativa`; el comentario de planificación de la Issue fija el commit publicado. La v1 se conserva en `0197825` y la v1.1 en `88bd84d`. La v1.2 actualiza referencias y dependencias al 2026-10-22; conserva las decisiones, los 14 AC y los planes de verificación e implementación.
 - Riesgo y revisión previa: sí, por NEW_ADR y por la revisión de planes en PR acordada para la entrega. Impacto: fuentes de conclusiones económicas; consumidores independientes: #31 y #34. Reversión de la tecnología posible regenerando el índice; incertidumbre de calidad pendiente de evaluación.
 - Planning PR: https://github.com/lvckss/piia2-26/pull/56 — draft para revisar el contrato con consumidores.
 
@@ -31,13 +31,22 @@ el diagnóstico de recuperación propuesto más abajo. La #34 consume esa funci�
 
 ### Estado actual y evidencia
 
-- Main examinado: `5bdabe2ef6d9aa63ca3ea68f20a57fc85f79f449`.
+- Exploración inicial: `main` en `5bdabe2ef6d9aa63ca3ea68f20a57fc85f79f449`.
+  Referencias y dependencias actualizadas el 2026-10-22 contra `main`
+  `73f60750572f0731c9bb9203ebb0dc4c4eaaead5`; la inspección del paquete sigue siendo la inicial.
 - `app/agentes/agente_recuperacion/` solo contiene un README; la guía
   `agente2-rag-normativa-guia.md` contiene una propuesta ChromaDB, sin implementación.
 - El backend ya utiliza PostgreSQL (`app/server/bd/bd.ts`), sin evidencia de pgvector habilitado.
-- Las specs de costes (#40, `476f0f7`) e informe (#41, `3d18937`) están en PRs abiertas;
-  la primera asigna `agente2()` a #32. La aclaración de Lucía está en
+- La spec de costes (#30, PR #40) está integrada en `main` (`e950b50`) y asigna
+  `agente2()` a #32. La v1 del informe (#31, PR #41) está integrada en `633cf9b`;
+  su v2 incorpora el diagnóstico mediante la [PR #58](https://github.com/lvckss/piia2-26/pull/58),
+  integrada en `73f6075`. La aclaración de Lucía está en
   https://github.com/lvckss/piia2-26/issues/32#issuecomment-6236068132.
+- Los ADRs [0002 — contrato JSON](https://github.com/lvckss/piia2-26/blob/73f60750572f0731c9bb9203ebb0dc4c4eaaead5/docs/adr/0002-contrato-json-entre-agentes.md),
+  [0003 — proveedor OpenAI](https://github.com/lvckss/piia2-26/blob/73f60750572f0731c9bb9203ebb0dc4c4eaaead5/docs/adr/0003-proveedor-openai-clave-empresa.md) y
+  [0004 — herramienta de costes](https://github.com/lvckss/piia2-26/blob/73f60750572f0731c9bb9203ebb0dc4c4eaaead5/docs/adr/0004-herramienta-costes-datos-empresa.md)
+  están Aceptados e integrados por la [PR #51](https://github.com/lvckss/piia2-26/pull/51)
+  (`4a279e9`), con aceptación registrada en sus cabeceras.
 - La guía filtra por póliza cuando recibe un ID, pero con ID vacío consulta todo
   el corpus aunque su texto pide solo legislación para terceros. Este plan resuelve esa contradicción.
 - El paquete se ha leído desde `datos/`, fuera de los archivos versionados.
@@ -175,7 +184,7 @@ en las 25 preguntas sin introducir ahora avisos automáticos sobre ellos.
   se sustituye `normativa` y se añade `diagnostico_rag`. Los errores de costes y
   de contrato se propagan; no se producen cifras alternativas ante ellos.
 
-### Contrato propuesto de diagnóstico — a revisar con #31 y #34
+### Contrato propuesto de diagnóstico — coordinación con #31 y #34
 
 El JSON del Agente 2 incorpora `diagnostico_rag`, objeto con:
 
@@ -202,9 +211,16 @@ La #31 deberá mostrar las incidencias y el carácter preliminar en casos
 Texto de referencia: «Informe preliminar: no se han recuperado fuentes
 suficientes para respaldar las conclusiones indicadas sobre cobertura e
 indemnización. Estas conclusiones requieren revisión».
-Su representación es una dependencia de coordinación: este plan no modifica
-silenciosamente el alcance ni los AC de la PR #41. La #34 debe transportar el
-diagnóstico y distinguir esos fallos de un error que impide calcular costes.
+La representación en #31 está recogida en AC-014 y AC-015 de su spec v2,
+integrada mediante la [PR #58](https://github.com/lvckss/piia2-26/pull/58)
+(`0deba77`, merge `73f6075`). Víctor confirmó la adaptación como responsable
+del informe en [este comentario de la #56](https://github.com/lvckss/piia2-26/pull/56#issuecomment-6321492952),
+y Lucas confirmó la correspondencia con este contrato en
+[su revisión de la #58](https://github.com/lvckss/piia2-26/pull/58#pullrequestreview-5615735502).
+Esos AC siguen condicionados a la aceptación e integración de la #56 y del
+ADR 0006; la revisión de la #58 no acepta el conjunto de esta Spec ni este ADR.
+La #34 todavía debe recoger en su plan el transporte del diagnóstico y la
+distinción entre esos fallos y un error que impide calcular costes.
 
 ### Entorno reproducible
 
@@ -230,7 +246,7 @@ tablas propias del RAG, sin alterar las tablas existentes.
 | Opción A o B | Resuelta por Lucas | A en esta entrega; B evolución requerida posterior. |
 | Fallo o ausencia de fuentes | Resuelta en comportamiento de producto; contrato propuesto pendiente de revisión | Informe preliminar, causas distinguibles; sin confianza numérica inventada. #31 y #34 deben consumirlo. |
 | Modelos y objetivo de calidad | Resuelta por Lucas | Comparar small y large. Objetivo del modelo seleccionado: al menos 24/25 correctas. Es requisito de producto, no resultado medido ni garantía del proveedor. |
-| Compatibilidad del contrato aditivo | Bloqueante para Ready | Acordar `diagnostico_rag` y su representación con responsables de #31 y #34, y actualizar sus planes con trazabilidad. Por eso este plan se publica como borrador. |
+| Compatibilidad del contrato aditivo | Resuelta para el plan de #31; pendiente para #34 y bloqueante para Ready | La spec v2 del informe incorpora AC-014 y AC-015 mediante la #58 integrada (`73f6075`), con confirmación de Víctor y revisión de Lucas enlazadas en «Contrato propuesto de diagnóstico». Falta recoger el contrato en el plan de #34 y revisar y aceptar esta #56 y el ADR 0006. Se mantiene el borrador. |
 | Calidad real y costes de ambos modelos | Pendiente de evaluación durante implementación | Sin baseline de este corpus. Medir siguiendo el protocolo antes de afirmar cumplimiento de AC-011. Un resultado insuficiente obliga a iterar o replanificar; no rebajar el objetivo. |
 | ¿Necesitan embeddings estas cuatro pólizas? | Resuelta en el diseño, aportación pendiente de medir | Son pequeñas, homogéneas y su póliza es conocida. Se conserva la búsqueda vectorial y se añade una referencia directa por póliza/sección (AC-014); se reportará si no aporta mejora en ese subconjunto. El caso de legislación se evalúa aparte. |
 | Relevancia de candidatos en ejecución | Límite declarado | El top-k no garantiza soporte. No se introduce un clasificador de soporte ni un umbral de distancia sin evidencia; el informe conserva la necesidad de revisión. |
@@ -386,19 +402,22 @@ Durante esta planificación no se escriben ni ejecutan esos archivos.
 
 ## Pendientes para Ready
 
-- Revisar este borrador con Lucas y responsables de #31/#34: aceptar o ajustar
-  la ampliación de contrato, códigos y reparto de los avisos. Conservar IDs al
-  cambiar el plan. No atribuir a PRs anteriores aceptación de este contrato nuevo.
+- Revisar este borrador completo y el ADR 0006: aceptar o ajustar la ampliación
+  de contrato, códigos y reparto de los avisos. La representación de #31 ya
+  está recogida en la #58 integrada; falta incorporarla al plan de #34.
+  Conservar IDs al cambiar el plan. La aprobación de #58 no acepta esta #56.
 - Revisión humana e integración de esta Planning PR, Spec Revisada y ADR 0006
   Aceptado sobre el head final. Las decisiones de diseño de esta sesión no
   sustituyen la revisión del documento completo.
-- Integrar los ADRs aplicables de la #37, especialmente contratos, proveedor y
-  herramienta de costes (0002, 0003, 0004 Propuestos en #51), respetando sus revisiones.
-- Tener el contrato final de costes de #30 accesible; su código integrado se
-  exige para completar la verificación de composición, sin impedir preparar
+- Dependencia resuelta: ADRs 0002, 0003 y 0004 Aceptados e integrados por #51
+  (`4a279e9`), comprobados en `main` `73f6075`; referencias en «Estado actual y evidencia».
+- Dependencia de planificación resuelta: contrato de costes de #30 accesible
+  en la spec integrada por #40 (`e950b50`). Su código integrado sigue siendo
+  necesario para completar la verificación de composición, sin impedir preparar
   y probar por separado la recuperación.
-- Concretar el alcance de integración Compose y de presentación de avisos en
-  los planes de #31/#34. Confirmar acceso a ambos modelos al preparar entorno.
+- Concretar la integración Compose y el transporte del diagnóstico en el plan
+  de #34. La presentación de avisos en el plan de #31 está recogida por #58.
+  Confirmar acceso a ambos modelos al preparar entorno.
 
 ### Resultado de analyze
 
@@ -408,9 +427,10 @@ Durante esta planificación no se escriben ni ejecutan esos archivos.
 | Cada AC tiene verificación y slice | AC-001 a AC-014 con fila en Test Plan y al menos una slice. |
 | Ampliaciones autorizadas | Lucas incluye `agente2()`, elige PostgreSQL y Compose, A ahora/B futura, diagnóstico preliminar, errores distintos y comparación small/large con objetivo 24/25. Registrar estas decisiones en la Issue con enlace a esta versión. |
 | Preservación | Costes, entradas y firma protegidos; adición de diagnóstico requiere revisión de consumidores. |
-| ADR decision | NEW_ADR por persistencia y frontera compartida; previos sin aceptar no se reutilizan como aceptados. |
+| ADR decision | NEW_ADR por persistencia y ampliación de la frontera compartida; los ADRs 0002–0004 Aceptados cubren las decisiones previas, no el índice vectorial ni el diagnóstico propuesto. |
 | Adaptación v1.1 | Solicitud explícita de Lucas tras discutir la necesidad del RAG: justificar pólizas/legislación, precisar su fase y añadir referencia directa. AC-001 a AC-013 y objetivo 24/25 conservados; AC-014 añadido. No había aceptación humana del documento que se atribuya a esta versión. |
-| Gaps | Contrato y coordinación con consumidores pendientes: publicación como draft; no Ready ni código productivo. Calidad y rendimiento aún no medidos; son verificaciones futuras, no checks superados. |
+| Actualización v1.2 | Solicitud de Lucas del 2026-10-22: actualizar referencias. ADRs previos y plan de costes integrados; plan de presentación del diagnóstico en #31 recogido por #58. Los 14 AC, decisiones y planes de verificación e implementación no cambian; sin aceptación del conjunto de #56 ni del ADR 0006. |
+| Gaps | Pendientes el plan de #34 y la revisión y aceptación de esta Spec y del ADR 0006: se mantiene draft; no Ready ni código productivo. Calidad y rendimiento aún no medidos; son verificaciones futuras, no checks superados. |
 
 ## Definition of Done
 

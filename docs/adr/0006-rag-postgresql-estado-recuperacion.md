@@ -5,9 +5,9 @@
 - GitHub Issue: https://github.com/lvckss/piia2-26/issues/32
 - Planes cubiertos (Issue/mini-spec/Spec): [32-rag-normativa.md](../../entregas/cu-19-interpretacion-danos/specs/32-rag-normativa.md), persistencia, contrato de citas y diagnóstico, composición y evaluación.
 - Planning PR: https://github.com/lvckss/piia2-26/pull/56 — draft.
-- Aceptación: pendiente de revisión humana sobre esta propuesta y el contrato con #31/#34.
-- Versión: propuesta v1.1; v1 conservada en `0197825`. Aclara el papel de la legislación y añade la comparación con recuperación directa de pólizas.
-- Sustituye / sustituido por: no sustituye un ADR aceptado. Sustituye la propuesta ChromaDB de la guía de RAG. Amplía el contrato previo registrado en el ADR 0002 Propuesto de #37/#51, cuya aceptación no se presupone.
+- Aceptación: pendiente de revisión humana sobre esta propuesta. La adaptación del consumidor #31 está recogida por la #58 integrada; falta el plan de #34. La revisión de #58 no acepta este ADR.
+- Versión: propuesta v1.2; v1 conservada en `0197825` y v1.1 en `88bd84d`. Actualiza referencias al 2026-10-22 sin cambiar las decisiones propuestas.
+- Sustituye / sustituido por: no sustituye un ADR aceptado. Sustituye la propuesta ChromaDB de la guía de RAG. Amplía el contrato base del ADR 0002 Aceptado e integrado por #37/#51 (`4a279e9`); los ADRs 0003 y 0004 también están Aceptados. Referencias fijadas más abajo.
 
 ## Contexto y motivación
 
@@ -121,8 +121,10 @@ frontera consumida por otras personas y requiere revisión previa.
   Los resultados legales se publican separados y no se atribuye una mejora sin
   una referencia medida. El presupuesto sigue siendo determinista y no se
   interpreta una cita como validación jurídica automática de la indemnización.
-- Los consumidores #31/#34 necesitan una adaptación explícita del contrato.
-  La propuesta se mantiene como borrador hasta acordar esa compatibilidad.
+- El plan de #31 ya recoge la adaptación del contrato en AC-014 y AC-015 de su
+  v2 (#58 integrada), condicionada a aceptar e integrar esta propuesta. Falta
+  recoger el transporte del diagnóstico en el plan de #34 y revisar y aceptar
+  la #56 y este ADR. Se mantiene el estado Propuesto.
 - TDD en indexado, filtros, errores y composición; eval-first en calidad. Cada
   AC de la Spec tiene frontera y evidencia prevista; las pruebas no se escriben
   en la Planning PR.
@@ -131,6 +133,16 @@ frontera consumida por otras personas y requiere revisión previa.
 
 ## Referencias y evidencia
 
+- Referencias contrastadas con `main` `73f60750572f0731c9bb9203ebb0dc4c4eaaead5` el 2026-10-22:
+  [ADR 0002 — contrato JSON](https://github.com/lvckss/piia2-26/blob/73f60750572f0731c9bb9203ebb0dc4c4eaaead5/docs/adr/0002-contrato-json-entre-agentes.md),
+  [ADR 0003 — proveedor OpenAI](https://github.com/lvckss/piia2-26/blob/73f60750572f0731c9bb9203ebb0dc4c4eaaead5/docs/adr/0003-proveedor-openai-clave-empresa.md) y
+  [ADR 0004 — herramienta de costes](https://github.com/lvckss/piia2-26/blob/73f60750572f0731c9bb9203ebb0dc4c4eaaead5/docs/adr/0004-herramienta-costes-datos-empresa.md),
+  Aceptados e integrados por [#51](https://github.com/lvckss/piia2-26/pull/51) (`4a279e9`).
+- Consumidor #31: spec v2 integrada por [#58](https://github.com/lvckss/piia2-26/pull/58)
+  (`0deba77`, merge `73f6075`), con
+  [confirmación de Víctor](https://github.com/lvckss/piia2-26/pull/56#issuecomment-6321492952)
+  y [revisión de Lucas](https://github.com/lvckss/piia2-26/pull/58#pullrequestreview-5615735502)
+  sobre AC-014 y AC-015. No acredita aceptación del conjunto de #56 ni de este ADR.
 - Issue y aclaración de alcance: https://github.com/lvckss/piia2-26/issues/32#issuecomment-6236068132.
 - Decisiones de Lucas: conversación de diseño de #32, 2026-10-20, que se registra
   mediante comentario de planificación con la versión de este borrador. Son
