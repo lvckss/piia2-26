@@ -1,0 +1,175 @@
+{
+  "image_id": 2536,
+  "resumen_filtro_previo": {
+    "detecciones_totales": 18,
+    "candidatas": 8,
+    "descartadas_por_clase": {
+      "crack": 4,
+      "glass shatter": 1,
+      "scratch": 4,
+      "dent": 1
+    }
+  },
+  "findings": [
+    {
+      "finding_id": "2536-1",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.87353515625,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        473.0,
+        204.0,
+        527.0,
+        207.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "Se aprecia una rozadura lineal con transferencia o pérdida de pintura en la puerta, pero no una grieta.",
+      "crop_image_path": "crops/2536_crack_1.jpg"
+    },
+    {
+      "finding_id": "2536-2",
+      "category": "glass shatter",
+      "clase_tool": "glass_shatter",
+      "score": 0.87060546875,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        537.0,
+        0.0,
+        463.0,
+        128.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "El cristal de la ventana no muestra rotura ni fragmentación; el daño visible está en la chapa y la pintura junto a la ventana.",
+      "crop_image_path": "crops/2536_glass_shatter_2.jpg"
+    },
+    {
+      "finding_id": "2536-3",
+      "category": "glass shatter",
+      "clase_tool": "glass_shatter",
+      "score": 0.79296875,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        0.0,
+        0.0,
+        399.0,
+        182.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "La luna lateral marcada se ve intacta, sin grietas ni fragmentación. El daño visible está en la carrocería, fuera del rectángulo.",
+      "crop_image_path": "crops/2536_glass_shatter_3.jpg"
+    },
+    {
+      "finding_id": "2536-4",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.7861328125,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        0.0,
+        373.0,
+        381.0,
+        153.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "Se observa una abolladura con arañazos y pliegues en la chapa, pero no una grieta visible. Por tanto, no se confirma un daño de tipo «crack».",
+      "crop_image_path": "crops/2536_crack_4.jpg"
+    },
+    {
+      "finding_id": "2536-6",
+      "category": "scratch",
+      "clase_tool": "scratch",
+      "score": 0.71337890625,
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
+      "bbox_xywh": [
+        473.0,
+        204.0,
+        527.0,
+        206.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PUERTA_DEL_I",
+      "severidad": "leve",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se observa un arañazo alargado con pérdida superficial de pintura en la puerta delantera izquierda. El daño es localizado y no se aprecia deformación importante en la zona marcada.",
+      "crop_image_path": "crops/2536_scratch_6.jpg"
+    },
+    {
+      "finding_id": "2536-7",
+      "category": "scratch",
+      "clase_tool": "scratch",
+      "score": 0.6396484375,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        112.0,
+        266.0,
+        282.0,
+        125.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "ALETA_TRAS_I",
+      "severidad": "moderado",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se observa un raspón con pérdida de pintura y marcas de abrasión en el panel lateral trasero, junto a la unión con la puerta. También parece haber una ligera deformación en la zona.",
+      "crop_image_path": "crops/2536_scratch_7.jpg"
+    },
+    {
+      "finding_id": "2536-8",
+      "category": "dent",
+      "clase_tool": "dent",
+      "score": 0.626953125,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        473.0,
+        204.0,
+        527.0,
+        207.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PUERTA_DEL_I",
+      "severidad": "leve",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se aprecia una deformación poco profunda en la parte superior de la puerta, junto con un arañazo largo y marcas de transferencia de pintura.",
+      "crop_image_path": "crops/2536_dent_8.jpg"
+    },
+    {
+      "finding_id": "2536-10",
+      "category": "dent",
+      "clase_tool": "dent",
+      "score": 0.505859375,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        0.0,
+        373.0,
+        379.0,
+        152.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PUERTA_TRAS_I",
+      "severidad": "moderado",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se observa una abolladura con pliegues marcados y rozaduras en la puerta trasera izquierda, junto a su borde delantero.",
+      "crop_image_path": "crops/2536_dent_10.jpg"
+    }
+  ]
+}

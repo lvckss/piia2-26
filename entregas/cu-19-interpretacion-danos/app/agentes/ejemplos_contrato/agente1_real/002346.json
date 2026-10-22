@@ -1,0 +1,174 @@
+{
+  "image_id": 2346,
+  "resumen_filtro_previo": {
+    "detecciones_totales": 71,
+    "candidatas": 8,
+    "descartadas_por_clase": {
+      "crack": 26,
+      "dent": 12,
+      "scratch": 25
+    }
+  },
+  "findings": [
+    {
+      "finding_id": "2346-1",
+      "category": "lamp broken",
+      "clase_tool": "lamp_broken",
+      "score": 0.95361328125,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        668.0,
+        491.0,
+        332.0,
+        61.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "La luz reflectante roja del paragolpes parece intacta; no se aprecia rotura en la lente. Hay desgaste y arañazos en la zona circundante.",
+      "crop_image_path": "crops/2346_lamp_broken_1.jpg"
+    },
+    {
+      "finding_id": "2346-2",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.87548828125,
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
+      "bbox_xywh": [
+        357.0,
+        270.0,
+        643.0,
+        168.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARAG_TRAS",
+      "severidad": "leve",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se aprecia una fisura y material levantado en la moldura del paragolpes trasero, junto con rozaduras y pérdida de acabado.",
+      "crop_image_path": "crops/2346_crack_2.jpg"
+    },
+    {
+      "finding_id": "2346-3",
+      "category": "tire flat",
+      "clase_tool": "tire_flat",
+      "score": 0.86962890625,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        87.0,
+        4.0,
+        200.0,
+        658.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "El neumático parece mantener una forma normal y no se aprecia desinflado. Los daños visibles son arañazos y desgaste en el paragolpes.",
+      "crop_image_path": "crops/2346_tire_flat_3.jpg"
+    },
+    {
+      "finding_id": "2346-4",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.81787109375,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        263.0,
+        538.0,
+        224.0,
+        124.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "La zona marcada muestra una transición diagonal del panel con suciedad o rozaduras superficiales, no una grieta visible.",
+      "crop_image_path": "crops/2346_crack_4.jpg"
+    },
+    {
+      "finding_id": "2346-5",
+      "category": "dent",
+      "clase_tool": "dent",
+      "score": 0.81005859375,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        264.0,
+        538.0,
+        223.0,
+        124.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "En la zona marcada no se aprecia una deformación tipo abolladura; parece suciedad o una sombra sobre el contorno del paragolpes.",
+      "crop_image_path": "crops/2346_dent_5.jpg"
+    },
+    {
+      "finding_id": "2346-12",
+      "category": "scratch",
+      "clase_tool": "scratch",
+      "score": 0.7353515625,
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
+      "bbox_xywh": [
+        615.0,
+        641.0,
+        67.0,
+        21.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARAG_TRAS",
+      "severidad": "leve",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se observa un arañazo superficial en la cubierta del paragolpes trasero, en la zona marcada.",
+      "crop_image_path": "crops/2346_scratch_12.jpg"
+    },
+    {
+      "finding_id": "2346-13",
+      "category": "dent",
+      "clase_tool": "dent",
+      "score": 0.72021484375,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        357.0,
+        270.0,
+        643.0,
+        132.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "En la zona marcada se observan raspaduras y pérdida de acabado en la moldura del paragolpes, pero no una deformación que confirme un abollón.",
+      "crop_image_path": "crops/2346_dent_13.jpg"
+    },
+    {
+      "finding_id": "2346-14",
+      "category": "scratch",
+      "clase_tool": "scratch",
+      "score": 0.71484375,
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
+      "bbox_xywh": [
+        515.0,
+        214.0,
+        58.0,
+        60.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARAG_TRAS",
+      "severidad": "leve",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se observa una abrasión con pérdida superficial de pintura en la cubierta del paragolpes trasero. El daño es pequeño y no se aprecia deformación importante.",
+      "crop_image_path": "crops/2346_scratch_14.jpg"
+    }
+  ]
+}

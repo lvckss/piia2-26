@@ -1,0 +1,275 @@
+{
+  "image_id": 423,
+  "resumen_filtro_previo": {
+    "detecciones_totales": 37,
+    "candidatas": 13,
+    "descartadas_por_clase": {
+      "crack": 10,
+      "glass shatter": 1,
+      "scratch": 8,
+      "dent": 5
+    }
+  },
+  "findings": [
+    {
+      "finding_id": "423-1",
+      "category": "tire flat",
+      "clase_tool": "tire_flat",
+      "score": 0.923828125,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        95.0,
+        329.0,
+        197.0,
+        256.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "El neumático parece correctamente inflado y no muestra deformación ni daño visible. La zona marcada incluye daños en la carrocería cercana, pero no un neumático pinchado o desinflado.",
+      "crop_image_path": "crops/423_tire_flat_1.jpg"
+    },
+    {
+      "finding_id": "423-2",
+      "category": "lamp broken",
+      "clase_tool": "lamp_broken",
+      "score": 0.90625,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        854.0,
+        98.0,
+        146.0,
+        69.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "El piloto trasero marcado parece intacto: la lente roja y la sección transparente están completas, sin roturas visibles. El daño evidente está en otras zonas de la parte trasera.",
+      "crop_image_path": "crops/423_lamp_broken_2.jpg"
+    },
+    {
+      "finding_id": "423-3",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.8681640625,
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
+      "bbox_xywh": [
+        174.0,
+        383.0,
+        70.0,
+        71.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARAG_TRAS",
+      "severidad": "leve",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se aprecia una fisura pequeña en la cubierta del paragolpes trasero, parcialmente cubierta por cinta amarilla.",
+      "crop_image_path": "crops/423_crack_3.jpg"
+    },
+    {
+      "finding_id": "423-4",
+      "category": "glass shatter",
+      "clase_tool": "glass_shatter",
+      "score": 0.8466796875,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        809.0,
+        0.0,
+        191.0,
+        60.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "La zona marcada muestra una superficie lisa y reflectante, sin fragmentación ni patrón de grietas de vidrio roto.",
+      "crop_image_path": "crops/423_glass_shatter_4.jpg"
+    },
+    {
+      "finding_id": "423-5",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.828125,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        205.0,
+        310.0,
+        15.0,
+        55.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "La zona marcada coincide con la junta entre el panel lateral y el paragolpes trasero. No se aprecia una grieta; la línea clara parece corresponder al borde de la unión o a un reflejo.",
+      "crop_image_path": "crops/423_crack_5.jpg"
+    },
+    {
+      "finding_id": "423-7",
+      "category": "glass shatter",
+      "clase_tool": "glass_shatter",
+      "score": 0.8193359375,
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
+      "bbox_xywh": [
+        403.0,
+        62.0,
+        311.0,
+        64.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "LUNETA",
+      "severidad": "grave",
+      "regla_coste_aplicable": true,
+      "vision_description": "La luneta trasera presenta una extensa red de grietas por rotura, visible en casi toda la superficie.",
+      "crop_image_path": "crops/423_glass_shatter_7.jpg"
+    },
+    {
+      "finding_id": "423-9",
+      "category": "scratch",
+      "clase_tool": "scratch",
+      "score": 0.74267578125,
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
+      "bbox_xywh": [
+        174.0,
+        383.0,
+        69.0,
+        71.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARAG_TRAS",
+      "severidad": "leve",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se aprecia un arañazo o rozadura superficial en la cubierta del paragolpes trasero, parcialmente cubierto por cinta amarilla.",
+      "crop_image_path": "crops/423_scratch_9.jpg"
+    },
+    {
+      "finding_id": "423-10",
+      "category": "scratch",
+      "clase_tool": "scratch",
+      "score": 0.72314453125,
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
+      "bbox_xywh": [
+        205.0,
+        310.0,
+        14.0,
+        55.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "ALETA_TRAS_I",
+      "severidad": "leve",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se observa una marca clara, estrecha y alargada sobre la aleta trasera izquierda, junto al borde del paragolpes. Parece un arañazo superficial.",
+      "crop_image_path": "crops/423_scratch_10.jpg"
+    },
+    {
+      "finding_id": "423-13",
+      "category": "glass shatter",
+      "clase_tool": "glass_shatter",
+      "score": 0.63330078125,
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
+      "bbox_xywh": [
+        0.0,
+        0.0,
+        118.0,
+        110.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "LUNA_TRAS_I",
+      "severidad": "moderado",
+      "regla_coste_aplicable": true,
+      "vision_description": "La luna lateral trasera izquierda presenta un patrón de grietas finas compatible con daño por rotura del vidrio. El cristal permanece en su sitio.",
+      "crop_image_path": "crops/423_glass_shatter_13.jpg"
+    },
+    {
+      "finding_id": "423-14",
+      "category": "glass shatter",
+      "clase_tool": "glass_shatter",
+      "score": 0.603515625,
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
+      "bbox_xywh": [
+        207.0,
+        0.0,
+        130.0,
+        120.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "LUNA_TRAS_I",
+      "severidad": "moderado",
+      "regla_coste_aplicable": true,
+      "vision_description": "La luna lateral trasera izquierda presenta una red visible de grietas, compatible con vidrio fracturado.",
+      "crop_image_path": "crops/423_glass_shatter_14.jpg"
+    },
+    {
+      "finding_id": "423-17",
+      "category": "dent",
+      "clase_tool": "dent",
+      "score": 0.54052734375,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        150.0,
+        383.0,
+        95.0,
+        72.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARAG_TRAS",
+      "severidad": "leve",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se aprecia una deformación localizada en la esquina del paragolpes trasero, junto a la rueda. La cinta y los reflejos dificultan ver sus contornos, pero la superficie parece hundida.",
+      "crop_image_path": "crops/423_dent_17.jpg"
+    },
+    {
+      "finding_id": "423-18",
+      "category": "glass shatter",
+      "clase_tool": "glass_shatter",
+      "score": 0.53564453125,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        89.0,
+        14.0,
+        71.0,
+        102.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "El cristal de la ventanilla lateral se ve intacto; no se aprecian fragmentos ni grietas de rotura.",
+      "crop_image_path": "crops/423_glass_shatter_18.jpg"
+    },
+    {
+      "finding_id": "423-19",
+      "category": "dent",
+      "clase_tool": "dent",
+      "score": 0.52392578125,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        306.0,
+        164.0,
+        183.0,
+        146.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "ALETA_TRAS_I",
+      "severidad": "moderado",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se observa una deformación con pliegues y hundimiento en el panel lateral trasero izquierdo, junto a la zona del piloto. El daño está localizado, pero es claramente visible.",
+      "crop_image_path": "crops/423_dent_19.jpg"
+    }
+  ]
+}

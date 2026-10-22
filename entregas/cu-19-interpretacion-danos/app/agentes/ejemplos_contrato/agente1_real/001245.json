@@ -1,0 +1,195 @@
+{
+  "image_id": 1245,
+  "resumen_filtro_previo": {
+    "detecciones_totales": 21,
+    "candidatas": 9,
+    "descartadas_por_clase": {
+      "crack": 6,
+      "dent": 2,
+      "scratch": 3,
+      "glass shatter": 1
+    }
+  },
+  "findings": [
+    {
+      "finding_id": "1245-1",
+      "category": "lamp broken",
+      "clase_tool": "lamp_broken",
+      "score": 0.8818359375,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        0.0,
+        51.0,
+        466.0,
+        331.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "El piloto trasero parece intacto; no se aprecia una rotura clara en la lente. Las marcas visibles están en el paragolpes, debajo del área señalada.",
+      "crop_image_path": "crops/1245_lamp_broken_1.jpg"
+    },
+    {
+      "finding_id": "1245-2",
+      "category": "tire flat",
+      "clase_tool": "tire_flat",
+      "score": 0.8603515625,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        528.0,
+        43.0,
+        57.0,
+        128.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "El neumático marcado parece mantener una forma normal y no muestra signos visibles de estar desinflado.",
+      "crop_image_path": "crops/1245_tire_flat_2.jpg"
+    },
+    {
+      "finding_id": "1245-3",
+      "category": "lamp broken",
+      "clase_tool": "lamp_broken",
+      "score": 0.59326171875,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        138.0,
+        56.0,
+        279.0,
+        292.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PILOTO_TRAS_I",
+      "severidad": "leve",
+      "regla_coste_aplicable": true,
+      "vision_description": "El piloto trasero presenta una rotura visible en la parte inferior transparente, con un fragmento astillado o desprendido. La zona roja principal parece intacta.",
+      "crop_image_path": "crops/1245_lamp_broken_3.jpg"
+    },
+    {
+      "finding_id": "1245-4",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.546875,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        344.0,
+        375.0,
+        13.0,
+        45.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARAG_TRAS",
+      "severidad": "leve",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se observa una pequeña fisura vertical en la cubierta del paragolpes trasero, justo debajo del piloto. Hay además marcas superficiales alrededor.",
+      "crop_image_path": "crops/1245_crack_4.jpg"
+    },
+    {
+      "finding_id": "1245-5",
+      "category": "dent",
+      "clase_tool": "dent",
+      "score": 0.51611328125,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        175.0,
+        509.0,
+        248.0,
+        284.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARAG_TRAS",
+      "severidad": "leve",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se aprecia una abolladura poco profunda en la esquina del paragolpes trasero, con algunas marcas superficiales.",
+      "crop_image_path": "crops/1245_dent_5.jpg"
+    },
+    {
+      "finding_id": "1245-6",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.467041015625,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        173.0,
+        507.0,
+        260.0,
+        289.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "La zona muestra rozaduras y arañazos superficiales en la cubierta del paragolpes trasero, pero no se aprecia una grieta.",
+      "crop_image_path": "crops/1245_crack_6.jpg"
+    },
+    {
+      "finding_id": "1245-7",
+      "category": "dent",
+      "clase_tool": "dent",
+      "score": 0.4453125,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        344.0,
+        376.0,
+        13.0,
+        44.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "En la zona marcada se aprecia una pequeña marca superficial, pero no una deformación clara compatible con un dent. El paragolpes presenta otros roces alrededor.",
+      "crop_image_path": "crops/1245_dent_7.jpg"
+    },
+    {
+      "finding_id": "1245-8",
+      "category": "scratch",
+      "clase_tool": "scratch",
+      "score": 0.421630859375,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        345.0,
+        378.0,
+        12.0,
+        42.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARAG_TRAS",
+      "severidad": "leve",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se aprecia una pequeña marca lineal de raspado en la cubierta del paragolpes trasero, justo debajo del piloto.",
+      "crop_image_path": "crops/1245_scratch_8.jpg"
+    },
+    {
+      "finding_id": "1245-10",
+      "category": "scratch",
+      "clase_tool": "scratch",
+      "score": 0.3974609375,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        175.0,
+        508.0,
+        248.0,
+        283.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARAG_TRAS",
+      "severidad": "moderado",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se observan múltiples arañazos y rozaduras superficiales en la esquina del paragolpes trasero.",
+      "crop_image_path": "crops/1245_scratch_10.jpg"
+    }
+  ]
+}

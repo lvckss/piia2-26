@@ -1,0 +1,174 @@
+{
+  "image_id": 3204,
+  "resumen_filtro_previo": {
+    "detecciones_totales": 16,
+    "candidatas": 8,
+    "descartadas_por_clase": {
+      "glass shatter": 2,
+      "crack": 5,
+      "lamp broken": 1
+    }
+  },
+  "findings": [
+    {
+      "finding_id": "3204-1",
+      "category": "glass shatter",
+      "clase_tool": "glass_shatter",
+      "score": 0.85400390625,
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
+      "bbox_xywh": [
+        81.0,
+        51.0,
+        842.0,
+        350.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "LUNETA",
+      "severidad": "grave",
+      "regla_coste_aplicable": true,
+      "vision_description": "La luneta trasera está ampliamente fracturada y presenta grandes zonas de vidrio roto y desprendido.",
+      "crop_image_path": "crops/3204_glass_shatter_1.jpg"
+    },
+    {
+      "finding_id": "3204-2",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.82763671875,
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
+      "bbox_xywh": [
+        934.0,
+        498.0,
+        24.0,
+        32.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PORTON_TRAS",
+      "severidad": "leve",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se aprecia una pequeña fisura lineal en la superficie del portón trasero, cerca del borde derecho.",
+      "crop_image_path": "crops/3204_crack_2.jpg"
+    },
+    {
+      "finding_id": "3204-3",
+      "category": "lamp broken",
+      "clase_tool": "lamp_broken",
+      "score": 0.76708984375,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        0.0,
+        620.0,
+        1000.0,
+        47.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "La zona marcada corresponde a la parte inferior trasera del vehículo; no se aprecia ningún piloto roto. El daño visible es la luneta trasera destrozada, fuera del área marcada.",
+      "crop_image_path": "crops/3204_lamp_broken_3.jpg"
+    },
+    {
+      "finding_id": "3204-4",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.73974609375,
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
+      "bbox_xywh": [
+        76.0,
+        287.0,
+        181.0,
+        108.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "LUNETA",
+      "severidad": "grave",
+      "regla_coste_aplicable": true,
+      "vision_description": "La luneta trasera está ampliamente fracturada y fragmentada; la zona marcada muestra claramente vidrio roto.",
+      "crop_image_path": "crops/3204_crack_4.jpg"
+    },
+    {
+      "finding_id": "3204-5",
+      "category": "lamp broken",
+      "clase_tool": "lamp_broken",
+      "score": 0.60107421875,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        0.0,
+        621.0,
+        144.0,
+        46.0
+      ],
+      "vision_verdict": "incierto",
+      "pieza_id": "PILOTO_TRAS_I",
+      "severidad": "leve",
+      "regla_coste_aplicable": true,
+      "vision_description": "La zona marcada corresponde al piloto trasero izquierdo, pero el recorte solo muestra una pequeña parte y no permite confirmar si está roto.",
+      "crop_image_path": "crops/3204_lamp_broken_5.jpg"
+    },
+    {
+      "finding_id": "3204-6",
+      "category": "dent",
+      "clase_tool": "dent",
+      "score": 0.56005859375,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        934.0,
+        498.0,
+        24.0,
+        32.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PORTON_TRAS",
+      "severidad": "leve",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se aprecia una pequeña abolladura superficial en el portón trasero, cerca del borde derecho. El daño parece localizado y de poca entidad.",
+      "crop_image_path": "crops/3204_dent_6.jpg"
+    },
+    {
+      "finding_id": "3204-11",
+      "category": "scratch",
+      "clase_tool": "scratch",
+      "score": 0.36572265625,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        934.0,
+        498.0,
+        24.0,
+        32.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PORTON_TRAS",
+      "severidad": "leve",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se aprecia una marca lineal fina y superficial en el portón trasero, dentro del rectángulo señalado.",
+      "crop_image_path": "crops/3204_scratch_11.jpg"
+    },
+    {
+      "finding_id": "3204-14",
+      "category": "dent",
+      "clase_tool": "dent",
+      "score": 0.33837890625,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        71.0,
+        287.0,
+        185.0,
+        108.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "La zona marcada muestra la luneta trasera rota, pero no se aprecia una abolladura.",
+      "crop_image_path": "crops/3204_dent_14.jpg"
+    }
+  ]
+}

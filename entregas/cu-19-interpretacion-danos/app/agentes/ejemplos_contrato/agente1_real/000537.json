@@ -1,0 +1,174 @@
+{
+  "image_id": 537,
+  "resumen_filtro_previo": {
+    "detecciones_totales": 19,
+    "candidatas": 8,
+    "descartadas_por_clase": {
+      "crack": 7,
+      "scratch": 3,
+      "glass shatter": 1
+    }
+  },
+  "findings": [
+    {
+      "finding_id": "537-1",
+      "category": "lamp broken",
+      "clase_tool": "lamp_broken",
+      "score": 0.96875,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        0.0,
+        373.0,
+        646.0,
+        217.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "El faro delantero se ve intacto, sin roturas visibles en la lente. El daño visible es un abollón con rozaduras en la aleta junto al faro.",
+      "crop_image_path": "crops/537_lamp_broken_1.jpg"
+    },
+    {
+      "finding_id": "537-2",
+      "category": "tire flat",
+      "clase_tool": "tire_flat",
+      "score": 0.90771484375,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        695.0,
+        486.0,
+        305.0,
+        181.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "El neumático no muestra una deformación ni un aplastamiento que indique que esté desinflado. La zona marcada parece corresponder a un neumático en estado normal.",
+      "crop_image_path": "crops/537_tire_flat_2.jpg"
+    },
+    {
+      "finding_id": "537-3",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.716796875,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        545.0,
+        323.0,
+        240.0,
+        156.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "Se observan un abollón y rozaduras en la aleta junto al faro, pero no una grieta visible.",
+      "crop_image_path": "crops/537_crack_3.jpg"
+    },
+    {
+      "finding_id": "537-4",
+      "category": "dent",
+      "clase_tool": "dent",
+      "score": 0.60693359375,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        538.0,
+        318.0,
+        333.0,
+        163.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "ALETA_DEL_I",
+      "severidad": "moderado",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se observa una abolladura con arañazos y transferencia de pintura en la aleta delantera izquierda, junto al faro.",
+      "crop_image_path": "crops/537_dent_4.jpg"
+    },
+    {
+      "finding_id": "537-5",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.537109375,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        602.0,
+        328.0,
+        183.0,
+        151.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "La zona muestra un hundimiento con rozaduras y transferencia de pintura en la aleta delantera, pero no se aprecia una grieta.",
+      "crop_image_path": "crops/537_crack_5.jpg"
+    },
+    {
+      "finding_id": "537-7",
+      "category": "scratch",
+      "clase_tool": "scratch",
+      "score": 0.47509765625,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        547.0,
+        323.0,
+        238.0,
+        155.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "ALETA_DEL_I",
+      "severidad": "moderado",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se observan rozaduras y transferencia de pintura, junto con una pequeña deformación, en la aleta delantera junto al faro.",
+      "crop_image_path": "crops/537_scratch_7.jpg"
+    },
+    {
+      "finding_id": "537-9",
+      "category": "scratch",
+      "clase_tool": "scratch",
+      "score": 0.427001953125,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        603.0,
+        328.0,
+        182.0,
+        150.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "ALETA_DEL_I",
+      "severidad": "leve",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se observan arañazos y rozaduras claras en la aleta delantera izquierda, junto al faro. El daño parece superficial y localizado.",
+      "crop_image_path": "crops/537_scratch_9.jpg"
+    },
+    {
+      "finding_id": "537-13",
+      "category": "dent",
+      "clase_tool": "dent",
+      "score": 0.365234375,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        529.0,
+        311.0,
+        348.0,
+        242.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "ALETA_DEL_D",
+      "severidad": "moderado",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se observa una abolladura marcada con raspaduras en la aleta delantera, junto al faro y sobre el paso de rueda.",
+      "crop_image_path": "crops/537_dent_13.jpg"
+    }
+  ]
+}

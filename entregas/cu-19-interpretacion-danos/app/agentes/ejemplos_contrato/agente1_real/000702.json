@@ -1,0 +1,133 @@
+{
+  "image_id": 702,
+  "resumen_filtro_previo": {
+    "detecciones_totales": 26,
+    "candidatas": 6,
+    "descartadas_por_clase": {
+      "crack": 9,
+      "scratch": 11
+    }
+  },
+  "findings": [
+    {
+      "finding_id": "702-1",
+      "category": "lamp broken",
+      "clase_tool": "lamp_broken",
+      "score": 0.9580078125,
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
+      "bbox_xywh": [
+        0.0,
+        0.0,
+        683.0,
+        210.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PILOTO_TRAS_D",
+      "severidad": "leve",
+      "regla_coste_aplicable": true,
+      "vision_description": "El piloto trasero derecho presenta una fisura visible en la parte transparente de la lente, sin una rotura extensa.",
+      "crop_image_path": "crops/702_lamp_broken_1.jpg"
+    },
+    {
+      "finding_id": "702-2",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.9013671875,
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
+      "bbox_xywh": [
+        146.0,
+        385.0,
+        531.0,
+        191.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARAG_TRAS",
+      "severidad": "moderado",
+      "regla_coste_aplicable": true,
+      "vision_description": "El borde superior de la cubierta del paragolpes trasero está agrietado y separado, dejando expuesta la estructura de fijación interior.",
+      "crop_image_path": "crops/702_crack_2.jpg"
+    },
+    {
+      "finding_id": "702-3",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.71875,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        532.0,
+        579.0,
+        130.0,
+        14.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "En la zona marcada no se aprecia una grieta definida; parece una marca superficial o un reflejo sobre la pintura.",
+      "crop_image_path": "crops/702_crack_3.jpg"
+    },
+    {
+      "finding_id": "702-4",
+      "category": "tire flat",
+      "clase_tool": "tire_flat",
+      "score": 0.697265625,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        619.0,
+        548.0,
+        294.0,
+        119.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "El neumático visible parece mantener su forma y no se aprecia desinflado. La zona muestra deformación en la carrocería junto al paso de rueda, no un daño tipo neumático pinchado.",
+      "crop_image_path": "crops/702_tire_flat_4.jpg"
+    },
+    {
+      "finding_id": "702-5",
+      "category": "scratch",
+      "clase_tool": "scratch",
+      "score": 0.681640625,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        532.0,
+        579.0,
+        130.0,
+        15.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARAG_TRAS",
+      "severidad": "leve",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se aprecia un roce o arañazo superficial claro en la cubierta del paragolpes trasero, junto al paso de rueda.",
+      "crop_image_path": "crops/702_scratch_5.jpg"
+    },
+    {
+      "finding_id": "702-6",
+      "category": "scratch",
+      "clase_tool": "scratch",
+      "score": 0.59765625,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        9.0,
+        445.0,
+        63.0,
+        24.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARAG_TRAS",
+      "severidad": "leve",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se aprecia una marca lineal superficial en la cubierta del paragolpes trasero, dentro de la zona marcada. No se observa deformación asociada en ese punto.",
+      "crop_image_path": "crops/702_scratch_6.jpg"
+    }
+  ]
+}

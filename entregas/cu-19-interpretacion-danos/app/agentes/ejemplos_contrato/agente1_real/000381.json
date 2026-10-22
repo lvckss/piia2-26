@@ -1,0 +1,195 @@
+{
+  "image_id": 381,
+  "resumen_filtro_previo": {
+    "detecciones_totales": 18,
+    "candidatas": 9,
+    "descartadas_por_clase": {
+      "crack": 1,
+      "lamp broken": 2,
+      "dent": 1,
+      "scratch": 5
+    }
+  },
+  "findings": [
+    {
+      "finding_id": "381-1",
+      "category": "tire flat",
+      "clase_tool": "tire_flat",
+      "score": 0.8896484375,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        289.0,
+        453.0,
+        335.0,
+        213.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "El neumático parece mantener su forma y no se aprecia que esté desinflado. Los daños visibles corresponden a arañazos en la carrocería junto al paso de rueda.",
+      "crop_image_path": "crops/381_tire_flat_1.jpg"
+    },
+    {
+      "finding_id": "381-2",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.78466796875,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        351.0,
+        318.0,
+        353.0,
+        346.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "Se observan rozaduras y transferencia de pintura en la aleta trasera, pero no una grieta identificable. Por tanto, no se confirma un daño de tipo crack.",
+      "crop_image_path": "crops/381_crack_2.jpg"
+    },
+    {
+      "finding_id": "381-3",
+      "category": "lamp broken",
+      "clase_tool": "lamp_broken",
+      "score": 0.77490234375,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        289.0,
+        158.0,
+        371.0,
+        272.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "La zona marcada muestra la tapa del depósito abierta y daños por rozaduras en el panel lateral trasero; no se aprecia ningún piloto roto.",
+      "crop_image_path": "crops/381_lamp_broken_3.jpg"
+    },
+    {
+      "finding_id": "381-4",
+      "category": "dent",
+      "clase_tool": "dent",
+      "score": 0.72216796875,
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
+      "bbox_xywh": [
+        351.0,
+        295.0,
+        353.0,
+        369.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "ALETA_TRAS_I",
+      "severidad": "moderado",
+      "regla_coste_aplicable": true,
+      "vision_description": "La aleta trasera izquierda presenta una deformación visible alrededor de la boca del depósito y el paso de rueda, junto con abundantes rozaduras y transferencia de pintura.",
+      "crop_image_path": "crops/381_dent_4.jpg"
+    },
+    {
+      "finding_id": "381-5",
+      "category": "scratch",
+      "clase_tool": "scratch",
+      "score": 0.712890625,
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
+      "bbox_xywh": [
+        352.0,
+        330.0,
+        352.0,
+        334.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "ALETA_TRAS_I",
+      "severidad": "moderado",
+      "regla_coste_aplicable": true,
+      "vision_description": "La aleta trasera izquierda presenta múltiples rozaduras y arañazos blancos extensos, con pérdida de pintura en varias zonas.",
+      "crop_image_path": "crops/381_scratch_5.jpg"
+    },
+    {
+      "finding_id": "381-6",
+      "category": "lamp broken",
+      "clase_tool": "lamp_broken",
+      "score": 0.634765625,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        549.0,
+        215.0,
+        59.0,
+        60.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "La zona marcada corresponde a un componente circular dentro de la boca de llenado de combustible, no a una lámpara rota.",
+      "crop_image_path": "crops/381_lamp_broken_6.jpg"
+    },
+    {
+      "finding_id": "381-7",
+      "category": "scratch",
+      "clase_tool": "scratch",
+      "score": 0.423828125,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        678.0,
+        426.0,
+        322.0,
+        240.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARAG_TRAS",
+      "severidad": "leve",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se observan múltiples arañazos y rozaduras superficiales en la cubierta del paragolpes trasero. No se aprecia deformación importante en la zona marcada.",
+      "crop_image_path": "crops/381_scratch_7.jpg"
+    },
+    {
+      "finding_id": "381-14",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.317138671875,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        594.0,
+        631.0,
+        28.0,
+        35.0
+      ],
+      "vision_verdict": "incierto",
+      "pieza_id": "NEUMATICO",
+      "severidad": "moderado",
+      "regla_coste_aplicable": false,
+      "vision_description": "La zona marcada cae sobre el neumático trasero, pero el recorte no permite distinguir con seguridad una grieta de la textura o el desgaste normal.",
+      "crop_image_path": "crops/381_crack_14.jpg"
+    },
+    {
+      "finding_id": "381-15",
+      "category": "dent",
+      "clase_tool": "dent",
+      "score": 0.316650390625,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        594.0,
+        630.0,
+        28.0,
+        36.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "El rectángulo marcado cae en el borde del neumático y no se aprecia una abolladura en esa zona. Aunque hay daños visibles en la aleta trasera, están fuera del área marcada.",
+      "crop_image_path": "crops/381_dent_15.jpg"
+    }
+  ]
+}

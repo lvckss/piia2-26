@@ -1,0 +1,132 @@
+{
+  "image_id": 1794,
+  "resumen_filtro_previo": {
+    "detecciones_totales": 14,
+    "candidatas": 6,
+    "descartadas_por_clase": {
+      "crack": 8
+    }
+  },
+  "findings": [
+    {
+      "finding_id": "1794-1",
+      "category": "lamp broken",
+      "clase_tool": "lamp_broken",
+      "score": 0.912109375,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        448.0,
+        609.0,
+        226.0,
+        60.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "El piloto lateral ámbar parece intacto, sin roturas visibles en la lente. Se aprecian rozaduras en la carrocería cercana, pero no un daño de tipo «lamp broken» en la zona marcada.",
+      "crop_image_path": "crops/1794_lamp_broken_1.jpg"
+    },
+    {
+      "finding_id": "1794-2",
+      "category": "tire flat",
+      "clase_tool": "tire_flat",
+      "score": 0.86181640625,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        0.0,
+        519.0,
+        333.0,
+        231.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "El neumático no muestra una deformación evidente ni señales claras de estar desinflado; parece conservar su forma normal.",
+      "crop_image_path": "crops/1794_tire_flat_2.jpg"
+    },
+    {
+      "finding_id": "1794-3",
+      "category": "dent",
+      "clase_tool": "dent",
+      "score": 0.4501953125,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        282.0,
+        490.0,
+        409.0,
+        257.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "ALETA_DEL_I",
+      "severidad": "leve",
+      "regla_coste_aplicable": true,
+      "vision_description": "La aleta delantera presenta una ligera deformación junto al borde superior y marcas superficiales. La zona corresponde al lado izquierdo del vehículo.",
+      "crop_image_path": "crops/1794_dent_3.jpg"
+    },
+    {
+      "finding_id": "1794-4",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.44482421875,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        0.0,
+        66.0,
+        840.0,
+        423.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "FARO_DEL_I",
+      "severidad": "moderado",
+      "regla_coste_aplicable": true,
+      "vision_description": "El faro delantero presenta la lente rota y agrietada. El capó adyacente también está visiblemente deformado.",
+      "crop_image_path": "crops/1794_crack_4.jpg"
+    },
+    {
+      "finding_id": "1794-5",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.411376953125,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        653.0,
+        466.0,
+        39.0,
+        135.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARAG_DEL",
+      "severidad": "moderado",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se observa una grieta o rotura vertical con separación en el extremo del paragolpes delantero, junto a la unión con la aleta. Hay material oscuro expuesto en la abertura.",
+      "crop_image_path": "crops/1794_crack_5.jpg"
+    },
+    {
+      "finding_id": "1794-11",
+      "category": "dent",
+      "clase_tool": "dent",
+      "score": 0.339111328125,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        668.0,
+        294.0,
+        241.0,
+        435.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARAG_DEL",
+      "severidad": "moderado",
+      "regla_coste_aplicable": true,
+      "vision_description": "La cubierta del paragolpes delantero presenta deformación y rozaduras visibles en la esquina marcada. También se observa desajuste en el borde superior junto a la zona del faro.",
+      "crop_image_path": "crops/1794_dent_11.jpg"
+    }
+  ]
+}

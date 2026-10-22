@@ -1,0 +1,70 @@
+{
+  "image_id": 3083,
+  "resumen_filtro_previo": {
+    "detecciones_totales": 3,
+    "candidatas": 3,
+    "descartadas_por_clase": {}
+  },
+  "findings": [
+    {
+      "finding_id": "3083-1",
+      "category": "glass shatter",
+      "clase_tool": "glass_shatter",
+      "score": 0.943359375,
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
+      "bbox_xywh": [
+        0.0,
+        0.0,
+        1000.0,
+        667.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARABRISAS",
+      "severidad": "grave",
+      "regla_coste_aplicable": true,
+      "vision_description": "El parabrisas presenta un impacto con rotura en forma de telaraña y numerosas grietas que se extienden ampliamente por el vidrio.",
+      "crop_image_path": "crops/3083_glass_shatter_1.jpg"
+    },
+    {
+      "finding_id": "3083-2",
+      "category": "lamp broken",
+      "clase_tool": "lamp_broken",
+      "score": 0.86474609375,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        0.0,
+        0.0,
+        1000.0,
+        667.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "La zona muestra el parabrisas agrietado con un impacto y múltiples fisuras; no se observa un faro roto.",
+      "crop_image_path": "crops/3083_lamp_broken_2.jpg"
+    },
+    {
+      "finding_id": "3083-3",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.48193359375,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        0.0,
+        0.0,
+        987.0,
+        667.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARABRISAS",
+      "severidad": "grave",
+      "regla_coste_aplicable": true,
+      "vision_description": "El parabrisas presenta una fractura extensa en forma de telaraña, con múltiples grietas que se extienden desde un punto de impacto.",
+      "crop_image_path": "crops/3083_crack_3.jpg"
+    }
+  ]
+}

@@ -1,0 +1,196 @@
+{
+  "image_id": 1236,
+  "resumen_filtro_previo": {
+    "detecciones_totales": 40,
+    "candidatas": 9,
+    "descartadas_por_clase": {
+      "tire flat": 1,
+      "dent": 5,
+      "crack": 19,
+      "lamp broken": 2,
+      "glass shatter": 4
+    }
+  },
+  "findings": [
+    {
+      "finding_id": "1236-1",
+      "category": "tire flat",
+      "clase_tool": "tire_flat",
+      "score": 0.91552734375,
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
+      "bbox_xywh": [
+        361.0,
+        315.0,
+        225.0,
+        323.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "NEUMATICO",
+      "severidad": "moderado",
+      "regla_coste_aplicable": true,
+      "vision_description": "El neumático trasero visible está claramente desinflado y aplastado contra el suelo. La llanta parece intacta.",
+      "crop_image_path": "crops/1236_tire_flat_1.jpg"
+    },
+    {
+      "finding_id": "1236-2",
+      "category": "tire flat",
+      "clase_tool": "tire_flat",
+      "score": 0.80419921875,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        739.0,
+        265.0,
+        54.0,
+        122.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "El neumático visible en la zona marcada no muestra una deformación clara ni signos evidentes de estar desinflado; parece conservar una forma normal.",
+      "crop_image_path": "crops/1236_tire_flat_2.jpg"
+    },
+    {
+      "finding_id": "1236-4",
+      "category": "dent",
+      "clase_tool": "dent",
+      "score": 0.77392578125,
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
+      "bbox_xywh": [
+        130.0,
+        293.0,
+        272.0,
+        242.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARAG_TRAS",
+      "severidad": "grave",
+      "regla_coste_aplicable": true,
+      "vision_description": "El paragolpes trasero está fuertemente deformado y raspado, con parte de su estructura interna expuesta. El daño se concentra en la esquina trasera derecha del vehículo.",
+      "crop_image_path": "crops/1236_dent_4.jpg"
+    },
+    {
+      "finding_id": "1236-5",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.74169921875,
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
+      "bbox_xywh": [
+        131.0,
+        293.0,
+        271.0,
+        242.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARAG_TRAS",
+      "severidad": "grave",
+      "regla_coste_aplicable": true,
+      "vision_description": "El paragolpes trasero presenta una rotura con grietas, deformación y pérdida de material en la esquina. El daño es extenso y deja expuesta la estructura interior.",
+      "crop_image_path": "crops/1236_crack_5.jpg"
+    },
+    {
+      "finding_id": "1236-6",
+      "category": "lamp broken",
+      "clase_tool": "lamp_broken",
+      "score": 0.7373046875,
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
+      "bbox_xywh": [
+        265.0,
+        44.0,
+        112.0,
+        93.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PILOTO_TRAS_I",
+      "severidad": "moderado",
+      "regla_coste_aplicable": true,
+      "vision_description": "El piloto trasero izquierdo está roto y deja expuestos sus componentes internos. La zona presenta además daños importantes en la carrocería circundante.",
+      "crop_image_path": "crops/1236_lamp_broken_6.jpg"
+    },
+    {
+      "finding_id": "1236-7",
+      "category": "lamp broken",
+      "clase_tool": "lamp_broken",
+      "score": 0.69775390625,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        0.0,
+        60.0,
+        47.0,
+        88.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "La pieza dentro del recuadro parece una luz rectangular intacta, sin roturas visibles. El piloto trasero claramente dañado está en otra zona, fuera del recuadro.",
+      "crop_image_path": "crops/1236_lamp_broken_7.jpg"
+    },
+    {
+      "finding_id": "1236-8",
+      "category": "dent",
+      "clase_tool": "dent",
+      "score": 0.5849609375,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        243.0,
+        35.0,
+        236.0,
+        421.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "ALETA_TRAS_D",
+      "severidad": "grave",
+      "regla_coste_aplicable": true,
+      "vision_description": "La aleta trasera derecha presenta una deformación y aplastamiento severos alrededor del piloto trasero, que también está roto o ausente.",
+      "crop_image_path": "crops/1236_dent_8.jpg"
+    },
+    {
+      "finding_id": "1236-9",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.52734375,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        163.0,
+        301.0,
+        18.0,
+        21.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "La zona marcada muestra una pequeña marca superficial, pero no se aprecia una grieta definida en el paragolpes.",
+      "crop_image_path": "crops/1236_crack_9.jpg"
+    },
+    {
+      "finding_id": "1236-12",
+      "category": "glass shatter",
+      "clase_tool": "glass_shatter",
+      "score": 0.50634765625,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        589.0,
+        0.0,
+        99.0,
+        113.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "La luna lateral trasera marcada se ve intacta, sin grietas ni patrón de vidrio roto. El pequeño punto oscuro parece una marca o elemento superficial, no un daño de tipo glass shatter.",
+      "crop_image_path": "crops/1236_glass_shatter_12.jpg"
+    }
+  ]
+}

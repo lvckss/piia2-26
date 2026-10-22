@@ -1,0 +1,173 @@
+{
+  "image_id": 3296,
+  "resumen_filtro_previo": {
+    "detecciones_totales": 10,
+    "candidatas": 8,
+    "descartadas_por_clase": {
+      "crack": 1,
+      "dent": 1
+    }
+  },
+  "findings": [
+    {
+      "finding_id": "3296-1",
+      "category": "tire flat",
+      "clase_tool": "tire_flat",
+      "score": 0.9482421875,
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
+      "bbox_xywh": [
+        316.0,
+        204.0,
+        316.0,
+        276.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "NEUMATICO",
+      "severidad": "moderado",
+      "regla_coste_aplicable": true,
+      "vision_description": "El neumático está visiblemente desinflado y aplastado contra el suelo en la parte inferior. La rueda corresponde al eje delantero.",
+      "crop_image_path": "crops/3296_tire_flat_1.jpg"
+    },
+    {
+      "finding_id": "3296-2",
+      "category": "lamp broken",
+      "clase_tool": "lamp_broken",
+      "score": 0.94677734375,
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
+      "bbox_xywh": [
+        660.0,
+        47.0,
+        73.0,
+        87.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PILOTO_TRAS_D",
+      "severidad": "moderado",
+      "regla_coste_aplicable": true,
+      "vision_description": "El piloto trasero presenta la lente visiblemente dañada, con una rotura o fisura en el borde superior. Está situado en la esquina trasera del lado derecho del vehículo.",
+      "crop_image_path": "crops/3296_lamp_broken_2.jpg"
+    },
+    {
+      "finding_id": "3296-3",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.45361328125,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        831.0,
+        385.0,
+        75.0,
+        27.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "La zona marcada está sobre el pavimento, delante del vehículo; no se aprecia ningún crack ni daño en una pieza del vehículo.",
+      "crop_image_path": "crops/3296_crack_3.jpg"
+    },
+    {
+      "finding_id": "3296-4",
+      "category": "dent",
+      "clase_tool": "dent",
+      "score": 0.407470703125,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        338.0,
+        137.0,
+        297.0,
+        76.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "El paso de rueda presenta una forma uniforme, sin una deformación clara que confirme un abollón. Las irregularidades visibles parecen sombras o suciedad.",
+      "crop_image_path": "crops/3296_dent_4.jpg"
+    },
+    {
+      "finding_id": "3296-5",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.40478515625,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        17.0,
+        331.0,
+        11.0,
+        9.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "En la zona marcada no se aprecia una grieta; parece una pequeña mancha o irregularidad en el borde inferior de la carrocería.",
+      "crop_image_path": "crops/3296_crack_5.jpg"
+    },
+    {
+      "finding_id": "3296-6",
+      "category": "dent",
+      "clase_tool": "dent",
+      "score": 0.3671875,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        0.0,
+        286.0,
+        301.0,
+        105.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "Se aprecian roces y pequeñas manchas en el embellecedor y la parte baja de la puerta, pero no una deformación clara compatible con un abollón.",
+      "crop_image_path": "crops/3296_dent_6.jpg"
+    },
+    {
+      "finding_id": "3296-8",
+      "category": "scratch",
+      "clase_tool": "scratch",
+      "score": 0.336669921875,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        3.0,
+        341.0,
+        18.0,
+        13.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "En la zona marcada no se aprecia un arañazo definido; parece una pequeña mancha o irregularidad superficial en el panel inferior.",
+      "crop_image_path": "crops/3296_scratch_8.jpg"
+    },
+    {
+      "finding_id": "3296-10",
+      "category": "scratch",
+      "clase_tool": "scratch",
+      "score": 0.315185546875,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        35.0,
+        352.0,
+        31.0,
+        9.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PUERTA_DEL_I",
+      "severidad": "leve",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se aprecia una marca lineal oscura y superficial en la zona baja del lateral, compatible con un arañazo leve. Está en el lado izquierdo del vehículo, en la zona inferior de la puerta delantera.",
+      "crop_image_path": "crops/3296_scratch_10.jpg"
+    }
+  ]
+}

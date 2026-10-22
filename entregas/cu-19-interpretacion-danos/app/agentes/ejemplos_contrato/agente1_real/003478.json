@@ -1,0 +1,113 @@
+{
+  "image_id": 3478,
+  "resumen_filtro_previo": {
+    "detecciones_totales": 9,
+    "candidatas": 5,
+    "descartadas_por_clase": {
+      "crack": 1,
+      "scratch": 3
+    }
+  },
+  "findings": [
+    {
+      "finding_id": "3478-1",
+      "category": "lamp broken",
+      "clase_tool": "lamp_broken",
+      "score": 0.98388671875,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        424.0,
+        0.0,
+        576.0,
+        600.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "El piloto presenta rozaduras superficiales en la lente, pero no se aprecian roturas ni grietas. El daño marcado no corresponde a una lámpara rota.",
+      "crop_image_path": "crops/3478_lamp_broken_1.jpg"
+    },
+    {
+      "finding_id": "3478-2",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.93115234375,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        478.0,
+        198.0,
+        352.0,
+        217.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "No se aprecia una grieta en la zona marcada; se observan rozaduras y marcas superficiales sobre el piloto trasero.",
+      "crop_image_path": "crops/3478_crack_2.jpg"
+    },
+    {
+      "finding_id": "3478-3",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.66650390625,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        417.0,
+        183.0,
+        25.0,
+        228.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "No se aprecia una grieta en la zona marcada; parece haber una rozadura o transferencia de material junto al piloto trasero.",
+      "crop_image_path": "crops/3478_crack_3.jpg"
+    },
+    {
+      "finding_id": "3478-4",
+      "category": "scratch",
+      "clase_tool": "scratch",
+      "score": 0.4365234375,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        417.0,
+        183.0,
+        24.0,
+        229.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PILOTO_TRAS_I",
+      "severidad": "leve",
+      "regla_coste_aplicable": false,
+      "vision_description": "Se observan pequeñas marcas verticales de raspado en el borde exterior del piloto trasero izquierdo. El daño parece superficial.",
+      "crop_image_path": "crops/3478_scratch_4.jpg"
+    },
+    {
+      "finding_id": "3478-5",
+      "category": "scratch",
+      "clase_tool": "scratch",
+      "score": 0.40673828125,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        240.0,
+        611.0,
+        153.0,
+        27.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "La zona marcada en la carrocería blanca no muestra un arañazo apreciable. El roce visible en el piloto trasero queda fuera del rectángulo.",
+      "crop_image_path": "crops/3478_scratch_5.jpg"
+    }
+  ]
+}
