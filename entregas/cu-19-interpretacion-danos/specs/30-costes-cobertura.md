@@ -74,7 +74,7 @@ pueda verificar.
   mensaje que dice dónde extraerlo (no con un error opaco).
 - La indemnización es **orientativa**: los datos de pólizas y precios son sintéticos (relacionado
   con la #35, alcance del README del caso).
-- Contexto obligatorio: `vehiculo_id` (opcional solo si se acepta la #28, AC-009), `region`,
+- Contexto obligatorio: `vehiculo_id` (siempre obligatorio: AC-009 retirado al aparcarse la #28), `region`,
   `tipo_taller`, `acabado`, `tipo_pieza`, `rol`, `edad_anios` y `km`. `poliza_id` es obligatorio y
   debe existir en `polizas.csv` solo si `rol == "propio"`; con `tercero_perjudicado` se ignora
   (puede venir vacío, AC-003).
@@ -82,7 +82,7 @@ pueda verificar.
 | Incertidumbre | Clasificación | Evidencia / supuesto / pregunta y efecto |
 |---|---|---|
 | ¿Requiere ADR el contrato de salida del Agente 2, que consume el Agente 3? | Pregunta no bloqueante, a confirmar en la revisión | Se elige NO_ADR_REQUIRED porque el contrato ya está acordado y no cambia; su registro como ADR corresponde a la #37. Si el revisor lo pide, se crea el ADR en la #37 y esta Issue lo reutiliza (REUSE_ADR) sin cambiar los AC. |
-| ¿Se aprueba la #28 (`vehiculo_id` opcional y `vehiculo_origen`)? | Pregunta no bloqueante para AC-001 a AC-008 y AC-010 y AC-011; bloqueante solo para AC-009 | Estado registrado el 2026-10-19: PR #29 abierta, sin revisiones; ADR 0001 en estado Propuesto. Si el ADR 0001 se acepta, AC-009 se implementa tal cual. Si se rechaza, AC-009 se retira (sin renumerar) y `vehiculo_id` sigue siendo obligatorio (AC-010). Si cambia su alcance, AC-009 conserva su ID y el cambio se registra como nueva versión del plan, con referencia a la anterior. La #28 (slice 4) añade `contexto.vehiculo_origen` a `ejemplos_contrato/agente2_salida.json`: AC-001 compara siempre con el ejemplo vigente en `main` cuando se ejecuta, así que, si la #28 se integra antes que esta Issue, AC-001 incluye ese campo. |
+| ¿Se aprueba la #28 (`vehiculo_id` opcional y `vehiculo_origen`)? | Resuelta (decisión humana) | Aparcada por Lucía el 2026-10-20 ([registro](https://github.com/lvckss/piia2-26/issues/30#issuecomment-6297183183)); equivale a «rechazado»: AC-009 se retira sin renumerar y `vehiculo_id` sigue siendo obligatorio (AC-010), como preveía este plan. Actualizado en la Implementation PR, según la DoR. |
 | Un hallazgo `confirmed` siempre trae pieza, severidad y `regla_coste_aplicable == true`. | Resuelta con evidencia | `decidir_tier` (`agente_multimodal/confianza.py`) solo devuelve `confirmed` si `pieza_id` existe y la regla es `true`, y `vision.py` solo calcula la regla si hay pieza y severidad. El Agente 2 confía en esa invariante y no vuelve a comprobar los confirmados. |
 | ¿Qué pólizas concretas usan AC-004, AC-005 y AC-006 y qué importes esperados salen? | Resuelta con evidencia | Calculado por Lucía con la herramienta real, la lógica de la guía y `polizas.csv` ([AC-004/005](https://github.com/lvckss/piia2-26/pull/40#discussion_r4303253777), [AC-006](https://github.com/lvckss/piia2-26/pull/40#discussion_r4303253779)); los importes se fijan en los AC. `P-TERC-BASICO` no cubre colisión ni lunas. Para AC-006 solo `P-TERC-AMPLIADO` tiene un límite anual de lunas que actúa (800 €), y se usa con `V25` para ejercitar el `min(...)`. |
 | La resta de la franquicia de lunas no se puede comprobar con los datos de la empresa. | Supuesto explícito aceptable (límite declarado) | Las tres pólizas que cubren lunas tienen `franquicia_lunas_eur = 0` ([comentario](https://github.com/lvckss/piia2-26/pull/40#discussion_r4303253779)), así que AC-006 no detectaría que se olvide restar una franquicia positiva. Se declara como límite; no se inventan pólizas. |
@@ -122,7 +122,7 @@ pueda verificar.
 | AC-006 | Un único daño grave en `PARABRISAS` (zona `cristal`), con `vehiculo_id = "V25"` y `poliza_id = "P-TERC-AMPLIADO"` (cubre lunas, límite anual 800 €). | Motivo «Cobertura de lunas», `franquicia_eur` igual a la franquicia de lunas de la póliza (0,00 €), total con IVA 987,60 € e indemnización 800,00 € = `min(987,60, 800) − 0`: el límite anual actúa. (Límite declarado: con los datos de la empresa no se puede comprobar la resta de una franquicia de lunas positiva.) |
 | AC-007 | Una salida del Agente 1 sin hallazgos presupuestables (todos rechazados, o `findings` vacío). | No se lanza excepción. Cada escenario vacío conserva **la misma forma** que uno con daños: `hallazgos_incluidos == []`; `estimacion` con las mismas claves que en `agente2_salida.json` (`desglose` con sus 6 categorías a 0, `subtotal_sin_iva_eur`, `iva_eur` y `total_con_iva_eur` a 0, `lineas == []`, `arrastres_posibles == []`); y `cobertura` con sus 5 claves: `cubierto == false`, motivo «Sin daños presupuestables», `franquicia_eur == 0`, `perdida_total == false`, indemnización 0. |
 | AC-008 | Se ejecuta dos veces con la misma entrada, sin `OPENAI_API_KEY` y sin red. | Las dos salidas son idénticas y la ejecución no necesita clave ni red. |
-| AC-009 | (Condicionado a la aceptación del ADR 0001, #28.) Un contexto con `vehiculo_id` («con»), otro sin él ante una salida del Agente 1 con `vehiculo` («sin») y otro sin él ante una salida sin `vehiculo` («ninguno»). | «Con»: se presupuesta con ese coche y `contexto.vehiculo_origen == "dato_de_entrada"`. «Sin»: se usa `vehiculo.vehiculo_id_referencia` (y queda en `contexto.vehiculo_id`) y `contexto.vehiculo_origen == "estimado_por_vision"`. «Ninguno»: error explícito. Misma referencia que `specs/28-categoria-vehiculo.md#AC-009`. |
+| AC-009 | **Retirado** (2026-10-20). | La #28 se aparcó por decisión de Lucía ([registro](https://github.com/lvckss/piia2-26/issues/30#issuecomment-6297183183)). El ID no se reutiliza; el texto anterior se conserva en `main` `73f6075`. |
 | AC-010 | Un contexto con `poliza_id` inexistente (con `rol == "propio"`), `vehiculo_id` inexistente, `rol` fuera de `propio`/`tercero_perjudicado`, `edad_anios` o `km` no numéricos o negativos, o un campo obligatorio ausente; o el paquete de la empresa no está en su ruta. | Se lanza una excepción cuyo mensaje nombra el campo o la ruta problemática; no se devuelve salida. |
 | AC-011 | Los siniestros de `siniestros_sinteticos.csv` con `split` `val` o `test`. | Con un script reproducible, construyendo el contexto con las columnas de cada siniestro (249 siniestros): (a) el MAPE de `estimar_coste` con `danos_json` frente a `coste_facturado_sin_iva_eur` se documenta y vale 9,39 % (± 0,01 puntos; es el suelo de la herramienta); (b) `cobertura.perdida_total` concuerda con `perdida_total` y `cobertura.cubierto` con `cobertura_aplica` en el 100 % de los casos; (c) con el coste facturado del CSV como entrada de la lógica de cobertura, la indemnización coincide con la del CSV (± 0,5 €) en el 100 % de los casos; (d) se documenta también, sin umbral, la coincidencia y el error relativo medio de la indemnización con el coste de la herramienta (referencia: 32,9 % y 12,7 %). Cualquier discrepancia en (b) o (c) queda explicada. |
 
@@ -151,7 +151,7 @@ comprobación lleva en su nombre o comentario `30-costes-cobertura.md#AC-0XX`.
 | `specs/30-costes-cobertura.md#AC-006` | S1 + S2 | TDD | Cobertura de lunas con el límite anual actuando: 987,60 € con IVA → 800,00 € | Hallazgo grave único sobre `PARABRISAS`; `V25` + `P-TERC-AMPLIADO` | `python probar_costes.py` | Red y Green |
 | `specs/30-costes-cobertura.md#AC-007` | S1 + S2 | TDD | Sin daños presupuestables: mismas claves que un escenario con daños (comparadas con `agente2_salida.json`), importes 0, listas vacías, sin excepción | `findings` vacío y todo rechazado | `python probar_costes.py` | Red y Green |
 | `specs/30-costes-cobertura.md#AC-008` | S1 | TDD | Dos ejecuciones idénticas sin clave ni red | Variable `OPENAI_API_KEY` eliminada del entorno del proceso y `socket.socket` sustituido durante la prueba por una función que lanza excepción | `python probar_costes.py` | Green (comprobación de igualdad, sin intento de conexión) |
-| `specs/30-costes-cobertura.md#AC-009` | S1 + S2 | TDD (si se acepta el ADR 0001) | «Con», «sin», «ninguno» | Ejemplos con y sin `vehiculo` según la #28 | `python probar_costes.py` | Red y Green, o AC retirado con referencia a la decisión |
+| `specs/30-costes-cobertura.md#AC-009` | — | Retirado | — | — | — | Sin verificación: AC retirado con referencia a la decisión sobre la #28 |
 | `specs/30-costes-cobertura.md#AC-010` | S1 | TDD | Excepción que nombra campo o ruta | Contextos inválidos; para el paquete ausente, copia del módulo en un directorio temporal con un `.git` vacío y sin `piia2_paquete_datos/`, importada en un subproceso | `python probar_costes.py` | Red y Green |
 | `specs/30-costes-cobertura.md#AC-011` | S2 + S3 | Eval (medición reproducible, sin rojo artificial) | MAPE 9,39 %; banderas al 100 %; indemnización con coste facturado al 100 %; coincidencia y error de la indemnización con el coste de la herramienta documentados | `siniestros_sinteticos.csv`, `split` val + test, versión del paquete local | `python evaluar_costes.py` | Tabla con n, MAPE y concordancias en la PR de implementación |
 
@@ -162,14 +162,14 @@ comprobación lleva en su nombre o comentario `30-costes-cobertura.md#AC-0XX`.
 | 1 — Ejemplo del contrato | `estimar_siniestro` reproduce `agente2_salida.json` con el reparto de hallazgos. | AC-001, AC-002, AC-007 | `agente_recuperacion/costes_y_cobertura.py` (nuevo); contrato Agente 2 → 3 | Paquete de la empresa extraído en local | Filas AC-001, AC-002, AC-007 |
 | 2 — Reglas de cobertura | Tercero, póliza sin cobertura, pérdida total y lunas correctos. | AC-003, AC-004, AC-005, AC-006 | Ídem | Slice 1 | Filas AC-003 a AC-006 |
 | 3 — Robustez de la entrada | Errores explícitos y ejecución determinista sin red. | AC-008, AC-010 | Ídem | Slice 1 | Filas AC-008, AC-010 |
-| 4 — Coche estimado por visión | `vehiculo_id` opcional y `vehiculo_origen`. | AC-009 | Ídem; contrato de la #28 | ADR 0001 aceptado y la #28 integrada | Fila AC-009 |
+| 4 — Coche estimado por visión | **Retirada** (AC-009 retirado; #28 aparcada). | — | — | — | — |
 | 5 — Evaluación | MAPE y concordancias documentados. | AC-011 | `agente_recuperacion/evaluar_costes.py` (nuevo) | Slice 2 | Fila AC-011 |
 
 Al terminar, el README de `agente_recuperacion/` indica cómo ejecutar las pruebas y la evaluación.
 
 ## Pendientes para Ready
 
-- **Resolución de la #28 (bloquea solo AC-009 y la slice 4):** a 2026-10-19 la PR #29 sigue abierta y sin revisiones, y el ADR 0001 en estado Propuesto. Antes de Ready se registra en la Issue su resolución: aceptado (AC-009 tal cual), rechazado (AC-009 retirado sin renumerar) o modificado (AC-009 actualizado conservando su ID). Las slices 1, 2, 3 y 5 no dependen de ella.
+- Resolución de la #28: **resuelta** (aparcada el 2026-10-20, [registro](https://github.com/lvckss/piia2-26/issues/30#issuecomment-6297183183)); AC-009 retirado y slice 4 sin implementar.
 - **Revisión previa (solicitud del equipo):** contenido aprobado por Lucas García en la [revisión del 2026-10-20](https://github.com/lvckss/piia2-26/pull/40#pullrequestreview-5588541999) sobre `c1e5b93`; spec Revisada registrada en el commit de metadatos posterior. Falta la aprobación final del head con estos metadatos y la integración en `main` por un humano. El comentario de planificación de la Issue señala el commit finalmente aceptado.
 - **ADR decision:** NO_ADR_REQUIRED, aceptada por Lucas y por Lucía (ver la cabecera).
 - **ADRs de la #37 integrados en `main`** (decisión del equipo del 2026-10-19: los ADRs se integran antes de implementar): al menos los que registran el contrato Agente 1 → Agente 2 → Agente 3 y el uso de la herramienta de costes y los datos de la empresa, Aceptados.
@@ -185,7 +185,7 @@ Resultado de analyze:
 | Cada AC tiene verificación y slice | Sí (AC-001 a AC-011). |
 | Comportamiento preservado | El contrato, protegido por AC-001. |
 | ADR decision coherente | NO_ADR_REQUIRED justificado; confirmado por Lucía y Lucas en la revisión de `408f393`. |
-| Gaps | Importes de AC-004 a AC-006 resueltos con evidencia. AC-009 depende de la #28 (sin resolver a 2026-10-19). Por decisión del equipo (2026-10-19), Ready exige además que los ADRs de la #37 de los que depende estén integrados en `main`. Ninguno impide revisar el plan; los dos se resuelven antes de Ready. |
+| Gaps | Ninguno. La #28 se resolvió (aparcada; AC-009 retirado) y los ADRs 0002 y 0004 están en `main`. |
 
 ## Definition of Done
 
@@ -193,5 +193,5 @@ Resultado de analyze:
 |---|---|
 | `probar_costes.py` ejecutado **con el paquete de la empresa presente** y en verde. | Salida del comando en la PR de implementación. |
 | Evaluación de AC-011 documentada. | Tabla con n, MAPE y concordancias, y comando para reproducirla. |
-| AC-009 implementado o retirado con referencia a la decisión de la #28. | Enlace a la PR #29 y su resultado. |
+| AC-009 retirado con referencia a la decisión de la #28. | [Registro de la decisión](https://github.com/lvckss/piia2-26/issues/30#issuecomment-6297183183); hecho en la Implementation PR. |
 | README de `agente_recuperacion/` actualizado. | Diff de la PR. |
