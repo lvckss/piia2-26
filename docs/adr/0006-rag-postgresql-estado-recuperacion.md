@@ -19,7 +19,8 @@ no tiene código productivo.
 
 El corpus contiene cuatro pólizas sintéticas y siete documentos legales. El
 paquete trae 25 preguntas con respuesta y documento esperados. El objetivo
-aceptado por Lucas es resolver al menos 24/25 con el modelo seleccionado; su
+aceptado por Lucas, actualizado el 2026-10-27, es resolver al menos 23/25 con
+el modelo seleccionado: 23 «bien», 24 «genial» y 25 «GOD»; su
 viabilidad no está medida. Cambiar modelo puede cambiar dimensiones y geometría,
 por lo que compartir una generación de embeddings entre modelos es incorrecto.
 
@@ -113,7 +114,8 @@ frontera consumida por otras personas y requiere revisión previa.
   los vectores anteriores como si fueran equivalentes.
 - Dos modelos suponen dos indexados y evaluaciones. Se medirá el coste y se
   reutilizarán embeddings de entradas idénticas. No hay gasto realizado en planificación.
-- El objetivo 24/25 es un requisito humano, sin baseline propio todavía. El
+- El mínimo 23/25 y las valoraciones 24 «genial» / 25 «GOD» son un requisito
+  humano actualizado por Lucas, sin baseline propio todavía. El
   benchmark es pequeño y conocido; no permite afirmar rendimiento general ni
   garantía normativa para cualquier siniestro.
 - La referencia directa permite comprobar si los embeddings aportan algo sobre

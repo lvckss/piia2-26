@@ -5,7 +5,7 @@
 - ADR decision: NEW_ADR
 - ADR: [0006 — RAG con PostgreSQL y estado de recuperación](https://github.com/lvckss/piia2-26/blob/main/docs/adr/0006-rag-postgresql-estado-recuperacion.md) — Propuesto; accesible en la rama de esta Planning PR hasta su integración.
 - Justificación: fija la persistencia vectorial, la separación de índices por modelo y una ampliación del contrato Agente 2 → Agente 3/orquestación para distinguir fuentes ausentes y fallos técnicos. Los ADRs previos 0002, 0003 y 0004 están Aceptados e integrados por la #51; cubren el contrato base, el proveedor y el cálculo, pero no la persistencia vectorial ni el diagnóstico nuevo, por lo que se mantiene NEW_ADR.
-- Plan vigente / versión: v1.3, este archivo en `plan/32-rag-normativa`; el comentario de planificación de la Issue fija el commit publicado. La v1 se conserva en `0197825`, la v1.1 en `88bd84d` y la v1.2 en `c77a17c`. La v1.3 actualiza las referencias a costes al 2026-10-27: su código ya está integrado y disponible para verificar la composición. Conserva las decisiones, los 14 AC y la estrategia de verificación e implementación.
+- Plan vigente / versión: v1.4, este archivo en `plan/32-rag-normativa`; el comentario de planificación de la Issue fija el commit publicado. La v1 se conserva en `0197825`, la v1.1 en `88bd84d`, la v1.2 en `c77a17c` y la v1.3 en `1b2d62f`. La v1.4 recoge la decisión de Lucas del 2026-10-27: 23/25 es suficiente, 24/25 es genial y 25/25 es GOD. Actualiza AC-011, sus verificaciones y la DoD, conservando los 14 IDs y el resto del diseño. La v1.3 actualizó las referencias al código de costes ya integrado.
 - Riesgo y revisión previa: sí, por NEW_ADR y por la revisión de planes en PR acordada para la entrega. Impacto: fuentes de conclusiones económicas; consumidores independientes: #31 y #34. Reversión de la tecnología posible regenerando el índice; incertidumbre de calidad pendiente de evaluación.
 - Planning PR: https://github.com/lvckss/piia2-26/pull/56 — draft para revisar el contrato con consumidores.
 
@@ -250,7 +250,7 @@ tablas propias del RAG, sin alterar las tablas existentes.
 | Dueño de `agente2()` | Resuelta por Lucas | Se incluye en #32; #34 la consume. Responde a la aclaración enlazada de Lucía. |
 | Opción A o B | Resuelta por Lucas | A en esta entrega; B evolución requerida posterior. |
 | Fallo o ausencia de fuentes | Resuelta en comportamiento de producto; contrato propuesto pendiente de revisión | Informe preliminar, causas distinguibles; sin confianza numérica inventada. #31 y #34 deben consumirlo. |
-| Modelos y objetivo de calidad | Resuelta por Lucas | Comparar small y large. Objetivo del modelo seleccionado: al menos 24/25 correctas. Es requisito de producto, no resultado medido ni garantía del proveedor. |
+| Modelos y objetivo de calidad | Resuelta por Lucas; actualizada el 2026-10-27 | Comparar small y large. Mínimo del modelo seleccionado: 23/25 correctas («bien»); 24/25 «genial» y 25/25 «GOD». Sustituye el mínimo anterior de 24/25. Es criterio de producto, no resultado medido ni garantía del proveedor. |
 | Compatibilidad del contrato aditivo | Resuelta para el plan de #31; pendiente para #34 y bloqueante para Ready | La spec v2 del informe incorpora AC-014 y AC-015 mediante la #58 integrada (`73f6075`), con confirmación de Víctor y revisión de Lucas enlazadas en «Contrato propuesto de diagnóstico». Falta recoger el contrato en el plan de #34 y revisar y aceptar esta #56 y el ADR 0006. Se mantiene el borrador. |
 | Calidad real y costes de ambos modelos | Pendiente de evaluación durante implementación | Sin baseline de este corpus. Medir siguiendo el protocolo antes de afirmar cumplimiento de AC-011. Un resultado insuficiente obliga a iterar o replanificar; no rebajar el objetivo. |
 | ¿Necesitan embeddings estas cuatro pólizas? | Resuelta en el diseño, aportación pendiente de medir | Son pequeñas, homogéneas y su póliza es conocida. Se conserva la búsqueda vectorial y se añade una referencia directa por póliza/sección (AC-014); se reportará si no aporta mejora en ese subconjunto. El caso de legislación se evalúa aparte. |
@@ -298,7 +298,7 @@ tablas propias del RAG, sin alterar las tablas existentes.
 | AC-008 | Todas las consultas devuelven citas, algunas vacías, todas vacías, algunas fallan, todas fallan y ningún tema aplica. | El diagnóstico sigue exactamente la agregación descrita, conserva las citas válidas y señala cada tema/código afectado. Una prueba de consumidor acordada con #31/#34 demuestra que se puede mostrar el aviso preliminar y distinguir ausencia de resultados de fallo técnico. |
 | AC-009 | Las 25 preguntas del CSV local y su versión/hash; se ejecuta la evaluación. | Produce una fila por pregunta/modelo, IDs de fragmentos, fuentes, hit@4, juicio de suficiencia y motivo de fallo; resúmenes total y por tipo. Las respuestas esperadas y fuentes gold se usan solo al puntuar. |
 | AC-010 | small y large disponibles; se comparan con el mismo corpus, troceado, preguntas, filtros y k=4. | Informe de ambos modelos con configuración, dimensiones, tokens, coste, latencia de consultas e indexado, aciertos y fallos. No se comparan configuraciones ocultamente diferentes ni se mezclan sus índices. |
-| AC-011 | La comparación y la revisión de fragmentos están terminadas. | El modelo seleccionado resuelve correctamente al menos 24/25 preguntas, según fuente y suficiencia definidas en el protocolo. Se publica el resultado de ambos; el otro modelo puede quedar por debajo. Si ninguno cumple, no se acredita DoD ni se rebaja el criterio sin decisión humana y replanificación. |
+| AC-011 | La comparación y la revisión de fragmentos están terminadas. | El modelo seleccionado resuelve correctamente al menos 23/25 preguntas, según fuente y suficiencia definidas en el protocolo. Se publica el resultado de ambos con la valoración acordada: 23/25 «bien», 24/25 «genial», 25/25 «GOD»; el otro modelo puede quedar por debajo. Con 23/25 se satisface este AC sin exigir más ajustes para alcanzar 24 o 25. Si ninguno llega a 23/25, no se acredita DoD ni se rebaja el criterio sin decisión humana y replanificación. |
 | AC-012 | Un proceso de indexado o evaluación sin autorización explícita de gasto, y pruebas con cliente falso. | El arranque normal no genera embeddings ni ejecuta evaluación de pago; las pruebas deterministas se ejecutan sin clave ni red de OpenAI, usando PostgreSQL de prueba cuando corresponda. |
 | AC-013 | Entorno limpio con Docker y el paquete local; se arranca la parte del RAG desde el Compose raíz, se indexa, consulta y reinician contenedores. | Los comandos documentados preparan el componente, la consulta funciona y los fragmentos persisten tras recrear los contenedores conservando el volumen. Documentos montados en lectura, configuración por entorno; datos, claves y volumen ausentes del diff. |
 | AC-014 | Las 16 preguntas de póliza y las cuatro pólizas originales; se ejecuta la referencia directa definida en el protocolo. | Devuelve hasta cuatro secciones por pregunta, con la misma forma de cita y puntuación de suficiencia, sin embeddings ni consulta al gold durante recuperación. Se publican aciertos, fallos, tiempo y coste de API cero, junto a small/large sobre esas mismas 16 preguntas. Las nueve legales figuran como no aplicables a esta referencia, nunca como fallos ni como un total comparable de 25. Se documenta qué aporta o no aporta la búsqueda vectorial. |
@@ -340,7 +340,7 @@ Durante esta planificación no se escriben ni ejecutan esos archivos.
 | `specs/32-rag-normativa.md#AC-008` | S3 + S5 | TDD, contrato | Seis combinaciones del diagnóstico; consumidor distingue avisos. | Salidas por tema y contrato revisado con #31/#34. | `python probar_rag.py`; prueba de consumidor acordada. | Red/Green y aceptación del contrato. |
 | `specs/32-rag-normativa.md#AC-009` | S4 | TDD del evaluador sin red | Cuenta las 25 filas, puntúa aciertos y fallos conocidos sin filtrar gold al buscador. | CSV local; buscador falso con respuestas controladas. | `python probar_rag.py` | Red/Green del protocolo y resultados sintéticos. |
 | `specs/32-rag-normativa.md#AC-010` | S4 | Eval-first | Comparación small/large con variables controladas y mediciones reales. | Corpus y CSV con hashes anteriores; cuenta Plexus. | Ejecutar indexados y `evaluar_rag.py` con permiso explícito de gasto. | Tabla por modelo, datos, tiempos, tokens y coste. |
-| `specs/32-rag-normativa.md#AC-011` | S4 | Eval-first + revisión humana | Modelo seleccionado con al menos 24/25 correctas. | Las mismas 25 preguntas, protocolo siguiente. | Revisar pasajes, registrar juicios y seleccionar modelo. | Tabla 25×2 y justificación de selección. |
+| `specs/32-rag-normativa.md#AC-011` | S4 | Eval-first + revisión humana | Modelo seleccionado con al menos 23/25 correctas; 23 «bien», 24 «genial», 25 «GOD». Menos de 23 no satisface el AC. | Las mismas 25 preguntas, protocolo siguiente. | Revisar pasajes, registrar juicios y seleccionar modelo; con 23 no se exige seguir ajustando para subir a 24 o 25. | Tabla 25×2, valoración y justificación de selección. |
 | `specs/32-rag-normativa.md#AC-012` | S1 + S2 + S4 | TDD y comprobación de arranque | Sin flag de ejecución no se llama OpenAI; cliente falso sin clave. | Entorno de prueba, contador/guardia de red. | `python probar_rag.py`; arranque sin clave. | Red/Green y cero llamadas externas. |
 | `specs/32-rag-normativa.md#AC-013` | S5 | Integración y comprobación de diff | Preparar/indexar/consultar/recrear; datos conservados. | Docker Compose y paquete en montaje de lectura. | Seguir README en entorno limpio; revisar diff de entrega. | Versiones, comandos y resultados reproducibles. |
 | `specs/32-rag-normativa.md#AC-014` | S4 | TDD del evaluador y reglas; evaluación de la referencia | Producto y concepto conocidos → secciones literales, sin API ni gold; 16 preguntas de póliza puntuadas como small/large. | Pólizas y CSV local congelados; textos de prueba con producto y tema controlados. | `python probar_rag.py`; ejecutar referencia directa de `evaluar_rag.py` y revisar los pasajes. | Red/Green de las reglas; tabla de las 16 preguntas por estrategia y explicación de aportación vectorial. |
@@ -374,9 +374,15 @@ Durante esta planificación no se escriben ni ejecutan esos archivos.
    contradice el snapshot, documentar y resolver la discrepancia; no cambiarlo en silencio.
    La misma rúbrica se aplica a las secciones de la referencia directa; su nombre
    de estrategia tampoco se muestra a la persona que juzga suficiencia.
-5. El objetivo 24/25 (96 %) fue aceptado expresamente por Lucas en la sesión de
-   diseño del 2026-10-20 como interpretación de «casi todas». No procede de un
-   benchmark de OpenAI ni de una medición ya ejecutada.
+5. Lucas actualizó expresamente el criterio el 2026-10-27: **23/25 (92 %),
+   bien y suficiente; 24/25 (96 %), genial; 25/25 (100 %), GOD**.
+   Sustituye el mínimo de 24/25 acordado el 2026-10-20. Con 23 correctas
+   se satisface la condición de calidad de AC-011; no obliga a continuar
+   ajustes para conseguir 24 o 25. El resto de la DoD sigue siendo obligatorio.
+   Con menos de 23, se itera o se replantea con decisión humana; no se declara
+   cumplido el criterio. La valoración no cambia qué cuenta como pregunta
+   correcta (fuente y suficiencia del paso 4). Es una decisión de producto,
+   no un benchmark de OpenAI ni una medición ya ejecutada.
 6. Publicar calidad de ambos, tiempo de indexado y de las 25 consultas (total,
    mediana y máximo), tokens y coste estimado con las tarifas publicadas y su
    fecha de consulta, diferenciando caché y pago. No confundir esa estimación
@@ -390,7 +396,7 @@ Durante esta planificación no se escriben ni ejecutan esos archivos.
    de póliza. Mostrar los nueve resultados legales por separado para small y
    large, y sus totales sobre 25. La referencia directa no busca legislación:
    en ese subconjunto se registra «no aplicable». El objetivo del modelo elegido
-   sigue siendo 24/25; la referencia no lo sustituye ni exige que ambos modelos
+   es al menos 23/25; la referencia no lo sustituye ni exige que ambos modelos
    la superen. Una ventaja nula o negativa en pólizas también es un resultado
    que debe explicarse. Cambiar el buscador productivo por una combinación de
    estrategias requerirá registrar y revisar ese ajuste del plan; esta referencia
@@ -403,7 +409,7 @@ Durante esta planificación no se escriben ni ejecutan esos archivos.
 | 1 — Corpus persistente reproducible | Índice completo, repetible y separado por modelo; conserva generación activa ante fallos. | AC-001, AC-002, AC-012, AC-013 | PostgreSQL/pgvector, indexado y parte RAG del Compose raíz. | ADR aceptado; paquete local; Docker. | Filas AC-001, AC-002, AC-012, AC-013. |
 | 2 — Recuperación con citas y filtros | Búsqueda con la firma acordada, fuentes literales y errores distinguibles. | AC-003, AC-004, AC-005 | `normativa_rag.py`, contrato de errores RAG. | Slice 1. | Filas AC-003 a AC-005. |
 | 3 — Agente 2 completo | Cálculos intactos, temas por caso y diagnóstico para consumidores. | AC-006, AC-007, AC-008 | `agente2()`, `diagnostico_rag`, ejemplos/documentación de contrato. | Slice 2; código de costes disponible en `main` por #59 y paquete local; contrato acordado con #31/#34. | Filas AC-006 a AC-008. |
-| 4 — Evaluación y comparación | Evaluador verificable; referencia directa de pólizas, tabla de ambos modelos y selección con 24/25. | AC-009, AC-010, AC-011, AC-014 | `evaluar_rag.py`, protocolo y resultados. | Slice 2; acceso a ambos modelos. | Filas AC-009 a AC-011 y AC-014. |
+| 4 — Evaluación y comparación | Evaluador verificable; referencia directa de pólizas, tabla de ambos modelos y selección con al menos 23/25, informando la valoración acordada. | AC-009, AC-010, AC-011, AC-014 | `evaluar_rag.py`, protocolo y resultados. | Slice 2; acceso a ambos modelos. | Filas AC-009 a AC-011 y AC-014. |
 | 5 — Uso y entrega | Componente ejecutable desde Compose; documentación y evidencia final. | AC-012, AC-013 | README del RAG, guía actualizada y comandos del entorno. | Slices anteriores. | Arranque reproducible, checks y diff. |
 
 ## Pendientes para Ready
@@ -432,12 +438,13 @@ Durante esta planificación no se escriben ni ejecutan esos archivos.
 |---|---|
 | Issue y decisiones de Lucas cubiertas | Corpus e índice → AC-001/002/013; firma/citas/filtro → AC-003/004; errores y preliminar → AC-005/008; composición → AC-006/007; 25 preguntas y modelos → AC-009/010/011; gasto explícito → AC-012; justificación empírica frente a recuperación directa → AC-014. |
 | Cada AC tiene verificación y slice | AC-001 a AC-014 con fila en Test Plan y al menos una slice. |
-| Ampliaciones autorizadas | Lucas incluye `agente2()`, elige PostgreSQL y Compose, A ahora/B futura, diagnóstico preliminar, errores distintos y comparación small/large con objetivo 24/25. Registrar estas decisiones en la Issue con enlace a esta versión. |
+| Ampliaciones autorizadas | Lucas incluye `agente2()`, elige PostgreSQL y Compose, A ahora/B futura, diagnóstico preliminar, errores distintos y comparación small/large. El 2026-10-27 fija el mínimo en 23/25 y las valoraciones 23 «bien», 24 «genial», 25 «GOD». Registrar estas decisiones en la Issue con enlace a esta versión. |
 | Preservación | Costes, entradas y firma protegidos; adición de diagnóstico requiere revisión de consumidores. |
 | ADR decision | NEW_ADR por persistencia y ampliación de la frontera compartida; los ADRs 0002–0004 Aceptados cubren las decisiones previas, no el índice vectorial ni el diagnóstico propuesto. |
 | Adaptación v1.1 | Solicitud explícita de Lucas tras discutir la necesidad del RAG: justificar pólizas/legislación, precisar su fase y añadir referencia directa. AC-001 a AC-013 y objetivo 24/25 conservados; AC-014 añadido. No había aceptación humana del documento que se atribuya a esta versión. |
 | Actualización v1.2 | Solicitud de Lucas del 2026-10-22: actualizar referencias. ADRs previos y plan de costes integrados; plan de presentación del diagnóstico en #31 recogido por #58. Los 14 AC, decisiones y planes de verificación e implementación no cambian; sin aceptación del conjunto de #56 ni del ADR 0006. |
 | Actualización v1.3 | Solicitud de Lucas del 2026-10-27 tras la revisión de Lucía: corregir las referencias desfasadas a costes. #59 ya integra su código en `main`; se actualizan estado, datos del Test Plan y dependencia de la slice 3. Los 14 AC, contratos, objetivo de calidad, estrategia y decisiones no cambian; no acredita aceptación ni ejecución del RAG. |
+| Actualización v1.4 | Decisión explícita de Lucas del 2026-10-27: «23 de 25 bien, 24 de 25 genial, 25 de 25 GOD». Se conserva AC-011 y se cambia su mínimo de 24 a 23, alineando Test Plan, protocolo, slice 4, DoD y contexto del ADR propuesto. AC-001 a AC-010 y AC-012 a AC-014, la rúbrica de pregunta correcta, el corpus y la comparación de ambos modelos se conservan. No acepta el plan completo ni el ADR ni acredita resultados medidos. |
 | Gaps | Pendientes el plan de #34 y la revisión y aceptación de esta Spec y del ADR 0006: se mantiene draft; no Ready ni código productivo. Calidad y rendimiento aún no medidos; son verificaciones futuras, no checks superados. |
 
 ## Definition of Done
@@ -447,7 +454,7 @@ La DoD global del workflow y la Issue sigue vigente. Esta Spec añade:
 | Condición específica de cierre | Evidencia requerida |
 |---|---|
 | AC-001 a AC-014 verificados y regresiones pertinentes en verde. | Trazabilidad, comandos, Red/Green/Refactor y resultados finales en Implementation PR. |
-| Ambos modelos evaluados; elegido con al menos 24/25 correctas. | Comparación completa, configuración, juicios humanos de suficiencia, coste y tiempos, baseline y cambios conservados. |
+| Ambos modelos evaluados; elegido con al menos 23/25 correctas (mínimo aceptable). | Comparación completa, configuración, juicios humanos de suficiencia, coste y tiempos, baseline y cambios conservados; valoración 23 «bien», 24 «genial» o 25 «GOD». |
 | Referencia directa de las 16 preguntas de póliza comparada con ambos modelos. | Misma rúbrica, resultados por estrategia y subconjunto, fallos conservados y explicación de cuándo aporta valor la recuperación vectorial. |
 | Composición con el cálculo real de #30 integrada y sin cambio de cifras. | Ejecución con paquete presente y comparación con salida de costes. |
 | Consumidores pueden distinguir ausencia, parcialidad y errores. | Contrato aceptado y comprobación de integración con #31/#34; no basta con que exista el campo en un productor aislado. |
