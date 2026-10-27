@@ -4,7 +4,7 @@
 - Fecha: 2026-10-27
 - GitHub Issue: https://github.com/lvckss/piia2-26/issues/34
 - Planes cubiertos: [34-orquestacion-web.md](../../entregas/cu-19-interpretacion-danos/specs/34-orquestacion-web.md), coordinación, frontera web/Python, estado temporal y Compose.
-- Planning PR: pendiente de publicar desde `plan/34-orquestacion-web`.
+- Planning PR: https://github.com/lvckss/piia2-26/pull/60 — draft.
 - Aceptación: pendiente de revisión humana del documento completo, los contratos y las alternativas. Las decisiones de producto de Lucas no equivalen a aceptar este ADR.
 - Sustituye / sustituido por: no sustituye un ADR aceptado. Reutiliza las responsabilidades base de los ADRs 0002–0005; depende de acordar la ampliación de categoría de #28/ADR 0001 y el diagnóstico RAG de #32/ADR 0006.
 
