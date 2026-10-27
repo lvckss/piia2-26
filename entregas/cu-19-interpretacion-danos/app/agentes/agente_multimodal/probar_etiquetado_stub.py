@@ -13,6 +13,7 @@ from __future__ import annotations
 import contextlib
 import io
 import json
+import shutil
 import tempfile
 from pathlib import Path
 
@@ -26,6 +27,7 @@ from etiquetado import (
     EtiquetasNoValidas,
     candidatos_a_etiquetar,
     elegir_muestra,
+    elegir_muestra_validacion,
     formatear_tabla,
     generar_pagina,
     intervalo_wilson,
@@ -320,6 +322,94 @@ def probar_cli() -> None:
     print("linea de comandos ok")
 
 
+def salidas_validacion() -> list[dict]:
+    """Las seis clases, cada una con 8 rechazados por la vision, 8 confirmados con score por encima del umbral
+    de su clase y ruido que no debe entrar (confirmados por debajo del umbral, inciertos)."""
+    hallazgos: list[dict] = []
+    n = 0
+    for clase, umbral in CATEGORY_REVIEW_THRESHOLD.items():
+        for i in range(8):
+            n += 1
+            hallazgos.append(hallazgo(500 + n // 4, n, clase, round(0.2 + 0.01 * i, 4), "rechazado"))
+            n += 1
+            hallazgos.append(hallazgo(500 + n // 4, n, clase, round(umbral + 0.02 + 0.01 * i, 4), "confirmado"))
+        n += 1
+        hallazgos.append(hallazgo(500 + n // 4, n, clase, round(umbral - 0.1, 4), "confirmado"))
+        n += 1
+        hallazgos.append(hallazgo(500 + n // 4, n, clase, 0.4, "incierto"))
+    por_imagen: dict[int, list[dict]] = {}
+    for h in hallazgos:
+        por_imagen.setdefault(int(h["finding_id"].split("-")[0]), []).append(h)
+    return [{"image_id": i, "resumen_filtro_previo": {}, "findings": f} for i, f in sorted(por_imagen.items())]
+
+
+def probar_muestra_validacion() -> None:
+    """Plan v1.2 de #44 + AC-009: la muestra de validacion mezcla, por clase, rechazados por la vision y
+    confirmados con score alto; es determinista, no repite lo ya etiquetado y no filtra el veredicto."""
+    salidas = salidas_validacion()
+    por_id = {h["finding_id"]: h for s in salidas for h in s["findings"]}
+    muestra = elegir_muestra_validacion(salidas, por_clase=5, semilla=42)
+    assert len(muestra) == 60, len(muestra)
+    for clase in CATEGORY_REVIEW_THRESHOLD:
+        de_clase = [m for m in muestra if m["category"] == clase]
+        veredictos = [por_id[m["finding_id"]]["vision_verdict"] for m in de_clase]
+        assert veredictos.count("rechazado") == 5 and veredictos.count("confirmado") == 5, (clase, veredictos)
+        for m in de_clase:
+            h = por_id[m["finding_id"]]
+            assert h["vision_verdict"] == "rechazado" or h["score"] >= CATEGORY_REVIEW_THRESHOLD[clase]
+    assert all(m["tramo"] == "validación" and m["tanda"] == 1 for m in muestra), "el tramo no debe revelar el veredicto"
+    ordenados = sorted(por_id[m["finding_id"]]["vision_verdict"] for m in muestra)
+    assert [por_id[m["finding_id"]]["vision_verdict"] for m in muestra] != ordenados, "el orden debe mezclar los dos tipos"
+    assert elegir_muestra_validacion(salidas, por_clase=5, semilla=42) == muestra, "determinista"
+    assert [m["finding_id"] for m in elegir_muestra_validacion(salidas, por_clase=5, semilla=7)] != [m["finding_id"] for m in muestra]
+    ya = {m["finding_id"] for m in muestra[:20]}
+    otra = elegir_muestra_validacion(salidas, excluidos=ya, por_clase=5, semilla=42)
+    assert not ({m["finding_id"] for m in otra} & ya), "no repite lo ya etiquetado"
+    # cada grupo (clase y tipo) tiene 8 candidatos; sin los excluidos da min(5, 8 - excluidos del grupo)
+    esperados = 0
+    for clase in CATEGORY_REVIEW_THRESHOLD:
+        for tipo in ("rechazado", "confirmado"):
+            excluidos_grupo = sum(1 for i in ya if por_id[i]["category"] == clase and por_id[i]["vision_verdict"] == tipo)
+            esperados += min(5, 8 - excluidos_grupo)
+    assert len(otra) == esperados, (len(otra), esperados)
+    pocas = elegir_muestra_validacion(salidas, por_clase=50, semilla=42)
+    assert len(pocas) == 6 * 8 * 2, "con menos candidatos que cupo toma todos"
+    with tempfile.TemporaryDirectory() as tmp:
+        base = Path(tmp)
+        _recortes_falsos(base, salidas)
+        generar_pagina(muestra, base, base / "validacion.html", "etiquetas_validacion_44.csv")
+        html = (base / "validacion.html").read_text(encoding="utf-8")
+        assert "etiquetas_validacion_44.csv" in html and "etiquetas_44.csv" not in html
+        assert html.count("data:image/jpeg;base64,") == 60 and "http://" not in html and "https://" not in html
+        assert "const CIEGO = false;" in html and '"veredicto"' in html, "la pagina normal sigue ofreciendo ver a la IA"
+        # AC-009: la persona etiqueta en las mismas condiciones que el juez (solo recorte y clase): sin score, sin veredicto ni descripcion
+        generar_pagina(muestra, base, base / "ciega.html", "etiquetas_validacion_44.csv", ciego=True)
+        ciega = (base / "ciega.html").read_text(encoding="utf-8")
+        assert "const CIEGO = true;" in ciega and ciega.count("data:image/jpeg;base64,") == 60
+        for prohibido in ('"veredicto"', '"descripcion"', '"score"', '"pieza"', "rechazado", "confirmado"):
+            assert prohibido not in ciega, f"la pagina ciega no debe llevar {prohibido}"
+        for h in por_id.values():
+            if h.get("vision_description"):
+                assert h["vision_description"] not in ciega, "la descripcion de la vision no debe estar en la pagina ciega"
+        with contextlib.redirect_stdout(io.StringIO()):
+            (base / "sal").mkdir()
+            for s in salidas:
+                (base / "sal" / f"{s['image_id']:06d}.json").write_text(json.dumps(s), encoding="utf-8")
+            shutil.copytree(base / "crops", base / "sal" / "crops")
+            excluir = base / "humanas.csv"
+            excluir.write_text("finding_id,etiqueta" + chr(10) + "".join(f"{i},si" + chr(10) for i in sorted(ya)), encoding="utf-8")
+            assert main(["validacion", "--salidas", str(base / "sal"), "--excluir", str(excluir), "--pagina", str(base / "v.html"), "--muestra-json", str(base / "v.json")]) == 0
+        lista = json.loads((base / "v.json").read_text(encoding="utf-8"))
+        assert len(lista) == esperados and not ({m["finding_id"] for m in lista} & ya), (len(lista), esperados)
+        assert "etiquetas_validacion_44.csv" in (base / "v.html").read_text(encoding="utf-8")
+        assert "const CIEGO = true;" in (base / "v.html").read_text(encoding="utf-8"), "la pagina de validacion es ciega"
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            assert main(["validacion", "--salidas", str(base / "sal"), "--pagina", str(RAIZ / "entregas" / "x" / "v.html")]) == 2
+        assert "entregas" in err.getvalue()
+    print("muestra de validacion ok")
+
+
 def probar_con_datos_reales() -> None:
     """Plan v1 de #44 + AC-003: con las salidas reales del lote de la #43 (fuera de git) la muestra
     y la pagina se generan; se salta si no estan."""
@@ -346,6 +436,7 @@ def main_pruebas() -> None:
     probar_tabla_precision()
     probar_pagina()
     probar_cli()
+    probar_muestra_validacion()
     probar_con_datos_reales()
     print("Todo ok: etiquetado.")
 

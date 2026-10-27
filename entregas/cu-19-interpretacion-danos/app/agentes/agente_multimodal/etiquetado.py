@@ -280,7 +280,7 @@ _PAGINA = """<!doctype html>
 <body>
 <main>
   <h1>Etiquetado de hallazgos (Issue #44)</h1>
-  <div class="suave">Mira primero el recorte. Pregunta: ¿hay un daño de la clase indicada dentro de la caja? <b>s</b> sí · <b>o</b> hay un daño de otra clase · <b>n</b> no · <b>d</b> dudo · <b>espacio</b> ver qué dice la IA · <b>← →</b> moverte. Las marcas se guardan en este navegador.</div>
+  <div class="suave">Mira primero el recorte. Pregunta: ¿hay un daño de la clase indicada dentro de la caja? <b>s</b> sí · <b>o</b> hay un daño de otra clase · <b>n</b> no · <b>d</b> dudo · <span id="ayuda-ia"><b>espacio</b> ver qué dice la IA · </span><b>← →</b> moverte. Las marcas se guardan en este navegador.</div>
   <div class="barra"><div id="avance"></div></div>
   <div class="tarjeta">
     <div class="suave" id="posicion"></div>
@@ -310,6 +310,7 @@ _PAGINA = """<!doctype html>
 <script>
 const MUESTRA = __DATOS__;
 const CLAVE = '__CLAVE__';
+const CIEGO = __CIEGO__;
 const TECLAS = {'s': 'si', 'o': 'otra', 'n': 'no', 'd': 'dudo'};
 let marcas = {};
 let actual = 0;
@@ -320,10 +321,10 @@ function pintar() {
   const m = MUESTRA[actual];
   document.getElementById('imagen').src = m.img;
   document.getElementById('posicion').textContent = 'Hallazgo ' + (actual + 1) + ' de ' + MUESTRA.length + ' · tanda ' + m.tanda + ' · ' + m.id;
-  document.getElementById('meta').textContent = 'Clase de la caja: ' + m.clase + ' · score ' + m.score.toFixed(2).replace('.', ',') + ' · tramo ' + m.tramo;
+  document.getElementById('meta').textContent = CIEGO ? 'Clase de la caja: ' + m.clase : 'Clase de la caja: ' + m.clase + ' · score ' + m.score.toFixed(2).replace('.', ',') + ' · tramo ' + m.tramo;
   const ia = document.getElementById('ia');
   ia.style.display = 'none';
-  ia.textContent = 'La IA dice: ' + m.veredicto + (m.pieza ? ' · pieza ' + m.pieza : '') + (m.descripcion ? ' · ' + m.descripcion : '');
+  ia.textContent = CIEGO ? '' : 'La IA dice: ' + m.veredicto + (m.pieza ? ' · pieza ' + m.pieza : '') + (m.descripcion ? ' · ' + m.descripcion : '');
   document.querySelectorAll('.botones button').forEach(function (b) { b.classList.toggle('activa', marcas[m.id] === b.dataset.etiqueta); });
   const hechas = Object.keys(marcas).length;
   document.getElementById('avance').style.width = porcentaje(hechas / MUESTRA.length) + '%';
@@ -348,16 +349,17 @@ document.getElementById('borrar').addEventListener('click', function () { if (co
 document.getElementById('descargar').addEventListener('click', function () {
   const enlace = document.createElement('a');
   enlace.href = URL.createObjectURL(new Blob([csv()], {type: 'text/csv;charset=utf-8'}));
-  enlace.download = 'etiquetas_44.csv';
+  enlace.download = '__ARCHIVO__';
   enlace.click();
 });
 document.addEventListener('keydown', function (ev) {
   if (ev.ctrlKey || ev.metaKey || ev.altKey) { return; }
   const tecla = ev.key.length === 1 ? ev.key.toLowerCase() : ev.key;
   if (TECLAS[tecla]) { marcar(TECLAS[tecla]); ev.preventDefault(); }
-  else if (tecla === ' ') { document.getElementById('ver').click(); ev.preventDefault(); }
+  else if (tecla === ' ') { if (!CIEGO) { document.getElementById('ver').click(); } ev.preventDefault(); }
   else if (tecla === 'ArrowLeft') { ir(-1); } else if (tecla === 'ArrowRight') { ir(1); }
 });
+if (CIEGO) { document.getElementById('ver').style.display = 'none'; document.getElementById('ayuda-ia').style.display = 'none'; }
 pintar();
 </script>
 </body>
@@ -365,8 +367,54 @@ pintar();
 """
 
 
-def generar_pagina(muestra: list[dict[str, Any]], base_recortes: Any, ruta_html: Any) -> Path:
-    """Escribe la pagina de etiquetado (un solo archivo, sin red) con los recortes incrustados."""
+def elegir_muestra_validacion(salidas: list[dict[str, Any]], excluidos: Any = frozenset(), por_clase: int = 5, semilla: int = 42,
+                              umbrales: dict[str, float] | None = None) -> list[dict[str, Any]]:
+    """Muestra para validar a un modelo juez contra personas (AC-009): por clase, hasta `por_clase` hallazgos
+    que la vision rechazo y hasta `por_clase` que confirmo con score por encima del umbral de su clase, sin
+    los `excluidos` (ya etiquetados). Cubre las seis clases y los dos extremos, que la muestra de la tabla de
+    precision (solo confirmados entre 0,3 y 0,7) no tiene. El tramo no revela el veredicto y el orden mezcla
+    los dos tipos de forma determinista segun la semilla."""
+    umbrales = CATEGORY_REVIEW_THRESHOLD if umbrales is None else umbrales
+    excluidos = set(excluidos)
+    grupos: dict[tuple[str, str], list[dict[str, Any]]] = {}
+    for salida in salidas:
+        for h in salida["findings"]:
+            if h["finding_id"] in excluidos or h["category"] not in umbrales:
+                continue
+            if h["vision_verdict"] == "rechazado":
+                tipo = "rechazado"
+            elif h["vision_verdict"] == "confirmado" and h["score"] >= umbrales[h["category"]]:
+                tipo = "alto"
+            else:
+                continue
+            grupos.setdefault((h["category"], tipo), []).append({**h, "image_id": salida["image_id"]})
+    muestra = []
+    for (clase, tipo), grupo in grupos.items():
+        grupo = sorted(grupo, key=lambda c: _clave_id(c["finding_id"]))
+        for c in random.Random(f"{semilla}|validacion|{clase}|{tipo}").sample(grupo, min(por_clase, len(grupo))):
+            muestra.append(
+                {
+                    "finding_id": c["finding_id"],
+                    "image_id": c["image_id"],
+                    "category": clase,
+                    "score": c["score"],
+                    "tramo": "validación",
+                    "tanda": 1,
+                    "vision_verdict": c["vision_verdict"],
+                    "pieza_id": c.get("pieza_id"),
+                    "vision_description": c.get("vision_description", ""),
+                    "crop_image_path": c["crop_image_path"],
+                }
+            )
+    muestra.sort(key=lambda m: hashlib.sha1(f"{semilla}|{m['finding_id']}".encode("utf-8")).hexdigest())
+    return muestra
+
+
+def generar_pagina(muestra: list[dict[str, Any]], base_recortes: Any, ruta_html: Any, nombre_csv: str = "etiquetas_44.csv",
+                   ciego: bool = False) -> Path:
+    """Escribe la pagina de etiquetado (un solo archivo, sin red) con los recortes incrustados. Con `ciego` la
+    pagina solo lleva recorte y clase (sin score, veredicto, pieza ni descripcion de la vision, ni en pantalla
+    ni en el codigo): es lo mismo que ve el modelo juez, para que ambas etiquetas sean comparables."""
     if not muestra:
         raise EtiquetasNoValidas("la muestra esta vacia: no hay hallazgos que etiquetar")
     base = Path(base_recortes)
@@ -375,22 +423,26 @@ def generar_pagina(muestra: list[dict[str, Any]], base_recortes: Any, ruta_html:
         recorte = base / m["crop_image_path"]
         if not recorte.is_file():
             raise EtiquetasNoValidas(f"{m['finding_id']}: falta el recorte {m['crop_image_path']}")
-        elementos.append(
-            {
-                "id": m["finding_id"],
-                "clase": m["category"],
-                "score": m["score"],
-                "tramo": m["tramo"],
-                "tanda": m["tanda"],
-                "veredicto": m["vision_verdict"],
-                "pieza": m.get("pieza_id"),
-                "descripcion": m.get("vision_description", ""),
-                "img": "data:image/jpeg;base64," + base64.b64encode(recorte.read_bytes()).decode("ascii"),
-            }
-        )
+        elemento = {
+            "id": m["finding_id"],
+            "clase": m["category"],
+            "tramo": m["tramo"],
+            "tanda": m["tanda"],
+            "img": "data:image/jpeg;base64," + base64.b64encode(recorte.read_bytes()).decode("ascii"),
+        }
+        if not ciego:
+            elemento.update(
+                {
+                    "score": m["score"],
+                    "veredicto": m["vision_verdict"],
+                    "pieza": m.get("pieza_id"),
+                    "descripcion": m.get("vision_description", ""),
+                }
+            )
+        elementos.append(elemento)
     clave = "etiquetas44:" + hashlib.sha1("|".join(m["finding_id"] for m in muestra).encode("utf-8")).hexdigest()[:10]
     datos = json.dumps(elementos, ensure_ascii=False).replace("</", "<\\/")
-    html = _PAGINA.replace("__DATOS__", datos).replace("__CLAVE__", clave).replace("__CABECERA__", CABECERA_CSV)
+    html = _PAGINA.replace("__DATOS__", datos).replace("__CLAVE__", clave).replace("__CABECERA__", CABECERA_CSV).replace("__ARCHIVO__", nombre_csv).replace("__CIEGO__", "true" if ciego else "false")
     destino = Path(ruta_html)
     destino.parent.mkdir(parents=True, exist_ok=True)
     destino.write_text(html, encoding="utf-8")
@@ -414,6 +466,13 @@ def _argumentos(argv: list[str] | None) -> argparse.Namespace:
     m.add_argument("--semilla", type=int, default=42)
     m.add_argument("--pagina", type=Path, default=raiz / "piia2_detecciones" / "etiquetado" / "etiquetar.html")
     m.add_argument("--muestra-json", type=Path, default=None, help="donde guardar la lista de la muestra (por defecto junto a la pagina)")
+    v = sub.add_parser("validacion", help="elige hallazgos rechazados y confirmados con score alto para validar a un modelo juez y genera la pagina")
+    v.add_argument("--salidas", type=Path, required=True, help="carpeta con las salidas del Agente 1")
+    v.add_argument("--excluir", type=Path, default=None, help="CSV de etiquetas ya hechas, cuyos hallazgos no se repiten")
+    v.add_argument("--por-clase", type=int, default=5, help="por clase y tipo (rechazados y confirmados altos)")
+    v.add_argument("--semilla", type=int, default=42)
+    v.add_argument("--pagina", type=Path, default=raiz / "piia2_detecciones" / "etiquetado" / "etiquetar_validacion.html")
+    v.add_argument("--muestra-json", type=Path, default=None, help="donde guardar la lista (por defecto junto a la pagina)")
     t = sub.add_parser("tabla", help="precision por clase y tramo a partir del CSV de etiquetas")
     t.add_argument("--salidas", type=Path, required=True)
     t.add_argument("--etiquetas", type=Path, required=True)
@@ -425,10 +484,22 @@ def main(argv: list[str] | None = None) -> int:
     args = _argumentos(argv)
     try:
         salidas = _leer_salidas(args.salidas)
-        if args.orden == "muestra":
+        if args.orden in ("muestra", "validacion"):
             destino = args.pagina.resolve()
             if (_raiz_repo() / "entregas").resolve() in (destino, *destino.parents):
                 raise EtiquetasNoValidas("la pagina lleva recortes de CarDD: no se escribe dentro de entregas/ (iria a git); usa piia2_detecciones/")
+        if args.orden == "validacion":
+            excluidos = set(leer_etiquetas(args.excluir)) if args.excluir else set()
+            muestra = elegir_muestra_validacion(salidas, excluidos, args.por_clase, args.semilla)
+            generar_pagina(muestra, args.salidas, destino, "etiquetas_validacion_44.csv", ciego=True)
+            lista = args.muestra_json or destino.with_name("muestra_validacion.json")
+            lista.parent.mkdir(parents=True, exist_ok=True)
+            lista.write_text(json.dumps(muestra, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+            por_clase = Counter(m["category"] for m in muestra)
+            print(f"Validacion: {len(muestra)} hallazgos ({', '.join(f'{c}: {n}' for c, n in sorted(por_clase.items()))}), semilla {args.semilla}, {len(excluidos)} excluidos.")
+            print(f"Pagina: {destino}\nLista:  {lista}")
+            return 0
+        if args.orden == "muestra":
             candidatos = candidatos_a_etiquetar(salidas)
             muestra = elegir_muestra(candidatos, args.por_tramo, args.semilla)
             generar_pagina(muestra, args.salidas, destino)
