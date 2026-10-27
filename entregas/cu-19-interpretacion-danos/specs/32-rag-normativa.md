@@ -5,7 +5,7 @@
 - ADR decision: NEW_ADR
 - ADR: [0006 — RAG con PostgreSQL y estado de recuperación](https://github.com/lvckss/piia2-26/blob/main/docs/adr/0006-rag-postgresql-estado-recuperacion.md) — Propuesto; accesible en la rama de esta Planning PR hasta su integración.
 - Justificación: fija la persistencia vectorial, la separación de índices por modelo y una ampliación del contrato Agente 2 → Agente 3/orquestación para distinguir fuentes ausentes y fallos técnicos. Los ADRs previos 0002, 0003 y 0004 están Aceptados e integrados por la #51; cubren el contrato base, el proveedor y el cálculo, pero no la persistencia vectorial ni el diagnóstico nuevo, por lo que se mantiene NEW_ADR.
-- Plan vigente / versión: v1.2, este archivo en `plan/32-rag-normativa`; el comentario de planificación de la Issue fija el commit publicado. La v1 se conserva en `0197825` y la v1.1 en `88bd84d`. La v1.2 actualiza referencias y dependencias al 2026-10-22; conserva las decisiones, los 14 AC y los planes de verificación e implementación.
+- Plan vigente / versión: v1.3, este archivo en `plan/32-rag-normativa`; el comentario de planificación de la Issue fija el commit publicado. La v1 se conserva en `0197825`, la v1.1 en `88bd84d` y la v1.2 en `c77a17c`. La v1.3 actualiza las referencias a costes al 2026-10-27: su código ya está integrado y disponible para verificar la composición. Conserva las decisiones, los 14 AC y la estrategia de verificación e implementación.
 - Riesgo y revisión previa: sí, por NEW_ADR y por la revisión de planes en PR acordada para la entrega. Impacto: fuentes de conclusiones económicas; consumidores independientes: #31 y #34. Reversión de la tecnología posible regenerando el índice; incertidumbre de calidad pendiente de evaluación.
 - Planning PR: https://github.com/lvckss/piia2-26/pull/56 — draft para revisar el contrato con consumidores.
 
@@ -32,10 +32,15 @@ el diagnóstico de recuperación propuesto más abajo. La #34 consume esa funci�
 ### Estado actual y evidencia
 
 - Exploración inicial: `main` en `5bdabe2ef6d9aa63ca3ea68f20a57fc85f79f449`.
-  Referencias y dependencias actualizadas el 2026-10-22 contra `main`
-  `73f60750572f0731c9bb9203ebb0dc4c4eaaead5`; la inspección del paquete sigue siendo la inicial.
-- `app/agentes/agente_recuperacion/` solo contiene un README; la guía
-  `agente2-rag-normativa-guia.md` contiene una propuesta ChromaDB, sin implementación.
+  Referencias a costes actualizadas el 2026-10-27 contra `main`
+  `d5dd44d4ff89d64fecb7eeff83ef7a55b5b560af`; la inspección del paquete sigue siendo la inicial.
+- `app/agentes/agente_recuperacion/` contiene el README y el código de costes
+  `costes_y_cobertura.py`, sus pruebas `probar_costes.py` y su evaluación
+  `evaluar_costes.py`, integrados el 2026-10-26 por la
+  [PR #59](https://github.com/lvckss/piia2-26/pull/59) (merge `bea84a1`).
+  `estimar_siniestro` ya produce los dos escenarios y devuelve `normativa: []`;
+  la implementación productiva del RAG y de `agente2()` sigue pendiente en #32.
+  La guía `agente2-rag-normativa-guia.md` contiene una propuesta ChromaDB.
 - El backend ya utiliza PostgreSQL (`app/server/bd/bd.ts`), sin evidencia de pgvector habilitado.
 - La spec de costes (#30, PR #40) está integrada en `main` (`e950b50`) y asigna
   `agente2()` a #32. La v1 del informe (#31, PR #41) está integrada en `633cf9b`;
@@ -308,7 +313,8 @@ tablas propias del RAG, sin alterar las tablas existentes.
 - **S2 — `buscar_normativa(...)`:** frontera de recuperación ya acordada;
   observación de salida, citas, validaciones y errores.
 - **S3 — `agente2(...)`:** composición pública consumida por #34; doble de
-  `estimar_siniestro` hasta integrar #30, después verificación con herramienta real.
+  `estimar_siniestro` para aislar la recuperación cuando proceda, e integración
+  con el cálculo real ya disponible en `main` por #59 y el paquete de la empresa.
 - **S4 — informe comparativo sobre las 25 preguntas:** modelo real y revisión
   humana de fragmentos, con referencia directa sobre las 16 preguntas de póliza.
   Eval-first para calidad; TDD para las reglas deterministas de esa referencia,
@@ -329,7 +335,7 @@ Durante esta planificación no se escriben ni ejecutan esos archivos.
 | `specs/32-rag-normativa.md#AC-003` | S2 | TDD, contrato | Tres claves, literalidad y fuente localizable; hasta k. | Fragmentos de prueba y documento de origen. | `python probar_rag.py` | Red/Green; cotejo con origen. |
 | `specs/32-rag-normativa.md#AC-004` | S1 + S2 | TDD, integración | Cada póliza y vacío respetan filtro; inválidos fallan antes de gastar. | Cuatro pólizas de prueba y fragmentos legales. | `python probar_rag.py` | Red/Green; ninguna fuente de otra póliza. |
 | `specs/32-rag-normativa.md#AC-005` | S2 | TDD, fallos externos | Un caso por código; [] solo en consulta válida sin candidatos. | Cliente falso y conexión controlada de prueba. | `python probar_rag.py` | Red/Green; código/etapa/reintentable. |
-| `specs/32-rag-normativa.md#AC-006` | S3 | TDD + integración final | Campos de costes preservados; solo citas y diagnóstico cambian. | Dobles inicialmente; ejemplos reales y #30 integrada al terminar. | `python probar_rag.py`; ejecutar integración con paquete presente. | Red/Green y comparación estructural de las cifras. |
+| `specs/32-rag-normativa.md#AC-006` | S3 | TDD + integración final | Campos de costes preservados; solo citas y diagnóstico cambian. | Dobles para aislar; ejemplos y código real de #30 ya integrado por #59, con paquete presente. | `python probar_rag.py`; ejecutar integración con paquete presente. | Red/Green y comparación estructural de las cifras. |
 | `specs/32-rag-normativa.md#AC-007` | S3 | TDD, integración | Temas por caso; tercero; no_aplica; propagación de fallos ajenos. | Contextos y salidas guionizados. | `python probar_rag.py` | Red/Green; consultas observadas. |
 | `specs/32-rag-normativa.md#AC-008` | S3 + S5 | TDD, contrato | Seis combinaciones del diagnóstico; consumidor distingue avisos. | Salidas por tema y contrato revisado con #31/#34. | `python probar_rag.py`; prueba de consumidor acordada. | Red/Green y aceptación del contrato. |
 | `specs/32-rag-normativa.md#AC-009` | S4 | TDD del evaluador sin red | Cuenta las 25 filas, puntúa aciertos y fallos conocidos sin filtrar gold al buscador. | CSV local; buscador falso con respuestas controladas. | `python probar_rag.py` | Red/Green del protocolo y resultados sintéticos. |
@@ -396,7 +402,7 @@ Durante esta planificación no se escriben ni ejecutan esos archivos.
 |---|---|---|---|---|---|
 | 1 — Corpus persistente reproducible | Índice completo, repetible y separado por modelo; conserva generación activa ante fallos. | AC-001, AC-002, AC-012, AC-013 | PostgreSQL/pgvector, indexado y parte RAG del Compose raíz. | ADR aceptado; paquete local; Docker. | Filas AC-001, AC-002, AC-012, AC-013. |
 | 2 — Recuperación con citas y filtros | Búsqueda con la firma acordada, fuentes literales y errores distinguibles. | AC-003, AC-004, AC-005 | `normativa_rag.py`, contrato de errores RAG. | Slice 1. | Filas AC-003 a AC-005. |
-| 3 — Agente 2 completo | Cálculos intactos, temas por caso y diagnóstico para consumidores. | AC-006, AC-007, AC-008 | `agente2()`, `diagnostico_rag`, ejemplos/documentación de contrato. | Slice 2; #30 para integración final; contrato acordado con #31/#34. | Filas AC-006 a AC-008. |
+| 3 — Agente 2 completo | Cálculos intactos, temas por caso y diagnóstico para consumidores. | AC-006, AC-007, AC-008 | `agente2()`, `diagnostico_rag`, ejemplos/documentación de contrato. | Slice 2; código de costes disponible en `main` por #59 y paquete local; contrato acordado con #31/#34. | Filas AC-006 a AC-008. |
 | 4 — Evaluación y comparación | Evaluador verificable; referencia directa de pólizas, tabla de ambos modelos y selección con 24/25. | AC-009, AC-010, AC-011, AC-014 | `evaluar_rag.py`, protocolo y resultados. | Slice 2; acceso a ambos modelos. | Filas AC-009 a AC-011 y AC-014. |
 | 5 — Uso y entrega | Componente ejecutable desde Compose; documentación y evidencia final. | AC-012, AC-013 | README del RAG, guía actualizada y comandos del entorno. | Slices anteriores. | Arranque reproducible, checks y diff. |
 
@@ -411,10 +417,11 @@ Durante esta planificación no se escriben ni ejecutan esos archivos.
   sustituyen la revisión del documento completo.
 - Dependencia resuelta: ADRs 0002, 0003 y 0004 Aceptados e integrados por #51
   (`4a279e9`), comprobados en `main` `73f6075`; referencias en «Estado actual y evidencia».
-- Dependencia de planificación resuelta: contrato de costes de #30 accesible
-  en la spec integrada por #40 (`e950b50`). Su código integrado sigue siendo
-  necesario para completar la verificación de composición, sin impedir preparar
-  y probar por separado la recuperación.
+- Dependencia de costes resuelta: contrato de #30 accesible en la spec
+  integrada por #40 (`e950b50`) y código integrado por #59 (`bea84a1`),
+  comprobado en `main` `d5dd44d`. AC-006 ya puede verificarse con
+  `estimar_siniestro` real cuando se implemente la composición y esté presente
+  el paquete de la empresa; no depende de una entrega futura de #30.
 - Concretar la integración Compose y el transporte del diagnóstico en el plan
   de #34. La presentación de avisos en el plan de #31 está recogida por #58.
   Confirmar acceso a ambos modelos al preparar entorno.
@@ -430,6 +437,7 @@ Durante esta planificación no se escriben ni ejecutan esos archivos.
 | ADR decision | NEW_ADR por persistencia y ampliación de la frontera compartida; los ADRs 0002–0004 Aceptados cubren las decisiones previas, no el índice vectorial ni el diagnóstico propuesto. |
 | Adaptación v1.1 | Solicitud explícita de Lucas tras discutir la necesidad del RAG: justificar pólizas/legislación, precisar su fase y añadir referencia directa. AC-001 a AC-013 y objetivo 24/25 conservados; AC-014 añadido. No había aceptación humana del documento que se atribuya a esta versión. |
 | Actualización v1.2 | Solicitud de Lucas del 2026-10-22: actualizar referencias. ADRs previos y plan de costes integrados; plan de presentación del diagnóstico en #31 recogido por #58. Los 14 AC, decisiones y planes de verificación e implementación no cambian; sin aceptación del conjunto de #56 ni del ADR 0006. |
+| Actualización v1.3 | Solicitud de Lucas del 2026-10-27 tras la revisión de Lucía: corregir las referencias desfasadas a costes. #59 ya integra su código en `main`; se actualizan estado, datos del Test Plan y dependencia de la slice 3. Los 14 AC, contratos, objetivo de calidad, estrategia y decisiones no cambian; no acredita aceptación ni ejecución del RAG. |
 | Gaps | Pendientes el plan de #34 y la revisión y aceptación de esta Spec y del ADR 0006: se mantiene draft; no Ready ni código productivo. Calidad y rendimiento aún no medidos; son verificaciones futuras, no checks superados. |
 
 ## Definition of Done
