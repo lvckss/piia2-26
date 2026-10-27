@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="1100" viewBox="0 0 1280 1100" role="img" aria-labelledby="title desc">
+  <title id="title">CU-19 · Mapa de componentes y conexiones objetivo</title>
+  <desc id="desc">Tres fases: entrada visual y confirmación; cálculo con dos escenarios y recuperación documental; generación, comprobación y descarga de informe. PIIA1 y Agente 1, así como costes, tienen código integrado. La integración web, RAG, informe y coordinación ADK están pendientes. Las conexiones discontinuas describen el objetivo, no una integración existente.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10Z" fill="#8496ad"/>
+    </marker>
+    <style>
+      text { font-family: DejaVu Sans,Arial,sans-serif; }
+      .phase { font-size: 13px; font-weight: 700; letter-spacing: 1.8px; fill: #54667c; }
+      .title { font-size: 23px; font-weight: 700; fill: #172d45; }
+      .body { font-size: 16px; fill: #435872; }
+      .small { font-size: 12px; font-weight: 700; letter-spacing: .6px; }
+      .done { fill: #effaf5; stroke: #37977b; stroke-width: 1.5; }
+      .pending { fill: #fffaf0; stroke: #c59841; stroke-width: 1.5; stroke-dasharray: 6 4; }
+      .edge { fill: none; stroke: #8496ad; stroke-width: 2; stroke-dasharray: 6 5; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect x="1" y="1" width="1278" height="1098" rx="22" fill="#f8fafd" stroke="#d9e2ec"/>
+  <path d="M23 1H1257Q1279 1 1279 23V153H1V23Q1 1 23 1" fill="#10243b"/>
+  <text x="48" y="47" font-size="14" letter-spacing="2" fill="#8ddfc8" font-weight="700">ARQUITECTURA / CU-19</text>
+  <text x="48" y="89" font-size="30" fill="#f5f9ff" font-weight="700">Un recorrido. Responsabilidades explícitas.</text>
+  <text x="48" y="124" font-size="15" fill="#bed1e4">Coordinación ADK y conexiones del recorrido: propuestas en #60 · Snapshot: 27 oct 2026</text>
+  <rect x="882" y="30" width="18" height="12" rx="4" fill="#a2e9cf"/>
+  <text x="910" y="41" font-size="13" fill="#e1edf7">Código integrado</text>
+  <rect x="882" y="54" width="18" height="12" rx="4" fill="#ffdda0"/>
+  <text x="910" y="65" font-size="13" fill="#e1edf7">Pendiente / propuesto</text>
+
+  <text x="48" y="188" class="phase">01 / INTERPRETAR LA IMAGEN Y CONFIRMAR EL CONTEXTO</text>
+  <rect x="48" y="211" width="268" height="144" rx="14" class="pending"/>
+  <text x="68" y="239" class="small" fill="#99701e">WEB · PROPUESTA #34</text>
+  <text x="68" y="276" class="title">Una foto nueva</text>
+  <text x="68" y="306" class="body">Pestaña de peritaje</text>
+  <text x="68" y="332" class="body">React → Hono</text>
+
+  <rect x="354" y="211" width="252" height="144" rx="14" class="done"/>
+  <text x="374" y="239" class="small" fill="#24785e">PIIA1 · CÓDIGO INTEGRADO</text>
+  <text x="374" y="276" class="title">Detectar daños</text>
+  <text x="374" y="306" class="body">Servicio ML · FastAPI</text>
+  <text x="374" y="332" class="body">Clases, cajas y scores</text>
+
+  <rect x="644" y="211" width="252" height="144" rx="14" class="done"/>
+  <text x="664" y="239" class="small" fill="#24785e">AGENTE 1 · INTEGRADO</text>
+  <text x="664" y="276" class="title">Interpretar</text>
+  <text x="664" y="306" class="body">Visión + pieza + severidad</text>
+  <text x="664" y="332" class="body">Hallazgos y confianza</text>
+
+  <rect x="934" y="211" width="298" height="144" rx="14" class="pending"/>
+  <text x="954" y="239" class="small" fill="#99701e">USUARIO · PROPUESTA #34</text>
+  <text x="954" y="276" class="title">Confirmar vehículo</text>
+  <text x="954" y="306" class="body">Categoría: depende de #28</text>
+  <text x="954" y="332" class="body">Póliza, taller, edad y km</text>
+
+  <path d="M316 283H350" class="edge"/>
+  <path d="M606 283H640" class="edge"/>
+  <path d="M896 283H930" class="edge"/>
+  <path d="M1083 355V385H30V497H44" class="edge"/>
+  <rect x="397" y="370" width="494" height="30" rx="15" fill="#e9eef5"/>
+  <text x="413" y="390" font-size="13" fill="#53677e">Confirmación + contexto válido · sin editar los hallazgos</text>
+
+  <text x="48" y="438" class="phase">02 / AGENTE 2 · CALCULAR Y RECUPERAR RESPALDO</text>
+  <rect x="48" y="460" width="338" height="154" rx="14" class="done"/>
+  <text x="70" y="489" class="small" fill="#24785e">COSTES · INTEGRADO #30</text>
+  <text x="70" y="527" class="title">Cálculo determinista</text>
+  <text x="70" y="557" class="body">Tool Plexus + reglas de cobertura</text>
+  <text x="70" y="585" class="body">Confirmados / con pendientes</text>
+
+  <rect x="446" y="460" width="338" height="154" rx="14" class="pending"/>
+  <text x="468" y="489" class="small" fill="#99701e">RAG · PROPUESTA #32</text>
+  <text x="468" y="527" class="title">Fuentes por tema</text>
+  <text x="468" y="557" class="body">PostgreSQL + pgvector propuesto</text>
+  <text x="468" y="585" class="body">Filtro de póliza y citas literales</text>
+
+  <rect x="844" y="460" width="388" height="154" rx="14" class="pending"/>
+  <text x="866" y="489" class="small" fill="#99701e">COMPOSICIÓN · PROPUESTA #32</text>
+  <text x="866" y="527" class="title">Resultado de agente2()</text>
+  <text x="866" y="557" class="body">Importes conservados + normativa</text>
+  <text x="866" y="585" class="body">Diagnóstico de recuperación explícito</text>
+  <path d="M386 538H442" class="edge"/>
+  <path d="M784 538H840" class="edge"/>
+  <path d="M1038 614V650H30V782H44" class="edge"/>
+  <rect x="405" y="635" width="495" height="30" rx="15" fill="#e9eef5"/>
+  <text x="421" y="655" font-size="13" fill="#53677e">Cifras de costes + hallazgos originales + fuentes y límites</text>
+
+  <text x="48" y="708" class="phase">03 / EXPLICAR, COMPROBAR Y PRESENTAR</text>
+  <rect x="48" y="730" width="338" height="154" rx="14" class="pending"/>
+  <text x="70" y="759" class="small" fill="#99701e">AGENTE 3 · PLAN #31</text>
+  <text x="70" y="797" class="title">Redactar Markdown</text>
+  <text x="70" y="827" class="body">Generación determinista</text>
+  <text x="70" y="855" class="body">Pendientes y aviso preliminar</text>
+
+  <rect x="446" y="730" width="338" height="154" rx="14" class="pending"/>
+  <text x="468" y="759" class="small" fill="#99701e">CONTROL · PLAN #31 / #34</text>
+  <text x="468" y="797" class="title">Comprobar cifras</text>
+  <text x="468" y="827" class="body">Solo campos monetarios permitidos</text>
+  <text x="468" y="855" class="body">Si falla, no publicar informe final</text>
+
+  <rect x="844" y="730" width="388" height="154" rx="14" class="pending"/>
+  <text x="866" y="759" class="small" fill="#99701e">RESULTADO · PROPUESTA #34</text>
+  <text x="866" y="797" class="title">Mostrar y descargar</text>
+  <text x="866" y="827" class="body">El mismo texto Markdown</text>
+  <text x="866" y="855" class="body">Revisión humana · sin historial</text>
+  <path d="M386 807H442" class="edge"/>
+  <path d="M784 807H840" class="edge"/>
+
+  <rect x="48" y="930" width="1184" height="122" rx="14" fill="#efedfa" stroke="#d4ccec"/>
+  <text x="70" y="960" class="small" fill="#6d5a9d">DEPENDENCIAS Y DATOS EXTERNOS</text>
+  <text x="70" y="992" font-size="18" fill="#382d5f" font-weight="700">OpenAI</text>
+  <text x="70" y="1020" font-size="15" fill="#63567f">Visión · embeddings propuestos</text>
+  <line x1="403" y1="976" x2="403" y2="1030" stroke="#c5bbdd"/>
+  <text x="428" y="992" font-size="18" fill="#382d5f" font-weight="700">Paquete Plexus</text>
+  <text x="428" y="1020" font-size="15" fill="#63567f">Catálogos, reglas, pólizas y textos</text>
+  <line x1="815" y1="976" x2="815" y2="1030" stroke="#c5bbdd"/>
+  <text x="840" y="992" font-size="18" fill="#382d5f" font-weight="700">Modelos y CarDD</text>
+  <text x="840" y="1020" font-size="15" fill="#63567f">Recursos locales fuera de Git</text>
+  <text x="48" y="1080" font-size="12" fill="#63758c">Línea discontinua = integración objetivo · El mapa no acredita un recorrido completo ya implementado.</text>
+</svg>
