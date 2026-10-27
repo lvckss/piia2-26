@@ -1,11 +1,11 @@
 # Spec: Orquestación desde la web, de una imagen subida al informe
 
 - GitHub Issue: https://github.com/lvckss/piia2-26/issues/34
-- Estado: Borrador v1, 2026-10-27.
+- Estado: Borrador v1.1, 2026-10-27.
 - ADR decision: NEW_ADR.
 - ADR: [0007 — Orquestación ADK y ejecución web efímera](https://github.com/lvckss/piia2-26/blob/plan/34-orquestacion-web/docs/adr/0007-orquestacion-adk-web-efimera.md), Propuesto.
 - Justificación: adopta ADK como dependencia del producto, define una frontera HTTP entre web y servicio Python y el ciclo de vida de las ejecuciones. Los ADRs 0002–0005 aceptados cubren contratos, proveedor, costes y filtro previo; no cubren estas decisiones.
-- Plan vigente / versión: v1 en `plan/34-orquestacion-web`; el comentario de planificación de #34 fija el commit publicado. Continúa el [registro de alcance](https://github.com/lvckss/piia2-26/issues/34#issuecomment-6426795027).
+- Plan vigente / versión: v1.1 en `plan/34-orquestacion-web`; el comentario de planificación de #34 fija el commit publicado. La v1 se conserva en `733c5d0`. Esta actualización solo aclara el reparto de Compose con #32; mantiene los 14 AC y el resto del diseño pendiente de revisión. Continúa el [registro de alcance](https://github.com/lvckss/piia2-26/issues/34#issuecomment-6426795027).
 - Riesgo y revisión previa: sí, por NEW_ADR y por el acuerdo del equipo. Impacto en cifras y fuentes del informe, frontera entre servicios, subida de archivos y nuevas dependencias de #28/#31/#32. La implementación y sus planes deben revisarse por los responsables afectados; el documento completo todavía no tiene aceptación humana.
 - Planning PR: https://github.com/lvckss/piia2-26/pull/60 — draft mientras se acuerdan las dependencias indicadas al final.
 
@@ -273,8 +273,17 @@ Se propone un `compose.yaml` en la raíz del proyecto entregado,
 `entregas/cu-19-interpretacion-danos/`, para que forme parte de la carpeta que
 se entrega a la asignatura. Desde la raíz del repo se podrá usar
 `docker compose -f entregas/cu-19-interpretacion-danos/compose.yaml up --build`.
-Es el Compose global previsto junto a #32, no una segunda PostgreSQL ni un
-despliegue independiente del RAG. Su ubicación se coordina en la #56.
+**#34 es responsable de este archivo y de la integración global. #32 aporta
+el servicio PostgreSQL con pgvector, su volumen, la preparación del schema RAG
+y sus comandos de preparación, indexado, consulta y evaluación**, junto con
+las dependencias Python del componente. #34 las incorpora al entorno de los
+agentes. Es un único Compose y una única PostgreSQL, con tablas del explorador
+y del RAG separadas; no se delega otra vez la ubicación a la #56.
+
+La contribución de base de datos puede incorporarse primero al archivo común
+para verificar la parte RAG antes del recorrido web completo. Su comprobación
+pertenece al AC-013 de #32; el arranque y recorrido del conjunto, al AC-013 de
+#34. Este reparto no acredita que los contenedores ya estén implementados.
 
 - Servicios: web/backend Bun que sirve el frontend compilado, orquestador Python
   con ADK, servicio ML existente y PostgreSQL con pgvector. El frontend de Vite
@@ -428,7 +437,9 @@ repetir conservando resultados. No se crea un umbral nuevo de precisión para
    afectado. No aceptar ni implementar decisiones nuevas sobre sus contratos
    a partir de este borrador; conservar IDs y revisiones de versiones anteriores.
 3. Aceptar e integrar #56/ADR 0006 y acordar con #32 que este plan consume
-   `diagnostico_rag`, `agente2()` y el mismo Compose. Las pruebas finales
+   `diagnostico_rag` y `agente2()`. El reparto del Compose queda explícito:
+   #34 mantiene el archivo común e integra el conjunto; #32 aporta la base de
+   datos y preparación del RAG, sin otro Compose. Las pruebas finales
    requieren el código de #28/#31/#32, no solo su existencia en un plan.
 4. Revisar el impacto de alcance/calendario con el equipo. Preparación del
    entorno, parámetros operativos y acceso al proveedor deben documentarse

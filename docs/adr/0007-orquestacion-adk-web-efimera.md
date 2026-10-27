@@ -2,6 +2,7 @@
 
 - Estado: Propuesto
 - Fecha: 2026-10-27
+- Versión: propuesta v1.1; aclara el reparto de Compose con #32 respecto a `733c5d0`, sin modificar los AC ni los demás contratos propuestos.
 - GitHub Issue: https://github.com/lvckss/piia2-26/issues/34
 - Planes cubiertos: [34-orquestacion-web.md](../../entregas/cu-19-interpretacion-danos/specs/34-orquestacion-web.md), coordinación, frontera web/Python, estado temporal y Compose.
 - Planning PR: https://github.com/lvckss/piia2-26/pull/60 — draft.
@@ -63,10 +64,14 @@ previos no cubren esa frontera ni este recorrido.
    conflicto. Generar informe es una transición atómica. No hay garantía
    persistente de deduplicación después de perder el estado ni reintentos
    automáticos del flujo completo. Se registran los retries internos del SDK.
-7. **Compose global en la carpeta entregada.** Un `compose.yaml` en la raíz del
-   caso levanta frontend compilado/backend, orquestador Python, ML y PostgreSQL
-   con pgvector. Se coordina con #32 para compartir servicio y volumen RAG, con
-   schema del backend separado. Datos/modelos externos se montan localmente;
+7. **Compose global en la carpeta entregada.** #34 es responsable del archivo
+   `entregas/cu-19-interpretacion-danos/compose.yaml` y de integrar frontend
+   compilado/backend, orquestador Python, ML y PostgreSQL. #32 aporta el servicio
+   PostgreSQL/pgvector, volumen, schema RAG, comandos y dependencias Python del
+   componente; #34 las integra en el entorno de los agentes. La base de datos
+   puede comprobarse primero para #32; #34 verifica el conjunto completo.
+   No hay segundo Compose ni otra PostgreSQL; el schema del backend queda
+   separado de las tablas RAG. Datos/modelos externos se montan localmente;
    la localización del paquete se adapta sin exigir `.git` en los contenedores.
    Preparar índices de pago es una acción explícita, separada del arranque.
 8. **Entrega de texto.** Renderizar Markdown sin ejecutar HTML recibido y
