@@ -23,6 +23,18 @@ permanecen en cada copia local. No hay que añadirlas con `git add -f`.
 
 ## Descargar desde Google Drive
 
+Con [Just](https://just.systems/) y Python 3.11+ con `venv`, el atajo desde
+la raíz o cualquier subcarpeta del repositorio es:
+
+```bash
+just cardd
+```
+
+Prepara automáticamente `.venv-cardd`, instala la dependencia fijada y ejecuta
+el descargador con el enlace del paquete v1. Puedes proporcionar otra URL con
+`CARDD_URL`; se conserva el SHA-256 esperado. El entorno y los datos están
+ignorados por Git. Las alternativas manuales y offline siguen disponibles debajo.
+
 Necesitas Python 3.11 o posterior. Prepara una vez un entorno con la dependencia
 de Drive (no requiere Bun, PostgreSQL ni las dependencias de ML):
 
