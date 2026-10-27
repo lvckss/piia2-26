@@ -5,7 +5,7 @@
 - ADR decision: NEW_ADR
 - ADR: [0006 — RAG con PostgreSQL y estado de recuperación](https://github.com/lvckss/piia2-26/blob/main/docs/adr/0006-rag-postgresql-estado-recuperacion.md) — Propuesto; accesible en la rama de esta Planning PR hasta su integración.
 - Justificación: fija la persistencia vectorial, la separación de índices por modelo y una ampliación del contrato Agente 2 → Agente 3/orquestación para distinguir fuentes ausentes y fallos técnicos. Los ADRs previos 0002, 0003 y 0004 están Aceptados e integrados por la #51; cubren el contrato base, el proveedor y el cálculo, pero no la persistencia vectorial ni el diagnóstico nuevo, por lo que se mantiene NEW_ADR.
-- Plan vigente / versión: v1.4, este archivo en `plan/32-rag-normativa`; el comentario de planificación de la Issue fija el commit publicado. La v1 se conserva en `0197825`, la v1.1 en `88bd84d`, la v1.2 en `c77a17c` y la v1.3 en `1b2d62f`. La v1.4 recoge la decisión de Lucas del 2026-10-27: 23/25 es suficiente, 24/25 es genial y 25/25 es GOD. Actualiza AC-011, sus verificaciones y la DoD, conservando los 14 IDs y el resto del diseño. La v1.3 actualizó las referencias al código de costes ya integrado.
+- Plan vigente / versión: v1.5, este archivo en `plan/32-rag-normativa`; el comentario de planificación de la Issue fija el commit publicado. Versiones anteriores: v1 `0197825`, v1.1 `88bd84d`, v1.2 `c77a17c`, v1.3 `1b2d62f` y v1.4 `51be306`. La v1.5 explicita el orden de ejecución (núcleo antes de comparación) y cómo escalar retrasos; conserva los 14 AC, contratos, protocolo y DoD. La v1.4 recoge el mínimo decidido por Lucas: 23/25 suficiente, 24/25 genial y 25/25 GOD; la v1.3 actualizó las referencias a costes.
 - Riesgo y revisión previa: sí, por NEW_ADR y por la revisión de planes en PR acordada para la entrega. Impacto: fuentes de conclusiones económicas; consumidores independientes: #31 y #34. Reversión de la tecnología posible regenerando el índice; incertidumbre de calidad pendiente de evaluación.
 - Planning PR: https://github.com/lvckss/piia2-26/pull/56 — draft para revisar el contrato con consumidores.
 
@@ -404,13 +404,42 @@ Durante esta planificación no se escriben ni ejecutan esos archivos.
 
 ## Implementation Plan
 
+### Prioridades y orden de ejecución
+
+Después de la aceptación e integración de este plan y de acreditar DoR, se
+prioriza el núcleo que necesitan #31 y #34. Esta organización no elimina
+requisitos ni presenta una integración de desarrollo como entrega terminada.
+
+| Prioridad | Resultado | AC relacionados |
+|---|---|---|
+| 1 — Núcleo para integración | Persistencia, búsqueda con citas y filtro por póliza, `agente2()` con costes reales, diagnóstico y parte RAG del entorno reproducible. | AC-001 a AC-008, AC-012 y AC-013 |
+| 2 — Evaluación y selección final | Evaluador, referencia directa de pólizas, comparación small/large, métricas y selección de un modelo con al menos 23/25. | AC-009 a AC-011 y AC-014 |
+
+Orden de las slices siguientes: **1 → 2 → 3 → parte operativa de 5 → comparación
+real de 4 → cierre documental de 5**. El núcleo puede usar small como primera
+configuración para integrar; no supone seleccionarlo definitivamente ni omitir
+large. La preparación del evaluador, la referencia directa y la configuración
+baseline se congelan antes de puntuar y ajustar la calidad, siguiendo eval-first.
+La comparación completa de pago no retrasa la disponibilidad del núcleo para
+que otros componentes lo integren en desarrollo.
+
+Ante retrasos, primero se evita dedicar iteraciones a subir de 23 a 24 o 25
+cuando ya se cumple el mínimo, y se posponen optimizaciones no exigidas por los
+AC. Si no basta, se plantea al equipo replanificar el calendario de la comparación
+antes de modificar el contrato que consumen #31/#34. Esa propuesta requiere
+decisión humana: **esta versión no aplaza ni retira ningún AC**, no elimina
+ninguno de los dos modelos y no rebaja el mínimo de 23. La evaluación completa
+y el resto de la DoD siguen siendo necesarios para terminar #32.
+
+### Slices y verificación
+
 | Slice | Objetivo observable | AC relacionados | Componentes / contratos probablemente afectados | Dependencias | Verificación prevista |
 |---|---|---|---|---|---|
 | 1 — Corpus persistente reproducible | Índice completo, repetible y separado por modelo; conserva generación activa ante fallos. | AC-001, AC-002, AC-012, AC-013 | PostgreSQL/pgvector, indexado y parte RAG del Compose raíz. | ADR aceptado; paquete local; Docker. | Filas AC-001, AC-002, AC-012, AC-013. |
 | 2 — Recuperación con citas y filtros | Búsqueda con la firma acordada, fuentes literales y errores distinguibles. | AC-003, AC-004, AC-005 | `normativa_rag.py`, contrato de errores RAG. | Slice 1. | Filas AC-003 a AC-005. |
 | 3 — Agente 2 completo | Cálculos intactos, temas por caso y diagnóstico para consumidores. | AC-006, AC-007, AC-008 | `agente2()`, `diagnostico_rag`, ejemplos/documentación de contrato. | Slice 2; código de costes disponible en `main` por #59 y paquete local; contrato acordado con #31/#34. | Filas AC-006 a AC-008. |
 | 4 — Evaluación y comparación | Evaluador verificable; referencia directa de pólizas, tabla de ambos modelos y selección con al menos 23/25, informando la valoración acordada. | AC-009, AC-010, AC-011, AC-014 | `evaluar_rag.py`, protocolo y resultados. | Slice 2; acceso a ambos modelos. | Filas AC-009 a AC-011 y AC-014. |
-| 5 — Uso y entrega | Componente ejecutable desde Compose; documentación y evidencia final. | AC-012, AC-013 | README del RAG, guía actualizada y comandos del entorno. | Slices anteriores. | Arranque reproducible, checks y diff. |
+| 5 — Uso y entrega | Componente ejecutable desde Compose; documentación y evidencia final. | AC-012, AC-013 | README del RAG, guía actualizada y comandos del entorno. | Slices 1 a 3 para disponibilidad operativa; slice 4 para cerrar la entrega con toda la evaluación. | Arranque reproducible, checks y diff. |
 
 ## Pendientes para Ready
 
@@ -445,6 +474,7 @@ Durante esta planificación no se escriben ni ejecutan esos archivos.
 | Actualización v1.2 | Solicitud de Lucas del 2026-10-22: actualizar referencias. ADRs previos y plan de costes integrados; plan de presentación del diagnóstico en #31 recogido por #58. Los 14 AC, decisiones y planes de verificación e implementación no cambian; sin aceptación del conjunto de #56 ni del ADR 0006. |
 | Actualización v1.3 | Solicitud de Lucas del 2026-10-27 tras la revisión de Lucía: corregir las referencias desfasadas a costes. #59 ya integra su código en `main`; se actualizan estado, datos del Test Plan y dependencia de la slice 3. Los 14 AC, contratos, objetivo de calidad, estrategia y decisiones no cambian; no acredita aceptación ni ejecución del RAG. |
 | Actualización v1.4 | Decisión explícita de Lucas del 2026-10-27: «23 de 25 bien, 24 de 25 genial, 25 de 25 GOD». Se conserva AC-011 y se cambia su mínimo de 24 a 23, alineando Test Plan, protocolo, slice 4, DoD y contexto del ADR propuesto. AC-001 a AC-010 y AC-012 a AC-014, la rúbrica de pregunta correcta, el corpus y la comparación de ambos modelos se conservan. No acepta el plan completo ni el ADR ni acredita resultados medidos. |
+| Actualización v1.5 | Tras explicar a Lucas el punto 2 de la revisión de Lucía, se explicita la prioridad del núcleo y el orden de las slices, con preparación eval-first y comparación completa posterior. Se aclara la dependencia de la slice 5 y se prevé escalar retrasos al equipo. Los 14 AC, ambos modelos, mínimo 23/25, protocolo, contratos y DoD permanecen idénticos; cualquier recorte exige decisión humana. |
 | Gaps | Pendientes el plan de #34 y la revisión y aceptación de esta Spec y del ADR 0006: se mantiene draft; no Ready ni código productivo. Calidad y rendimiento aún no medidos; son verificaciones futuras, no checks superados. |
 
 ## Definition of Done
