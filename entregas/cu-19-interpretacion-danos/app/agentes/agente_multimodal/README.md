@@ -27,6 +27,7 @@ Diseño del filtro de confianza:
 | `agente1.py` | Encadena todo: `analizar_imagen(...)` devuelve (y opcionalmente guarda) el JSON final. |
 | `generar_lote.py` | Genera la salida real del Agente 1 para un lote reproducible de imágenes del export (un JSON por imagen), la valida contra el contrato y resume llamadas, tokens y reparto de niveles. Ver «Generar un lote real». |
 | `etiquetado.py` | Etiquetado manual para calibrar los umbrales (Issue #44): elige la muestra, genera la página de etiquetado y calcula la precisión por clase y tramo de score con intervalo. Ver «Etiquetar para calibrar los umbrales». |
+| `juez_vision.py` | Un modelo más potente etiqueta los hallazgos en las mismas condiciones que una persona (solo recorte y clase) y se mide su acuerdo con las etiquetas humanas. Caché, tope de llamadas y `--ejecutar` explícito. Ver «Juez de visión». |
 | `colab/` | Notebook para exportar las detecciones de PIIA-1 (SAM3) de ~500 imágenes, una sola vez, con cada detección marcada como acierto/falso positivo. |
 
 ## Uso
@@ -144,11 +145,53 @@ python etiquetado.py tabla --salidas ../../../../../piia2_detecciones/salida_age
   `--resultados` (el `resultados_<modelo>.json` de `evaluar_vision.py`) compara con
   `is_true_positive`: cuántos confirmados que PIIA-1 daba por fallo eran daño real.
 
+## Juez de visión
+
+Etiquetar a mano los 3.712 hallazgos del lote de 500 imágenes no es viable, así que
+las etiquetas de la tabla de precisión las puede poner un modelo más potente (el
+«juez») y **se mide cuánto coincide con las personas** antes de fiarse de él. Son
+etiquetas de un modelo validadas con una muestra humana, no verdad humana. Estado:
+herramienta implementada y probada con un cliente falso; **sin ejecutar todavía con
+el modelo real**.
+
+```bash
+# 0. muestra de validación: 60 hallazgos nuevos (5 rechazados por la visión + 5 confirmados
+#    con score alto, por clase) que no repiten los ya etiquetados. La página es CIEGA:
+#    solo recorte y clase, sin score ni «La IA dice», igual que lo ve el juez.
+python etiquetado.py validacion --salidas ../../../../../piia2_detecciones/salida_agente1_500     --excluir etiquetas/confirmados_bajo_umbral.csv
+#    Al terminar de etiquetar, une las dos descargas (confirmados_bajo_umbral.csv y la nueva)
+#    en etiquetas/etiquetas_humanas_120.csv, con una sola cabecera.
+# 1. plan: cuenta las llamadas y las que ya están en caché. NO llama a la API ni escribe nada
+python juez_vision.py juzgar --salidas ../../../../../piia2_detecciones/salida_agente1_500     --ids etiquetas/etiquetas_humanas_120.csv --modelo ID --esfuerzo xhigh
+# 2. prueba barata con 10 hallazgos, y si el plan es el esperado, la ejecución de verdad
+python juez_vision.py juzgar ... --limite 10 --ejecutar
+python juez_vision.py juzgar ... --ids etiquetas/etiquetas_humanas_120.csv --ejecutar
+# 3. acuerdo del juez con las personas (exacto con intervalo de Wilson, kappa de Cohen,
+#    matriz de confusión y acuerdo en «hay daño real»)
+python juez_vision.py acuerdo --humanas etiquetas/etiquetas_humanas_120.csv --juez ../../../../../piia2_detecciones/juez/ID/etiquetas_juez.csv
+```
+
+- **Mismas condiciones que la persona:** el juez ve el recorte y la clase de la caja,
+  no el veredicto ni la descripción de la visión. Responde `si`, `otra`, `no` o `dudo`
+  con un motivo corto, igual que la página de etiquetado.
+- **Gasto controlado:** sin `--ejecutar` solo se imprime el plan. Con él, el tope
+  `--max-llamadas` (300 por defecto) se comprueba antes de la primera llamada; la
+  caché `piia2_detecciones/cache_juez/` evita pagar dos veces lo mismo (clave: modelo,
+  esfuerzo, prompt y recorte); solo se guardan respuestas válidas; tras 5 fallos de
+  API seguidos se aborta conservando lo hecho; `--hilos` paraleliza.
+- **Salida** (en `piia2_detecciones/juez/<modelo>/`, ignorada por git): `etiquetas_juez.csv`
+  (`finding_id,etiqueta`, mismo formato que las humanas, así que la tabla de precisión
+  las lee tal cual), `detalle_juez.json` (con el motivo) y `resumen_juez.json` (modelo,
+  esfuerzo, hash del prompt, llamadas, tokens, fallos).
+- **El acuerdo no fija ningún umbral por sí solo:** si el juez no alcanza un acuerdo
+  aceptable con las personas, sus etiquetas no se usan para decidir umbrales.
+  El criterio de aceptación se decide en el plan de la #44 antes de ver los resultados.
+
 ## Pruebas sin API Key
 
 `probar_vision_stub.py`, `probar_agente1_stub.py`, `probar_seleccion_stub.py`,
-`probar_evaluar_vision_stub.py`, `probar_lote_stub.py` y `probar_etiquetado_stub.py`
-usan un cliente falso de OpenAI o ninguno, así que no necesitan API Key ni el
+`probar_evaluar_vision_stub.py`, `probar_lote_stub.py`, `probar_etiquetado_stub.py`
+y `probar_juez_stub.py` usan un cliente falso de OpenAI o ninguno, así que no necesitan API Key ni el
 paquete `openai`. `probar_evaluar_vision_stub.py` usa además el export real y las
 fotos del CarDD en local, y `probar_etiquetado_stub.py`, las salidas reales del
 lote de la #43, si están (si no, se saltan esa parte).
