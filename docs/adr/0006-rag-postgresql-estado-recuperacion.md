@@ -6,7 +6,7 @@
 - Planes cubiertos (Issue/mini-spec/Spec): [32-rag-normativa.md](../../entregas/cu-19-interpretacion-danos/specs/32-rag-normativa.md), persistencia, contrato de citas y diagnóstico, composición y evaluación.
 - Planning PR: https://github.com/lvckss/piia2-26/pull/56 — draft.
 - Aceptación: pendiente de revisión humana sobre esta propuesta. La adaptación del consumidor #31 está recogida por la #58 integrada; falta el plan de #34. La revisión de #58 no acepta este ADR.
-- Versión: propuesta v1.2; v1 conservada en `0197825` y v1.1 en `88bd84d`. Actualiza referencias al 2026-10-22 sin cambiar las decisiones propuestas.
+- Versión: propuesta alineada con la Spec v1.4; v1 conservada en `0197825`, v1.1 en `88bd84d` y v1.2 en `c77a17c`. Referencias previas del 2026-10-22 y mínimo de calidad actualizado por Lucas a 23/25 el 2026-10-27.
 - Sustituye / sustituido por: no sustituye un ADR aceptado. Sustituye la propuesta ChromaDB de la guía de RAG. Amplía el contrato base del ADR 0002 Aceptado e integrado por #37/#51 (`4a279e9`); los ADRs 0003 y 0004 también están Aceptados. Referencias fijadas más abajo.
 
 ## Contexto y motivación
@@ -83,7 +83,7 @@ frontera consumida por otras personas y requiere revisión previa.
    informe se exponen fuentes, temas sin fuentes y causas de fallos.
 9. **Selección:** ambos modelos con las mismas 25 preguntas; hit@4 y suficiencia
    humana por pregunta, total y por tipo; tiempos, tokens y coste. Elegido con
-   al menos 24 correctas; entre quienes cumplan, más aciertos y, en empate, menor
+   al menos 23 correctas; entre quienes cumplan, más aciertos y, en empate, menor
    coste. Si ninguno cumple, iterar con trazabilidad o replanificar con humano.
 10. **Referencia directa:** evaluar las 16 preguntas de póliza recuperando por
     producto y tema/sección, sin embeddings ni consulta al gold. Aplicar la misma
