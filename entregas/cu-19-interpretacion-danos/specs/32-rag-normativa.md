@@ -5,7 +5,7 @@
 - ADR decision: NEW_ADR
 - ADR: [0006 — RAG con PostgreSQL y estado de recuperación](https://github.com/lvckss/piia2-26/blob/main/docs/adr/0006-rag-postgresql-estado-recuperacion.md) — Propuesto; accesible en la rama de esta Planning PR hasta su integración.
 - Justificación: fija la persistencia vectorial, la separación de índices por modelo y una ampliación del contrato Agente 2 → Agente 3/orquestación para distinguir fuentes ausentes y fallos técnicos. Los ADRs previos 0002, 0003 y 0004 están Aceptados e integrados por la #51; cubren el contrato base, el proveedor y el cálculo, pero no la persistencia vectorial ni el diagnóstico nuevo, por lo que se mantiene NEW_ADR.
-- Plan vigente / versión: v1.5, este archivo en `plan/32-rag-normativa`; el comentario de planificación de la Issue fija el commit publicado. Versiones anteriores: v1 `0197825`, v1.1 `88bd84d`, v1.2 `c77a17c`, v1.3 `1b2d62f` y v1.4 `51be306`. La v1.5 explicita el orden de ejecución (núcleo antes de comparación) y cómo escalar retrasos; conserva los 14 AC, contratos, protocolo y DoD. La v1.4 recoge el mínimo decidido por Lucas: 23/25 suficiente, 24/25 genial y 25/25 GOD; la v1.3 actualizó las referencias a costes.
+- Plan vigente / versión: v1.6, este archivo en `plan/32-rag-normativa`; el comentario de planificación de la Issue fija el commit publicado. Versiones anteriores: v1 `0197825`, v1.1 `88bd84d`, v1.2 `c77a17c`, v1.3 `1b2d62f`, v1.4 `51be306` y v1.5 `6cb6527`. La v1.6 explicita el reparto de Compose con #34; conserva los 14 AC, contratos, protocolo y DoD. La v1.5 ordenó núcleo y comparación; la v1.4 fijó 23/25 suficiente, 24/25 genial y 25/25 GOD; la v1.3 actualizó las referencias a costes.
 - Riesgo y revisión previa: sí, por NEW_ADR y por la revisión de planes en PR acordada para la entrega. Impacto: fuentes de conclusiones económicas; consumidores independientes: #31 y #34. Reversión de la tecnología posible regenerando el índice; incertidumbre de calidad pendiente de evaluación.
 - Planning PR: https://github.com/lvckss/piia2-26/pull/56 — draft para revisar el contrato con consumidores.
 
@@ -230,10 +230,18 @@ distinción entre esos fallos y un error que impide calcular costes.
 ### Entorno reproducible
 
 Objetivo confirmado por Lucas: todo el proyecto arrancará desde un Compose
-raíz. #32 entregará la parte de PostgreSQL/pgvector y el entorno Python de
-los agentes con comandos de preparación, indexado, consulta y evaluación.
-El montaje conjunto de frontend, backend, ML y recorrido completo se concretará
-en la planificación de #34; no queda acreditado por probar solo el RAG.
+común en `entregas/cu-19-interpretacion-danos/compose.yaml`. **#34 es responsable
+del archivo y de la integración global** de web/backend, orquestador, ML y base
+de datos. **#32 aporta el servicio PostgreSQL con pgvector, su volumen, la
+preparación del schema RAG y los comandos de preparación, indexado, consulta y
+evaluación**, junto con las dependencias Python del componente. #34 incorpora
+esas dependencias en el entorno de los agentes al integrar el conjunto.
+
+La contribución de PostgreSQL puede incorporarse primero al archivo común y
+verificarse con el entorno Python del RAG, antes de que estén todos los servicios.
+Eso permite comprobar AC-013 de #32 sin esperar al recorrido web. #34 verifica
+el arranque del conjunto en su AC-013. No se crea otra PostgreSQL ni un Compose
+independiente para el RAG; probar su parte no acredita el despliegue completo.
 
 PostgreSQL tendrá volumen persistente; los datos se montarán en solo lectura.
 Versiones de PostgreSQL, pgvector y dependencias fijadas al implementar y
@@ -248,6 +256,7 @@ tablas propias del RAG, sin alterar las tablas existentes.
 |---|---|---|
 | Tecnología vectorial y ejecución | Resuelta por Lucas en esta sesión, 2026-10-20 | PostgreSQL + pgvector; Docker y Compose raíz como objetivo del proyecto. Sustituye la propuesta ChromaDB de la guía. |
 | Dueño de `agente2()` | Resuelta por Lucas | Se incluye en #32; #34 la consume. Responde a la aclaración enlazada de Lucía. |
+| Responsabilidad de Compose | Reparto técnico propuesto para revisión, 2026-10-27 | #34 mantiene `entregas/cu-19-interpretacion-danos/compose.yaml` e integra los servicios; #32 aporta PostgreSQL/pgvector, volumen, schema RAG y preparación. Una sola instancia y archivo común; no depende de volver a decidir la ubicación en #56. |
 | Opción A o B | Resuelta por Lucas | A en esta entrega; B evolución requerida posterior. |
 | Fallo o ausencia de fuentes | Resuelta en comportamiento de producto; contrato propuesto pendiente de revisión | Informe preliminar, causas distinguibles; sin confianza numérica inventada. #31 y #34 deben consumirlo. |
 | Modelos y objetivo de calidad | Resuelta por Lucas; actualizada el 2026-10-27 | Comparar small y large. Mínimo del modelo seleccionado: 23/25 correctas («bien»); 24/25 «genial» y 25/25 «GOD». Sustituye el mínimo anterior de 24/25. Es criterio de producto, no resultado medido ni garantía del proveedor. |
@@ -457,8 +466,10 @@ y el resto de la DoD siguen siendo necesarios para terminar #32.
   comprobado en `main` `d5dd44d`. AC-006 ya puede verificarse con
   `estimar_siniestro` real cuando se implemente la composición y esté presente
   el paquete de la empresa; no depende de una entrega futura de #30.
-- Concretar la integración Compose y el transporte del diagnóstico en el plan
-  de #34. La presentación de avisos en el plan de #31 está recogida por #58.
+- Revisar el reparto de Compose explícito aquí y en #60: #34 responsable del
+  archivo común y de la integración; #32 aporta PostgreSQL/pgvector y preparación.
+  Revisar también el transporte del diagnóstico en el plan de #34.
+  La presentación de avisos en el plan de #31 está recogida por #58.
   Confirmar acceso a ambos modelos al preparar entorno.
 
 ### Resultado de analyze
@@ -475,6 +486,7 @@ y el resto de la DoD siguen siendo necesarios para terminar #32.
 | Actualización v1.3 | Solicitud de Lucas del 2026-10-27 tras la revisión de Lucía: corregir las referencias desfasadas a costes. #59 ya integra su código en `main`; se actualizan estado, datos del Test Plan y dependencia de la slice 3. Los 14 AC, contratos, objetivo de calidad, estrategia y decisiones no cambian; no acredita aceptación ni ejecución del RAG. |
 | Actualización v1.4 | Decisión explícita de Lucas del 2026-10-27: «23 de 25 bien, 24 de 25 genial, 25 de 25 GOD». Se conserva AC-011 y se cambia su mínimo de 24 a 23, alineando Test Plan, protocolo, slice 4, DoD y contexto del ADR propuesto. AC-001 a AC-010 y AC-012 a AC-014, la rúbrica de pregunta correcta, el corpus y la comparación de ambos modelos se conservan. No acepta el plan completo ni el ADR ni acredita resultados medidos. |
 | Actualización v1.5 | Tras explicar a Lucas el punto 2 de la revisión de Lucía, se explicita la prioridad del núcleo y el orden de las slices, con preparación eval-first y comparación completa posterior. Se aclara la dependencia de la slice 5 y se prevé escalar retrasos al equipo. Los 14 AC, ambos modelos, mínimo 23/25, protocolo, contratos y DoD permanecen idénticos; cualquier recorte exige decisión humana. |
+| Actualización v1.6 | Se explicita el reparto de Compose propuesto por Lucía: #34 mantiene el archivo común del caso y verifica el conjunto; #32 aporta PostgreSQL/pgvector, volumen, schema y comandos RAG. Se alinea con #60 y ambos ADRs propuestos. Los 14 AC y el resto de requisitos se conservan; no se implementa configuración ni se atribuye aceptación humana del plan. |
 | Gaps | Pendientes el plan de #34 y la revisión y aceptación de esta Spec y del ADR 0006: se mantiene draft; no Ready ni código productivo. Calidad y rendimiento aún no medidos; son verificaciones futuras, no checks superados. |
 
 ## Definition of Done

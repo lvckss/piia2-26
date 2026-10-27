@@ -6,7 +6,7 @@
 - Planes cubiertos (Issue/mini-spec/Spec): [32-rag-normativa.md](../../entregas/cu-19-interpretacion-danos/specs/32-rag-normativa.md), persistencia, contrato de citas y diagnóstico, composición y evaluación.
 - Planning PR: https://github.com/lvckss/piia2-26/pull/56 — draft.
 - Aceptación: pendiente de revisión humana sobre esta propuesta. La adaptación del consumidor #31 está recogida por la #58 integrada; falta el plan de #34. La revisión de #58 no acepta este ADR.
-- Versión: propuesta alineada con la Spec v1.4; v1 conservada en `0197825`, v1.1 en `88bd84d` y v1.2 en `c77a17c`. Referencias previas del 2026-10-22 y mínimo de calidad actualizado por Lucas a 23/25 el 2026-10-27.
+- Versión: propuesta alineada con la Spec v1.6; v1 conservada en `0197825`, v1.1 en `88bd84d` y v1.2 en `c77a17c`. Referencias previas del 2026-10-22, mínimo 23/25 y reparto explícito de Compose actualizados el 2026-10-27.
 - Sustituye / sustituido por: no sustituye un ADR aceptado. Sustituye la propuesta ChromaDB de la guía de RAG. Amplía el contrato base del ADR 0002 Aceptado e integrado por #37/#51 (`4a279e9`); los ADRs 0003 y 0004 también están Aceptados. Referencias fijadas más abajo.
 
 ## Contexto y motivación
@@ -50,10 +50,13 @@ frontera consumida por otras personas y requiere revisión previa.
    fragmentos, embeddings y manifiesto de generación. Texto y procedencia se
    conservan junto a los vectores. El origen documental sigue siendo el paquete
    recibido; la SQLite de CSV no se migra como requisito del RAG.
-2. **Entorno:** servicio PostgreSQL con volumen persistente y entorno Python de
-   agentes ejecutables desde Compose raíz; paquete montado en lectura y
-   configuración por entorno. Indexado y evaluaciones de pago son explícitos.
-   La integración global con web/backend/ML se concreta en #34.
+2. **Entorno:** un Compose común en `entregas/cu-19-interpretacion-danos/compose.yaml`,
+   cuyo archivo e integración global son responsabilidad de #34. #32 aporta
+   PostgreSQL/pgvector, volumen persistente, preparación del schema RAG, comandos
+   y dependencias Python del componente; #34 integra el entorno de los agentes
+   con web/backend/ML. La parte de base de datos puede verificarse antes del
+   conjunto. Paquete en lectura y configuración por entorno; indexado y
+   evaluaciones de pago explícitos. No hay un segundo Compose ni otra PostgreSQL.
 3. **Modelos separados:** comparar small (1.536 dimensiones por defecto) y large
    (3.072), conservando manifiestos y generaciones independientes, sin mezcla
    de vectores. Publicar generación solo al completarse; reindexado idempotente
