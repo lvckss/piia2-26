@@ -1,5 +1,9 @@
 # CU-19 — Interpretación de daños en vehículos
 
+> **[Arquitectura de la solución →](ARCHITECTURE.md)** Diagrama de componentes,
+> contratos, flujo de datos y decisiones, con el estado implementado y las
+> propuestas de evolución identificados por separado.
+
 ## Qué es el proyecto
 
 Este proyecto continúa el trabajo de PIIA1, donde se desarrolló un pipeline de segmentación de daños en vehículos basado en SAM3 y evaluado sobre CarDD. En PIIA2 se construye encima de esa salida un **sistema multiagente multimodal que imita el comportamiento de un perito de seguros**: a partir de la foto de un vehículo dañado y de los datos del siniestro, interpreta los daños, estima su reparación y la cobertura de la póliza, y redacta un informe de peritaje.
@@ -64,7 +68,9 @@ responsabilidades de producto, datos, modelos e integración.
 ```text
 cu-19-interpretacion-danos/
 ├── README.md
+├── ARCHITECTURE.md
 ├── TAREAS.md
+├── docs/architecture/
 ├── specs/
 └── app/
     ├── agentes/
@@ -78,6 +84,9 @@ cu-19-interpretacion-danos/
 ```
 
 - `README.md`: presenta el problema, la motivación, el alcance y el equipo.
+- [`ARCHITECTURE.md`](ARCHITECTURE.md): mapa visual de la solución, contratos,
+  despliegue, evidencia y evolución pendiente; las ilustraciones están en
+  `docs/architecture/`.
 - `TAREAS.md`: checklist histórico de la mejora de robustez del pipeline de detección de PIIA1.
 - `specs/`: especificaciones, arquitectura y guías del proyecto (tabla más abajo).
 - `app/`: código del proyecto. Su propio [README](app/README.md) explica cómo se ejecuta cada parte.
