@@ -19,6 +19,11 @@ app/
 
 ## Backend
 
+Antes de usar el explorador de imágenes, descarga sus datos siguiendo
+[la guía de CARDD local](../../../scripts/README.md). Las imágenes y anotaciones
+quedan en `bd/rawdata/` y `bd/clean_data/`, excluidas de Git. La descarga no carga
+PostgreSQL: el esquema y el importador están en `bd/`.
+
 ```bash
 bun install
 bun run dev

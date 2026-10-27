@@ -36,6 +36,9 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 # datasets and local model assets
 bd/rawdata/
 bd/clean_data/
+bd/.cardd-install.json
+bd/.cardd-lock/
+bd/.cardd-stage-*/
 models/
 ml/config/image_exemplars/
 ml/config/tip_adapter/*/cropped_embeddings_*/

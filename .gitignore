@@ -10,3 +10,7 @@ piia2_detecciones/
 
 # Credenciales locales (nunca se versionan)
 .env
+
+# Entorno opcional para descargar CARDD desde Drive
+.venv-cardd/
+__pycache__/
