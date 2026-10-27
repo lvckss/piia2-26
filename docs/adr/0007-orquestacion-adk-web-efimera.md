@@ -2,7 +2,7 @@
 
 - Estado: Propuesto
 - Fecha: 2026-10-27
-- Versión: propuesta v1.1; aclara el reparto de Compose con #32 respecto a `733c5d0`, sin modificar los AC ni los demás contratos propuestos.
+- Versión: propuesta v1.2; actualiza las referencias a #28 v1.2 respecto a `9a65c26` y aclara que #34 define la procedencia y #31 la consume. El formato sigue pendiente de acuerdo; no cambia el resultado observable de los AC. Historial: v1 en `733c5d0`; v1.1 en `9a65c26`, reparto de Compose con #32.
 - GitHub Issue: https://github.com/lvckss/piia2-26/issues/34
 - Planes cubiertos: [34-orquestacion-web.md](../../entregas/cu-19-interpretacion-danos/specs/34-orquestacion-web.md), coordinación, frontera web/Python, estado temporal y Compose.
 - Planning PR: https://github.com/lvckss/piia2-26/pull/60 — draft.
@@ -18,9 +18,13 @@ acredita la integración completa ni convierte sus dependencias en las del produ
 
 Lucas ha elegido ADK y un recorrido desde una pestaña de la web: subir una
 imagen, ver los daños sin editarlos, confirmar/corregir el vehículo, completar
-datos y mostrar/descargar Markdown. Ha elegido no tener historial. Recuperar
-la categoría automática de #28 requiere revisar su plan con Lucía y la
-procedencia del vehículo con el responsable del informe.
+datos y mostrar/descargar Markdown. Ha elegido no tener historial. La v1.2 de
+#28, publicada en #29 (`dca27ad`), ya planifica la categoría automática solo en
+el Agente 1 y transfiere AC-009/010 a #34/#31. Con `desconocido` entrega una
+referencia nula: #34 pide selección al usuario, sin asignar un compacto. Un
+fallo técnico del proveedor se propaga y detiene el flujo (AC-007 de #28).
+Su revisión e integración siguen pendientes, igual que acordar con el
+responsable del informe el formato de procedencia definido por #34.
 
 La web y backend son React/Bun/Hono; los agentes son Python. PIIA 1 ya ofrece
 `POST /v1/damage-assessment` con archivo, pero su JSON necesita adaptación al
@@ -50,8 +54,10 @@ previos no cubren esa frontera ni este recorrido.
    La API de peritaje se valida de forma independiente del JSON de los agentes.
 4. **Cálculos y procedencia preservados.** Resolver `vehiculo_id` antes de #30,
    conservar findings y cifras y comprobar el informe antes de publicarlo.
-   Transportar la procedencia del vehículo por un contrato revisado con #28/#31,
-   sin restaurar unilateralmente campos o AC retirados. Conservar el
+   #34 define aquí y en su Spec el contrato de procedencia; #31 lo consume
+   para mostrarla en el informe. Revisar el formato con Víctor, respetando la
+   predicción `vehiculo` de #28, sin restaurar unilateralmente campos o AC
+   retirados. Conservar el
    `diagnostico_rag` acordado con #32/#31 y sus avisos preliminares.
 5. **Estado efímero, sin historial de casos.** Mantener estado y artefactos
    temporales hasta descarga/descartado/caducidad, sin tablas de casos ni su
@@ -96,8 +102,9 @@ previos no cubren esa frontera ni este recorrido.
 
 - La integración pasa a tener dos fronteras explícitas: HTTP web/Python y los
   JSON entre agentes. Cada una se prueba sin utilizar mocks de funciones privadas.
-- La estimación de categoría y su adaptación siguen pendientes en #28/#29;
-  esta propuesta no acepta el ADR 0001 ni el umbral de su evaluación.
+- El plan de categoría #28 v1.2/#29 ya recoge `desconocido` sin referencia y
+  una evaluación manual sin umbral del 70 %. Su revisión, aceptación del ADR
+  0001 e implementación siguen pendientes; este ADR no las acredita.
 - El informe debe distinguir representante de coche identificado. El plan #31
   actual no acredita esa adaptación; acordarla con Víctor bloquea Ready.
 - El ADR 0006 del RAG sigue Propuesto en #56. Aceptar este ADR no lo acepta por
@@ -122,7 +129,9 @@ previos no cubren esa frontera ni este recorrido.
   evidencia de una tool, importe conservado y replay documentado; no prueba el
   presente servicio ni una ejecución de los tres agentes.
 - [RAG #56](https://github.com/lvckss/piia2-26/pull/56), `c77a17c`, draft;
-  [categoría #29](https://github.com/lvckss/piia2-26/pull/29), `e180219`, pendiente;
+  [categoría #29](https://github.com/lvckss/piia2-26/pull/29), v1.2 en
+  [`dca27ad`](https://github.com/lvckss/piia2-26/blob/dca27add4cf87fc460fb7516625672798552e3c4/entregas/cu-19-interpretacion-danos/specs/28-categoria-vehiculo.md),
+  revisión e integración pendientes;
   [informe v2 #58](https://github.com/lvckss/piia2-26/pull/58), integrada.
 - [ADK: secuencia nativa](https://adk.dev/agents/workflow-agents/sequential-agents/)
   y [agentes personalizados](https://adk.dev/agents/custom-agents/), consultadas

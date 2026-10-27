@@ -1,11 +1,11 @@
 # Spec: Orquestación desde la web, de una imagen subida al informe
 
 - GitHub Issue: https://github.com/lvckss/piia2-26/issues/34
-- Estado: Borrador v1.1, 2026-10-27.
+- Estado: Borrador v1.2, 2026-10-27.
 - ADR decision: NEW_ADR.
 - ADR: [0007 — Orquestación ADK y ejecución web efímera](https://github.com/lvckss/piia2-26/blob/plan/34-orquestacion-web/docs/adr/0007-orquestacion-adk-web-efimera.md), Propuesto.
 - Justificación: adopta ADK como dependencia del producto, define una frontera HTTP entre web y servicio Python y el ciclo de vida de las ejecuciones. Los ADRs 0002–0005 aceptados cubren contratos, proveedor, costes y filtro previo; no cubren estas decisiones.
-- Plan vigente / versión: v1.1 en `plan/34-orquestacion-web`; el comentario de planificación de #34 fija el commit publicado. La v1 se conserva en `733c5d0`. Esta actualización solo aclara el reparto de Compose con #32; mantiene los 14 AC y el resto del diseño pendiente de revisión. Continúa el [registro de alcance](https://github.com/lvckss/piia2-26/issues/34#issuecomment-6426795027).
+- Plan vigente / versión: v1.2 en `plan/34-orquestacion-web`; el comentario de planificación de #34 fija el commit publicado. Historial: v1 en `733c5d0`; v1.1 en `9a65c26`, reparto de Compose con #32. La v1.2 actualiza las referencias a #28 v1.2 y aclara en AC-008 quién define y consume la procedencia, sin cambiar su resultado observable ni resolver aún su formato. Conserva los 14 IDs de AC, Test Plan y DoD. Continúa el [registro de alcance](https://github.com/lvckss/piia2-26/issues/34#issuecomment-6426795027).
 - Riesgo y revisión previa: sí, por NEW_ADR y por el acuerdo del equipo. Impacto en cifras y fuentes del informe, frontera entre servicios, subida de archivos y nuevas dependencias de #28/#31/#32. La implementación y sus planes deben revisarse por los responsables afectados; el documento completo todavía no tiene aceptación humana.
 - Planning PR: https://github.com/lvckss/piia2-26/pull/60 — draft mientras se acuerdan las dependencias indicadas al final.
 
@@ -68,10 +68,17 @@ Snapshot leído: `main` `d5dd44d4ff89d64fecb7eeff83ef7a55b5b560af`.
 - RAG: [#56](https://github.com/lvckss/piia2-26/pull/56), `c77a17c`, sigue draft,
   con `agente2()` y `diagnostico_rag` propuestos. Informe: spec v2 integrada por
   [#58](https://github.com/lvckss/piia2-26/pull/58); aún no existe `informe.py`.
-- Categoría: [#29](https://github.com/lvckss/piia2-26/pull/29), `e180219`, tiene
-  ADR 0001 Propuesto y fallback automático a categoría C. El nuevo recorrido
-  pide selección al usuario con `desconocido`: esa adaptación sigue pendiente
-  en #28, con Lucía. Los AC de origen del coche se retiraron en #30/#31.
+- Categoría: [#29](https://github.com/lvckss/piia2-26/pull/29), Spec v1.2 en
+  [`dca27ad`](https://github.com/lvckss/piia2-26/blob/dca27add4cf87fc460fb7516625672798552e3c4/entregas/cu-19-interpretacion-danos/specs/28-categoria-vehiculo.md),
+  con ADR 0001 Propuesto, todavía sin integrar. #28 cubre solo el Agente 1:
+  añade `vehiculo`, con `desconocido` y `vehiculo_id_referencia: null` cuando
+  no hay categoría válida, sin fallback a C. Sus AC-009/010 se transfieren a
+  #34/#31: la confirmación/selección y el contrato de procedencia pertenecen
+  a #34; el aviso en el informe, a #31. El fallo técnico del proveedor se
+  propaga según su AC-007 y detiene la ejecución; no equivale a `desconocido`.
+  AC-011 prevé evaluación manual sin umbral del 70 %. La revisión de #29 y
+  el acuerdo del contrato de procedencia con Víctor siguen pendientes; los
+  AC de origen retirados de #30/#31 no se reactivan automáticamente.
 - Hay Compose para ML en `app/docker/ml-api/`; no uno que levante el conjunto.
   El backend requiere `DATABASE_URL`, el schema vive en `app/bd/schema.sql` y
   los agentes localizan el paquete buscando `.git`: esto requiere resolver
@@ -103,9 +110,11 @@ responsabilidades y detecta los fallos entre ellas.
   APIs de aseguradoras/talleres y funciones nuevas de exclusiones/plazos.
 
 La web amplía el alcance inicial de #34 por decisión explícita de Lucas. El
-trabajo de #28 no se absorbe ni se reasigna desde este plan. El impacto en el
-calendario y el contrato de procedencia se acuerdan con Lucía y Víctor antes
-de Ready. No se reactivan silenciosamente los AC retirados de sus planes.
+trabajo del Agente 1 de #28 no se absorbe ni se reasigna desde este plan.
+Se recoge el reparto de su v1.2: #34 confirma/resuelve el vehículo y define
+la procedencia; #31 la muestra en el informe. El impacto en el calendario y
+el contrato se acuerdan con Lucía y Víctor antes de Ready. No se reactivan
+silenciosamente los AC retirados de sus planes.
 
 ## Restricciones y supuestos
 
@@ -167,7 +176,11 @@ pueden acompañar; no se fabrican scores, clases ni hallazgos. La lista completa
 llega al filtro previo del Agente 1; la orquestación no filtra por su cuenta.
 
 El contexto entregado a costes siempre tiene `vehiculo_id` válido, resuelto
-antes de llamar a #30. **Propuesta de frontera a acordar con #28/#31:** mantener
+antes de llamar a #30. Los AC-009/010 transferidos desde #28 v1.2 se recogen
+en AC-003/004/008 de este plan y en la adaptación pendiente de #31, conservando
+la trazabilidad sin reutilizar sus IDs. **#34 define el contrato de procedencia
+en este plan y el ADR 0007; #31 lo consume. Propuesta de formato a revisar con
+Víctor, respetando el campo `vehiculo` de #28:** mantener
 la predicción `vehiculo` del Agente 1 y transportar un objeto de procedencia
 separado, con categoría propuesta, representante, vehículo seleccionado y
 origen (`referencia_confirmada` o `seleccion_usuario`). No añadir campos al
@@ -313,7 +326,7 @@ pertenece al AC-013 de #32; el arranque y recorrido del conjunto, al AC-013 de
 |---|---|---|
 | Web, imagen subida, edición y salida | Resuelta por Lucas en la conversación | Pestaña independiente; una imagen; daños sin edición; vehículo corregible; Markdown visible/descargable; sin historial. Se fija la versión de estas decisiones en #34. |
 | Framework | Resuelta por Lucas | ADK tras #33/#52. La secuencia nativa y el servicio efímero son propuestas técnicas de este borrador, no resultados de una integración ya probada. |
-| Categoría y procedencia | Bloqueante para Ready | #28 solicitada de nuevo; #29/ADR 0001 deben adaptarse con Lucía. Acordar con Víctor cómo llega la procedencia al informe y revisar el plan afectado. |
+| Categoría y procedencia | Bloqueante para Ready | #28 ya tiene v1.2 en #29 (`dca27ad`), con `desconocido` sin referencia y AC-009/010 transferidos a #34/#31; revisión e integración pendientes. #34 define el contrato de procedencia y #31 lo consume. Acordar su formato con Víctor y revisar el plan del informe. |
 | RAG | Bloqueante para Ready | #56/ADR 0006 propuestos: acordar contrato definitivo y reparto de Compose. No se presupone aceptación por #58. |
 | Contrato web/Python y límites configurados | Propuesta para revisión | La tabla HTTP, idempotencia y estado efímero deben acordarse en esta Planning PR. Valores operativos se fijan con evidencia del entorno en la implementación; las pruebas inyectan límites controlados. |
 | Modelo concreto y dependencias | Comprobación de entorno | Visión por configuración y embeddings según #32; no elegir aquí otro modelo de chat ni copiar automáticamente las dependencias del experimento. Registrar versiones/acceso al preparar la implementación. |
@@ -360,7 +373,7 @@ pertenece al AC-013 de #32; el arranque y recorrido del conjunto, al AC-013 de
 | AC-005 | Ejecutar ambas fases con dependencias que registran llamadas. | Se usa el runtime nativo ADK, con orden PIIA 1 → Agente 1; tras contexto válido, `agente2()` → Agente 3 → verificación. No se llama al coste antes de `agente2()` ni se añade un LLM para coordinar/redactar cifras. Una fase fallida no ejecuta sus sucesoras. |
 | AC-006 | Findings con confirmados, pendientes y rechazados, y escenario sin daños. | La web solo muestra los resultados, sin permitir cambiar daños; una petición con findings editados se rechaza. Los JSON de entrada al cálculo y al informe conservan hallazgos y tiers, y los dos escenarios y sus cifras coinciden con la ejecución directa de #30/#32 para el mismo contexto. |
 | AC-007 | Respuestas `diagnostico_rag` en los cinco estados y con citas parciales. | JSON e informe conservan el diagnóstico acordado con #32/#31. `parcial`, `sin_resultados` y `error` producen aviso preliminar y causas por tema, sin perder citas buenas. `recuperadas` no se presenta como verificación; `no_aplica` no genera fallo técnico. |
-| AC-008 | Un representante confirmado y un vehículo seleccionado por el usuario producen informe. | La procedencia se conserva hasta la salida. Con representante, informe y pantalla advierten que el modelo es una referencia de presupuesto, sin presentarlo como identificado en la foto. Con selección, se indica que es aportado por el usuario. Se cumple mediante el contrato/adaptación de #28/#31 aceptados. |
+| AC-008 | Un representante confirmado y un vehículo seleccionado por el usuario producen informe. | La procedencia se conserva hasta la salida. Con representante, informe y pantalla advierten que el modelo es una referencia de presupuesto, sin presentarlo como identificado en la foto. Con selección, se indica que es aportado por el usuario. Se cumple mediante el contrato de procedencia definido en #34/ADR 0007 y su adaptación consumidora en #31, ambos aceptados. |
 | AC-009 | Informe correcto y otro con un importe inventado respecto a salida de Agente 2. | Se ejecuta `comprobar_cifras` antes de publicar. Correcto: sus cifras y escenarios corresponden a Agente 2. Inventado: error `CIFRAS_INCONSISTENTES`, sin informe terminado ni descarga. El LLM no recibe el encargo de reescribir el presupuesto. |
 | AC-010 | Consultar progreso; repetir cada POST con misma clave/contenido, con contenido distinto y durante ejecución; reiniciar/caducar caso. | GET no ejecuta etapas. Repetir devuelve el mismo caso/resultado y recuento de llamadas; reutilización conflictiva da `409`. Doble envío de fase B inicia una sola generación. Caso perdido deja de mostrarse como procesando y no se reenvía automáticamente. |
 | AC-011 | Simular por separado fallos de ML, visión/categoría, costes, informe, contrato y timeout. | Se comunica código, etapa, mensaje y posibilidad de reintento sin credenciales/rutas privadas. No se oculta como RAG vacío, no se publica informe final y no se reejecuta el flujo en silencio. Los fallos esperados propios del RAG siguen AC-007. |
@@ -422,7 +435,7 @@ repetir conservando resultados. No se crea un umbral nuevo de precisión para
 | Slice | Objetivo observable | AC | Fronteras/componentes | Dependencias | Verificación |
 |---|---|---|---|---|---|
 | 1 — Entrada web y adaptación | Pestaña, subida válida y respuesta PIIA 1 consumible por Agente 1. | AC-001, AC-002 | React, Hono, servicio Python y cliente ML. | Plan/ADR aceptados; contrato ML existente. | Filas AC-001/002; pruebas sin modelo real. |
-| 2 — Diagnóstico y vehículo | Fase A con ADK, daños sin edición y vehículo confirmable/corregible. | AC-003, AC-004, AC-005, AC-006 | Runtime nativo, Agente 1/#28, catálogo y formulario. | #28 replanificada y contrato integrado para la integración final. | Filas AC-003 a AC-006 con dobles y catálogo. |
+| 2 — Diagnóstico y vehículo | Fase A con ADK, daños sin edición y vehículo confirmable/corregible. | AC-003, AC-004, AC-005, AC-006 | Runtime nativo, Agente 1/#28, catálogo y formulario. | Plan v1.2 de #28 y ADR 0001 revisados e integrados; su implementación para la integración final. | Filas AC-003 a AC-006 con dobles y catálogo. |
 | 3 — Informe comprobado | Fase B con #32/#31, diagnóstico RAG, procedencia y cifras verificadas. | AC-005, AC-006, AC-007, AC-008, AC-009 | Agente 2/3 y contratos compartidos. | #30 integrada; #32/#31 y procedencia aceptados; integración final con código real. | Filas AC-005 a AC-009. |
 | 4 — Ciclo de vida y salida | Ejecución asíncrona sin duplicados, errores explícitos, Markdown y limpieza. | AC-010, AC-011, AC-012 | HTTP, estado temporal, UI y descarga. | Slices 1–3; puede desarrollarse con dobles públicos. | Filas AC-010 a AC-012. |
 | 5 — Entorno y evidencia | Compose único, preparación reproducible y 3–5 casos reales. | AC-013, AC-014 | Contenedores, configuración, documentación de uso. | Componentes integrados; datos/modelos locales; acceso al proveedor. | Filas AC-013/014; regresiones pertinentes y diff. |
@@ -432,10 +445,12 @@ repetir conservando resultados. No se crea un umbral nuevo de precisión para
 1. Revisión humana del documento completo, contratos HTTP/ciclo de vida y ADR
    0007; aceptación registrada y Planning PR integrada con head final aprobado.
    Revisora prevista para la PR de Lucas: Lucía, según el reparto del equipo.
-2. Coordinar y revisar #28/#29 con Lucía: `desconocido`, confirmación y contrato
-   de procedencia. Acordar con Víctor la adaptación del informe y el plan
-   afectado. No aceptar ni implementar decisiones nuevas sobre sus contratos
-   a partir de este borrador; conservar IDs y revisiones de versiones anteriores.
+2. Completar con Lucía/Víctor la revisión e integración de #28 v1.2/#29 y
+   ADR 0001: #28 entrega `vehiculo`, incluido `desconocido` sin referencia;
+   #34 asume confirmación/selección y define la procedencia en el ADR 0007;
+   #31 la consume y muestra el aviso. Acordar con Víctor el formato concreto
+   y revisar la adaptación del plan del informe. No presentar esta actualización
+   de referencias como aceptación de esos contratos; conservar IDs y revisiones.
 3. Aceptar e integrar #56/ADR 0006 y acordar con #32 que este plan consume
    `diagnostico_rag` y `agente2()`. El reparto del Compose queda explícito:
    #34 mantiene el archivo común e integra el conjunto; #32 aporta la base de
@@ -451,7 +466,7 @@ repetir conservando resultados. No se crea un umbral nuevo de precisión para
 |---|---|
 | Trazabilidad del alcance | Web/subida → AC-001/002; categoría/contexto → AC-003/004/008; ADK → AC-005; resultados sin edición → AC-006; RAG → AC-007; cifras → AC-009; estados/errores → AC-010/011; Markdown sin historial → AC-012; Compose → AC-013; recorrido real → AC-014. |
 | Cada AC tiene verificación y slice | AC-001 a AC-014, con Test Plan y al menos una slice. |
-| Preservación | Contratos base y costes protegidos; #28 y procedencia requieren adaptación explícita. Ningún AC retirado se restaura desde #34. |
+| Preservación | Contratos base y costes protegidos; #28 v1.2 ya planifica la categoría sin fallback. #34 define la procedencia y #31 requiere una adaptación explícita para consumirla; formato y revisión pendientes. Ningún AC retirado se restaura desde #34. |
 | Decisión arquitectónica | NEW_ADR por ADK de producto, frontera HTTP y despliegue/estado. ADR 0007 Propuesto, sin sustituir la aceptación de 0001/0006. |
 | Estado del diseño | Borrador para acordar fronteras con consumidores; no Ready. Propuestas técnicas separadas de decisiones de producto confirmadas. |
 | Trabajo ya verificado | Inspección de código, contratos y documentación; el experimento #33 está integrado. No se ha ejecutado este flujo, instalado dependencias ni llamado a modelos para planificarlo. |
