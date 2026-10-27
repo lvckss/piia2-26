@@ -31,22 +31,22 @@ python3 -m venv .venv-cardd
 .venv-cardd/bin/python -m pip install -r scripts/requirements-cardd.txt
 ```
 
-El responsable del paquete debe subir **el archivo `cardd-dataset-v1.tar.gz`**, sin
-descomprimirlo, y facilitar su enlace de archivo de Drive con descarga permitida.
+El [paquete v1 está en Google Drive](https://drive.google.com/file/d/1TXnFJUyNsxciAz4pxKtwD8lJ1uWzcdBK/view?usp=sharing)
+como un único archivo `cardd-dataset-v1.tar.gz`.
 El script usa `gdown --fuzzy --no-cookies`: no inicia sesión ni utiliza cookies
 del navegador. El enlace debe permitir descargar sin autenticación. Si el archivo
 es privado para cuentas concretas, descárgalo con tu cuenta desde el navegador y
 utiliza el modo `--archive` descrito debajo; no hace falta cambiar sus permisos.
 
-La URL real se comparte con el equipo; no está fijada en el repositorio. Con el
-enlace recibido, ejecuta:
+Para descargar la versión cuyo SHA-256 está registrado en el repo, ejecuta:
 
 ```bash
-.venv-cardd/bin/python scripts/download_cardd.py --url 'ENLACE_DEL_ARCHIVO_EN_DRIVE'
+.venv-cardd/bin/python scripts/download_cardd.py \
+  --url 'https://drive.google.com/file/d/1TXnFJUyNsxciAz4pxKtwD8lJ1uWzcdBK/view?usp=sharing'
 ```
 
 También puedes configurar `CARDD_URL` y ejecutar el mismo comando sin `--url`.
-No es un enlace de carpeta ni una URL de ejemplo que ya contenga los datos.
+Usa un enlace de archivo; los enlaces de carpeta no se admiten.
 Para URLs HTTP(S) directas basta `python3`, sin instalar `gdown`.
 
 Referencia de la dependencia y sus opciones: [gdown v5.2.0](https://github.com/wkentaro/gdown/tree/v5.2.0).
