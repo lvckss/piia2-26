@@ -17,7 +17,7 @@ Una funcionalidad del Agente 1 (analista multimodal) que, dada la foto de un veh
 - **Categorías posibles:** los 8 segmentos del catálogo de vehículos de la empresa (`A`, `B`, `C`, `SUV-B`, `SUV-C`, `FURG`, `C-PREMIUM`, `D-PREMIUM`, campo `segmento` de `vehiculos.csv`) y `desconocido`.
 - **Salida:** un objeto `vehiculo` en la salida del Agente 1, con `categoria`, `vehiculo_id_referencia` (`null` si la categoría es `desconocido`), `confianza` (`alta`, `media` o `baja`), `descripcion` (una frase) y `modelo` (identificador del modelo de visión usado).
 - **Coche de referencia:** tabla fija categoría → `vehiculo_id` del catálogo de la empresa. `desconocido` **no tiene** coche de referencia (`vehiculo_id_referencia` es `null`): la persona usuaria elige en la web y no se presupuesta con un coche por defecto.
-- **Dónde encaja:** el Agente 1 solo produce la propuesta (`vehiculo`). La web de la #34 la muestra, deja confirmarla o corregirla y entrega el `vehiculo_id` elegido como dato de entrada del siniestro, de modo que el Agente 2 sigue exigiendo `vehiculo_id` en el contexto, como hoy (#30), y esta Issue no toca su código. Cómo se indica en el informe que se presupuestó con un coche de referencia (antes AC-009 y AC-010 de esta Spec) lo definen la #34 y la #31 con Víctor.
+- **Dónde encaja:** el Agente 1 solo produce la propuesta (`vehiculo`). La web de la #34 la muestra, deja confirmarla o corregirla y entrega el `vehiculo_id` elegido como dato de entrada del siniestro, de modo que el Agente 2 sigue exigiendo `vehiculo_id` en el contexto, como hoy (#30), y esta Issue no toca su código. Cómo se indica en el informe que se presupuestó con un coche de referencia (antes AC-009 y AC-010 de esta Spec) lo decide la #34 en su ADR 0007 (campo candidato `contexto.vehiculo_origen`) y la #31 lo consume.
 
 ### Estado actual del sistema (exploración en solo lectura, `origin/main` en `d5dd44d`, 2026-10-27)
 
@@ -39,7 +39,7 @@ La herramienta de costes de la empresa necesita un `vehiculo_id`, pero en CarDD 
 ## Alcance
 
 - Incluido: consulta de categoría por imagen; validación de la respuesta del modelo; traducción categoría → coche de referencia del catálogo de la empresa; registro del modelo usado; caché de la consulta; actualización de los ejemplos del contrato y del validador de salidas; validación manual con el modelo real.
-- Fuera de alcance: identificar marca y modelo exactos; leer o registrar matrículas, propietarios o personas; precios reales; vehículos fuera del catálogo (camiones, autobuses, motos), que quedan como `desconocido`; un dataset propio de precios por categoría; etiquetar todo CarDD con un clasificador; **el uso de la categoría en los Agentes 2 y 3 y en el informe** (`vehiculo_origen`, aviso y cabecera del informe; antes AC-009 y AC-010), que acuerdan la #34 y la #31 con Víctor; la pantalla web de confirmación o corrección (#34); elegir o comparar modelos de visión.
+- Fuera de alcance: identificar marca y modelo exactos; leer o registrar matrículas, propietarios o personas; precios reales; vehículos fuera del catálogo (camiones, autobuses, motos), que quedan como `desconocido`; un dataset propio de precios por categoría; etiquetar todo CarDD con un clasificador; **el uso de la categoría en los Agentes 2 y 3 y en el informe** (`vehiculo_origen`, aviso y cabecera del informe; antes AC-009 y AC-010), que decide la #34 en su ADR 0007 y consume la #31; la pantalla web de confirmación o corrección (#34); elegir o comparar modelos de visión.
 
 ## Restricciones y supuestos
 
