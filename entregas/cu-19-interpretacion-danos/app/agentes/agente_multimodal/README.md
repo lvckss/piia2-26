@@ -178,7 +178,9 @@ python juez_vision.py acuerdo --humanas etiquetas/etiquetas_humanas_120.csv --ju
   `--max-llamadas` (300 por defecto) se comprueba antes de la primera llamada; la
   caché `piia2_detecciones/cache_juez/` evita pagar dos veces lo mismo (clave: modelo,
   esfuerzo, prompt y recorte); solo se guardan respuestas válidas; tras 5 fallos de
-  API seguidos se aborta conservando lo hecho; `--hilos` paraleliza.
+  API seguidos se aborta conservando lo hecho; `--hilos` paraleliza. Al ejecutar imprime una línea al
+  enviar cada hallazgo (`>> id clase: enviando…`) y otra al recibirlo (`[n/total] id clase -> etiqueta (segundos,
+  tokens) | motivo`, o `(cache)` si ya estaba), para ver en todo momento que trabaja.
 - **Salida** (en `piia2_detecciones/juez/<modelo>/`, ignorada por git): `etiquetas_juez.csv`
   (`finding_id,etiqueta`, mismo formato que las humanas, así que la tabla de precisión
   las lee tal cual), `detalle_juez.json` (con el motivo) y `resumen_juez.json` (modelo,

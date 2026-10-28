@@ -28,6 +28,7 @@ import json
 import re
 import sys
 import threading
+import time
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
@@ -76,6 +77,7 @@ class JuezAbortado(RuntimeError):
 
 
 _CERROJO_USO = threading.Lock()
+_CERROJO_SALIDA = threading.Lock()
 
 
 def construir_prompt(categoria: str) -> str:
@@ -137,15 +139,21 @@ def juzgar_hallazgo(
     cache_dir: Any,
     uso: dict[str, int] | None,
     formato_json: bool = True,
+    traza: dict[str, Any] | None = None,
+    al_enviar: Callable[[], None] | None = None,
 ) -> dict[str, str] | None:
     """El juicio de un hallazgo: `{"etiqueta", "motivo"}`, o None si la respuesta no trae una etiqueta
-    valida (no se guarda en la cache, asi se reintenta). Las excepciones de la API se propagan."""
+    valida (no se guarda en la cache, asi se reintenta). Las excepciones de la API se propagan. `traza`
+    recoge, para quien quiera mostrarlo, si vino de la cache y los tokens de la llamada; `al_enviar` se
+    llama justo antes de enviar a la API (nunca si viene de la cache)."""
     prompt, recorte_b64, clave = _preparar(Path(recorte), categoria, modelo, esfuerzo)
     ruta_cache = None if cache_dir is None else Path(cache_dir) / f"{clave}.json"
     if ruta_cache is not None and ruta_cache.exists():
         juicio = parsear_juicio(json.loads(ruta_cache.read_text(encoding="utf-8"))["respuesta"])
         if juicio is not None:
             _sumar(uso, desde_cache=1)
+            if traza is not None:
+                traza.update(desde_cache=True, prompt_tokens=0, completion_tokens=0)
             return juicio
 
     peticion: dict[str, Any] = {
@@ -164,6 +172,8 @@ def juzgar_hallazgo(
         peticion["response_format"] = {"type": "json_object"}
     if esfuerzo:
         peticion["reasoning_effort"] = esfuerzo
+    if al_enviar is not None:
+        al_enviar()
     respuesta = client.chat.completions.create(**peticion)
     texto = respuesta.choices[0].message.content or ""
 
@@ -174,6 +184,8 @@ def juzgar_hallazgo(
         prompt_tokens=int(getattr(tokens, "prompt_tokens", 0) or 0),
         completion_tokens=int(getattr(tokens, "completion_tokens", 0) or 0),
     )
+    if traza is not None:
+        traza.update(desde_cache=False, prompt_tokens=int(getattr(tokens, "prompt_tokens", 0) or 0), completion_tokens=int(getattr(tokens, "completion_tokens", 0) or 0))
     juicio = parsear_juicio(texto)
     if juicio is not None and ruta_cache is not None:
         ruta_cache.parent.mkdir(parents=True, exist_ok=True)
@@ -207,8 +219,10 @@ def juzgar_lote(
     hilos: int = 1,
     formato_json: bool = True,
     progreso: Callable[[int, int, dict[str, Any]], None] | None = None,
+    por_hallazgo: Callable[[dict[str, Any]], None] | None = None,
 ) -> dict[str, Any]:
-    """Juzga los hallazgos. Sin `ejecutar` solo devuelve el plan (en alcance, en cache y por pagar). Si lo
+    """Juzga los hallazgos. `por_hallazgo` recibe un evento al enviar cada hallazgo a la API (`envio`) y otro al
+    terminarlo (`fin`, con etiqueta o fallo, segundos y tokens), en el momento y desde el hilo que lo hace. Sin `ejecutar` solo devuelve el plan (en alcance, en cache y por pagar). Si lo
     por pagar supera `max_llamadas` no hace ninguna llamada. Un fallo de un hallazgo (respuesta sin
     etiqueta valida, recorte ausente o error de la API) queda en `fallos` y la pasada sigue; tras
     `MAX_FALLOS_SEGUIDOS` errores seguidos de la API se aborta con `JuezAbortado`."""
@@ -220,18 +234,40 @@ def juzgar_lote(
     if plan["por_pagar"] > max_llamadas:
         raise LimiteDeLlamadas(f"{plan['por_pagar']} llamadas por pagar superan el tope --max-llamadas={max_llamadas}; sube el tope a conciencia o reduce el alcance")
 
+    terminados = [0]
+
+    def emitir(evento: dict[str, Any]) -> None:
+        if por_hallazgo is None:
+            return
+        with _CERROJO_SALIDA:
+            if evento["evento"] == "fin":
+                terminados[0] += 1
+                evento["hecho"] = terminados[0]
+            evento["total"] = len(hallazgos)
+            por_hallazgo(evento)
+
     def trabajo(h: dict[str, Any]) -> tuple[str, dict[str, str] | None, str | None, bool]:
         """(finding_id, juicio, motivo del fallo, fallo de la API)"""
+        base = {"finding_id": h["finding_id"], "categoria": h["category"]}
+        inicio = time.monotonic()
+        traza: dict[str, Any] = {}
+
+        def terminar(juicio: dict[str, str] | None, motivo: str | None, fallo_api: bool) -> tuple[str, dict[str, str] | None, str | None, bool]:
+            emitir({**base, "evento": "fin", "etiqueta": juicio["etiqueta"] if juicio else None, "motivo": juicio["motivo"] if juicio else "", "fallo": motivo,
+                    "segundos": time.monotonic() - inicio, "desde_cache": bool(traza.get("desde_cache")),
+                    "prompt_tokens": traza.get("prompt_tokens", 0), "completion_tokens": traza.get("completion_tokens", 0)})
+            return h["finding_id"], juicio, motivo, fallo_api
+
         recorte = salida_dir / h["crop_image_path"]
         if not recorte.is_file():
-            return h["finding_id"], None, f"falta el recorte {h['crop_image_path']}", False
+            return terminar(None, f"falta el recorte {h['crop_image_path']}", False)
         try:
-            juicio = juzgar_hallazgo(client, modelo, esfuerzo, recorte, h["category"], cache_dir, resultado["uso"], formato_json)
+            juicio = juzgar_hallazgo(client, modelo, esfuerzo, recorte, h["category"], cache_dir, resultado["uso"], formato_json, traza, lambda: emitir({**base, "evento": "envio"}))
         except Exception as error:  # un fallo de la API no tira la pasada
-            return h["finding_id"], None, f"{type(error).__name__}: {error}", True
+            return terminar(None, f"{type(error).__name__}: {error}", True)
         if juicio is None:
-            return h["finding_id"], None, "respuesta sin etiqueta valida", False
-        return h["finding_id"], juicio, None, False
+            return terminar(None, "respuesta sin etiqueta valida", False)
+        return terminar(juicio, None, False)
 
     seguidos = 0
     lote = max(1, hilos) * 4 if hilos > 1 else 1
@@ -415,9 +451,21 @@ def main(argv: list[str] | None = None, crear_cliente: Callable[[], Any] | None 
         if args.ejecutar:
             cliente = (crear_cliente or crear_cliente_openai)()
 
-        def progreso(hechos: int, total: int, res: dict[str, Any]) -> None:
-            if hechos % 25 == 0 or hechos == total:
-                print(f"  [{hechos}/{total}] etiquetados {len(res['etiquetas'])} | fallos {len(res['fallos'])} | llamadas facturadas {res['uso']['llamadas']}", flush=True)
+        def mostrar(evento: dict[str, Any]) -> None:
+            """Una linea al enviar y otra al recibir cada hallazgo (ASCII en lo fijo, para consolas Windows)."""
+            ident = f"{evento['finding_id']} {evento['categoria']}"
+            if evento["evento"] == "envio":
+                linea = f"  >> {ident}: enviando a {modelo}..."
+            else:
+                cabecera = f"  [{evento['hecho']}/{evento['total']}] {ident}"
+                segundos = f"{evento['segundos']:.1f}".replace(".", ",")
+                if evento["fallo"]:
+                    linea = f"{cabecera} FALLO ({segundos} s): {evento['fallo']}"
+                elif evento["desde_cache"]:
+                    linea = f"{cabecera} -> {evento['etiqueta']} (cache) | {evento['motivo']}"
+                else:
+                    linea = f"{cabecera} -> {evento['etiqueta']} ({segundos} s, {evento['prompt_tokens']}+{evento['completion_tokens']} tokens) | {evento['motivo']}"
+            print(linea.encode(sys.stdout.encoding or "utf-8", "replace").decode(sys.stdout.encoding or "utf-8", "replace"), flush=True)
 
         extra = {
             "modelo": modelo,
@@ -429,7 +477,7 @@ def main(argv: list[str] | None = None, crear_cliente: Callable[[], Any] | None 
             "fecha_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         }
         try:
-            res = juzgar_lote(hallazgos, args.salidas, cliente, modelo, args.esfuerzo, args.cache_dir, args.max_llamadas, args.ejecutar, args.hilos, not args.sin_formato_json, progreso)
+            res = juzgar_lote(hallazgos, args.salidas, cliente, modelo, args.esfuerzo, args.cache_dir, args.max_llamadas, args.ejecutar, args.hilos, not args.sin_formato_json, None, mostrar if args.ejecutar else None)
         except JuezAbortado as abortado:
             _escribir_salidas(salida, abortado.parcial, extra)
             print(f"ERROR: {abortado}. Lo parcial esta en {salida}", file=sys.stderr)

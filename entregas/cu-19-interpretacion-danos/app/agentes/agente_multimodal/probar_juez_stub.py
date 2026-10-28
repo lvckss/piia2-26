@@ -13,6 +13,7 @@ import base64
 import contextlib
 import io
 import json
+import re
 import tempfile
 import threading
 from pathlib import Path
@@ -299,6 +300,45 @@ def probar_cli() -> None:
     print("linea de comandos ok")
 
 
+def probar_una_linea_por_imagen() -> None:
+    """Plan v1.2 de #44 + AC-008: al ejecutar se imprime una linea al enviar cada hallazgo y otra al recibirlo (no un
+    resumen cada 25), con clase, etiqueta, segundos, tokens y motivo, para que se vea que trabaja; lo que viene de la
+    cache lo dice y no se «envia»; un fallo de la API se imprime como FALLO."""
+    with tempfile.TemporaryDirectory() as tmp:
+        base = Path(tmp)
+        crear_salidas(base, ETIQUETAS, {"1-1": "scratch", "1-2": "crack"})
+        comun = ["--salidas", str(base), "--modelo", "modelo-falso", "--salida", str(base / "juez"), "--cache-dir", str(base / "cache"), "--todos", "--ejecutar", "--hilos", "2"]
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            assert main(["juzgar", *comun], crear_cliente=lambda: ClienteFalso()) == 0
+        lineas = out.getvalue().splitlines()
+        for finding_id, etiqueta in ETIQUETAS.items():
+            envio = [l for l in lineas if "enviando" in l and finding_id in l]
+            fin = [l for l in lineas if "->" in l and finding_id in l and f"-> {etiqueta}" in l]
+            assert len(envio) == 1 and len(fin) == 1, (finding_id, envio, fin)
+        linea = next(l for l in lineas if "1-1" in l and "->" in l)
+        assert "scratch" in linea and " s," in linea and "100+20 tokens" in linea and "visto en el recorte" in linea, linea
+        numeros = sorted(int(re.search(r"\[(\d+)/6\]", l).group(1)) for l in lineas if "->" in l)
+        assert numeros == [1, 2, 3, 4, 5, 6], numeros
+        # segunda pasada: todo sale de la cache; se dice y no se envia nada
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            assert main(["juzgar", *comun], crear_cliente=lambda: ClienteFalso()) == 0
+        lineas = out.getvalue().splitlines()
+        assert not [l for l in lineas if "enviando" in l]
+        assert len([l for l in lineas if "->" in l and "(cache)" in l]) == 6, lineas
+    with tempfile.TemporaryDirectory() as tmp:
+        base = Path(tmp)
+        crear_salidas(base, {"1-1": "si", "2-1": "no"})
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(io.StringIO()):
+            main(["juzgar", "--salidas", str(base), "--modelo", "modelo-falso", "--salida", str(base / "juez"), "--cache-dir", str(base / "cache"), "--todos", "--ejecutar"],
+                 crear_cliente=lambda: ClienteFalso(fallar=True))
+        fallos = [l for l in out.getvalue().splitlines() if " FALLO (" in l]
+        assert len(fallos) == 2 and "fallo de red simulado" in fallos[0] and "1-1" in fallos[0], fallos
+    print("una linea por imagen ok")
+
+
 def main_pruebas() -> None:
     probar_prompt_ciego()
     probar_parseo()
@@ -308,6 +348,7 @@ def main_pruebas() -> None:
     probar_hilos()
     probar_acuerdo()
     probar_cli()
+    probar_una_linea_por_imagen()
     print("Todo ok: juez.")
 
 
