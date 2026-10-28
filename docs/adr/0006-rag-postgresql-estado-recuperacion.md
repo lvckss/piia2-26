@@ -1,11 +1,11 @@
 # ADR 0006: RAG con PostgreSQL, comparación de embeddings y estado de recuperación
 
-- Estado: Propuesto
+- Estado: Aceptado
 - Fecha: 2026-10-20
 - GitHub Issue: https://github.com/lvckss/piia2-26/issues/32
 - Planes cubiertos (Issue/mini-spec/Spec): [32-rag-normativa.md](../../entregas/cu-19-interpretacion-danos/specs/32-rag-normativa.md), persistencia, contrato de citas y diagnóstico, composición y evaluación.
-- Planning PR: https://github.com/lvckss/piia2-26/pull/56 — draft.
-- Aceptación: pendiente de revisión humana sobre esta propuesta. La adaptación del consumidor #31 está recogida por la #58 integrada; falta el plan de #34. La revisión de #58 no acepta este ADR.
+- Planning PR: https://github.com/lvckss/piia2-26/pull/56 — integrada en `main` (merge `9d2affb`).
+- Aceptación: Lucía Luis Castaño (`lucia-luis-castano`), [revisión APPROVED del 2026-10-28](https://github.com/lvckss/piia2-26/pull/56#pullrequestreview-5681219827) sobre la versión `b0a27d7` (v1.6), que cubre este ADR y la spec 32; incluye la decisión de Lucas del 2026-10-27 sobre el mínimo de 23/25. La adaptación del consumidor #31 está recogida por la #58 integrada; el plan de #34 sigue en revisión (PR #60).
 - Versión: propuesta alineada con la Spec v1.6; v1 conservada en `0197825`, v1.1 en `88bd84d` y v1.2 en `c77a17c`. Referencias previas del 2026-10-22, mínimo 23/25 y reparto explícito de Compose actualizados el 2026-10-27.
 - Sustituye / sustituido por: no sustituye un ADR aceptado. Sustituye la propuesta ChromaDB de la guía de RAG. Amplía el contrato base del ADR 0002 Aceptado e integrado por #37/#51 (`4a279e9`); los ADRs 0003 y 0004 también están Aceptados. Referencias fijadas más abajo.
 
@@ -128,8 +128,8 @@ frontera consumida por otras personas y requiere revisión previa.
   interpreta una cita como validación jurídica automática de la indemnización.
 - El plan de #31 ya recoge la adaptación del contrato en AC-014 y AC-015 de su
   v2 (#58 integrada), condicionada a aceptar e integrar esta propuesta. Falta
-  recoger el transporte del diagnóstico en el plan de #34 y revisar y aceptar
-  la #56 y este ADR. Se mantiene el estado Propuesto.
+  recoger el transporte del diagnóstico en el plan de #34. La #56 y este ADR quedan
+  aceptados (ver «Aceptación»).
 - TDD en indexado, filtros, errores y composición; eval-first en calidad. Cada
   AC de la Spec tiene frontera y evidencia prevista; las pruebas no se escriben
   en la Planning PR.
