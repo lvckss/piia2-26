@@ -3,7 +3,7 @@
 > [!NOTE]
 > **Actualización 29/09/2026:** la parte de este spec relativa a
 > `vehicle_type` (dimensión de evaluación por tipo de vehículo, criterios 1 y
-> 8, tareas 1 y 7 de `TAREAS.md`) se implementó y después se revirtió por
+> 8, tareas 1 y 7 del antiguo `TAREAS.md`, ya retirado) se implementó y después se revirtió por
 > completo. CarDD no trae esa etiqueta; el clasificador zero-shot con CLIP
 > que se escribió para generarla nunca se llegó a ejecutar sobre el dataset
 > real, así que mantenerla en el pipeline era complejidad sin validar. El
@@ -100,5 +100,5 @@ Tip-Adapter), dejando el resto expuesto directamente al umbral crudo de SAM3.
 
 ## Reparto de trabajo
 
-Todas las tareas quedan asignadas a Lucía. El checklist de seguimiento vive en
-[`TAREAS.md`](../TAREAS.md).
+Todas las tareas quedan asignadas a Lucía. El checklist de seguimiento (`TAREAS.md`) se retiró de
+la carpeta en la limpieza para la Entrega 2 y consta en el historial de git.

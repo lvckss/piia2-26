@@ -64,7 +64,6 @@ responsabilidades de producto, datos, modelos e integración.
 ```text
 cu-19-interpretacion-danos/
 ├── README.md
-├── TAREAS.md
 ├── specs/
 └── app/
     ├── agentes/
@@ -78,7 +77,6 @@ cu-19-interpretacion-danos/
 ```
 
 - `README.md`: presenta el problema, la motivación, el alcance y el equipo.
-- `TAREAS.md`: checklist histórico de la mejora de robustez del pipeline de detección de PIIA1.
 - `specs/`: especificaciones, arquitectura y guías del proyecto (tabla más abajo).
 - `app/`: código del proyecto. Su propio [README](app/README.md) explica cómo se ejecuta cada parte.
   - `app/agentes/`: **PIIA2**. [`agente_multimodal/`](app/agentes/agente_multimodal/) contiene el Agente 1 con sus pruebas; [`agente_recuperacion/`](app/agentes/agente_recuperacion/) y [`agente_redactor/`](app/agentes/agente_redactor/) son las carpetas de los Agentes 2 y 3 (por ahora, su README con el plan); [`ejemplos_contrato/`](app/agentes/ejemplos_contrato/) reúne JSON de ejemplo del contrato entre agentes. Su [README](app/agentes/README.md) describe el conjunto.
