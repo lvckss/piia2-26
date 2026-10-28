@@ -1,11 +1,11 @@
 # ADR 0001: Categoría del vehículo estimada por visión en el contrato del Agente 1
 
-- Estado: Propuesto
-- Fecha: 2026-10-13 (revisado el 2026-10-27, v1.2; punto 5 aclarado el 2026-10-28, v1.3)
+- Estado: Aceptado
+- Fecha: 2026-10-13 (revisado el 2026-10-27, v1.2; punto 5 aclarado el 2026-10-28, v1.3; aceptado el 2026-10-28)
 - GitHub Issue: https://github.com/lvckss/piia2-26/issues/28
 - Planes cubiertos (Issue/mini-spec/Spec): [entregas/cu-19-interpretacion-danos/specs/28-categoria-vehiculo.md](../../entregas/cu-19-interpretacion-danos/specs/28-categoria-vehiculo.md) — la decisión de contrato (campo `vehiculo`) y la consulta por imagen. No cubre la elección ni la comparación de modelos de visión.
-- Planning PR: https://github.com/lvckss/piia2-26/pull/29
-- Aceptación: pendiente (revisor y referencia de revisión; la completa quien acepte)
+- Planning PR: https://github.com/lvckss/piia2-26/pull/29 — integrada en `main` (merge `246634f`).
+- Aceptación: Víctor Hidalgo (`Vija97`), [revisión APPROVED del 2026-10-28](https://github.com/lvckss/piia2-26/pull/29#pullrequestreview-5682298653) sobre la versión v1.3 (`086dc93`), que cubre este ADR y la spec 28; integrada en `main` (merge `246634f`). Lucas García (`lvckss`) dejó una [valoración favorable del diseño](https://github.com/lvckss/piia2-26/pull/29#pullrequestreview-5671225942) el 2026-10-27 sobre la v1.2, sin aprobación final.
 - Sustituye / sustituido por: no aplica. Amplía con un campo aditivo el contrato del [ADR 0002](0002-contrato-json-entre-agentes.md) y no cambia su apartado 6: el coche sigue siendo un dato de entrada del sistema, que la persona usuaria confirma a partir de una propuesta.
 
 ## Contexto y motivación
