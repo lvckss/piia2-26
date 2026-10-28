@@ -1,7 +1,7 @@
 # ADR 0001: Categoría del vehículo estimada por visión en el contrato del Agente 1
 
 - Estado: Propuesto
-- Fecha: 2026-10-13 (revisado el 2026-10-27, v1.2)
+- Fecha: 2026-10-13 (revisado el 2026-10-27, v1.2; punto 5 aclarado el 2026-10-28, v1.3)
 - GitHub Issue: https://github.com/lvckss/piia2-26/issues/28
 - Planes cubiertos (Issue/mini-spec/Spec): [entregas/cu-19-interpretacion-danos/specs/28-categoria-vehiculo.md](../../entregas/cu-19-interpretacion-danos/specs/28-categoria-vehiculo.md) — la decisión de contrato (campo `vehiculo`) y la consulta por imagen. No cubre la elección ni la comparación de modelos de visión.
 - Planning PR: https://github.com/lvckss/piia2-26/pull/29
@@ -24,7 +24,7 @@ Las decisiones en las que se apoya este cambio ya están aceptadas e integradas 
 2. **Una consulta por imagen**, no por hallazgo, al mismo proveedor y modelo ya configurados (`OPENAI_API_KEY`, `OPENAI_MODEL`), con la foto completa reducida y sin detecciones dibujadas. Se cachea con el mismo mecanismo que las consultas por hallazgo.
 3. **Validación estricta de la respuesta.** Una categoría fuera de la lista, una respuesta que no sea JSON o una vacía producen `desconocido` con confianza `baja`; `desconocido` nunca tiene confianza `alta`. Un fallo del proveedor no se disfraza de `desconocido`: la excepción se propaga.
 4. **Coche de referencia mediante tabla fija** categoría → `vehiculo_id` del catálogo de la empresa, mantenida en el código del Agente 1 y comprobada por test contra `vehiculos.csv`. `desconocido` no tiene coche de referencia (`vehiculo_id_referencia` es `null`).
-5. **Quién decide el coche.** El `vehiculo_id` del contexto del siniestro sigue siendo un dato de entrada (ADR 0002, apartado 6). El Agente 1 solo propone categoría y coche de referencia; la web (#34) los muestra, la persona usuaria los confirma o corrige (y elige cuando la categoría es `desconocido`) y entrega el `vehiculo_id`. Cómo se refleja en el informe que se presupuestó con un coche de referencia lo define la #34 con la #31.
+5. **Quién decide el coche.** El `vehiculo_id` del contexto del siniestro sigue siendo un dato de entrada (ADR 0002, apartado 6). El Agente 1 solo propone categoría y coche de referencia; la web (#34) los muestra, la persona usuaria los confirma o corrige (y elige cuando la categoría es `desconocido`) y entrega el `vehiculo_id`. Cómo llega al informe que el coche fue una propuesta confirmada o corregida (la procedencia del vehículo) **lo decide la #34 en su ADR 0007**, que fija el campo del contexto del siniestro (nombre candidato `contexto.vehiculo_origen`, propuesta de Víctor del 2026-10-20); la #31 lo consume. Este ADR no define ese campo: es un cambio de forma del contrato y, según el ADR 0002, necesita su propio ADR.
 6. **Alcance honesto.** El resultado es orientativo: no identifica marca y modelo exactos ni sustituye al dato real de un parte.
 
 Esto cubre la implementación prevista en la Spec: slices 1 a 3 (contrato y consulta en el Agente 1), slice 4 (documentación y ejemplos del contrato) y slice 5 (validación manual).
@@ -49,7 +49,7 @@ Esto cubre la implementación prevista en la Spec: slices 1 a 3 (contrato y cons
   - Dentro de una categoría el coste varía según el coche; la exploración previa midió hasta un 9 % de error con el representante, salvo en `B` y `SUV-B` (hasta 30 %). Es una medición sin publicar, que se reproduce en la implementación.
   - `desconocido` no propone coche: la persona usuaria tiene que elegir.
   - La tabla de representantes está acoplada a los identificadores del catálogo de la empresa: un cambio de ese catálogo rompe el test de AC-004, que es la forma de detectarlo.
-- **Implicaciones para tests y AC:** AC-001 a AC-008 se prueban con un cliente falso a través de `analizar_imagen`; AC-009 y AC-010 se transfieren a la #34 y la #31; AC-011 es una evaluación manual con el modelo real, sin umbral fijado de antemano.
+- **Implicaciones para tests y AC:** AC-001 a AC-008 se prueban con un cliente falso a través de `analizar_imagen`; AC-009 se transfiere a la #34 y AC-010 a la #31, que lo recoge con un AC de ID nuevo cuando el ADR 0007 fije el campo; AC-011 es una evaluación manual con el modelo real, sin umbral fijado de antemano.
 - **Documentación afectada:** la fila `vehiculo_id` de la tabla de decisiones y la sección «Entrada del siniestro» de la spec de arquitectura se actualizan en la PR de implementación.
 
 ## Referencias y evidencia
