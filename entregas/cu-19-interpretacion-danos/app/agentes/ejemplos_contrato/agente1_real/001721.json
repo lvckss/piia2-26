@@ -1,0 +1,193 @@
+{
+  "image_id": 1721,
+  "resumen_filtro_previo": {
+    "detecciones_totales": 18,
+    "candidatas": 9,
+    "descartadas_por_clase": {
+      "crack": 6,
+      "scratch": 3
+    }
+  },
+  "findings": [
+    {
+      "finding_id": "1721-1",
+      "category": "lamp broken",
+      "clase_tool": "lamp_broken",
+      "score": 0.95556640625,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        243.0,
+        135.0,
+        261.0,
+        140.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "El faro delantero se ve intacto; no se aprecian roturas ni grietas en la lente. La textura visible corresponde al estriado normal del faro.",
+      "crop_image_path": "crops/1721_lamp_broken_1.jpg"
+    },
+    {
+      "finding_id": "1721-2",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.8974609375,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        625.0,
+        266.0,
+        90.0,
+        183.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "Se observan rozaduras y pérdida superficial de pintura en el paragolpes delantero, junto al paso de rueda. No se aprecia una grieta.",
+      "crop_image_path": "crops/1721_crack_2.jpg"
+    },
+    {
+      "finding_id": "1721-3",
+      "category": "tire flat",
+      "clase_tool": "tire_flat",
+      "score": 0.890625,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        658.0,
+        233.0,
+        342.0,
+        434.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "El neumático parece inflado y mantiene una forma redondeada, sin indicios visibles de estar desinflado. Se observan rozaduras en la carrocería junto al paso de rueda, no un neumático pinchado o plano.",
+      "crop_image_path": "crops/1721_tire_flat_3.jpg"
+    },
+    {
+      "finding_id": "1721-4",
+      "category": "scratch",
+      "clase_tool": "scratch",
+      "score": 0.87841796875,
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
+      "bbox_xywh": [
+        625.0,
+        266.0,
+        90.0,
+        182.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARAG_DEL",
+      "severidad": "leve",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se observan rozaduras y pérdida superficial de pintura en la esquina del paragolpes delantero, junto al paso de rueda. El daño parece localizado y sin deformación evidente.",
+      "crop_image_path": "crops/1721_scratch_4.jpg"
+    },
+    {
+      "finding_id": "1721-5",
+      "category": "dent",
+      "clase_tool": "dent",
+      "score": 0.8251953125,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        625.0,
+        266.0,
+        91.0,
+        183.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "En la zona marcada se aprecian rozaduras y pérdida de pintura junto al paso de rueda, pero no se distingue una deformación compatible con un dent.",
+      "crop_image_path": "crops/1721_dent_5.jpg"
+    },
+    {
+      "finding_id": "1721-6",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.5322265625,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        374.0,
+        461.0,
+        143.0,
+        18.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "En la zona marcada no se aprecia una grieta definida; la superficie del paragolpes parece intacta.",
+      "crop_image_path": "crops/1721_crack_6.jpg"
+    },
+    {
+      "finding_id": "1721-8",
+      "category": "scratch",
+      "clase_tool": "scratch",
+      "score": 0.46728515625,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        373.0,
+        461.0,
+        144.0,
+        18.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARAG_DEL",
+      "severidad": "leve",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se aprecia una marca superficial fina y horizontal en la cubierta del paragolpes delantero. No se observa deformación importante.",
+      "crop_image_path": "crops/1721_scratch_8.jpg"
+    },
+    {
+      "finding_id": "1721-9",
+      "category": "lamp broken",
+      "clase_tool": "lamp_broken",
+      "score": 0.431396484375,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        191.0,
+        343.0,
+        159.0,
+        54.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "La luz ámbar marcada parece intacta, sin roturas visibles; el rectángulo encuadra la propia luz.",
+      "crop_image_path": "crops/1721_lamp_broken_9.jpg"
+    },
+    {
+      "finding_id": "1721-11",
+      "category": "dent",
+      "clase_tool": "dent",
+      "score": 0.382568359375,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        722.0,
+        245.0,
+        35.0,
+        12.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "La zona marcada corresponde al borde y la unión entre el paragolpes y la aleta; no se aprecia una abolladura en ese punto.",
+      "crop_image_path": "crops/1721_dent_11.jpg"
+    }
+  ]
+}

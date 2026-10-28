@@ -1,0 +1,214 @@
+{
+  "image_id": 2086,
+  "resumen_filtro_previo": {
+    "detecciones_totales": 42,
+    "candidatas": 10,
+    "descartadas_por_clase": {
+      "crack": 18,
+      "dent": 6,
+      "scratch": 8
+    }
+  },
+  "findings": [
+    {
+      "finding_id": "2086-1",
+      "category": "lamp broken",
+      "clase_tool": "lamp_broken",
+      "score": 0.95703125,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        261.0,
+        0.0,
+        514.0,
+        94.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "El faro delantero se ve intacto; no se aprecian roturas ni daños visibles en la zona marcada.",
+      "crop_image_path": "crops/2086_lamp_broken_1.jpg"
+    },
+    {
+      "finding_id": "2086-2",
+      "category": "tire flat",
+      "clase_tool": "tire_flat",
+      "score": 0.94775390625,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        521.0,
+        339.0,
+        357.0,
+        411.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "El neumático visible no parece estar desinflado; conserva una forma normal. En la zona marcada se observan arañazos en el paragolpes, no un daño de tipo «tire flat».",
+      "crop_image_path": "crops/2086_tire_flat_2.jpg"
+    },
+    {
+      "finding_id": "2086-3",
+      "category": "lamp broken",
+      "clase_tool": "lamp_broken",
+      "score": 0.9130859375,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        493.0,
+        331.0,
+        139.0,
+        130.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "El faro antiniebla parece intacto, sin roturas visibles en la lente. Los arañazos están en el paragolpes, fuera de la zona marcada.",
+      "crop_image_path": "crops/2086_lamp_broken_3.jpg"
+    },
+    {
+      "finding_id": "2086-4",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.7001953125,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        524.0,
+        146.0,
+        94.0,
+        31.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "En la zona marcada se aprecia una marca superficial tenue, pero no una grieta visible; parece un falso positivo.",
+      "crop_image_path": "crops/2086_crack_4.jpg"
+    },
+    {
+      "finding_id": "2086-5",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.68701171875,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        258.0,
+        490.0,
+        79.0,
+        47.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "En la zona marcada se aprecian apenas unas líneas superficiales tenues, sin una fisura abierta o una rotura clara del paragolpes.",
+      "crop_image_path": "crops/2086_crack_5.jpg"
+    },
+    {
+      "finding_id": "2086-6",
+      "category": "dent",
+      "clase_tool": "dent",
+      "score": 0.619140625,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        486.0,
+        544.0,
+        174.0,
+        78.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARAG_DEL",
+      "severidad": "leve",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se aprecia una deformación superficial y marcas de roce en la cubierta del paragolpes delantero. El daño es leve y está localizado en la esquina inferior.",
+      "crop_image_path": "crops/2086_dent_6.jpg"
+    },
+    {
+      "finding_id": "2086-7",
+      "category": "scratch",
+      "clase_tool": "scratch",
+      "score": 0.57666015625,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        524.0,
+        146.0,
+        94.0,
+        31.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARAG_DEL",
+      "severidad": "leve",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se aprecia una marca lineal superficial en la zona pintada del paragolpes delantero. No se observa deformación significativa.",
+      "crop_image_path": "crops/2086_scratch_7.jpg"
+    },
+    {
+      "finding_id": "2086-8",
+      "category": "scratch",
+      "clase_tool": "scratch",
+      "score": 0.56689453125,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        258.0,
+        490.0,
+        79.0,
+        46.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARAG_DEL",
+      "severidad": "leve",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se aprecian finas marcas lineales superficiales dentro del rectángulo, compatibles con un arañazo en la cubierta del paragolpes delantero.",
+      "crop_image_path": "crops/2086_scratch_8.jpg"
+    },
+    {
+      "finding_id": "2086-15",
+      "category": "tire flat",
+      "clase_tool": "tire_flat",
+      "score": 0.484375,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        0.0,
+        576.0,
+        34.0,
+        20.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "La zona marcada está en el borde inferior del paragolpes, no en el neumático. El neumático visible no muestra indicios claros de estar desinflado.",
+      "crop_image_path": "crops/2086_tire_flat_15.jpg"
+    },
+    {
+      "finding_id": "2086-16",
+      "category": "dent",
+      "clase_tool": "dent",
+      "score": 0.482421875,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        257.0,
+        490.0,
+        80.0,
+        47.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "En la zona marcada no se aprecia una abolladura; solo se ven marcas superficiales tenues sobre el paragolpes.",
+      "crop_image_path": "crops/2086_dent_16.jpg"
+    }
+  ]
+}

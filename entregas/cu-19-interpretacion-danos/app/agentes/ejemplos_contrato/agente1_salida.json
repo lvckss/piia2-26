@@ -1,0 +1,114 @@
+{
+  "image_id": 160,
+  "resumen_filtro_previo": {
+    "detecciones_totales": 31,
+    "candidatas": 5,
+    "descartadas_por_clase": {
+      "dent": 9,
+      "scratch": 8,
+      "crack": 9
+    }
+  },
+  "findings": [
+    {
+      "finding_id": "160-1",
+      "category": "lamp broken",
+      "clase_tool": "lamp_broken",
+      "score": 0.91,
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
+      "bbox_xywh": [
+        700.0,
+        40.0,
+        250.0,
+        200.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "FARO_DEL_D",
+      "severidad": "grave",
+      "regla_coste_aplicable": true,
+      "vision_description": "Faro delantero derecho roto, carcasa fragmentada.",
+      "crop_image_path": "crops/160_lamp_broken_1.jpg"
+    },
+    {
+      "finding_id": "160-2",
+      "category": "tire flat",
+      "clase_tool": "tire_flat",
+      "score": 0.45,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        30.0,
+        480.0,
+        190.0,
+        190.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "La rueda se ve sana, sin deformación visible.",
+      "crop_image_path": "crops/160_tire_flat_2.jpg"
+    },
+    {
+      "finding_id": "160-3",
+      "category": "dent",
+      "clase_tool": "dent",
+      "score": 0.68,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        420.0,
+        260.0,
+        260.0,
+        180.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARAG_DEL",
+      "severidad": "grave",
+      "regla_coste_aplicable": true,
+      "vision_description": "Abolladura grave en el paragolpes delantero, con deformación de la cubierta.",
+      "crop_image_path": "crops/160_dent_3.jpg"
+    },
+    {
+      "finding_id": "160-4",
+      "category": "glass shatter",
+      "clase_tool": "glass_shatter",
+      "score": 0.85,
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
+      "bbox_xywh": [
+        300.0,
+        120.0,
+        380.0,
+        170.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARABRISAS",
+      "severidad": "grave",
+      "regla_coste_aplicable": true,
+      "vision_description": "Parabrisas con rotura extensa y fisuras radiales.",
+      "crop_image_path": "crops/160_glass_shatter_4.jpg"
+    },
+    {
+      "finding_id": "160-5",
+      "category": "scratch",
+      "clase_tool": "scratch",
+      "score": 0.55,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        100.0,
+        300.0,
+        140.0,
+        60.0
+      ],
+      "vision_verdict": "incierto",
+      "pieza_id": "PUERTA_DEL_I",
+      "severidad": "leve",
+      "regla_coste_aplicable": true,
+      "vision_description": "Posible arañazo superficial, poco visible.",
+      "crop_image_path": "crops/160_scratch_5.jpg"
+    }
+  ]
+}

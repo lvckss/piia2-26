@@ -1,0 +1,43 @@
+{
+  "fecha_utc": "2026-10-20T11:36:49.629466+00:00",
+  "modelo": "gpt-6.1-sol",
+  "reasoning_effort": "high",
+  "max_llm_calls": 2,
+  "max_output_tokens": 4096,
+  "timeout_seconds": 120,
+  "retries": 0,
+  "versions": {
+    "google-adk": "2.12.0",
+    "litellm": "1.106.0",
+    "openai": "2.54.0",
+    "python-dotenv": "1.2.4"
+  },
+  "evidencia": {
+    "completed": false,
+    "registro_tool": true,
+    "ejecuciones_tool": 0,
+    "llamadas": [],
+    "respuestas": [],
+    "final": null,
+    "usage": []
+  },
+  "success": false,
+  "error": {
+    "type": "ValueError",
+    "status_code": null,
+    "message": "ADK devolvió un evento de error"
+  },
+  "duration_seconds": 11.426,
+  "provider_error": {
+    "type": "AuthenticationError",
+    "code": "invalid_api_key",
+    "source": "stderr saneado de la misma tentativa; endpoint confirmado por Lucas como OpenAI directo"
+  },
+  "outer_duration_seconds": 13.481,
+  "script_sha256": "41c86079937cace340bc3b65daaa0232aee60a2cba097b8a6ae073872b3abcb8",
+  "plan": "https://github.com/lvckss/piia2-26/issues/33#issuecomment-6289598174",
+  "attempts_real": 1,
+  "tokens_reported": null,
+  "cost_reported": null,
+  "verdict": "No concluyente: autenticación rechazada antes de ejecutar la tool. No descarta ADK."
+}

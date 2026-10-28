@@ -1,0 +1,214 @@
+{
+  "image_id": 82,
+  "resumen_filtro_previo": {
+    "detecciones_totales": 54,
+    "candidatas": 10,
+    "descartadas_por_clase": {
+      "crack": 24,
+      "dent": 9,
+      "scratch": 11
+    }
+  },
+  "findings": [
+    {
+      "finding_id": "82-1",
+      "category": "lamp broken",
+      "clase_tool": "lamp_broken",
+      "score": 0.96923828125,
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
+      "bbox_xywh": [
+        431.0,
+        0.0,
+        445.0,
+        97.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PILOTO_TRAS_D",
+      "severidad": "leve",
+      "regla_coste_aplicable": true,
+      "vision_description": "El piloto trasero presenta una rotura visible en la sección roja, con grietas y fragmentación del plástico. La pieza corresponde al lado derecho del vehículo.",
+      "crop_image_path": "crops/82_lamp_broken_1.jpg"
+    },
+    {
+      "finding_id": "82-2",
+      "category": "tire flat",
+      "clase_tool": "tire_flat",
+      "score": 0.90966796875,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        250.0,
+        173.0,
+        145.0,
+        381.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "El neumático no muestra una deformación clara que indique que esté desinflado; la zona aplastada junto al suelo parece corresponder al contacto normal con la calzada.",
+      "crop_image_path": "crops/82_tire_flat_2.jpg"
+    },
+    {
+      "finding_id": "82-3",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.81591796875,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        341.0,
+        275.0,
+        534.0,
+        114.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "En la zona marcada se observan arañazos y rozaduras en la cubierta del paragolpes trasero, pero no una grieta.",
+      "crop_image_path": "crops/82_crack_3.jpg"
+    },
+    {
+      "finding_id": "82-4",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.7822265625,
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
+      "bbox_xywh": [
+        504.0,
+        180.0,
+        27.0,
+        8.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARAG_TRAS",
+      "severidad": "leve",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se aprecia una pequeña fisura horizontal en la cubierta del paragolpes trasero. La zona presenta además rozaduras superficiales cercanas.",
+      "crop_image_path": "crops/82_crack_4.jpg"
+    },
+    {
+      "finding_id": "82-6",
+      "category": "dent",
+      "clase_tool": "dent",
+      "score": 0.7568359375,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        341.0,
+        274.0,
+        533.0,
+        115.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "En la zona marcada se observan rozaduras y transferencia de pintura, pero no se aprecia una abolladura.",
+      "crop_image_path": "crops/82_dent_6.jpg"
+    },
+    {
+      "finding_id": "82-8",
+      "category": "scratch",
+      "clase_tool": "scratch",
+      "score": 0.7392578125,
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
+      "bbox_xywh": [
+        341.0,
+        275.0,
+        533.0,
+        114.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARAG_TRAS",
+      "severidad": "moderado",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se observan arañazos y rozaduras oscuras extensas en la cubierta del paragolpes trasero. El daño parece superficial, sin una deformación importante visible.",
+      "crop_image_path": "crops/82_scratch_8.jpg"
+    },
+    {
+      "finding_id": "82-10",
+      "category": "lamp broken",
+      "clase_tool": "lamp_broken",
+      "score": 0.6953125,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        590.0,
+        548.0,
+        223.0,
+        33.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "La luz reflectora roja inferior del paragolpes parece intacta, sin grietas ni roturas visibles.",
+      "crop_image_path": "crops/82_lamp_broken_10.jpg"
+    },
+    {
+      "finding_id": "82-11",
+      "category": "tire flat",
+      "clase_tool": "tire_flat",
+      "score": 0.67626953125,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        129.0,
+        13.0,
+        45.0,
+        172.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "La zona marcada corresponde a la carrocería junto al paso de rueda, no a un neumático desinflado. El neumático visible parece mantener su forma normal.",
+      "crop_image_path": "crops/82_tire_flat_11.jpg"
+    },
+    {
+      "finding_id": "82-12",
+      "category": "scratch",
+      "clase_tool": "scratch",
+      "score": 0.63818359375,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        466.0,
+        405.0,
+        225.0,
+        60.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARAG_TRAS",
+      "severidad": "moderado",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se observan raspaduras oscuras y transferencia de material en la cubierta del paragolpes trasero. El daño es superficial, pero ocupa una zona amplia.",
+      "crop_image_path": "crops/82_scratch_12.jpg"
+    },
+    {
+      "finding_id": "82-15",
+      "category": "dent",
+      "clase_tool": "dent",
+      "score": 0.5634765625,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        466.0,
+        405.0,
+        225.0,
+        60.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "En la zona marcada se observan rozaduras y transferencia de material oscuro, pero no se aprecia una deformación clara de la superficie que confirme un abollón.",
+      "crop_image_path": "crops/82_dent_15.jpg"
+    }
+  ]
+}

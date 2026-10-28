@@ -1,0 +1,174 @@
+{
+  "image_id": 1273,
+  "resumen_filtro_previo": {
+    "detecciones_totales": 80,
+    "candidatas": 8,
+    "descartadas_por_clase": {
+      "crack": 37,
+      "dent": 16,
+      "scratch": 19
+    }
+  },
+  "findings": [
+    {
+      "finding_id": "1273-1",
+      "category": "lamp broken",
+      "clase_tool": "lamp_broken",
+      "score": 0.9765625,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        21.0,
+        0.0,
+        467.0,
+        256.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "El faro parece intacto; se aprecia desgaste y opacidad, pero no una rotura visible. El daño señalado es un falso positivo.",
+      "crop_image_path": "crops/1273_lamp_broken_1.jpg"
+    },
+    {
+      "finding_id": "1273-2",
+      "category": "tire flat",
+      "clase_tool": "tire_flat",
+      "score": 0.93603515625,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        557.0,
+        288.0,
+        443.0,
+        462.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "El neumático parece montado e inflado; no se aprecia un aplastamiento o colapso que indique que esté pinchado.",
+      "crop_image_path": "crops/1273_tire_flat_2.jpg"
+    },
+    {
+      "finding_id": "1273-3",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.8447265625,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        272.0,
+        401.0,
+        117.0,
+        106.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "No se aprecia una grieta; la zona muestra pintura desprendida y desconchada en la cubierta del paragolpes delantero.",
+      "crop_image_path": "crops/1273_crack_3.jpg"
+    },
+    {
+      "finding_id": "1273-4",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.84130859375,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        260.0,
+        661.0,
+        78.0,
+        47.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "En la zona marcada se aprecia una rozadura o transferencia de material clara sobre el paragolpes, no una grieta. No se observa una rotura definida.",
+      "crop_image_path": "crops/1273_crack_4.jpg"
+    },
+    {
+      "finding_id": "1273-11",
+      "category": "dent",
+      "clase_tool": "dent",
+      "score": 0.67578125,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        272.0,
+        401.0,
+        117.0,
+        107.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "La zona marcada muestra pintura desprendida y desgaste superficial en el paragolpes, pero no se aprecia una abolladura.",
+      "crop_image_path": "crops/1273_dent_11.jpg"
+    },
+    {
+      "finding_id": "1273-13",
+      "category": "dent",
+      "clase_tool": "dent",
+      "score": 0.658203125,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        191.0,
+        698.0,
+        108.0,
+        52.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "La zona marcada presenta desgaste y arañazos superficiales en el paragolpes, pero no se aprecia una abolladura.",
+      "crop_image_path": "crops/1273_dent_13.jpg"
+    },
+    {
+      "finding_id": "1273-15",
+      "category": "scratch",
+      "clase_tool": "scratch",
+      "score": 0.6103515625,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        272.0,
+        401.0,
+        117.0,
+        107.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARAG_DEL",
+      "severidad": "moderado",
+      "regla_coste_aplicable": true,
+      "vision_description": "Hay una zona amplia de pintura saltada en el paragolpes delantero, con el material de base expuesto y marcas de roce alrededor. No se aprecia deformación importante.",
+      "crop_image_path": "crops/1273_scratch_15.jpg"
+    },
+    {
+      "finding_id": "1273-16",
+      "category": "scratch",
+      "clase_tool": "scratch",
+      "score": 0.609375,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        260.0,
+        661.0,
+        77.0,
+        46.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARAG_DEL",
+      "severidad": "leve",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se observa una abrasión superficial clara en la cubierta negra del paragolpes delantero, dentro de la zona marcada. No se aprecia deformación importante.",
+      "crop_image_path": "crops/1273_scratch_16.jpg"
+    }
+  ]
+}

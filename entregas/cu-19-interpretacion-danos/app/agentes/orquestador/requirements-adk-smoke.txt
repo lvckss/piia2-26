@@ -1,0 +1,9 @@
+# Solo el experimento #33; no son dependencias globales del producto.
+google-adk==2.12.0
+litellm==1.106.0
+openai==2.54.0
+python-dotenv==1.2.4
+# LiteLLM 1.106.0 importa MCP también al entrar al bridge Responses sin tools MCP.
+mcp==2.3.0
+# Usado directamente por los controles HTTP locales.
+httpx==0.28.1

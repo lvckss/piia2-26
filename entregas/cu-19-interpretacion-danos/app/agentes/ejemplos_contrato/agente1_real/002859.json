@@ -1,0 +1,174 @@
+{
+  "image_id": 2859,
+  "resumen_filtro_previo": {
+    "detecciones_totales": 34,
+    "candidatas": 8,
+    "descartadas_por_clase": {
+      "crack": 20,
+      "dent": 4,
+      "scratch": 2
+    }
+  },
+  "findings": [
+    {
+      "finding_id": "2859-1",
+      "category": "lamp broken",
+      "clase_tool": "lamp_broken",
+      "score": 0.95703125,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        601.0,
+        0.0,
+        242.0,
+        108.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "El piloto trasero marcado parece intacto; no se aprecian grietas ni roturas en la lente.",
+      "crop_image_path": "crops/2859_lamp_broken_1.jpg"
+    },
+    {
+      "finding_id": "2859-2",
+      "category": "tire flat",
+      "clase_tool": "tire_flat",
+      "score": 0.931640625,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        560.0,
+        466.0,
+        141.0,
+        201.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "El neumático no muestra signos claros de estar desinflado y parece conservar su forma. El daño visible corresponde al paragolpes trasero, fuera del tipo señalado.",
+      "crop_image_path": "crops/2859_tire_flat_2.jpg"
+    },
+    {
+      "finding_id": "2859-3",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.78125,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        0.0,
+        472.0,
+        205.0,
+        14.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "El rectángulo marca el pavimento, no una pieza del vehículo. No se aprecia allí ningún daño tipo grieta.",
+      "crop_image_path": "crops/2859_crack_3.jpg"
+    },
+    {
+      "finding_id": "2859-4",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.7431640625,
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
+      "bbox_xywh": [
+        535.0,
+        292.0,
+        76.0,
+        11.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARAG_TRAS",
+      "severidad": "moderado",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se observa una fisura oscura horizontal en la cubierta del paragolpes trasero, en la esquina izquierda del vehículo. La zona presenta además deformación y marcas alrededor.",
+      "crop_image_path": "crops/2859_crack_4.jpg"
+    },
+    {
+      "finding_id": "2859-6",
+      "category": "dent",
+      "clase_tool": "dent",
+      "score": 0.66455078125,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        535.0,
+        86.0,
+        100.0,
+        319.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "ALETA_TRAS_I",
+      "severidad": "moderado",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se observa una abolladura pronunciada con pliegues y arañazos en la aleta trasera izquierda, junto al piloto. La deformación está principalmente por encima de la unión con el paragolpes.",
+      "crop_image_path": "crops/2859_dent_6.jpg"
+    },
+    {
+      "finding_id": "2859-9",
+      "category": "scratch",
+      "clase_tool": "scratch",
+      "score": 0.496826171875,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        535.0,
+        292.0,
+        76.0,
+        11.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARAG_TRAS",
+      "severidad": "leve",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se observa un arañazo oscuro y estrecho en la esquina del paragolpes trasero. La marca es superficial y localizada.",
+      "crop_image_path": "crops/2859_scratch_9.jpg"
+    },
+    {
+      "finding_id": "2859-19",
+      "category": "dent",
+      "clase_tool": "dent",
+      "score": 0.366455078125,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        561.0,
+        396.0,
+        439.0,
+        164.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARAG_TRAS",
+      "severidad": "moderado",
+      "regla_coste_aplicable": true,
+      "vision_description": "El paragolpes trasero presenta una deformación hundida en la esquina, junto con rozaduras y daños en la unión.",
+      "crop_image_path": "crops/2859_dent_19.jpg"
+    },
+    {
+      "finding_id": "2859-24",
+      "category": "scratch",
+      "clase_tool": "scratch",
+      "score": 0.337158203125,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        556.0,
+        229.0,
+        10.0,
+        17.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARAG_TRAS",
+      "severidad": "leve",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se observa un pequeño arañazo en la esquina del paragolpes trasero, debajo del piloto.",
+      "crop_image_path": "crops/2859_scratch_24.jpg"
+    }
+  ]
+}

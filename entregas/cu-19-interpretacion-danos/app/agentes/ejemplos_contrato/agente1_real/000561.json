@@ -1,0 +1,154 @@
+{
+  "image_id": 561,
+  "resumen_filtro_previo": {
+    "detecciones_totales": 51,
+    "candidatas": 7,
+    "descartadas_por_clase": {
+      "scratch": 20,
+      "crack": 14,
+      "dent": 10
+    }
+  },
+  "findings": [
+    {
+      "finding_id": "561-1",
+      "category": "scratch",
+      "clase_tool": "scratch",
+      "score": 0.86328125,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        187.0,
+        157.0,
+        132.0,
+        47.0
+      ],
+      "vision_verdict": "incierto",
+      "pieza_id": null,
+      "severidad": "leve",
+      "regla_coste_aplicable": null,
+      "vision_description": "Se aprecia una marca clara de abrasión superficial en la zona señalada. La imagen no permite identificar con seguridad el lado ni si corresponde a la aleta delantera o trasera.",
+      "crop_image_path": "crops/561_scratch_1.jpg"
+    },
+    {
+      "finding_id": "561-2",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.859375,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        187.0,
+        157.0,
+        132.0,
+        47.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "En la zona marcada se aprecia una rozadura superficial clara, pero no una grieta. La abertura visible sobre el paso de rueda queda fuera del rectángulo.",
+      "crop_image_path": "crops/561_crack_2.jpg"
+    },
+    {
+      "finding_id": "561-3",
+      "category": "tire flat",
+      "clase_tool": "tire_flat",
+      "score": 0.8359375,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        0.0,
+        501.0,
+        858.0,
+        167.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "El neumático no muestra signos claros de estar desinflado; su perfil y dibujo parecen normales. El daño visible está en la aleta sobre el paso de rueda, fuera de la zona marcada.",
+      "crop_image_path": "crops/561_tire_flat_3.jpg"
+    },
+    {
+      "finding_id": "561-4",
+      "category": "scratch",
+      "clase_tool": "scratch",
+      "score": 0.83203125,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        510.0,
+        165.0,
+        334.0,
+        82.0
+      ],
+      "vision_verdict": "incierto",
+      "pieza_id": null,
+      "severidad": "leve",
+      "regla_coste_aplicable": null,
+      "vision_description": "Se aprecia una marca fina y clara compatible con un arañazo en la zona señalada. No se puede determinar con seguridad el lado del vehículo ni identificar la pieza exacta.",
+      "crop_image_path": "crops/561_scratch_4.jpg"
+    },
+    {
+      "finding_id": "561-5",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.822265625,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        420.0,
+        325.0,
+        336.0,
+        40.0
+      ],
+      "vision_verdict": "incierto",
+      "pieza_id": null,
+      "severidad": "leve",
+      "regla_coste_aplicable": null,
+      "vision_description": "Se aprecia una zona alargada con pintura levantada o desconchada junto al borde del paso de rueda. No se puede determinar con seguridad si es una grieta ni distinguir la pieza exacta y su orientación.",
+      "crop_image_path": "crops/561_crack_5.jpg"
+    },
+    {
+      "finding_id": "561-16",
+      "category": "dent",
+      "clase_tool": "dent",
+      "score": 0.583984375,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        510.0,
+        165.0,
+        334.0,
+        83.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "En la zona marcada se observa una marca superficial alargada, sin deformación clara de la chapa que confirme una abolladura. Hay otros daños visibles fuera del recuadro.",
+      "crop_image_path": "crops/561_dent_16.jpg"
+    },
+    {
+      "finding_id": "561-19",
+      "category": "dent",
+      "clase_tool": "dent",
+      "score": 0.560546875,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        187.0,
+        156.0,
+        133.0,
+        48.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "ALETA_DEL_I",
+      "severidad": "leve",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se aprecia una pequeña deformación superficial con una marca clara en la aleta delantera izquierda.",
+      "crop_image_path": "crops/561_dent_19.jpg"
+    }
+  ]
+}

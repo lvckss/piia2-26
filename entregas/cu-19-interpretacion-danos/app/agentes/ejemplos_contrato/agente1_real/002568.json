@@ -1,0 +1,174 @@
+{
+  "image_id": 2568,
+  "resumen_filtro_previo": {
+    "detecciones_totales": 48,
+    "candidatas": 8,
+    "descartadas_por_clase": {
+      "crack": 15,
+      "scratch": 17,
+      "dent": 8
+    }
+  },
+  "findings": [
+    {
+      "finding_id": "2568-1",
+      "category": "lamp broken",
+      "clase_tool": "lamp_broken",
+      "score": 0.9599609375,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        0.0,
+        0.0,
+        399.0,
+        404.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "El faro parece intacto, sin roturas ni grietas visibles en la zona marcada. Los arañazos visibles están en la pintura del paragolpes, fuera del área señalada.",
+      "crop_image_path": "crops/2568_lamp_broken_1.jpg"
+    },
+    {
+      "finding_id": "2568-2",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.86669921875,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        566.0,
+        107.0,
+        194.0,
+        36.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "En la zona marcada se aprecia un arañazo superficial, no una grieta.",
+      "crop_image_path": "crops/2568_crack_2.jpg"
+    },
+    {
+      "finding_id": "2568-3",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.8583984375,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        750.0,
+        172.0,
+        83.0,
+        21.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "En la zona marcada se aprecia una pequeña marca superficial clara, compatible con un roce o arañazo, pero no una grieta.",
+      "crop_image_path": "crops/2568_crack_3.jpg"
+    },
+    {
+      "finding_id": "2568-4",
+      "category": "scratch",
+      "clase_tool": "scratch",
+      "score": 0.857421875,
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
+      "bbox_xywh": [
+        566.0,
+        107.0,
+        194.0,
+        36.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARAG_TRAS",
+      "severidad": "leve",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se aprecia un arañazo fino y claro en la zona marcada del paragolpes trasero. Hay otros roces más extensos en la misma pieza.",
+      "crop_image_path": "crops/2568_scratch_4.jpg"
+    },
+    {
+      "finding_id": "2568-5",
+      "category": "scratch",
+      "clase_tool": "scratch",
+      "score": 0.8564453125,
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
+      "bbox_xywh": [
+        459.0,
+        200.0,
+        217.0,
+        56.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PARAG_TRAS",
+      "severidad": "leve",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se observan varios arañazos lineales claros sobre la cubierta roja del paragolpes trasero. No se aprecia deformación importante.",
+      "crop_image_path": "crops/2568_scratch_5.jpg"
+    },
+    {
+      "finding_id": "2568-11",
+      "category": "tire flat",
+      "clase_tool": "tire_flat",
+      "score": 0.72216796875,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        764.0,
+        0.0,
+        236.0,
+        687.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "El neumático no muestra señales visibles de estar desinflado. Los arañazos visibles están en el paragolpes junto a la rueda, no en el neumático.",
+      "crop_image_path": "crops/2568_tire_flat_11.jpg"
+    },
+    {
+      "finding_id": "2568-19",
+      "category": "dent",
+      "clase_tool": "dent",
+      "score": 0.56005859375,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        351.0,
+        235.0,
+        548.0,
+        230.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "Se observan arañazos y rozaduras superficiales en la zona marcada, pero no una abolladura visible.",
+      "crop_image_path": "crops/2568_dent_19.jpg"
+    },
+    {
+      "finding_id": "2568-21",
+      "category": "dent",
+      "clase_tool": "dent",
+      "score": 0.5546875,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        566.0,
+        107.0,
+        194.0,
+        36.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "En la zona marcada no se aprecia una abolladura ni deformación; se observa una línea superficial sobre la pintura. Hay arañazos visibles alrededor, fuera de la zona marcada.",
+      "crop_image_path": "crops/2568_dent_21.jpg"
+    }
+  ]
+}

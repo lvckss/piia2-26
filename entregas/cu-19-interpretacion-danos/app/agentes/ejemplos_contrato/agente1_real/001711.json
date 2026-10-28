@@ -1,0 +1,175 @@
+{
+  "image_id": 1711,
+  "resumen_filtro_previo": {
+    "detecciones_totales": 51,
+    "candidatas": 8,
+    "descartadas_por_clase": {
+      "crack": 16,
+      "scratch": 18,
+      "dent": 7,
+      "tire flat": 2
+    }
+  },
+  "findings": [
+    {
+      "finding_id": "1711-1",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.775390625,
+      "score_tier": "confirmed",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        434.0,
+        296.0,
+        70.0,
+        19.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "En la zona marcada no se aprecia una grieta; parece una marca superficial en el embellecedor de la puerta.",
+      "crop_image_path": "crops/1711_crack_1.jpg"
+    },
+    {
+      "finding_id": "1711-2",
+      "category": "scratch",
+      "clase_tool": "scratch",
+      "score": 0.685546875,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        249.0,
+        382.0,
+        168.0,
+        49.0
+      ],
+      "vision_verdict": "incierto",
+      "pieza_id": null,
+      "severidad": "leve",
+      "regla_coste_aplicable": null,
+      "vision_description": "Se observan rozaduras superficiales claras en una puerta. La imagen no permite determinar con seguridad si corresponde al lado izquierdo o derecho del vehículo.",
+      "crop_image_path": "crops/1711_scratch_2.jpg"
+    },
+    {
+      "finding_id": "1711-3",
+      "category": "scratch",
+      "clase_tool": "scratch",
+      "score": 0.67333984375,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        434.0,
+        296.0,
+        69.0,
+        19.0
+      ],
+      "vision_verdict": "confirmado",
+      "pieza_id": "PUERTA_DEL_D",
+      "severidad": "leve",
+      "regla_coste_aplicable": true,
+      "vision_description": "Se aprecia un pequeño arañazo superficial en la moldura horizontal de la puerta delantera derecha. No se observa deformación importante.",
+      "crop_image_path": "crops/1711_scratch_3.jpg"
+    },
+    {
+      "finding_id": "1711-4",
+      "category": "crack",
+      "clase_tool": "crack",
+      "score": 0.66015625,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        448.0,
+        463.0,
+        107.0,
+        28.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "En la zona marcada se aprecia una rozadura o arañazo superficial en la pintura, no una grieta.",
+      "crop_image_path": "crops/1711_crack_4.jpg"
+    },
+    {
+      "finding_id": "1711-14",
+      "category": "dent",
+      "clase_tool": "dent",
+      "score": 0.525390625,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        434.0,
+        296.0,
+        69.0,
+        19.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "En la zona marcada no se aprecia una deformación clara de la carrocería; parece corresponder al reflejo o a una pequeña marca superficial en el embellecedor.",
+      "crop_image_path": "crops/1711_dent_14.jpg"
+    },
+    {
+      "finding_id": "1711-18",
+      "category": "dent",
+      "clase_tool": "dent",
+      "score": 0.494873046875,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        448.0,
+        443.0,
+        142.0,
+        48.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "En la zona marcada se aprecia un roce o arañazo superficial, pero no se observa una deformación de la chapa que confirme un dent.",
+      "crop_image_path": "crops/1711_dent_18.jpg"
+    },
+    {
+      "finding_id": "1711-25",
+      "category": "tire flat",
+      "clase_tool": "tire_flat",
+      "score": 0.396728515625,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        959.0,
+        526.0,
+        41.0,
+        56.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "La zona marcada muestra una sombra oscura bajo el lateral del vehículo, no un neumático claramente visible ni evidencia de que esté desinflado.",
+      "crop_image_path": "crops/1711_tire_flat_25.jpg"
+    },
+    {
+      "finding_id": "1711-37",
+      "category": "tire flat",
+      "clase_tool": "tire_flat",
+      "score": 0.34716796875,
+      "score_tier": "needs_review",
+      "confidence_tier": "needs_review",
+      "bbox_xywh": [
+        858.0,
+        201.0,
+        34.0,
+        33.0
+      ],
+      "vision_verdict": "rechazado",
+      "pieza_id": null,
+      "severidad": null,
+      "regla_coste_aplicable": null,
+      "vision_description": "La zona marcada está en la puerta y no muestra un neumático desinflado. Se aprecian roces en la carrocería, fuera de la zona señalada.",
+      "crop_image_path": "crops/1711_tire_flat_37.jpg"
+    }
+  ]
+}
