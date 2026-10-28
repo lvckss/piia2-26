@@ -28,6 +28,7 @@ Diseño del filtro de confianza:
 | `generar_lote.py` | Genera la salida real del Agente 1 para un lote reproducible de imágenes del export (un JSON por imagen), la valida contra el contrato y resume llamadas, tokens y reparto de niveles. Ver «Generar un lote real». |
 | `etiquetado.py` | Etiquetado manual para calibrar los umbrales (Issue #44): elige la muestra, genera la página de etiquetado y calcula la precisión por clase y tramo de score con intervalo. Ver «Etiquetar para calibrar los umbrales». |
 | `juez_vision.py` | Un modelo más potente etiqueta los hallazgos en las mismas condiciones que una persona (solo recorte y clase) y se mide su acuerdo con las etiquetas humanas. Caché, tope de llamadas y `--ejecutar` explícito. Ver «Juez de visión». |
+| `tabla_umbrales.py` | Tabla reproducible de precisión por clase y tramo de score, y acumulada por umbral, con las etiquetas del juez (Issue #44, AC-003). No cambia ningún umbral. Ver «Tabla de precisión por clase y umbral». |
 | `colab/` | Notebook para exportar las detecciones de PIIA-1 (SAM3) de ~500 imágenes, una sola vez, con cada detección marcada como acierto/falso positivo. |
 
 ## Uso
@@ -151,8 +152,10 @@ Etiquetar a mano los 3.712 hallazgos del lote de 500 imágenes no es viable, as�
 las etiquetas de la tabla de precisión las puede poner un modelo más potente (el
 «juez») y **se mide cuánto coincide con las personas** antes de fiarse de él. Son
 etiquetas de un modelo validadas con una muestra humana, no verdad humana. Estado:
-herramienta implementada y probada con un cliente falso; **sin ejecutar todavía con
-el modelo real**.
+ejecutado el 2026-10-28 con `gpt-6.1-terra` (esfuerzo `high`) sobre los 3.712
+hallazgos del lote de 500 imágenes y sobre las 60 etiquetas humanas del 2026-10-25.
+Sus etiquetas no se usan para decidir umbrales hasta que el juez se acepte (puerta
+G-1 de la #44).
 
 ```bash
 # 0. muestra de validación: 60 hallazgos nuevos (5 rechazados por la visión + 5 confirmados
@@ -189,14 +192,55 @@ python juez_vision.py acuerdo --humanas etiquetas/etiquetas_humanas_120.csv --ju
   aceptable con las personas, sus etiquetas no se usan para decidir umbrales.
   El criterio de aceptación se decide en el plan de la #44 antes de ver los resultados.
 
+## Tabla de precisión por clase y umbral
+
+Con las etiquetas del juez, `tabla_umbrales.py` calcula, sin llamar a ninguna API, qué
+parte de lo que la visión confirma es daño real según el score y la clase. Es lo que
+hay que mirar antes de proponer umbrales; **no cambia ninguno** (`confianza.py` queda
+como está hasta que se acepte el juez y se decidan los umbrales).
+
+```bash
+python tabla_umbrales.py \
+    --salidas ../../../../../piia2_detecciones/salida_agente1_500 \
+    --etiquetas ../../../../../piia2_detecciones/juez/gpt-6.1-terra/etiquetas_juez.csv \
+    --export ../../../../../piia2_detecciones/baseline_500 \
+    --resumen ../../../../../piia2_detecciones/juez/gpt-6.1-terra/resumen_juez.json \
+    --salida ../../../../../piia2_detecciones/juez/gpt-6.1-terra/tabla_umbrales.md
+```
+
+`--export` y `--resumen` son opcionales: el primero añade la comparación con el
+`is_true_positive` de PIIA-1 y el segundo cita modelo, esfuerzo y prompt del juez en
+la cabecera. El informe se imprime por pantalla y, con `--salida`, también se guarda. Si falta un archivo o
+las etiquetas no son válidas, termina con `ERROR: …` y código 2.
+
+- **Qué cuenta como candidato:** un hallazgo que la visión confirmó, con pieza y regla
+  de coste aplicable. Es el que sería nivel firme si su score llegara al umbral de su
+  clase (`confianza.decidir_tier`). En el lote de 500 imágenes hay 1.558.
+- **Daño real y clase correcta:** «daño real» cuenta `si` y `otra` del juez; «clase
+  correcta», solo `si`. Los `dudo` y los hallazgos sin etiqueta no entran en el
+  denominador y se muestran aparte. Cada porcentaje lleva su intervalo de Wilson al 95 %.
+- **Celdas con pocos casos:** con menos de 5 decididos la celda se marca «no
+  concluyente»; no hay que sacar conclusiones de ella.
+- **Secciones del informe:** (1) por clase y tramo de score de 0,1; (2) acumulado por
+  umbral (candidatos con score ≥ umbral), con el umbral actual marcado y los hallazgos
+  que ganaría o perdería cada umbral frente a él; (3) lo que la visión rechaza, para
+  ver qué daño real se estaría dejando fuera; (4) candidatos que `is_true_positive`
+  daba por fallo y qué dice el juez de ellos (solo con `--export`).
+- **Límite que conviene recordar:** las etiquetas humanas no contienen ningún `no`,
+  así que no se ha validado con una persona que el juez detecte los hallazgos sin
+  daño. Un 100 % de «daño real» en una celda significa que el juez no puso ningún
+  `no` ahí, no que una persona lo haya comprobado.
+
 ## Pruebas sin API Key
 
 `probar_vision_stub.py`, `probar_agente1_stub.py`, `probar_seleccion_stub.py`,
-`probar_evaluar_vision_stub.py`, `probar_lote_stub.py`, `probar_etiquetado_stub.py`
-y `probar_juez_stub.py` usan un cliente falso de OpenAI o ninguno, así que no necesitan API Key ni el
+`probar_evaluar_vision_stub.py`, `probar_lote_stub.py`, `probar_etiquetado_stub.py`,
+`probar_juez_stub.py` y `probar_tabla_umbrales_stub.py` usan un cliente falso de OpenAI o ninguno,
+así que no necesitan API Key ni el
 paquete `openai`. `probar_evaluar_vision_stub.py` usa además el export real y las
-fotos del CarDD en local, y `probar_etiquetado_stub.py`, las salidas reales del
-lote de la #43, si están (si no, se saltan esa parte).
+fotos del CarDD en local, y `probar_etiquetado_stub.py` y `probar_tabla_umbrales_stub.py`,
+las salidas reales del lote de la #43 (y, el segundo, el export y las etiquetas del juez),
+si están (si no, se saltan esa parte).
 `probar_con_imagenes_reales.py` prueba el recorte con fotos del CarDD en local
 (`CarDD_release/`, no se sube a git).
 
