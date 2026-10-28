@@ -1,13 +1,13 @@
 # Spec: Categoría del vehículo estimada a partir de la imagen
 
 - GitHub Issue: https://github.com/lvckss/piia2-26/issues/28
-- Estado: Borrador
+- Estado: Revisada (v1.3) — por Víctor Hidalgo (`Vija97`), [revisión APPROVED del 2026-10-28](https://github.com/lvckss/piia2-26/pull/29#pullrequestreview-5682298653) sobre la versión `086dc93`, integrada en `main` (merge `246634f`), que cubre la spec y su ADR. Esta spec registra la aceptación en una corrección documental posterior (solo metadatos).
 - ADR decision: NEW_ADR
-- ADR: [docs/adr/0001-categoria-vehiculo-contrato-agente1.md](https://github.com/lvckss/piia2-26/blob/main/docs/adr/0001-categoria-vehiculo-contrato-agente1.md) — Propuesto
+- ADR: [docs/adr/0001-categoria-vehiculo-contrato-agente1.md](https://github.com/lvckss/piia2-26/blob/main/docs/adr/0001-categoria-vehiculo-contrato-agente1.md) — Aceptado en la misma [revisión](https://github.com/lvckss/piia2-26/pull/29#pullrequestreview-5682298653); integrado en `main` con la Planning PR.
 - Justificación: el cambio añade un campo estable (`vehiculo`) a la frontera Agente 1 → Agente 2/3, introduce una segunda consulta por imagen al proveedor de visión y modifica la decisión anterior «`vehiculo_id` es dato de entrada, no deducido» (`piia2-arquitectura-multiagente.md`, tabla de decisiones). Es un diff pequeño, pero toca un contrato entre agentes que evolucionan por separado: por la regla del workflow no puede ser `NO_ADR_REQUIRED`. Hay ADRs aceptados en `main` (0002 a 0005, PR #51), pero ninguno cubre este cambio: el [ADR 0002](https://github.com/lvckss/piia2-26/blob/main/docs/adr/0002-contrato-json-entre-agentes.md) fija que cualquier cambio de forma del contrato requiere su propio ADR, y este es ese ADR.
-- Plan vigente / versión: **v1.3** (2026-10-28; v1.2 del 2026-10-27, `dca27ad`), este archivo en la rama `plan/28-categoria-vehiculo`; el commit exacto se registra en el comentario de referencias de la Issue. Historial: v1 (2026-10-13), v1.1 (2026-10-17, `e180219`), Issue aparcada el 2026-10-20 y retomada el 2026-10-27 a petición de Lucas para el recorrido web de la #34 ([solicitud](https://github.com/lvckss/piia2-26/issues/28#issuecomment-6426798908) y [respuesta](https://github.com/lvckss/piia2-26/issues/28#issuecomment-6441249990)). La v1.2 simplifica el alcance: esta Issue cubre solo el Agente 1 (AC-001 a AC-008 y AC-011); AC-009 y AC-010 se transfieren a la #34 y la #31. La v1.3 (2026-10-28) solo aclara que el campo de procedencia del coche lo decide la #34 en su ADR 0007 y la #31 lo consume; no cambia ningún AC.
+- Plan vigente / versión: **v1.3** (2026-10-28; v1.2 del 2026-10-27, `dca27ad`), aprobado e integrado en `main` con la Planning PR #29 (head `086dc93`, merge `246634f`). Historial: v1 (2026-10-13), v1.1 (2026-10-17, `e180219`), Issue aparcada el 2026-10-20 y retomada el 2026-10-27 a petición de Lucas para el recorrido web de la #34 ([solicitud](https://github.com/lvckss/piia2-26/issues/28#issuecomment-6426798908) y [respuesta](https://github.com/lvckss/piia2-26/issues/28#issuecomment-6441249990)). La v1.2 simplifica el alcance: esta Issue cubre solo el Agente 1 (AC-001 a AC-008 y AC-011); AC-009 y AC-010 se transfieren a la #34 y la #31. La v1.3 (2026-10-28) solo aclara que el campo de procedencia del coche lo decide la #34 en su ADR 0007 y la #31 lo consume; no cambia ningún AC.
 - Riesgo y revisión previa: **sí requiere revisión previa** (disparador: NEW_ADR). Consumidores: la web de la #34 (Lucas) y los Agentes 2 y 3 (Víctor). Reversibilidad alta: el campo es aditivo y quien lo ignore sigue funcionando. Incertidumbre media: el acierto de la categoría no se puede medir contra CarDD (no trae esa etiqueta) y la consulta aún no se ha probado con el modelo real.
-- Planning PR: https://github.com/lvckss/piia2-26/pull/29
+- Planning PR: https://github.com/lvckss/piia2-26/pull/29 — integrada en `main` (merge `246634f`).
 
 ## Qué construir
 
@@ -17,7 +17,7 @@ Una funcionalidad del Agente 1 (analista multimodal) que, dada la foto de un veh
 - **Categorías posibles:** los 8 segmentos del catálogo de vehículos de la empresa (`A`, `B`, `C`, `SUV-B`, `SUV-C`, `FURG`, `C-PREMIUM`, `D-PREMIUM`, campo `segmento` de `vehiculos.csv`) y `desconocido`.
 - **Salida:** un objeto `vehiculo` en la salida del Agente 1, con `categoria`, `vehiculo_id_referencia` (`null` si la categoría es `desconocido`), `confianza` (`alta`, `media` o `baja`), `descripcion` (una frase) y `modelo` (identificador del modelo de visión usado).
 - **Coche de referencia:** tabla fija categoría → `vehiculo_id` del catálogo de la empresa. `desconocido` **no tiene** coche de referencia (`vehiculo_id_referencia` es `null`): la persona usuaria elige en la web y no se presupuesta con un coche por defecto.
-- **Dónde encaja:** el Agente 1 solo produce la propuesta (`vehiculo`). La web de la #34 la muestra, deja confirmarla o corregirla y entrega el `vehiculo_id` elegido como dato de entrada del siniestro, de modo que el Agente 2 sigue exigiendo `vehiculo_id` en el contexto, como hoy (#30), y esta Issue no toca su código. Cómo se indica en el informe que se presupuestó con un coche de referencia (antes AC-009 y AC-010 de esta Spec) lo definen la #34 y la #31 con Víctor.
+- **Dónde encaja:** el Agente 1 solo produce la propuesta (`vehiculo`). La web de la #34 la muestra, deja confirmarla o corregirla y entrega el `vehiculo_id` elegido como dato de entrada del siniestro, de modo que el Agente 2 sigue exigiendo `vehiculo_id` en el contexto, como hoy (#30), y esta Issue no toca su código. Cómo se indica en el informe que se presupuestó con un coche de referencia (antes AC-009 y AC-010 de esta Spec) lo decide la #34 en su ADR 0007 (campo candidato `contexto.vehiculo_origen`) y la #31 lo consume.
 
 ### Estado actual del sistema (exploración en solo lectura, `origin/main` en `d5dd44d`, 2026-10-27)
 
@@ -39,7 +39,7 @@ La herramienta de costes de la empresa necesita un `vehiculo_id`, pero en CarDD 
 ## Alcance
 
 - Incluido: consulta de categoría por imagen; validación de la respuesta del modelo; traducción categoría → coche de referencia del catálogo de la empresa; registro del modelo usado; caché de la consulta; actualización de los ejemplos del contrato y del validador de salidas; validación manual con el modelo real.
-- Fuera de alcance: identificar marca y modelo exactos; leer o registrar matrículas, propietarios o personas; precios reales; vehículos fuera del catálogo (camiones, autobuses, motos), que quedan como `desconocido`; un dataset propio de precios por categoría; etiquetar todo CarDD con un clasificador; **el uso de la categoría en los Agentes 2 y 3 y en el informe** (`vehiculo_origen`, aviso y cabecera del informe; antes AC-009 y AC-010), que acuerdan la #34 y la #31 con Víctor; la pantalla web de confirmación o corrección (#34); elegir o comparar modelos de visión.
+- Fuera de alcance: identificar marca y modelo exactos; leer o registrar matrículas, propietarios o personas; precios reales; vehículos fuera del catálogo (camiones, autobuses, motos), que quedan como `desconocido`; un dataset propio de precios por categoría; etiquetar todo CarDD con un clasificador; **el uso de la categoría en los Agentes 2 y 3 y en el informe** (`vehiculo_origen`, aviso y cabecera del informe; antes AC-009 y AC-010), que decide la #34 en su ADR 0007 y consume la #31; la pantalla web de confirmación o corrección (#34); elegir o comparar modelos de visión.
 
 ## Restricciones y supuestos
 
@@ -144,10 +144,10 @@ AC-009 y AC-010 se transfirieron en la v1.2: la slice 4 conserva solo la documen
 
 ## Pendientes para Ready
 
-1. **Revisión humana de esta Planning PR** (Spec, ADR decision y ADR 0001): quien revise debe ser una persona distinta del agente que redactó los documentos; ningún agente aprueba ni integra la PR.
-2. **Confirmar en la revisión** la transferencia de AC-009 y AC-010 y la ausencia de umbral en AC-011 (decisiones de Lucía del 2026-10-27) y la forma de `desconocido`, sin coche de referencia (decisión de Lucas del 2026-10-26).
-3. **Aceptación del ADR 0001** (Propuesto → Aceptado) por un humano en la Planning PR, y paso de esta Spec a Revisada con quién, referencia y versión.
-4. **Revisión de Víctor (Agentes 2 y 3) y de Lucas (#34)** del campo `vehiculo` y de cómo la #34 y la #31 recogerán lo transferido (AC-009 y AC-010).
+1. **Revisión humana de esta Planning PR** (Spec, ADR decision y ADR 0001): quien revise debe ser una persona distinta del agente que redactó los documentos; ningún agente aprueba ni integra la PR. **Cumplido (2026-10-28):** revisaron Víctor Hidalgo (`Vija97`; reviews del [2026-10-20](https://github.com/lvckss/piia2-26/pull/29#pullrequestreview-5588169983), del [2026-10-27](https://github.com/lvckss/piia2-26/pull/29#pullrequestreview-5667756429) y la [APPROVED del 2026-10-28](https://github.com/lvckss/piia2-26/pull/29#pullrequestreview-5682298653) sobre `086dc93`) y Lucas García (`lvckss`; [review del 2026-10-27](https://github.com/lvckss/piia2-26/pull/29#pullrequestreview-5671225942) sobre `dca27ad`); la PR #29 la aprobó Víctor sobre el head final `086dc93` y la integró Lucía Luis Castaño (`lucia-luis-castano`; merge `246634f`).
+2. **Confirmar en la revisión** la transferencia de AC-009 y AC-010 y la ausencia de umbral en AC-011 (decisiones de Lucía del 2026-10-27) y la forma de `desconocido`, sin coche de referencia (decisión de Lucas del 2026-10-26). **Cumplido:** Víctor ([review del 2026-10-27](https://github.com/lvckss/piia2-26/pull/29#pullrequestreview-5667756429)) y Lucas ([review del 2026-10-27](https://github.com/lvckss/piia2-26/pull/29#pullrequestreview-5671225942)) confirman la transferencia de AC-009 y AC-010 y la forma de `desconocido`; Lucas, además, la ausencia de umbral en AC-011.
+3. **Aceptación del ADR 0001** (Propuesto → Aceptado) por un humano en la Planning PR, y paso de esta Spec a Revisada con quién, referencia y versión. **Cumplido:** ADR 0001 Aceptado y esta Spec Revisada (v1.3) por Víctor Hidalgo (`Vija97`), [review APPROVED del 2026-10-28](https://github.com/lvckss/piia2-26/pull/29#pullrequestreview-5682298653) sobre `086dc93`; registrado en esta corrección documental, posterior a la integración (solo metadatos).
+4. **Revisión de Víctor (Agentes 2 y 3) y de Lucas (#34)** del campo `vehiculo` y de cómo la #34 y la #31 recogerán lo transferido (AC-009 y AC-010). **Cumplido:** ambos revisaron el campo `vehiculo` y la transferencia. La valoración favorable de Lucas dejaba pendiente la aclaración del punto 5 del ADR 0001, que recoge la v1.3 aprobada por Víctor; su aprobación final no consta en la PR.
 5. **ADRs previos identificados:** aplican el ADR 0002 (contrato; exige este ADR para cambiar la forma), el 0003 (proveedor) y el 0004 (herramienta de costes), todos Aceptados e integrados en `main` (PR #51).
 
 ### Resultado de analyze
@@ -159,7 +159,7 @@ AC-009 y AC-010 se transfirieron en la v1.2: la slice 4 conserva solo la documen
 | Cada AC tiene verificación y slice | Sí, ver Test Plan e Implementation Plan (AC-001 a AC-008 y AC-011 con fila y slice; AC-009 y AC-010 transferidos). |
 | Comportamiento preservado con protección | Sí, en AC-006 (y AC-008 para la caché). |
 | Failure modes relevantes con cobertura | Sí, tabla de failure modes. Quedan sin AC propio solo la privacidad de la descripción (cubierta por AC-005 y AC-011) y los secretos (revisión del diff de la PR). |
-| ADR decision coherente | NEW_ADR, con ADR 0001 Propuesto y alternativas reales; no oculta ninguna decisión relevante. |
+| ADR decision coherente | NEW_ADR, con ADR 0001 Aceptado y alternativas reales; no oculta ninguna decisión relevante. |
 | Gap conocido | El uso de la categoría en el Agente 2 y en el informe queda fuera de esta Spec (transferido). Hasta que la #34 y la #31 lo recojan, el sistema de punta a punta presupuesta con el `vehiculo_id` que entregue la web. Está declarado y es una pregunta para la revisión. |
 
 ## Definition of Done
