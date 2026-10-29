@@ -30,6 +30,7 @@ Diseño del filtro de confianza:
 | `recorte.py` | Recorta cada hallazgo (con 15 % de margen) y dibuja la caja sobre la foto completa. |
 | `vision.py` | Manda a un modelo de OpenAI la foto con la caja + el recorte; valida su respuesta JSON (veredicto, pieza, severidad); cache opcional para no pagar dos veces lo mismo. `consultar_modelo` es la llamada con caché (clave: hash de modelo, prompt e imágenes) que comparten los hallazgos y la categoría del vehículo. |
 | `vehiculo.py` | Categoría del vehículo: una consulta por imagen (foto completa reducida a 1.024 px, sin cajas), validación de la respuesta y traducción de la categoría al coche de referencia del catálogo de la empresa (`REFERENCIA`). Ver «Categoría del vehículo». |
+| `evaluar_vehiculo.py` | Validación manual de la categoría del vehículo (AC-011 de la Spec 28), en tres pasos: `muestra` copia 20 fotos y una plantilla de juicios, `consultar --ejecutar` pregunta al modelo (una llamada por foto) y `evaluar` la compara con el juicio a ciegas de una persona (coincidencia, matriz de confusión y referencia de la categoría más frecuente). Su docstring explica el flujo. |
 | `agente1.py` | Encadena todo: `analizar_imagen(...)` devuelve (y opcionalmente guarda) el JSON final, con el campo `vehiculo`. |
 | `generar_lote.py` | Genera la salida real del Agente 1 para un lote reproducible de imágenes del export (un JSON por imagen), la valida contra el contrato y resume llamadas (por hallazgo y de categoría del vehículo), tokens y reparto de niveles. Ver «Generar un lote real». |
 | `colab/` | Notebook para exportar las detecciones de PIIA-1 (SAM3) de ~500 imágenes, una sola vez, con cada detección marcada como acierto/falso positivo. |
@@ -167,7 +168,7 @@ python generar_lote.py --ejecutar
 ## Pruebas sin API Key
 
 `probar_vision_stub.py`, `probar_agente1_stub.py`, `probar_vehiculo_stub.py`,
-`probar_seleccion_stub.py`,
+`probar_evaluar_vehiculo_stub.py`, `probar_seleccion_stub.py`,
 `probar_evaluar_vision_stub.py` y `probar_lote_stub.py` usan un cliente falso de
 OpenAI, así que no necesitan API Key ni el paquete `openai`. Las dos últimas
 usan además el export real y las fotos del CarDD en local si están (si no, se
