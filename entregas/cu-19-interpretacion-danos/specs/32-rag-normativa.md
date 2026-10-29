@@ -1,13 +1,13 @@
 # Spec: RAG de normativa y composición del Agente 2
 
 - GitHub Issue: https://github.com/lvckss/piia2-26/issues/32
-- Estado: Borrador
+- Estado: Revisada (v1.6) — por Lucía Luis Castaño (`lucia-luis-castano`), [revisión APPROVED del 2026-10-28](https://github.com/lvckss/piia2-26/pull/56#pullrequestreview-5681219827) sobre la versión `b0a27d7`, integrada en `main` (merge `9d2affb`), que cubre la spec y sus planes.
 - ADR decision: NEW_ADR
-- ADR: [0006 — RAG con PostgreSQL y estado de recuperación](https://github.com/lvckss/piia2-26/blob/main/docs/adr/0006-rag-postgresql-estado-recuperacion.md) — Propuesto; accesible en la rama de esta Planning PR hasta su integración.
+- ADR: [0006 — RAG con PostgreSQL y estado de recuperación](https://github.com/lvckss/piia2-26/blob/main/docs/adr/0006-rag-postgresql-estado-recuperacion.md) — Aceptado en la misma [revisión](https://github.com/lvckss/piia2-26/pull/56#pullrequestreview-5681219827); integrado en `main` con esta Planning PR.
 - Justificación: fija la persistencia vectorial, la separación de índices por modelo y una ampliación del contrato Agente 2 → Agente 3/orquestación para distinguir fuentes ausentes y fallos técnicos. Los ADRs previos 0002, 0003 y 0004 están Aceptados e integrados por la #51; cubren el contrato base, el proveedor y el cálculo, pero no la persistencia vectorial ni el diagnóstico nuevo, por lo que se mantiene NEW_ADR.
 - Plan vigente / versión: v1.6, este archivo en `plan/32-rag-normativa`; el comentario de planificación de la Issue fija el commit publicado. Versiones anteriores: v1 `0197825`, v1.1 `88bd84d`, v1.2 `c77a17c`, v1.3 `1b2d62f`, v1.4 `51be306` y v1.5 `6cb6527`. La v1.6 explicita el reparto de Compose con #34; conserva los 14 AC, contratos, protocolo y DoD. La v1.5 ordenó núcleo y comparación; la v1.4 fijó 23/25 suficiente, 24/25 genial y 25/25 GOD; la v1.3 actualizó las referencias a costes.
 - Riesgo y revisión previa: sí, por NEW_ADR y por la revisión de planes en PR acordada para la entrega. Impacto: fuentes de conclusiones económicas; consumidores independientes: #31 y #34. Reversión de la tecnología posible regenerando el índice; incertidumbre de calidad pendiente de evaluación.
-- Planning PR: https://github.com/lvckss/piia2-26/pull/56 — draft para revisar el contrato con consumidores.
+- Planning PR: https://github.com/lvckss/piia2-26/pull/56 — integrada en `main` (merge `9d2affb`).
 
 ## Qué construir
 
@@ -456,9 +456,10 @@ y el resto de la DoD siguen siendo necesarios para terminar #32.
   de contrato, códigos y reparto de los avisos. La representación de #31 ya
   está recogida en la #58 integrada; falta incorporarla al plan de #34.
   Conservar IDs al cambiar el plan. La aprobación de #58 no acepta esta #56.
-- Revisión humana e integración de esta Planning PR, Spec Revisada y ADR 0006
-  Aceptado sobre el head final. Las decisiones de diseño de esta sesión no
-  sustituyen la revisión del documento completo.
+- **Revisión previa cumplida:** Planning PR #56 aprobada por Lucía Luis Castaño (`lucia-luis-castano`) sobre el head final
+  `b0a27d7` ([revisión](https://github.com/lvckss/piia2-26/pull/56#pullrequestreview-5681219827)) e integrada (merge `9d2affb`); spec Revisada y
+  ADR 0006 Aceptado. Esta spec registra la aceptación en una corrección documental
+  posterior (solo metadatos).
 - Dependencia resuelta: ADRs 0002, 0003 y 0004 Aceptados e integrados por #51
   (`4a279e9`), comprobados en `main` `73f6075`; referencias en «Estado actual y evidencia».
 - Dependencia de costes resuelta: contrato de #30 accesible en la spec
