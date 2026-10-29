@@ -80,7 +80,7 @@ def analizar_imagen(
     )
     with Image.open(deteccion["image_path"]) as imagen:
         imagen.load()
-        hallazgos["vehiculo"] = consultar_vehiculo(client, modelo, imagen)
+        hallazgos["vehiculo"] = consultar_vehiculo(client, modelo, imagen, cache_dir=cache_dir)
 
     if output_path is not None:
         output_path = Path(output_path)

@@ -7,16 +7,18 @@ confirma o corrige en la web (#34). La respuesta del modelo se valida y nunca se
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 from PIL import Image
 
-from vision import _extraer_json, _jpeg_base64
+from vision import _extraer_json, _jpeg_base64, consultar_modelo
 
 # Los 8 segmentos del catalogo de vehiculos de la empresa (campo `segmento` de `vehiculos.csv`)
 CATEGORIAS = ("A", "B", "C", "SUV-B", "SUV-C", "FURG", "C-PREMIUM", "D-PREMIUM")
 DESCONOCIDO = "desconocido"
 CONFIANZAS = ("alta", "media", "baja")
+LADO_MAXIMO = 1024  # px del lado largo de la foto que se manda al modelo, como en `recorte.imagen_con_caja`
 
 # Coche de referencia de cada categoria (ids de `vehiculos.csv`, paquete de la empresa): el del segmento cuyo
 # `factor_precio_pieza` esta mas cerca de la media del segmento (a igualdad, el de menor id). `desconocido` no
@@ -70,24 +72,31 @@ def parsear_respuesta_vehiculo(texto: str) -> dict[str, str]:
     }
 
 
-def consultar_vehiculo(client: Any, modelo: str, imagen: Image.Image) -> dict[str, Any]:
-    """Pregunta al modelo de vision la categoria del vehiculo de la foto y devuelve el objeto `vehiculo` del
-    contrato del Agente 1: exactamente `categoria`, `vehiculo_id_referencia`, `confianza`, `descripcion` y
-    `modelo`. Si el proveedor falla, la excepcion llega al llamante (no se inventa un `desconocido`)."""
-    respuesta = client.chat.completions.create(
-        model=modelo,
-        messages=[
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": PROMPT_VEHICULO},
-                    {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{_jpeg_base64(imagen)}"}},
-                ],
-            }
-        ],
-        response_format={"type": "json_object"},
+def reducir_foto(imagen: Image.Image, max_lado: int = LADO_MAXIMO) -> Image.Image:
+    """La foto completa con el lado largo <= `max_lado` (no se amplia una foto que ya cabe). Devuelve una copia
+    cuando reduce, asi que la foto original, que no lleva ninguna caja dibujada, no se toca."""
+    escala = max_lado / max(imagen.size)
+    if escala >= 1:
+        return imagen
+    return imagen.convert("RGB").resize((round(imagen.width * escala), round(imagen.height * escala)), Image.LANCZOS)
+
+
+def consultar_vehiculo(
+    client: Any,
+    modelo: str,
+    imagen: Image.Image,
+    cache_dir: str | Path | None = None,
+    uso: dict[str, int] | None = None,
+) -> dict[str, Any]:
+    """Pregunta al modelo de vision la categoria del vehiculo de la foto (completa, reducida y sin cajas) y
+    devuelve el objeto `vehiculo` del contrato del Agente 1: exactamente `categoria`, `vehiculo_id_referencia`,
+    `confianza`, `descripcion` y `modelo`. Con `cache_dir` la respuesta no se vuelve a pagar (misma clave que
+    las consultas por hallazgo: modelo, prompt e imagenes). Si el proveedor falla, la excepcion llega al
+    llamante (no se inventa un `desconocido`)."""
+    texto = consultar_modelo(
+        client, modelo, PROMPT_VEHICULO, (_jpeg_base64(reducir_foto(imagen)),), cache_dir, uso
     )
-    datos = parsear_respuesta_vehiculo(respuesta.choices[0].message.content or "")
+    datos = parsear_respuesta_vehiculo(texto)
     return {
         "categoria": datos["categoria"],
         "vehiculo_id_referencia": REFERENCIA.get(datos["categoria"]),
