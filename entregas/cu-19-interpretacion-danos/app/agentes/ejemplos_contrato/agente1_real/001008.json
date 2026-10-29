@@ -109,5 +109,12 @@
       "vision_description": "La zona marcada muestra el contorno y la sombra del paso de rueda, sin una abolladura visible.】【。} પડી karto? Wait final produced malformed? It says JSON but Spanish sentence ending. valid yes? Actual has weird",
       "crop_image_path": "crops/1008_dent_19.jpg"
     }
-  ]
+  ],
+  "vehiculo": {
+    "categoria": "desconocido",
+    "vehiculo_id_referencia": null,
+    "confianza": "baja",
+    "descripcion": "Se aprecia un turismo convencional, pero la vista parcial no permite determinar con seguridad su categoría.",
+    "modelo": "gpt-6-luna"
+  }
 }

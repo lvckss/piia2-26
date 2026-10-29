@@ -189,5 +189,12 @@
       "vision_description": "La zona marcada corresponde al borde y la unión entre el paragolpes y la aleta; no se aprecia una abolladura en ese punto.",
       "crop_image_path": "crops/1721_dent_11.jpg"
     }
-  ]
+  ],
+  "vehiculo": {
+    "categoria": "desconocido",
+    "vehiculo_id_referencia": null,
+    "confianza": "baja",
+    "descripcion": "Detalle de un turismo; la imagen no permite determinar con seguridad su categoría.",
+    "modelo": "gpt-6-luna"
+  }
 }

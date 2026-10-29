@@ -191,5 +191,12 @@
       "vision_description": "El rectángulo marcado cae en el borde del neumático y no se aprecia una abolladura en esa zona. Aunque hay daños visibles en la aleta trasera, están fuera del área marcada.",
       "crop_image_path": "crops/381_dent_15.jpg"
     }
-  ]
+  ],
+  "vehiculo": {
+    "categoria": "SUV-C",
+    "vehiculo_id_referencia": "V11",
+    "confianza": "media",
+    "descripcion": "Vehículo tipo SUV mediano.",
+    "modelo": "gpt-6-luna"
+  }
 }

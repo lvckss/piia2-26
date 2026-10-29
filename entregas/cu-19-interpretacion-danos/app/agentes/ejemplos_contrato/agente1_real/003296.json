@@ -169,5 +169,12 @@
       "vision_description": "Se aprecia una marca lineal oscura y superficial en la zona baja del lateral, compatible con un arañazo leve. Está en el lado izquierdo del vehículo, en la zona inferior de la puerta delantera.",
       "crop_image_path": "crops/3296_scratch_10.jpg"
     }
-  ]
+  ],
+  "vehiculo": {
+    "categoria": "FURG",
+    "vehiculo_id_referencia": "V09",
+    "confianza": "alta",
+    "descripcion": "Furgoneta pequeña de reparto.",
+    "modelo": "gpt-6-luna"
+  }
 }

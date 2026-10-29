@@ -191,5 +191,12 @@
       "vision_description": "Se observan múltiples arañazos y rozaduras superficiales en la esquina del paragolpes trasero.",
       "crop_image_path": "crops/1245_scratch_10.jpg"
     }
-  ]
+  ],
+  "vehiculo": {
+    "categoria": "C",
+    "vehiculo_id_referencia": "V02",
+    "confianza": "media",
+    "descripcion": "Vehículo compacto, probablemente un Honda Civic.",
+    "modelo": "gpt-6-luna"
+  }
 }

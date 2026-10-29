@@ -108,5 +108,12 @@
       "vision_description": "No se observa una lámpara rota; el daño visible corresponde al parabrisas, que está muy agrietado.",
       "crop_image_path": "crops/341_lamp_broken_7.jpg"
     }
-  ]
+  ],
+  "vehiculo": {
+    "categoria": "desconocido",
+    "vehiculo_id_referencia": null,
+    "confianza": "baja",
+    "descripcion": "Vehículo de gran tamaño, probablemente un camión.",
+    "modelo": "gpt-6-luna"
+  }
 }

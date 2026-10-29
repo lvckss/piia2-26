@@ -171,5 +171,12 @@
       "vision_description": "La zona marcada está en la puerta y no muestra un neumático desinflado. Se aprecian roces en la carrocería, fuera de la zona señalada.",
       "crop_image_path": "crops/1711_tire_flat_37.jpg"
     }
-  ]
+  ],
+  "vehiculo": {
+    "categoria": "desconocido",
+    "vehiculo_id_referencia": null,
+    "confianza": "baja",
+    "descripcion": "Vista parcial de un turismo; no se distingue con seguridad su categoría.",
+    "modelo": "gpt-6-luna"
+  }
 }

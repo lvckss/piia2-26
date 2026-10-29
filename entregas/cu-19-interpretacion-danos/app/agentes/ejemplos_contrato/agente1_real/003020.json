@@ -191,5 +191,12 @@
       "vision_description": "El piloto rectangular integrado en la esquina del paragolpes trasero está roto, con la lente y parte del conjunto dañadas. También se aprecian grietas y rozaduras en el paragolpes.",
       "crop_image_path": "crops/3020_lamp_broken_21.jpg"
     }
-  ]
+  ],
+  "vehiculo": {
+    "categoria": "desconocido",
+    "vehiculo_id_referencia": null,
+    "confianza": "baja",
+    "descripcion": "No se distingue el tipo de vehículo a partir de este primer plano del paragolpes.",
+    "modelo": "gpt-6-luna"
+  }
 }

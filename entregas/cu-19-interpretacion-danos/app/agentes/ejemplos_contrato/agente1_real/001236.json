@@ -192,5 +192,12 @@
       "vision_description": "La luna lateral trasera marcada se ve intacta, sin grietas ni patrón de vidrio roto. El pequeño punto oscuro parece una marca o elemento superficial, no un daño de tipo glass shatter.",
       "crop_image_path": "crops/1236_glass_shatter_12.jpg"
     }
-  ]
+  ],
+  "vehiculo": {
+    "categoria": "FURG",
+    "vehiculo_id_referencia": "V09",
+    "confianza": "alta",
+    "descripcion": "Furgoneta pequeña de reparto.",
+    "modelo": "gpt-6-luna"
+  }
 }
