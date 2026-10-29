@@ -110,5 +110,12 @@
       "vision_description": "Posible arañazo superficial, poco visible.",
       "crop_image_path": "crops/160_scratch_5.jpg"
     }
-  ]
+  ],
+  "vehiculo": {
+    "categoria": "C",
+    "vehiculo_id_referencia": "V02",
+    "confianza": "media",
+    "descripcion": "Turismo compacto de color gris.",
+    "modelo": "gpt-6-luna"
+  }
 }

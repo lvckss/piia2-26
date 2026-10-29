@@ -26,6 +26,7 @@ from catalogo import cargar_catalogo
 from confianza import decidir_tier
 from evaluar_vision import elegir_imagenes, ruta_foto
 from seleccion import seleccionar_candidatos
+from vehiculo import CATEGORIAS, CONFIANZAS, DESCONOCIDO, PROMPT_VEHICULO, REFERENCIA
 from vision import SEVERIDADES, VEREDICTOS
 
 
@@ -46,8 +47,9 @@ def fotos_que_faltan(imagenes: list[dict[str, Any]], cardd_dir: Path) -> list[st
 
 
 def llamadas_previstas(imagenes: list[dict[str, Any]]) -> int:
-    """Una llamada al modelo por cada hallazgo candidato (tras el filtro previo)."""
-    return sum(len(seleccionar_candidatos(i["predictions"])[0]) for i in imagenes)
+    """Una llamada al modelo por cada hallazgo candidato (tras el filtro previo) y una de categoria del
+    vehiculo por imagen (Issue #28). Es el maximo: la cache no se descuenta, para que el tope no subestime."""
+    return sum(len(seleccionar_candidatos(i["predictions"])[0]) for i in imagenes) + len(imagenes)
 
 
 class FotoNoEncontrada(Exception):
@@ -66,6 +68,7 @@ class ClienteContador:
     def __init__(self, cliente: Any) -> None:
         self._cliente = cliente
         self.llamadas = 0
+        self.llamadas_vehiculo = 0  # de las anteriores, las de categoria del vehiculo (una por imagen)
         self.prompt_tokens = 0
         self.completion_tokens = 0
         self.chat = self
@@ -78,6 +81,8 @@ class ClienteContador:
         entrada = int(getattr(uso, "prompt_tokens", 0) or 0)
         salida = int(getattr(uso, "completion_tokens", 0) or 0)
         self.llamadas += 1
+        if peticion["messages"][0]["content"][0]["text"] == PROMPT_VEHICULO:
+            self.llamadas_vehiculo += 1
         self.prompt_tokens += entrada
         self.completion_tokens += salida
         # una linea por llamada facturada, para ver que va avanzando
@@ -89,7 +94,9 @@ class ClienteContador:
         return respuesta
 
 
-CAMPOS_SALIDA = frozenset({"image_id", "resumen_filtro_previo", "findings"})
+CAMPOS_SALIDA = frozenset({"image_id", "resumen_filtro_previo", "findings", "vehiculo"})
+# los 5 campos del objeto `vehiculo` (Issue #28, ADR 0001)
+CAMPOS_VEHICULO = frozenset({"categoria", "vehiculo_id_referencia", "confianza", "descripcion", "modelo"})
 # los 13 campos de un finding del contrato Agente 1 -> Agente 2/3
 CAMPOS_FINDING = frozenset({
     "finding_id", "category", "clase_tool", "score", "score_tier", "confidence_tier", "bbox_xywh",
@@ -147,6 +154,34 @@ def _errores_de_finding(finding: dict[str, Any], catalogo: Any, carpeta_recortes
     return errores
 
 
+def _errores_de_vehiculo(vehiculo: Any) -> list[str]:
+    """Errores del objeto `vehiculo`: sus 5 campos, la categoria y la confianza de las listas, y el coche de
+    referencia que le corresponde en la tabla (`null` con `desconocido`)."""
+    if not isinstance(vehiculo, dict):
+        return [f"vehiculo: no es un objeto (es {type(vehiculo).__name__})"]
+    errores = _campos_distintos("vehiculo", vehiculo, CAMPOS_VEHICULO)
+    categoria, confianza = vehiculo.get("categoria"), vehiculo.get("confianza")
+    categorias = (*CATEGORIAS, DESCONOCIDO)
+    if "categoria" in vehiculo and categoria not in categorias:
+        errores.append(f"vehiculo: categoria={categoria!r} fuera de {list(categorias)}")
+    if "confianza" in vehiculo and confianza not in CONFIANZAS:
+        errores.append(f"vehiculo: confianza={confianza!r} fuera de {list(CONFIANZAS)}")
+    elif categoria == DESCONOCIDO and confianza == "alta":
+        errores.append("vehiculo: 'desconocido' no puede tener confianza 'alta'")
+    if "vehiculo_id_referencia" in vehiculo and categoria in categorias:
+        esperado = REFERENCIA.get(categoria)
+        if vehiculo["vehiculo_id_referencia"] != esperado:
+            errores.append(
+                f"vehiculo: vehiculo_id_referencia={vehiculo['vehiculo_id_referencia']!r} no es el coche de referencia "
+                f"de la categoria {categoria!r} ({esperado!r})"
+            )
+    if "modelo" in vehiculo and (not isinstance(vehiculo["modelo"], str) or not vehiculo["modelo"].strip()):
+        errores.append(f"vehiculo: modelo={vehiculo['modelo']!r} debe ser un texto no vacio")
+    if "descripcion" in vehiculo and not isinstance(vehiculo["descripcion"], str):
+        errores.append(f"vehiculo: descripcion={vehiculo['descripcion']!r} debe ser un texto")
+    return errores
+
+
 def validar_salida_agente1(
     salida: dict[str, Any],
     catalogo: Any,
@@ -177,6 +212,8 @@ def validar_salida_agente1(
             )
     for finding in findings if isinstance(findings, list) else []:
         errores.extend(_errores_de_finding(finding, catalogo, carpeta_recortes))
+    if "vehiculo" in salida:
+        errores.extend(_errores_de_vehiculo(salida["vehiculo"]))
     return errores
 
 
@@ -275,7 +312,8 @@ def generar_lote(
         "fallos": fallos,
         "hallazgos": hallazgos,
         "llamadas_facturadas": contador.llamadas,
-        "hallazgos_desde_cache": hallazgos - contador.llamadas,
+        "llamadas_vehiculo_facturadas": contador.llamadas_vehiculo,
+        "hallazgos_desde_cache": hallazgos - (contador.llamadas - contador.llamadas_vehiculo),
         "tokens_entrada": contador.prompt_tokens,
         "tokens_salida": contador.completion_tokens,
         "coste_eur": coste,
@@ -326,7 +364,8 @@ def _imprimir_resumen(resumen: dict[str, Any], salida_dir: Path) -> None:
     print(f"\nResumen del lote (modelo {resumen['modelo']}, {resumen['duracion_s']} s)")
     print(f"  Imagenes: {resumen['imagenes']} | Hallazgos: {resumen['hallazgos']}")
     print(
-        f"  Llamadas facturadas: {resumen['llamadas_facturadas']} | "
+        f"  Llamadas facturadas: {resumen['llamadas_facturadas']} "
+        f"({resumen['llamadas_vehiculo_facturadas']} de categoria del vehiculo) | "
         f"Hallazgos servidos desde cache: {resumen['hallazgos_desde_cache']}"
     )
     print(f"  Tokens de entrada: {resumen['tokens_entrada']} | de salida: {resumen['tokens_salida']}")
@@ -366,7 +405,7 @@ def main(
     faltan = fotos_que_faltan(lote, args.cardd)
 
     print(f"{len(lote)} imagenes elegidas (semilla {args.seed}) | Fotos locales que faltan: {len(faltan)}")
-    print(f"Llamadas previstas: {llamadas}")
+    print(f"Llamadas previstas: {llamadas} (una por hallazgo candidato y una de categoria del vehiculo por imagen)")
     if faltan:
         print("AVISO: faltan fotos:", faltan[:5], "..." if len(faltan) > 5 else "")
 
