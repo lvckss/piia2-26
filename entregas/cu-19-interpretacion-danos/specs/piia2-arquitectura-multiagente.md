@@ -82,9 +82,12 @@ PIIA-1 tiene baja precisión en todas las clases (en `dent`, `scratch` y
 ## Entrada del siniestro (no la produce ningún agente)
 
 La tool de costes necesita saber el coche, el taller y la póliza. Esos datos
-son **entrada del sistema**, como en un parte real, y no se deducen de la
-foto (las fotos de CarDD son coches cualesquiera, casi ninguno está en el
-catálogo de 27 modelos):
+son **entrada del sistema**, como en un parte real, y no los decide ningún
+agente: las fotos de CarDD son coches cualesquiera y casi ninguno está en el
+catálogo de 27 modelos. Para el coche, el Agente 1 solo **propone** una
+categoría y un coche de referencia a partir de la foto (campo `vehiculo`, ver
+el contrato más abajo); la persona usuaria lo confirma o lo corrige en la web
+(#34) y entrega el `vehiculo_id` que usa la tool:
 
 ```json
 {
@@ -109,6 +112,10 @@ Valores válidos: `vehiculo_id` de `vehiculos.csv`; `region` y `tipo_taller` de
 > No confundir con el `vehicle_type` (sedán, SUV...) que se quitó de PIIA-1:
 > aquello era una etiqueta inventada por nosotros; esto es un dato de entrada
 > real de la tool de la empresa.
+
+> Tampoco es `vehiculo.vehiculo_id_referencia`, la propuesta del Agente 1: el
+> `vehiculo_id` del contexto es el que confirma la persona usuaria y el único
+> que lee la tool de costes.
 
 ## Contrato de datos entre piezas
 
@@ -135,7 +142,9 @@ en `dent`/`scratch`/`crack`. Mandarlas todas al modelo de visión costaría
 **filtro previo por clase** (`seleccion.py`, medido con las 500 imágenes
 exportadas; ver `agente-confianza-hallazgos.md`): `glass shatter` con score
 ≥ 0,5, y las 2 mejores por imagen en el resto de clases. Quedan ~3.700 llamadas
-y se conserva el 94-100 % del recall de las clases que PIIA-1 detecta bien.
+y se conserva el 94-100 % del recall de las clases que PIIA-1 detecta bien. A
+ellas se suma una consulta por imagen para la categoría del vehículo (+500
+para las 500 imágenes).
 
 Un *hallazgo* (finding) por cada detección **candidata**. Ninguna *clase* se
 excluye; las detecciones que no pasan el filtro no se mandan a la visión y
@@ -166,7 +175,14 @@ rastro. Entre las candidatas, lo que no se confirma queda como `needs_review`:
       "vision_description": "Faro delantero derecho roto, carcasa fragmentada.",
       "crop_image_path": "crops/160_lamp_broken_1.jpg"
     }
-  ]
+  ],
+  "vehiculo": {
+    "categoria": "C",
+    "vehiculo_id_referencia": "V02",
+    "confianza": "media",
+    "descripcion": "Turismo compacto de color gris.",
+    "modelo": "gpt-6-luna"
+  }
 }
 ```
 
@@ -178,6 +194,21 @@ rastro. Entre las candidatas, lo que no se confirma queda como `needs_review`:
 | `pieza_id`, `severidad` | Pieza del catálogo (`piezas.csv`) y `leve`/`moderado`/`grave`; `null` si el veredicto es `rechazado`. Validados contra el catálogo: una pieza inventada por el modelo se descarta. |
 | `regla_coste_aplicable` | `true` si `reglas_dano.csv` tiene regla para (clase, zona de la pieza, severidad). **Si es `false`, la tool de costes no calcula nada** y solo devuelve una línea de aviso, así que ese daño no se puede presupuestar. |
 | `confidence_tier` | **Final**: `confirmed` solo si el score pasa el umbral de su clase, la visión confirma **y** hay pieza con regla de coste. Si no, `needs_review`. |
+| `vehiculo.categoria` | Categoría del coche que estima el modelo de visión con la foto completa: uno de los 8 segmentos de `vehiculos.csv` (`A`, `B`, `C`, `SUV-B`, `SUV-C`, `FURG`, `C-PREMIUM`, `D-PREMIUM`) o `desconocido` (camión, autobús, moto o foto en la que no se distingue el tipo). Una respuesta fuera de la lista, sin JSON o vacía se guarda como `desconocido`. |
+| `vehiculo.vehiculo_id_referencia` | Coche del catálogo que representa a la categoría (tabla fija en `vehiculo.py`: `A` V24, `B` V07, `C` V02, `SUV-B` V08, `SUV-C` V11, `FURG` V09, `C-PREMIUM` V26, `D-PREMIUM` V25); `null` si la categoría es `desconocido`. Es una **propuesta**, no el `vehiculo_id` del siniestro. |
+| `vehiculo.confianza` | `alta`, `media` o `baja`. Un valor fuera de esa lista, o `alta` con `desconocido`, se guarda como `baja`. |
+| `vehiculo.descripcion` | Una o dos frases en español sobre el coche (color y tipo; marca y modelo si se reconocen). El prompt no pide matrículas ni personas. |
+| `vehiculo.modelo` | Id del modelo de visión con el que se hizo la consulta (el mismo de los hallazgos). |
+
+`vehiculo` es un campo **aditivo** ([ADR 0001](../../../docs/adr/0001-categoria-vehiculo-contrato-agente1.md)):
+`image_id`, `resumen_filtro_previo` y `findings` no cambian y un consumidor que no
+lo conozca lo ignora. Se pide **una vez por imagen**, no por hallazgo, con la foto
+completa reducida (1.024 px de lado largo) y sin las cajas dibujadas, también si la
+imagen no tiene hallazgos candidatos. Si el proveedor falla, la excepción se
+propaga y no se escribe la salida: no se disfraza de `desconocido`. El resultado es
+**orientativo**: la categoría no se puede medir contra CarDD (se valida a mano con
+una muestra, ver `28-categoria-vehiculo.md`) y dentro de una categoría el coste
+varía según el coche, más en `B` y `SUV-B`.
 
 ### Agente 2 → Agente 3
 
@@ -222,7 +253,7 @@ complejo: la empresa dijo que se vea más adelante).
 | Proveedor y modelos | **Decidido por la empresa:** API de OpenAI con la clave que nos dieron (solo en variable de entorno `OPENAI_API_KEY`, **nunca** en el repo ni en el chat). Recomiendan un modelo concreto, pero piden probar varios y comparar si compensa el esfuerzo. El id del modelo va en `OPENAI_MODEL` o en el parámetro `modelo`; usad el id exacto que figure en la cuenta. |
 | Presupuesto | La empresa dice que 50-100 € está bien y no restringe. Aun así: cache de respuestas (`cache_dir` en el Agente 1), comparar modelos solo con 30-50 imágenes, y el modelo elegido con el resto. |
 | Veredicto de visión | **Asumido (confirmar):** no descarta nada; un rechazo deja el hallazgo como `needs_review` con `vision_verdict = rechazado`, y el informe lo muestra aparte, fuera del coste. Alternativa: sacarlo del informe. |
-| `vehiculo_id` | **Asumido (confirmar):** dato de entrada del siniestro, no deducido por el LLM. |
+| `vehiculo_id` | **Decidido ([ADR 0001](../../../docs/adr/0001-categoria-vehiculo-contrato-agente1.md)):** dato de entrada del siniestro, no deducido por el LLM. El Agente 1 propone categoría y coche de referencia (`vehiculo`); la persona usuaria los confirma o corrige en la web (#34), que entrega el `vehiculo_id`. |
 | Framework | La empresa trabaja con **Google ADK** y lo recomienda. La tool de la empresa ya trae un ejemplo (`scripts/ejemplo_tool.py`: funciones Python normales pasadas como `tools=[...]` a un `Agent`), **sin probar** con la librería. Plan: toda la lógica son funciones Python normales, testeables sin red; se envuelven en agentes de ADK al final. Antes de comprometerse, hacer una prueba mínima de ADK con un modelo de OpenAI (probablemente vía un adaptador tipo LiteLLM; **comprobarlo en su documentación**). |
 | Formato del informe | Markdown ahora; PDF más adelante, solo si sobra tiempo. |
 | Reparador con API (puente a un taller real) | Opcional según la empresa; solo si no complica. |
@@ -233,6 +264,7 @@ complejo: la empresa dijo que se vea más adelante).
 |---|---|
 | Segunda opinión de visión (Agente 1) | Con las ~500 detecciones etiquetadas (`is_true_positive`): ¿cuántos falsos positivos rechaza la visión y cuántos aciertos reales descarta por error? Lo mide `agente_multimodal/evaluar_vision.py` con la misma muestra de 40 imágenes (~310 llamadas por modelo) para cada modelo → tabla de comparación de modelos (precisión del filtro vs. tokens/coste). Por defecto solo cuenta las llamadas; hace falta `--ejecutar` para gastar. No mide si pieza y severidad son correctas (CarDD no trae esas etiquetas): eso se revisa a mano en una muestra. |
 | Techo de PIIA-1 | `agente_multimodal/analizar_detecciones.py`: curvas de precisión/recall por clase y umbral. A score ≥ 0,3 PIIA-1 solo encuentra el 32 % de las abolladuras, el 35 % de los arañazos y el 65 % de las grietas; la visión solo puede verificar lo que SAM3 propone, así que **en esas clases «no detectado» no significa «no hay daño»** (debe constar en las limitaciones). |
+| Categoría del vehículo (Agente 1) | No se puede medir contra CarDD (no tiene etiqueta de vehículo): revisión manual de 20 fotos con el modelo real, comparada con predecir siempre la categoría más frecuente de la muestra (AC-011 de `28-categoria-vehiculo.md`). Es una estimación orientativa. |
 | Costes (Agente 2) | Con los siniestros sintéticos (`split` val/test): llamar a la tool con los daños reales da un error (MAPE) de ≈ 9 % contra `coste_facturado_sin_iva_eur`; es el suelo. Ojo: esos siniestros **no tienen foto**, así que sirven para evaluar la parte de costes y cobertura, no la cadena completa desde la imagen. |
 | RAG (Agente 2) | Las 25 preguntas de `preguntas_evaluacion.csv`: ¿aparece la fuente esperada entre los k fragmentos recuperados? |
 | Informe (Agente 3) | Revisión automática de que **todas** las cifras en euros del informe coinciden con las de la salida del Agente 2. |
