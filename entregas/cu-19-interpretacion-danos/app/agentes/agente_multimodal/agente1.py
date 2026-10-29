@@ -5,9 +5,12 @@ import os
 from pathlib import Path
 from typing import Any
 
+from PIL import Image
+
 from catalogo import Catalogo, cargar_catalogo
 from hallazgos import cargar_detecciones, construir_hallazgos
 from recorte import generar_recortes
+from vehiculo import consultar_vehiculo
 from vision import enriquecer_con_vision
 
 
@@ -75,6 +78,9 @@ def analizar_imagen(
     enriquecer_con_vision(
         hallazgos, client, modelo, deteccion["image_path"], catalogo, cache_dir=cache_dir
     )
+    with Image.open(deteccion["image_path"]) as imagen:
+        imagen.load()
+        hallazgos["vehiculo"] = consultar_vehiculo(client, modelo, imagen)
 
     if output_path is not None:
         output_path = Path(output_path)

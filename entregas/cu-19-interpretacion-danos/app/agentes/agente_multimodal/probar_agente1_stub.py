@@ -58,7 +58,10 @@ def main() -> None:
         for finding in resultado["findings"]:
             assert Path(finding["crop_image_path"]).exists(), "falta el recorte en disco"
 
-    assert set(resultado) == {"image_id", "resumen_filtro_previo", "findings"}
+    # 28-categoria-vehiculo.md#AC-006: `vehiculo` es la unica clave nueva del nivel superior
+    assert set(resultado) == {"image_id", "resumen_filtro_previo", "findings", "vehiculo"}
+    assert set(resultado["vehiculo"]) == {"categoria", "vehiculo_id_referencia", "confianza", "descripcion", "modelo"}
+    assert resultado["vehiculo"]["modelo"] == "modelo-falso"
     assert resultado["resumen_filtro_previo"] == {
         "detecciones_totales": 3, "candidatas": 3, "descartadas_por_clase": {},
     }, resultado["resumen_filtro_previo"]
