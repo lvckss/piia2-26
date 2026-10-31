@@ -25,9 +25,9 @@ Implementado en `app/agentes/agente_multimodal/confianza.py`:
 ```python
 ConfidenceTier = Literal["confirmed", "needs_review"]
 
-# PENDIENTE de calibrar (ver "Restricciones"): placeholders, no resultados medidos.
+# Calibrados en la Issue #44 (ver "Restricciones"); se recalibran si cambia la estrategia, el prompt, el juez o el dataset.
 CATEGORY_REVIEW_THRESHOLD = {
-    "dent": 0.7, "scratch": 0.7, "crack": 0.7,
+    "dent": 0.3, "scratch": 0.3, "crack": 0.3,
     "lamp broken": 0.6, "glass shatter": 0.6, "tire flat": 0.6,
 }
 DEFAULT_REVIEW_THRESHOLD = 0.8  # clase desconocida -> conservador
@@ -45,7 +45,11 @@ def decidir_tier(category_name, score, vision_verdict, pieza_id, regla_coste_apl
 La visión **no rescata scores bajos**: un hallazgo por debajo de su umbral
 sigue siendo `needs_review` aunque el modelo lo confirme. Es una decisión
 conservadora; si las medidas muestran que la visión es más fiable que el
-score, se puede relajar.
+score, se puede relajar. La calibración de la Issue #44 lo hace en `dent`,
+`scratch` y `crack`: su umbral es 0,3 y, como PIIA-1 no entrega detecciones
+por debajo de 0,3, en esas clases decide la visión (con pieza y regla de
+coste) y el score ya no frena nunca. En `lamp broken`, `glass shatter` y
+`tire flat` el score sigue frenando desde 0,6.
 
 ## Filtro previo: qué detecciones llegan al modelo de visión
 
@@ -126,23 +130,56 @@ informe con coste 0 €, sin que nadie lo note.
   y la validación de su respuesta, que se especifican en
   [`interpretacion-danos-imagen.md`](interpretacion-danos-imagen.md); calcular
   costes (Agente 2) y redactar el informe (Agente 3), que consumen el nivel de
-  confianza; calibrar los umbrales con el modelo real, que está pendiente
-  (AC-006).
+  confianza; calibrar los umbrales con el modelo real, que se hizo en la
+  [Issue #44](https://github.com/lvckss/piia2-26/issues/44) (AC-006).
 
 ## Restricciones y supuestos
 
 - Esta capa vive en el Agente 1 de PIIA2, no en PIIA-1: no cambia ninguna
   predicción, solo decide cómo se usa cada una aguas abajo.
-- **`CATEGORY_REVIEW_THRESHOLD` siguen siendo placeholders, y los datos dicen
-  que no valen tal cual.** Con los 0,7 actuales de `dent`/`scratch`/`crack`, el
-  score ≥ 0,7 solo conserva el 4 %, 10 % y 30 % del recall de PIIA-1, porque el
-  score casi no separa en esas clases; en `glass shatter` 0,6 se queda corto
-  (a ≥ 0,8 la precisión sube de 36 % a 67 %). Pero **no se fijan sin medir a la
-  visión**: si el modelo acierta, conviene exigir menos score y dejar que decida
-  él; si no, el score es la única barrera. `agente_multimodal/evaluar_vision.py`
-  calcula, para cada clase y cada umbral, la precisión y el recall de
-  `confirmed` con y sin visión, y es lo que decide los 6 valores finales. Se
-  recalibra si cambia la estrategia, el prompt o el dataset.
+- **Criterio de los umbrales `CATEGORY_REVIEW_THRESHOLD`** (Issue #44, plan
+  v1.4, decisión D-6). Para cada clase se elige el valor más bajo de la rejilla
+  (0,3 a 0,9) para el que, entre los hallazgos que la visión confirma con pieza
+  y regla de coste y tienen score ≥ umbral, el límite inferior del intervalo de
+  Wilson al 95 % de la proporción de **daño real** es al menos el 95 %, con al
+  menos 5 casos decididos; si ningún valor lo alcanza, se mantiene el actual. El
+  daño real lo establece un modelo juez (`gpt-6.1-terra`, esfuerzo `high`, prompt
+  `abe617f3`) sobre el recorte y la clase de la caja; son etiquetas de un modelo,
+  no verdad humana. Con las 500 imágenes (1.558 candidatos) salen `dent`,
+  `scratch` y `crack` a 0,3 (daño real del 100 %, 98,9 % y 99,4 %; límites
+  inferiores de 98,7 %, 97,6 % y 97,9 %; con la revisión humana de sus `dudo`,
+  98,7 %, 98,2 % y 98,4 %, y los mismos umbrales). `lamp broken`, `glass shatter` y
+  `tire flat` se quedan en 0,6 **porque ningún valor de la rejilla llega al
+  mínimo** (con 0,6, límites inferiores de 81,2 %, 90,3 % y 86,5 %; el mejor valor
+  de la rejilla, 82,5 % con 0,8, 94,3 % con 0,9 y 90,1 % con 0,9): su 0,6 **no
+  está demostrado**, es el valor de partida que se conserva. Los hallazgos firmes
+  de las 500 imágenes pasan de 799 a 1.531. Se recalibra si cambia la
+  estrategia, el prompt, el juez o el dataset.
+  `python tabla_umbrales.py --criterio …` lo reproduce (ver el README del agente).
+- **Lo que la tabla de umbrales no mide ni demuestra.** (1) *La clase de la
+  caja:* en `dent` y `crack` un hallazgo firme tiene daño real casi siempre (100 %
+  y 99 % según el juez), pero la clase de la caja solo es correcta en el 60 % y el
+  66 %; el resto es daño de otro tipo. Como la regla de coste se elige por clase,
+  zona y severidad (`reglas_dano.csv`), el coste puede corresponder a otra
+  operación; el umbral no lo corrige, así que lo revisa una persona. (2) *Los
+  `dudo`* del juez y los hallazgos sin etiqueta quedan fuera del denominador; si
+  todos los `dudo` fueran `no`, ninguna clase llegaría al 95 %. (3) *Validación del
+  juez:* una sola persona y 60 etiquetas, todas de `dent`, `scratch` y `crack`
+  (49 comparables sin `dudo`: acuerdo exacto del 84 %, 41 de 49, IC 71-91 %; «hay
+  daño» 49 de 49; kappa 0,34, que no es interpretable porque no hay ningún `no`
+  humano). Las 60 primeras etiquetas se hicieron con el score y la respuesta de la
+  IA a la vista. **Ningún `no` del juez se ha validado con una persona, y en `lamp
+  broken`, `glass shatter` y `tire flat` no hay ninguna etiqueta humana**: sus
+  umbrales, que no cambian, descansan solo en el juez. (4) *Pieza y severidad* no se
+  miden aquí (CarDD no trae esas etiquetas). (5) *Correlación:* el juez y el modelo
+  de visión pueden fallar parecido si son de la misma familia; esta validación no
+  lo descarta. (6) *`is_true_positive` infravalora a la visión* en `dent`,
+  `scratch` y `crack`: de los 1.134 candidatos de esas clases que PIIA-1 daba por
+  fallo, el juez ve daño real en 1.037 (99,2 % de los 1.045 decididos), y en las
+  60 etiquetas humanas, 52 de 52 decididos eran daño real (43 `si`, 9 `otra`, 0
+  `no`, 8 `dudo`); por eso la medida de la precisión se hace con las etiquetas del
+  juez y no con `is_true_positive`. (7) *Un solo modelo de visión* (`gpt-6-luna`):
+  los umbrales son de ese modelo y se repiten si cambia.
 - Si una clase pasa por verificación CLIP + Tip-Adapter, su umbral puede
   bajar, porque ya tiene una capa de verificación adicional.
 - El veredicto del modelo se **valida**: un `pieza_id` que no esté en el
@@ -167,10 +204,10 @@ criterios originales, con el mismo orden.
 | ID | Dado / Cuando | Resultado esperado | Verificación y estado |
 |---|---|---|---|
 | AC-001 | Cualquier hallazgo que el Agente 1 entrega al agente de costes. | Tiene `confidence_tier` con valor `confirmed` o `needs_review` antes de presupuestarse. | `python probar_agente1_stub.py` comprueba los niveles de los tres hallazgos de un ejemplo. **Verificado.** |
-| AC-002 | Un hallazgo con score, veredicto de visión, pieza y regla de coste. | Es `confirmed` solo si el score pasa el umbral de su clase, la visión lo confirma, hay pieza y existe regla de coste; cualquier otra combinación es `needs_review`. | `python probar_vision_stub.py` (`probar_decidir_tier`, 7 combinaciones). **Verificado.** |
+| AC-002 | Un hallazgo con score, veredicto de visión, pieza y regla de coste. | Es `confirmed` solo si el score pasa el umbral de su clase, la visión lo confirma, hay pieza y existe regla de coste; cualquier otra combinación es `needs_review`. | `python probar_vision_stub.py` (`probar_decidir_tier`: las 7 combinaciones y, para cada clase, el valor justo por encima y por debajo de su umbral: 0,30 y 0,29 en `dent`, `scratch` y `crack`; 0,60 y 0,59 en las otras tres). **Verificado.** |
 | AC-003 | Un informe con hallazgos `confirmed` y `needs_review`. | Los `needs_review` nunca aparecen con la misma redacción que los `confirmed`. | **Pendiente.** Depende del Agente 3 ([Issue #31](https://github.com/lvckss/piia2-26/issues/31)). |
 | AC-004 | El Agente 2 presupuesta los hallazgos. | Calcula el coste total solo con los `confirmed` y, por separado, con los pendientes presupuestables, para que quien lea sepa cuánto de la estimación es firme y cuánto provisional. | **Pendiente.** Depende del Agente 2 ([Issue #30](https://github.com/lvckss/piia2-26/issues/30)). El ejemplo [`agente2_salida.json`](../app/agentes/ejemplos_contrato/agente2_salida.json) muestra los dos escenarios. |
-| AC-005 | Los umbrales de revisión por clase. | Están definidos en un único sitio, `CATEGORY_REVIEW_THRESHOLD` de [`confianza.py`](../app/agentes/agente_multimodal/confianza.py), sin repetirse en otros módulos. | `git grep -n "CATEGORY_REVIEW_THRESHOLD" -- "*.py"`: una definición y una lectura, ambas en `confianza.py`; la otra coincidencia es un comentario. **Verificado.** |
-| AC-006 | La tabla de umbrales por clase, antes de darla por definitiva. | Cada uno de los 6 umbrales tiene detrás la curva medida de precisión y recall con las detecciones etiquetadas. | **Pendiente.** Los valores actuales son placeholders. Las curvas se calculan con `analizar_detecciones.py` y `evaluar_vision.py`, pero falta la evaluación con el modelo real, que cubre la [Issue #44](https://github.com/lvckss/piia2-26/issues/44). |
-| AC-007 | Las detecciones etiquetadas con `is_true_positive` como verdad. | Se mide la segunda opinión: cuántos falsos positivos rechaza cada modelo de visión y cuántos aciertos reales descarta por error. | **Parcial.** La herramienta `evaluar_vision.py` está verificada con un modelo simulado (`python probar_evaluar_vision_stub.py`); la medición con el modelo real está pendiente y la cubre la [Issue #44](https://github.com/lvckss/piia2-26/issues/44). |
+| AC-005 | Los umbrales de revisión por clase. | Están definidos en un único sitio, `CATEGORY_REVIEW_THRESHOLD` de [`confianza.py`](../app/agentes/agente_multimodal/confianza.py), sin repetirse en otros módulos. | `git grep -n "CATEGORY_REVIEW_THRESHOLD" -- "*.py"`: la definición y la lectura de `decidir_tier` están solo en `confianza.py`; `tabla_umbrales.py` la lee para calibrar y reproducir la tabla, y el resto son comentarios. `UMBRALES_DE_PARTIDA` de `etiquetado.py` son los valores anteriores a la calibración (0,7 y 0,6), solo para reproducir las muestras de etiquetado y la tabla antes y después, y no los lee ninguna decisión de nivel. **Verificado.** |
+| AC-006 | La tabla de umbrales por clase, antes de darla por definitiva. | Cada uno de los 6 umbrales tiene detrás la curva medida de precisión y recall con las detecciones etiquetadas. | **Verificado** ([Issue #44](https://github.com/lvckss/piia2-26/issues/44)). `python evaluar_vision.py --modelos gpt-6-luna --n-imagenes 500 --max-llamadas 4000 --salida <carpeta> --ejecutar` sobre las 500 imágenes: 3.712 filas, 0 llamadas facturadas desde la caché y una segunda ejecución con el mismo resultado, con la precisión y el recall de `confirmed` por clase y umbral (con `is_true_positive`). `python tabla_umbrales.py --salidas <salida_agente1_500> --etiquetas <etiquetas_juez.csv> --criterio` da, con las etiquetas del juez, la precisión por clase y umbral y los 6 valores; `python probar_tabla_umbrales_stub.py` lo comprueba con datos sintéticos y, con los datos reales, que lo aplicado en `confianza.py` es lo que sale del criterio. **Límite:** en `lamp broken`, `glass shatter` y `tire flat` ningún valor llega al mínimo y se mantiene 0,6, que no está demostrado (ver «Restricciones y supuestos»). |
+| AC-007 | Las detecciones etiquetadas con `is_true_positive` como verdad. | Se mide la segunda opinión: cuántos falsos positivos rechaza cada modelo de visión y cuántos aciertos reales descarta por error. | **Verificado para un modelo** (`gpt-6-luna`, [Issue #44](https://github.com/lvckss/piia2-26/issues/44)). `python probar_evaluar_vision_stub.py` verifica la herramienta con un modelo simulado, y la medición real sobre las 500 imágenes (comando de AC-006) da que la visión rechaza entre el 10 % (`scratch`) y el 93 % (`tire flat`) de los falsos positivos de PIIA-1 y descarta entre el 0 % y el 9 % de sus aciertos. `is_true_positive` como verdad infravalora a la visión en `dent`, `scratch` y `crack` (ver «Restricciones y supuestos»). Comparar otros modelos queda fuera de alcance. |
 | AC-008 | Las 500 imágenes exportadas (18.507 detecciones) y el filtro previo de `seleccion.py`. | Quedan 3.712 candidatas (el 20 %): `glass shatter` con score ≥ 0,5 y las 2 mejores por imagen en las demás clases. Se conserva al menos el 97 % del recall de PIIA-1 en `glass shatter`, el 99 % en `tire flat` y el 93 % en `lamp broken`. | `python probar_seleccion_stub.py` (`probar_export_real`). **Verificado** con el export presente. |
