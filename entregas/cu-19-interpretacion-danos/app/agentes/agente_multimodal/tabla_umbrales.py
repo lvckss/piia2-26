@@ -7,7 +7,9 @@ por clase de dano:
    que proporcion es dano real segun el juez;
 2. acumulado por umbral (score >= umbral): lo mismo, con el umbral actual marcado y cuantos entrarian o saldrian;
 3. lo que la vision rechaza y el juez ve como dano;
-4. con `--export`, cuantos candidatos que PIIA-1 daba por fallo (`is_true_positive` falso) eran dano real.
+4. con `--export`, cuantos candidatos que PIIA-1 daba por fallo (`is_true_positive` falso) eran dano real;
+5. con `--criterio`, los umbrales que salen del criterio de la D-6 (plan v1.4: el valor mas bajo de la rejilla cuyo limite
+   inferior de Wilson del dano real llega al minimo, 95 % por defecto; si ninguno, se mantiene el actual) y la tabla antes y despues.
 
 Un **candidato a nivel firme** es un hallazgo que la vision confirmo, con pieza y con regla de coste aplicable: es lo
 que `confianza.decidir_tier` convertiria en `confirmed` si su score pasara el umbral. «Dano real» cuenta `si` y
@@ -17,7 +19,8 @@ humana**: esto no fija ningun umbral, solo pone los datos delante de quien lo de
 
 Uso (desde esta carpeta):
     python tabla_umbrales.py --salidas <carpeta de salidas del Agente 1> --etiquetas <etiquetas_juez.csv> \\
-        [--export <carpeta del export de PIIA-1>] [--resumen <resumen_juez.json>] [--salida informe.md]
+        [--export <carpeta del export de PIIA-1>] [--resumen <resumen_juez.json>] [--salida informe.md] \\
+        [--criterio [--minimo-wilson 0.95]]
 """
 from __future__ import annotations
 
@@ -36,6 +39,7 @@ CLASES = tuple(CATEGORY_REVIEW_THRESHOLD)
 TRAMOS = tuple((round(0.3 + 0.1 * i, 1), round(0.4 + 0.1 * i, 1)) for i in range(7))
 UMBRALES = tuple(round(0.3 + 0.1 * i, 1) for i in range(7))
 _EPS = 1e-9
+MINIMO_DANO_REAL = 0.95  # limite inferior de Wilson al 95 % que exige el criterio de los umbrales (plan v1.4, D-6)
 
 
 def _num(x: float) -> str:
@@ -180,6 +184,121 @@ def leer_is_tp(carpeta: Any) -> dict[str, bool]:
     return resultado
 
 
+def _cumple_criterio(medido: dict[str, Any], minimo: float) -> bool:
+    inferior = medido["intervalo_dano_real"][0]
+    return medido["concluyente"] and inferior is not None and inferior + _EPS >= minimo
+
+
+def umbrales_por_criterio(
+    salidas: list[dict[str, Any]], etiquetas: dict[str, str], minimo: float = MINIMO_DANO_REAL, actuales: dict[str, float] | None = None
+) -> list[dict[str, Any]]:
+    """El criterio de los umbrales (plan v1.4, D-6). Por clase, el valor MAS BAJO de la rejilla (0,3 a 0,9) para el que, entre los
+    candidatos con score >= umbral, el limite inferior del intervalo de Wilson al 95 % de la proporcion de «dano real» (`si` y
+    `otra` del juez) es al menos `minimo`, con al menos `MINIMO_CONCLUYENTE` casos decididos (los `dudo` y los hallazgos sin
+    etiqueta no cuentan en el denominador). Si ningun valor lo alcanza, se mantiene el umbral actual. Cada fila lleva lo medido
+    en el umbral que queda (el elegido o, si se mantiene, el actual). No toca `CATEGORY_REVIEW_THRESHOLD`."""
+    actuales = CATEGORY_REVIEW_THRESHOLD if actuales is None else actuales
+    filas = []
+    for clase, candidatos in _candidatos_por_clase(salidas, etiquetas).items():
+
+        def medir(umbral: float) -> dict[str, Any]:
+            return _estadisticas([e for h, e in candidatos if h["score"] >= umbral - _EPS], "candidatos")
+
+        elegido = next((u for u in UMBRALES if _cumple_criterio(medir(u), minimo)), None)
+        umbral = actuales[clase] if elegido is None else elegido
+        medido = medir(umbral)
+        filas.append(
+            {
+                "clase": clase,
+                "actual": actuales[clase],
+                "umbral": umbral,
+                "cambia": abs(umbral - actuales[clase]) > _EPS,
+                "motivo": "se mantiene" if elegido is None else "criterio",
+                **medido,
+                "limite_inferior": medido["intervalo_dano_real"][0],
+            }
+        )
+    return filas
+
+
+def antes_despues(
+    salidas: list[dict[str, Any]], etiquetas: dict[str, str], nuevos: dict[str, float], actuales: dict[str, float] | None = None
+) -> list[dict[str, Any]]:
+    """Tabla «antes y despues» por clase: con el umbral actual y con el nuevo, los firmes (candidatos con score >= umbral, los que
+    `decidir_tier` pasaria a `confirmed`), la precision de «dano real» con su intervalo y el recall de «dano real» (los reales
+    decididos que quedan como firmes sobre todos los reales decididos de la clase). Sin casos, la proporcion es None."""
+    actuales = CATEGORY_REVIEW_THRESHOLD if actuales is None else actuales
+    filas = []
+    for clase, candidatos in _candidatos_por_clase(salidas, etiquetas).items():
+        reales_de_la_clase = sum(1 for _, e in candidatos if e in ("si", "otra"))
+
+        def con(umbral: float) -> tuple[dict[str, Any], float | None]:
+            medido = _estadisticas([e for h, e in candidatos if h["score"] >= umbral - _EPS], "firmes")
+            reales = medido["si"] + medido["otra"]
+            return medido, (reales / reales_de_la_clase if reales_de_la_clase else None)
+
+        antes, recall_antes = con(actuales[clase])
+        despues, recall_despues = con(nuevos[clase])
+        filas.append(
+            {
+                "clase": clase,
+                "actual": actuales[clase],
+                "nuevo": nuevos[clase],
+                "firmes_actual": antes["firmes"],
+                "firmes_nuevo": despues["firmes"],
+                "decididos_actual": antes["decididos"],
+                "decididos_nuevo": despues["decididos"],
+                "precision_actual": antes["precision_dano_real"],
+                "precision_nuevo": despues["precision_dano_real"],
+                "intervalo_actual": antes["intervalo_dano_real"],
+                "intervalo_nuevo": despues["intervalo_dano_real"],
+                "recall_actual": recall_antes,
+                "recall_nuevo": recall_despues,
+            }
+        )
+    return filas
+
+
+def _pct1(x: float | None) -> str:
+    return "-" if x is None else f"{x * 100:.1f}".replace(".", ",") + " %"
+
+
+def formatear_criterio(filas_criterio: list[dict[str, Any]], filas_antes_despues: list[dict[str, Any]], minimo: float = MINIMO_DANO_REAL) -> str:
+    """Las secciones 5 y 6 del informe: los umbrales que salen del criterio (con lo medido en cada uno) y la tabla antes y despues."""
+    texto_minimo = f"{minimo * 100:g}".replace(".", ",") + " %"
+    lineas = [
+        "## 5. Umbrales que salen del criterio (plan v1.4, D-6)",
+        "",
+        "Para cada clase, el umbral es el valor más bajo de la rejilla (0,3 a 0,9) para el que, entre los candidatos con score ≥ umbral, el límite inferior "
+        f"del intervalo de Wilson al 95 % de la proporción de **daño real** (`si` y `otra` del juez) es al menos {texto_minimo}, con al menos "
+        f"{MINIMO_CONCLUYENTE} casos decididos (los `dudo` y los hallazgos sin etiqueta no cuentan en el denominador). Si ningún valor lo alcanza, "
+        "**se mantiene** el umbral actual y se informa lo medido en él. Son etiquetas de un modelo, no verdad humana.",
+        "",
+    ]
+    lineas += _tabla(
+        ["Clase", "Actual", "Nuevo", "Motivo", "Candidatos", "Decididos", "Daño real", "Límite inferior de Wilson", "Clase correcta"],
+        [[f["clase"], _num(f["actual"]), _num(f["umbral"]), f["motivo"], f["candidatos"], f["decididos"], _pct1(f["precision_dano_real"]),
+          _pct1(f["limite_inferior"]), _pct1(f["precision_clase"])] for f in filas_criterio],
+    )
+    lineas += [
+        "",
+        "## 6. Antes y después",
+        "",
+        "Firmes = candidatos con score ≥ umbral (los que `decidir_tier` pasaría a `confirmed` si la visión los confirma con pieza y regla de coste, que ya "
+        "es la condición de un candidato). Recall de daño real = reales decididos que quedan como firmes sobre todos los reales decididos de la clase.",
+        "",
+    ]
+    lineas += _tabla(
+        ["Clase", "Umbral", "Firmes", "Daño real (precisión)", "IC 95 % después", "Recall de daño real"],
+        [[f["clase"], f"{_num(f['actual'])} → {_num(f['nuevo'])}", f"{f['firmes_actual']} → {f['firmes_nuevo']}",
+          f"{_pct1(f['precision_actual'])} → {_pct1(f['precision_nuevo'])}", _ic(f["intervalo_nuevo"]),
+          f"{_pct1(f['recall_actual'])} → {_pct1(f['recall_nuevo'])}"] for f in filas_antes_despues],
+    )
+    if filas_antes_despues:
+        lineas += ["", f"Firmes en total: {sum(f['firmes_actual'] for f in filas_antes_despues)} → {sum(f['firmes_nuevo'] for f in filas_antes_despues)}."]
+    return "\n".join(lineas) + "\n"
+
+
 def _nota(f: dict[str, Any]) -> str:
     if f["decididos"] == 0:
         return "sin casos"
@@ -244,7 +363,12 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--export", type=Path, default=None, help="carpeta del export de PIIA-1, para comparar con is_true_positive")
     ap.add_argument("--resumen", type=Path, default=None, help="resumen_juez.json, para citar modelo, esfuerzo y prompt en el informe")
     ap.add_argument("--salida", type=Path, default=None, help="archivo Markdown donde guardar el informe")
+    ap.add_argument("--criterio", action="store_true", help="anade los umbrales que salen del criterio de la D-6 y la tabla antes y despues")
+    ap.add_argument("--minimo-wilson", type=float, default=MINIMO_DANO_REAL, help="minimo del limite inferior de Wilson del dano real (por defecto 0,95)")
     args = ap.parse_args(argv)
+    if not 0 < args.minimo_wilson <= 1:
+        print(f"ERROR: --minimo-wilson debe estar en (0, 1], no {args.minimo_wilson}", file=sys.stderr)
+        return 2
     try:
         salidas = _leer_salidas(args.salidas)
         etiquetas = leer_etiquetas(args.etiquetas)
@@ -255,6 +379,10 @@ def main(argv: list[str] | None = None) -> int:
             filas_por_tramo(salidas, etiquetas), filas_por_umbral(salidas, etiquetas), filas_rechazados(salidas, etiquetas),
             None if is_tp is None else comparar_is_tp(salidas, etiquetas, is_tp), juez,
         )
+        if args.criterio:
+            criterio = umbrales_por_criterio(salidas, etiquetas, args.minimo_wilson)
+            nuevos = {f["clase"]: f["umbral"] for f in criterio}
+            informe += "\n" + formatear_criterio(criterio, antes_despues(salidas, etiquetas, nuevos), args.minimo_wilson)
         if args.salida is not None:
             args.salida.parent.mkdir(parents=True, exist_ok=True)
             args.salida.write_text(informe, encoding="utf-8")

@@ -213,6 +213,14 @@ python tabla_umbrales.py \
 la cabecera. El informe se imprime por pantalla y, con `--salida`, también se guarda. Si falta un archivo o
 las etiquetas no son válidas, termina con `ERROR: …` y código 2.
 
+Con `--criterio` añade al informe los umbrales que salen del criterio de la D-6 (plan v1.4 de la
+Issue #44) y la tabla antes y después: para cada clase, el valor más bajo de la rejilla (0,3 a 0,9)
+para el que, entre los candidatos con score ≥ umbral, el límite inferior del intervalo de Wilson al
+95 % de la proporción de daño real (`si` y `otra` del juez) llega al 95 % (`--minimo-wilson` lo
+cambia), con al menos 5 casos decididos; los `dudo` y los hallazgos sin etiqueta no cuentan en el
+denominador. Si ningún valor lo alcanza, se mantiene el umbral actual. Sigue sin cambiar
+`confianza.py`: solo calcula y enseña.
+
 - **Qué cuenta como candidato:** un hallazgo que la visión confirmó, con pieza y regla
   de coste aplicable. Es el que sería nivel firme si su score llegara al umbral de su
   clase (`confianza.decidir_tier`). En el lote de 500 imágenes hay 1.558.
