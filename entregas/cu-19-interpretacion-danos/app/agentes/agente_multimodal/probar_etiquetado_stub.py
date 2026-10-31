@@ -15,11 +15,13 @@ import io
 import json
 import shutil
 import tempfile
+from collections import Counter
 from pathlib import Path
 
 from PIL import Image
 
 import confianza
+from juez_vision import acuerdo
 from etiquetado import (
     ETIQUETAS,
     MINIMO_CONCLUYENTE,
@@ -448,7 +450,37 @@ def probar_umbrales_de_partida() -> None:
     print("umbrales de partida ok")
 
 
+def probar_etiquetas_versionadas() -> None:
+    """DoD de la #44 (planes v1.2 y v1.4): las etiquetas humanas, la revision de los `dudo` y `no` del juez, las etiquetas del juez y su
+    resumen estan en el repositorio (`etiquetas/`), tienen el formato de `leer_etiquetas` y reproducen las cifras del plan sin ningun dato
+    local: 60 humanas (43 si, 9 otra, 8 dudo), 60 de revision (los 56 dudo y 4 no del juez en el tramo 0,3-0,7), 3.712 del juez con el
+    reparto de su resumen y un acuerdo del juez con las humanas de 41 de 49 (84 %). Las etiquetas con revision son las del juez salvo los
+    ids revisados."""
+    base = Path(__file__).resolve().parent / "etiquetas"
+    humanas = leer_etiquetas(base / "confirmados_bajo_umbral.csv")
+    revision = leer_etiquetas(base / "etiquetas_revision_44.csv")
+    juez = leer_etiquetas(base / "etiquetas_juez.csv")
+    con_revision = leer_etiquetas(base / "etiquetas_juez_con_revision.csv")
+    resumen = json.loads((base / "resumen_juez.json").read_text(encoding="utf-8"))
+    assert Counter(humanas.values()) == Counter({"si": 43, "otra": 9, "dudo": 8})
+    assert Counter(revision.values()) == Counter({"si": 25, "otra": 9, "dudo": 25, "no": 1})
+    assert len(juez) == len(con_revision) == resumen["etiquetados"] == resumen["en_alcance"] == 3712
+    assert Counter(juez.values()) == Counter(resumen["reparto"]) == Counter({"si": 1388, "otra": 1326, "dudo": 607, "no": 391})
+    assert (resumen["modelo"], resumen["esfuerzo"], resumen["fallos"]) == ("gpt-6.1-terra", "high", [])
+    assert resumen["prompt_sha256"].startswith("abe617f3")
+    assert set(humanas) <= set(juez) and set(revision) <= set(juez)
+    assert Counter(juez[i] for i in revision) == Counter({"dudo": 56, "no": 4}), "la revision son los 56 dudo y los 4 no del juez"
+    assert con_revision == {**juez, **revision}
+    cambian = {i for i in juez if juez[i] != con_revision[i]}
+    assert len(cambian) == 35 and cambian <= set(revision)
+    r = acuerdo(humanas, juez)
+    assert (r["comunes"], r["n"], r["coinciden"], r["dudo_humano"], r["dudo_juez"]) == (60, 49, 41, 8, 7), r
+    assert r["acuerdo_dano_real"] == 1.0 and r["humano_no"] == 0
+    print("etiquetas versionadas ok: reproducen el acuerdo 41/49 y los repartos del plan")
+
+
 def main_pruebas() -> None:
+    probar_etiquetas_versionadas()
     probar_umbrales_de_partida()
     probar_tramos()
     probar_intervalo_wilson()

@@ -140,6 +140,10 @@ python etiquetado.py tabla --salidas ../../../../../piia2_detecciones/salida_age
   con «Descargar CSV».
 - **Etiquetas:** CSV con la cabecera `finding_id,etiqueta`. Pregunta: «¿hay un daño de
   esta clase en la caja?» (`si`, `otra`, `no`, `dudo`).
+- **Las de la #44 están versionadas** en `etiquetas/` (ver su `README.md`): las 60
+  humanas, la revisión humana de 60 hallazgos que el juez dejó en `dudo` o `no`, las
+  3.712 del juez, esas mismas con la revisión aplicada y el resumen de su ejecución. Solo
+  llevan ids y etiquetas, no recortes.
 - **Tabla:** precisión de `confirmado` con intervalo de Wilson al 95 %, en dos
   versiones (solo `si`, y `si` + `otra` como daño real); `dudo` va aparte y no entra
   en el denominador; toda celda con menos de 5 casos sale como no concluyente. Con
