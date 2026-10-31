@@ -28,7 +28,7 @@ Diseño del filtro de confianza:
 | `generar_lote.py` | Genera la salida real del Agente 1 para un lote reproducible de imágenes del export (un JSON por imagen), la valida contra el contrato y resume llamadas, tokens y reparto de niveles. Ver «Generar un lote real». |
 | `etiquetado.py` | Etiquetado manual para calibrar los umbrales (Issue #44): elige la muestra, genera la página de etiquetado y calcula la precisión por clase y tramo de score con intervalo. Ver «Etiquetar para calibrar los umbrales». |
 | `juez_vision.py` | Un modelo más potente etiqueta los hallazgos en las mismas condiciones que una persona (solo recorte y clase) y se mide su acuerdo con las etiquetas humanas. Caché, tope de llamadas y `--ejecutar` explícito. Ver «Juez de visión». |
-| `tabla_umbrales.py` | Tabla reproducible de precisión por clase y tramo de score, y acumulada por umbral, con las etiquetas del juez (Issue #44, AC-003). No cambia ningún umbral. Ver «Tabla de precisión por clase y umbral». |
+| `tabla_umbrales.py` | Tabla reproducible de precisión por clase y tramo de score, y acumulada por umbral, con las etiquetas del juez (Issue #44, AC-003) y, con `--criterio`, los umbrales que salen del criterio de la D-6. Calcula, no cambia nada. Ver «Tabla de precisión por clase y umbral». |
 | `colab/` | Notebook para exportar las detecciones de PIIA-1 (SAM3) de ~500 imágenes, una sola vez, con cada detección marcada como acierto/falso positivo. |
 
 ## Uso
@@ -196,8 +196,9 @@ python juez_vision.py acuerdo --humanas etiquetas/etiquetas_humanas_120.csv --ju
 
 Con las etiquetas del juez, `tabla_umbrales.py` calcula, sin llamar a ninguna API, qué
 parte de lo que la visión confirma es daño real según el score y la clase. Es lo que
-hay que mirar antes de proponer umbrales; **no cambia ninguno** (`confianza.py` queda
-como está hasta que se acepte el juez y se decidan los umbrales).
+hay que mirar antes de fijar umbrales; **no cambia ninguno**: solo calcula. Los que
+salieron de esta tabla y del criterio de la D-6 (`dent`, `scratch` y `crack` a 0,3; el
+resto sigue en 0,6) ya están aplicados en `confianza.py`.
 
 ```bash
 python tabla_umbrales.py \
@@ -219,7 +220,8 @@ para el que, entre los candidatos con score ≥ umbral, el límite inferior del 
 95 % de la proporción de daño real (`si` y `otra` del juez) llega al 95 % (`--minimo-wilson` lo
 cambia), con al menos 5 casos decididos; los `dudo` y los hallazgos sin etiqueta no cuentan en el
 denominador. Si ningún valor lo alcanza, se mantiene el umbral actual. Sigue sin cambiar
-`confianza.py`: solo calcula y enseña.
+`confianza.py`: solo calcula y enseña. Como ese archivo ya tiene los calibrados, `--desde-partida`
+toma como umbrales actuales los de partida (0,7 y 0,6) para reproducir la tabla antes y después.
 
 - **Qué cuenta como candidato:** un hallazgo que la visión confirmó, con pieza y regla
   de coste aplicable. Es el que sería nivel firme si su score llegara al umbral de su
@@ -256,6 +258,7 @@ si están (si no, se saltan esa parte).
 
 - Ejecutar `evaluar_vision.py --ejecutar` con la API real y comparar varios
   modelos.
-- Con esos resultados, fijar los 6 `CATEGORY_REVIEW_THRESHOLD` (hoy
-  placeholders; los datos dicen que no valen tal cual, ver
-  `specs/agente-confianza-hallazgos.md`).
+- Los 6 `CATEGORY_REVIEW_THRESHOLD` ya están calibrados (Issue #44, medición con las 500
+  imágenes y etiquetas de un modelo juez, no verdad humana): `dent`, `scratch` y `crack`
+  a 0,3 y el resto en 0,6. Se recalibran si cambian la estrategia, el prompt, el juez o el
+  dataset (ver `specs/agente-confianza-hallazgos.md`).

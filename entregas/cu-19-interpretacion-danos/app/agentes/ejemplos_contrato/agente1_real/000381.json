@@ -136,8 +136,8 @@
       "category": "scratch",
       "clase_tool": "scratch",
       "score": 0.423828125,
-      "score_tier": "needs_review",
-      "confidence_tier": "needs_review",
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
       "bbox_xywh": [
         678.0,
         426.0,
@@ -156,7 +156,7 @@
       "category": "crack",
       "clase_tool": "crack",
       "score": 0.317138671875,
-      "score_tier": "needs_review",
+      "score_tier": "confirmed",
       "confidence_tier": "needs_review",
       "bbox_xywh": [
         594.0,
@@ -176,7 +176,7 @@
       "category": "dent",
       "clase_tool": "dent",
       "score": 0.316650390625,
-      "score_tier": "needs_review",
+      "score_tier": "confirmed",
       "confidence_tier": "needs_review",
       "bbox_xywh": [
         594.0,

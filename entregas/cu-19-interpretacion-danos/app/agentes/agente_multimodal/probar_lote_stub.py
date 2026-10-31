@@ -351,7 +351,8 @@ def probar_ac006_repartos() -> None:
 
     Con ClienteFalso y las 18 imagenes del mini-export (cada una con un acierto de
     score 0,9 y un falso positivo de score 0,4 de otra clase), el recuento a mano es:
-    dent y lamp broken: 6 hallazgos, todos `confirmado`, 3 `confirmed` (los de 0,9);
+    dent y lamp broken: 6 hallazgos, todos `confirmado`; lamp broken 3 `confirmed` (los de 0,9) y dent 6 (los de 0,9 y los falsos
+    positivos de 0,4, que pasan el umbral 0,3 de dent desde la #44);
     tire flat: 6 `rechazado`, 0 `confirmed`; scratch y crack: 6 `incierto` cada una;
     glass shatter: 3 `incierto` (el falso positivo de 0,4 lo descarta el filtro previo: 3 descartados)."""
     with tempfile.TemporaryDirectory() as tmp:
@@ -360,11 +361,11 @@ def probar_ac006_repartos() -> None:
         lote = elegir_lote(imagenes, n=N_IMAGENES, min_aciertos=1, seed=42)
         resumen = generar_lote(lote, export, cardd, tmp_dir / "salida", ClienteFalso(), "modelo-falso", MINI_CATALOGO, tmp_dir / "cache")
         assert resumen["hallazgos"] == 33, resumen["hallazgos"]
-        assert resumen["reparto_tier"] == {"confirmed": 6, "needs_review": 27}, resumen["reparto_tier"]
+        assert resumen["reparto_tier"] == {"confirmed": 9, "needs_review": 24}, resumen["reparto_tier"]
         assert resumen["reparto_veredicto"] == {"confirmado": 12, "incierto": 15, "rechazado": 6}, resumen["reparto_veredicto"]
         assert resumen["descartados_por_filtro_previo"] == 3
         esperado = {
-            "dent": (6, 3, 3, 6, 0, 0), "lamp broken": (6, 3, 3, 6, 0, 0), "tire flat": (6, 0, 6, 0, 6, 0),
+            "dent": (6, 6, 0, 6, 0, 0), "lamp broken": (6, 3, 3, 6, 0, 0), "tire flat": (6, 0, 6, 0, 6, 0),
             "scratch": (6, 0, 6, 0, 0, 6), "crack": (6, 0, 6, 0, 0, 6), "glass shatter": (3, 0, 3, 0, 0, 3),
         }
         claves = ("hallazgos", "confirmed", "needs_review", "confirmado", "rechazado", "incierto")
@@ -380,7 +381,7 @@ def probar_ac006_repartos() -> None:
         codigo, texto, _ = _ejecutar_main(argv, clave="clave-de-prueba")
         assert codigo == 0, texto
         assert "no es representativo" in texto.lower(), texto
-        assert "confirmed: 6" in texto and "needs_review: 27" in texto, texto
+        assert "confirmed: 9" in texto and "needs_review: 24" in texto, texto
         assert "descartados por el filtro previo: 3" in texto.lower(), texto
 
 

@@ -8,13 +8,14 @@ Ejecutar desde esta carpeta:  python probar_tabla_umbrales_stub.py
 from __future__ import annotations
 
 import contextlib
+import functools
 import io
 import json
 import tempfile
 from pathlib import Path
 
 from confianza import CATEGORY_REVIEW_THRESHOLD
-from etiquetado import intervalo_wilson
+from etiquetado import UMBRALES_DE_PARTIDA, intervalo_wilson
 from tabla_umbrales import (
     TRAMOS,
     UMBRALES,
@@ -32,6 +33,24 @@ from tabla_umbrales import (
 )
 
 RAIZ = Path(__file__).resolve().parents[5]
+
+
+def con_umbrales_de_partida(prueba):
+    """Ejecuta la prueba con los umbrales de partida (0,7 y 0,6) como «actuales»: sus cifras se calcularon a mano con ellos, y los vigentes de
+    `confianza.py` son los calibrados en la #44. Restaura los vigentes al terminar."""
+
+    @functools.wraps(prueba)
+    def envuelta():
+        vigentes = dict(CATEGORY_REVIEW_THRESHOLD)
+        CATEGORY_REVIEW_THRESHOLD.clear()
+        CATEGORY_REVIEW_THRESHOLD.update(UMBRALES_DE_PARTIDA)
+        try:
+            return prueba()
+        finally:
+            CATEGORY_REVIEW_THRESHOLD.clear()
+            CATEGORY_REVIEW_THRESHOLD.update(vigentes)
+
+    return envuelta
 
 
 def h(finding_id: str, clase: str, score: float, veredicto: str = "confirmado", pieza: str | None = "PARAG_DEL", regla: bool | None = True) -> dict:
@@ -97,6 +116,7 @@ def probar_filas_por_tramo() -> None:
     print("filas por tramo ok")
 
 
+@con_umbrales_de_partida
 def probar_filas_por_umbral() -> None:
     """AC-004: tabla acumulada (score >= umbral) por clase para la rejilla 0,3 a 0,9, con el umbral actual marcado y lo que
     cambia respecto a el."""
@@ -135,6 +155,7 @@ def probar_rechazados_e_is_tp() -> None:
     print("rechazados e is_true_positive ok")
 
 
+@con_umbrales_de_partida
 def probar_formato() -> None:
     """AC-003 + plan v1.3: el informe dice que son etiquetas de un modelo, marca lo no concluyente y lleva las cuatro secciones."""
     texto = formatear(
@@ -206,6 +227,7 @@ def probar_cli() -> None:
     print("linea de comandos ok")
 
 
+@con_umbrales_de_partida
 def probar_con_datos_reales() -> None:
     """Con las salidas reales (fuera de git) y las etiquetas del juez, las cifras coinciden con las calculadas por separado el
     2026-10-28 (1.558 candidatos; scratch con score >= 0,7: 222 candidatos). Se salta si no estan."""
@@ -263,6 +285,7 @@ def umbrales_de(filas: list[dict]) -> dict[str, float]:
     return {f["clase"]: f["umbral"] for f in filas}
 
 
+@con_umbrales_de_partida
 def probar_criterio_el_valor_mas_bajo() -> None:
     """AC-004 (plan v1.4, D-6): por clase, el valor MAS BAJO de la rejilla cuyo limite inferior de Wilson del «daño real» (si u
     otra) es al menos el 95 %; si ninguno llega, se mantiene el actual."""
@@ -290,6 +313,7 @@ def probar_criterio_el_valor_mas_bajo() -> None:
     print("criterio: el valor mas bajo ok")
 
 
+@con_umbrales_de_partida
 def probar_criterio_dudo_y_sin_etiqueta_fuera_del_denominador() -> None:
     """AC-004 + AC-005: los `dudo` y los hallazgos sin etiqueta no cuentan en el denominador (si los `dudo` fueran `no`, esta
     clase no llegaria al 95 %)."""
@@ -299,6 +323,7 @@ def probar_criterio_dudo_y_sin_etiqueta_fuera_del_denominador() -> None:
     print("criterio: dudo y sin etiqueta fuera del denominador ok")
 
 
+@con_umbrales_de_partida
 def probar_criterio_minimo_configurable_y_minimo_de_casos() -> None:
     """AC-004: el minimo del limite inferior se puede cambiar (el plan v1.4 lo compara con 90 %); y con menos de 5 casos decididos
     no se acepta ningun umbral aunque el limite inferior supere el minimo."""
@@ -314,6 +339,7 @@ def probar_criterio_minimo_configurable_y_minimo_de_casos() -> None:
     print("criterio: minimo configurable y minimo de casos ok")
 
 
+@con_umbrales_de_partida
 def probar_criterio_rejilla_y_umbrales_actuales() -> None:
     """AC-004: todo valor propuesto esta en la rejilla 0,3 a 0,9 o es el actual que se mantiene; se pueden pasar otros umbrales
     actuales (incluso fuera de la rejilla) y la tabla de `confianza.py` no se toca."""
@@ -329,6 +355,7 @@ def probar_criterio_rejilla_y_umbrales_actuales() -> None:
     print("criterio: rejilla y umbrales actuales ok")
 
 
+@con_umbrales_de_partida
 def probar_antes_y_despues() -> None:
     """AC-004: tabla «antes y despues» (umbrales actuales frente a los del criterio): firmes (candidatos con score >= umbral),
     precision de «daño real» y recall de «daño real» (reales decididos que quedan como firmes sobre todos los reales)."""
@@ -354,6 +381,7 @@ def probar_antes_y_despues() -> None:
     print("antes y despues ok")
 
 
+@con_umbrales_de_partida
 def probar_formato_criterio() -> None:
     """AC-004: el informe del criterio dice cual es, con su minimo, y lleva una fila por clase con actual, nuevo y motivo, y la
     tabla antes y despues."""
@@ -373,6 +401,7 @@ def probar_formato_criterio() -> None:
     print("formato del criterio ok")
 
 
+@con_umbrales_de_partida
 def probar_cli_criterio() -> None:
     """La linea de comandos incluye la seccion del criterio solo con --criterio, acepta --minimo-wilson y rechaza un minimo fuera de (0, 1]."""
     salidas, etiquetas = escenario_criterio()
@@ -404,6 +433,7 @@ def probar_cli_criterio() -> None:
     print("linea de comandos del criterio ok")
 
 
+@con_umbrales_de_partida
 def probar_criterio_con_datos_reales() -> None:
     """AC-004 con las 500 salidas reales y las etiquetas del juez (fuera de git): el criterio reproduce la tabla del plan v1.4 (dent, scratch
     y crack a 0,3; lamp broken, glass shatter y tire flat se mantienen en 0,6) con sus limites inferiores, y los firmes pasan de 799 a 1.531.
@@ -431,6 +461,54 @@ def probar_criterio_con_datos_reales() -> None:
     print("criterio con datos reales ok: 0,3 en dent, scratch y crack; se mantienen 0,6 en el resto; firmes 799 -> 1.531")
 
 
+def probar_cli_desde_partida() -> None:
+    """Con `--desde-partida`, los umbrales «actuales» de la tabla antes y despues son los de partida (0,7 y 0,6), asi que la tabla de la #44 se
+    puede reproducir despues de aplicar la calibracion; sin la opcion son los vigentes de `confianza.py` (ya calibrados)."""
+    salidas, etiquetas = escenario_criterio()
+    with tempfile.TemporaryDirectory() as tmp:
+        base = Path(tmp)
+        (base / "salidas").mkdir()
+        (base / "salidas" / "000001.json").write_text(json.dumps(salidas[0]), encoding="utf-8")
+        csv = base / "etiquetas.csv"
+        csv.write_text("finding_id,etiqueta\n" + "".join(f"{i},{e}\n" for i, e in etiquetas.items()), encoding="utf-8")
+
+        def correr(*extra: str) -> str:
+            salida = io.StringIO()
+            with contextlib.redirect_stdout(salida):
+                assert main(["--salidas", str(base / "salidas"), "--etiquetas", str(csv), "--criterio", *extra]) == 0
+            return salida.getvalue()
+
+        con = correr("--desde-partida")
+        assert "| dent | 0,7 | 0,3 | criterio |" in con, [l for l in con.splitlines() if l.startswith("| dent |")]
+        assert "| 0,7 → 0,3 |" in con and "Firmes en total: 180 → 490." in con
+        sin = correr()
+        assert "| dent | 0,3 | 0,3 | criterio |" in sin, [l for l in sin.splitlines() if l.startswith("| dent |")]
+        assert "Firmes en total: 490 → 490." in sin or "Firmes en total: 4" in sin
+    print("linea de comandos con --desde-partida ok")
+
+
+def probar_umbrales_aplicados() -> None:
+    """AC-004 y AC-006 (plan v1.4, D-6): `CATEGORY_REVIEW_THRESHOLD` tiene los valores del criterio (dent, scratch y crack a 0,3; el
+    resto sin cambios), todos en la rejilla medida, y `DEFAULT_REVIEW_THRESHOLD` no se toca. Con los datos reales, ademas, lo
+    aplicado es exactamente lo que da el criterio. Se salta esa segunda parte si no estan los datos."""
+    from confianza import DEFAULT_REVIEW_THRESHOLD
+
+    esperado = {"dent": 0.3, "scratch": 0.3, "crack": 0.3, "lamp broken": 0.6, "glass shatter": 0.6, "tire flat": 0.6}
+    assert dict(CATEGORY_REVIEW_THRESHOLD) == esperado, dict(CATEGORY_REVIEW_THRESHOLD)
+    assert all(v in UMBRALES for v in CATEGORY_REVIEW_THRESHOLD.values()), "cada umbral debe tener fila de respaldo en la rejilla medida"
+    assert DEFAULT_REVIEW_THRESHOLD == 0.8
+    sal = RAIZ / "piia2_detecciones" / "salida_agente1_500"
+    jue = RAIZ / "piia2_detecciones" / "juez" / "gpt-6.1-terra" / "etiquetas_juez.csv"
+    if not (sal.is_dir() and jue.is_file()):
+        print("(salidas o etiquetas del juez reales no encontradas: se salta la comparacion de lo aplicado con el criterio)")
+        return
+    from etiquetado import _leer_salidas, leer_etiquetas
+
+    filas = umbrales_por_criterio(_leer_salidas(sal), leer_etiquetas(jue))
+    assert umbrales_de(filas) == dict(CATEGORY_REVIEW_THRESHOLD), (umbrales_de(filas), dict(CATEGORY_REVIEW_THRESHOLD))
+    print("umbrales aplicados ok: coinciden con el criterio sobre las 500 y las etiquetas del juez")
+
+
 def main_pruebas() -> None:
     probar_tramos()
     probar_filas_por_tramo()
@@ -447,6 +525,8 @@ def main_pruebas() -> None:
     probar_formato_criterio()
     probar_cli_criterio()
     probar_criterio_con_datos_reales()
+    probar_cli_desde_partida()
+    probar_umbrales_aplicados()
     print("Todo ok: tabla_umbrales.")
 
 

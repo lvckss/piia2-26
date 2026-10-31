@@ -33,7 +33,7 @@ from pathlib import Path
 from typing import Any
 
 from confianza import CATEGORY_REVIEW_THRESHOLD
-from etiquetado import ETIQUETAS, MINIMO_CONCLUYENTE, EtiquetasNoValidas, _ic, _leer_salidas, _pct, intervalo_wilson, leer_etiquetas
+from etiquetado import ETIQUETAS, MINIMO_CONCLUYENTE, UMBRALES_DE_PARTIDA, EtiquetasNoValidas, _ic, _leer_salidas, _pct, intervalo_wilson, leer_etiquetas
 
 CLASES = tuple(CATEGORY_REVIEW_THRESHOLD)
 TRAMOS = tuple((round(0.3 + 0.1 * i, 1), round(0.4 + 0.1 * i, 1)) for i in range(7))
@@ -365,6 +365,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--salida", type=Path, default=None, help="archivo Markdown donde guardar el informe")
     ap.add_argument("--criterio", action="store_true", help="anade los umbrales que salen del criterio de la D-6 y la tabla antes y despues")
     ap.add_argument("--minimo-wilson", type=float, default=MINIMO_DANO_REAL, help="minimo del limite inferior de Wilson del dano real (por defecto 0,95)")
+    ap.add_argument("--desde-partida", action="store_true", help="toma como umbrales actuales los de partida (0,7 y 0,6, anteriores a la calibracion de la #44) en vez de los de confianza.py")
     args = ap.parse_args(argv)
     if not 0 < args.minimo_wilson <= 1:
         print(f"ERROR: --minimo-wilson debe estar en (0, 1], no {args.minimo_wilson}", file=sys.stderr)
@@ -374,15 +375,16 @@ def main(argv: list[str] | None = None) -> int:
         etiquetas = leer_etiquetas(args.etiquetas)
         _validar(salidas, etiquetas)
         is_tp = leer_is_tp(args.export) if args.export is not None else None
+        actuales = UMBRALES_DE_PARTIDA if args.desde_partida else None
         juez = json.loads(args.resumen.read_text(encoding="utf-8")) if args.resumen is not None else None
         informe = formatear(
-            filas_por_tramo(salidas, etiquetas), filas_por_umbral(salidas, etiquetas), filas_rechazados(salidas, etiquetas),
+            filas_por_tramo(salidas, etiquetas), filas_por_umbral(salidas, etiquetas, actuales), filas_rechazados(salidas, etiquetas),
             None if is_tp is None else comparar_is_tp(salidas, etiquetas, is_tp), juez,
         )
         if args.criterio:
-            criterio = umbrales_por_criterio(salidas, etiquetas, args.minimo_wilson)
+            criterio = umbrales_por_criterio(salidas, etiquetas, args.minimo_wilson, actuales)
             nuevos = {f["clase"]: f["umbral"] for f in criterio}
-            informe += "\n" + formatear_criterio(criterio, antes_despues(salidas, etiquetas, nuevos), args.minimo_wilson)
+            informe += "\n" + formatear_criterio(criterio, antes_despues(salidas, etiquetas, nuevos, actuales), args.minimo_wilson)
         if args.salida is not None:
             args.salida.parent.mkdir(parents=True, exist_ok=True)
             args.salida.write_text(informe, encoding="utf-8")

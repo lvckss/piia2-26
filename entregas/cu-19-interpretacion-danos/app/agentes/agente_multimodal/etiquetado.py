@@ -35,12 +35,22 @@ from math import sqrt
 from pathlib import Path
 from typing import Any
 
-from confianza import CATEGORY_REVIEW_THRESHOLD
 
 CLASES_ETIQUETADAS = ("dent", "scratch", "crack")
 TRAMOS = ((0.3, 0.5), (0.5, 0.7))
 ETIQUETAS = ("si", "otra", "no", "dudo")
 MINIMO_CONCLUYENTE = 5
+# Umbrales de partida: los de antes de la calibracion de la #44 (plan v1.4, D-6). La muestra de etiquetado y la de validacion se
+# definieron frente a ellos («por debajo del umbral actual»), asi que siguen siendo la referencia por defecto de esas muestras
+# aunque `confianza.py` ya tenga los calibrados.
+UMBRALES_DE_PARTIDA: dict[str, float] = {
+    "dent": 0.7,
+    "scratch": 0.7,
+    "crack": 0.7,
+    "lamp broken": 0.6,
+    "glass shatter": 0.6,
+    "tire flat": 0.6,
+}
 CABECERA_CSV = "finding_id,etiqueta"
 # la tanda 1 es el tramo alto (el mas cercano al umbral actual); la 2 solo si la 1 no deja clara la conclusion
 TANDA_DE_TRAMO = {1: 1, 0: 2}
@@ -88,9 +98,9 @@ def _clave_id(finding_id: str) -> tuple:
 
 
 def candidatos_a_etiquetar(salidas: list[dict[str, Any]], umbrales: dict[str, float] | None = None) -> list[dict[str, Any]]:
-    """Hallazgos que la vision confirmo, de `dent`, `scratch` o `crack`, con score por debajo del
-    umbral de su clase y dentro de un tramo. Cada uno lleva su `image_id`."""
-    umbrales = CATEGORY_REVIEW_THRESHOLD if umbrales is None else umbrales
+    """Hallazgos que la vision confirmo, de `dent`, `scratch` o `crack`, con score por debajo del umbral de
+    partida de su clase (`UMBRALES_DE_PARTIDA`) y dentro de un tramo. Cada uno lleva su `image_id`."""
+    umbrales = UMBRALES_DE_PARTIDA if umbrales is None else umbrales
     candidatos = []
     for salida in salidas:
         for h in salida["findings"]:
@@ -370,11 +380,11 @@ pintar();
 def elegir_muestra_validacion(salidas: list[dict[str, Any]], excluidos: Any = frozenset(), por_clase: int = 5, semilla: int = 42,
                               umbrales: dict[str, float] | None = None) -> list[dict[str, Any]]:
     """Muestra para validar a un modelo juez contra personas (AC-009): por clase, hasta `por_clase` hallazgos
-    que la vision rechazo y hasta `por_clase` que confirmo con score por encima del umbral de su clase, sin
+    que la vision rechazo y hasta `por_clase` que confirmo con score por encima del umbral de partida de su clase, sin
     los `excluidos` (ya etiquetados). Cubre las seis clases y los dos extremos, que la muestra de la tabla de
     precision (solo confirmados entre 0,3 y 0,7) no tiene. El tramo no revela el veredicto y el orden mezcla
     los dos tipos de forma determinista segun la semilla."""
-    umbrales = CATEGORY_REVIEW_THRESHOLD if umbrales is None else umbrales
+    umbrales = UMBRALES_DE_PARTIDA if umbrales is None else umbrales
     excluidos = set(excluidos)
     grupos: dict[tuple[str, str], list[dict[str, Any]]] = {}
     for salida in salidas:

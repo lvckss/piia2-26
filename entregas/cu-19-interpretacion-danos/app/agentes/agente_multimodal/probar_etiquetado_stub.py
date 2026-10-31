@@ -19,11 +19,12 @@ from pathlib import Path
 
 from PIL import Image
 
-from confianza import CATEGORY_REVIEW_THRESHOLD
+import confianza
 from etiquetado import (
     ETIQUETAS,
     MINIMO_CONCLUYENTE,
     TRAMOS,
+    UMBRALES_DE_PARTIDA,
     EtiquetasNoValidas,
     candidatos_a_etiquetar,
     elegir_muestra,
@@ -125,7 +126,7 @@ def probar_candidatos_y_muestra() -> None:
     for c in cands:
         por.setdefault((c["category"], tramo_de(c["score"])), []).append(c)
     assert {k: len(v) for k, v in por.items()} == {("dent", 0): 12, ("dent", 1): 12, ("scratch", 0): 3, ("scratch", 1): 4}, {k: len(v) for k, v in por.items()}
-    assert all(c["vision_verdict"] == "confirmado" and c["score"] < CATEGORY_REVIEW_THRESHOLD[c["category"]] for c in cands)
+    assert all(c["vision_verdict"] == "confirmado" and c["score"] < UMBRALES_DE_PARTIDA[c["category"]] for c in cands)
     assert all("image_id" in c for c in cands), "cada candidata lleva su imagen"
     # con un umbral menor, sale lo que ya pasa el umbral nuevo (>= 0,6 en dent)
     cands_06 = candidatos_a_etiquetar(salidas, umbrales={"dent": 0.6, "scratch": 0.7, "crack": 0.7})
@@ -327,7 +328,7 @@ def salidas_validacion() -> list[dict]:
     de su clase y ruido que no debe entrar (confirmados por debajo del umbral, inciertos)."""
     hallazgos: list[dict] = []
     n = 0
-    for clase, umbral in CATEGORY_REVIEW_THRESHOLD.items():
+    for clase, umbral in UMBRALES_DE_PARTIDA.items():
         for i in range(8):
             n += 1
             hallazgos.append(hallazgo(500 + n // 4, n, clase, round(0.2 + 0.01 * i, 4), "rechazado"))
@@ -350,13 +351,13 @@ def probar_muestra_validacion() -> None:
     por_id = {h["finding_id"]: h for s in salidas for h in s["findings"]}
     muestra = elegir_muestra_validacion(salidas, por_clase=5, semilla=42)
     assert len(muestra) == 60, len(muestra)
-    for clase in CATEGORY_REVIEW_THRESHOLD:
+    for clase in UMBRALES_DE_PARTIDA:
         de_clase = [m for m in muestra if m["category"] == clase]
         veredictos = [por_id[m["finding_id"]]["vision_verdict"] for m in de_clase]
         assert veredictos.count("rechazado") == 5 and veredictos.count("confirmado") == 5, (clase, veredictos)
         for m in de_clase:
             h = por_id[m["finding_id"]]
-            assert h["vision_verdict"] == "rechazado" or h["score"] >= CATEGORY_REVIEW_THRESHOLD[clase]
+            assert h["vision_verdict"] == "rechazado" or h["score"] >= UMBRALES_DE_PARTIDA[clase]
     assert all(m["tramo"] == "validación" and m["tanda"] == 1 for m in muestra), "el tramo no debe revelar el veredicto"
     ordenados = sorted(por_id[m["finding_id"]]["vision_verdict"] for m in muestra)
     assert [por_id[m["finding_id"]]["vision_verdict"] for m in muestra] != ordenados, "el orden debe mezclar los dos tipos"
@@ -367,7 +368,7 @@ def probar_muestra_validacion() -> None:
     assert not ({m["finding_id"] for m in otra} & ya), "no repite lo ya etiquetado"
     # cada grupo (clase y tipo) tiene 8 candidatos; sin los excluidos da min(5, 8 - excluidos del grupo)
     esperados = 0
-    for clase in CATEGORY_REVIEW_THRESHOLD:
+    for clase in UMBRALES_DE_PARTIDA:
         for tipo in ("rechazado", "confirmado"):
             excluidos_grupo = sum(1 for i in ya if por_id[i]["category"] == clase and por_id[i]["vision_verdict"] == tipo)
             esperados += min(5, 8 - excluidos_grupo)
@@ -428,7 +429,27 @@ def probar_con_datos_reales() -> None:
     print(f"datos reales ok: {len(muestra)} hallazgos de la muestra y pagina generada con los recortes reales")
 
 
+def probar_umbrales_de_partida() -> None:
+    """Plan v1.4 (D-6): la muestra de etiquetado y la de validacion se definen frente a los umbrales de PARTIDA (los de antes de la
+    calibracion de la #44), no frente a los vigentes de `confianza.py`: aplicar la calibracion no cambia que muestra sale."""
+    assert UMBRALES_DE_PARTIDA == {"dent": 0.7, "scratch": 0.7, "crack": 0.7, "lamp broken": 0.6, "glass shatter": 0.6, "tire flat": 0.6}
+    salidas = salidas_sinteticas()
+    candidatos, validacion = candidatos_a_etiquetar(salidas), elegir_muestra_validacion(salidas)
+    assert candidatos and validacion
+    vigentes = dict(confianza.CATEGORY_REVIEW_THRESHOLD)
+    try:
+        confianza.CATEGORY_REVIEW_THRESHOLD.update({"dent": 0.1, "scratch": 0.1, "crack": 0.1})
+        assert candidatos_a_etiquetar(salidas) == candidatos
+        assert elegir_muestra_validacion(salidas) == validacion
+    finally:
+        confianza.CATEGORY_REVIEW_THRESHOLD.clear()
+        confianza.CATEGORY_REVIEW_THRESHOLD.update(vigentes)
+    assert confianza.CATEGORY_REVIEW_THRESHOLD == vigentes
+    print("umbrales de partida ok")
+
+
 def main_pruebas() -> None:
+    probar_umbrales_de_partida()
     probar_tramos()
     probar_intervalo_wilson()
     probar_candidatos_y_muestra()
