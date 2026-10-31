@@ -24,6 +24,7 @@ from PIL import Image
 from agente1 import analizar_imagen
 from analizar_detecciones import CLASES, cargar
 from catalogo import cargar_catalogo
+from confianza import classify_confidence, decidir_tier
 from evaluar_vision import ruta_foto
 from generar_lote import (
     elegir_lote, fotos_que_faltan, generar_lote, llamadas_previstas, main, rutas_por_defecto, validar_salida_agente1,
@@ -576,9 +577,41 @@ def probar_ac001_ac002_con_datos_reales() -> None:
     print(f"datos reales ok: 30 imagenes, {llamadas} llamadas previstas, aciertos por clase {dict(cuenta)}")
 
 
+def _errores_de_niveles(ruta: Path) -> list[str]:
+    """Hallazgos de un JSON del contrato cuyo `score_tier` o `confidence_tier` no son los que calcula el codigo con los umbrales vigentes."""
+    errores = []
+    for h in json.loads(ruta.read_text(encoding="utf-8"))["findings"]:
+        por_score = classify_confidence(h["category"], h["score"])
+        final = decidir_tier(h["category"], h["score"], h["vision_verdict"], h["pieza_id"], h["regla_coste_aplicable"])
+        if h["score_tier"] != por_score:
+            errores.append(f"{ruta.name} {h['finding_id']}: score_tier={h['score_tier']!r}, el codigo da {por_score!r}")
+        if h["confidence_tier"] != final:
+            errores.append(f"{ruta.name} {h['finding_id']}: confidence_tier={h['confidence_tier']!r}, el codigo da {final!r}")
+    return errores
+
+
+def probar_ac006_niveles_de_los_ejemplos_coherentes_con_los_umbrales() -> None:
+    """Plan v1 de #44 + AC-006: los niveles guardados en el ejemplo del contrato y en las 30 salidas reales (`score_tier` y
+    `confidence_tier`) son los que calcula el codigo con los umbrales vigentes de `confianza.py`; si se recalibran, estos ejemplos
+    hay que recalcularlos (y el ejemplo a mano, decidirlo). El ejemplo tambien valida con `validar_salida_agente1`."""
+    ejemplos = MUESTRA.parent
+    ficheros = [ejemplos / "agente1_salida.json", *sorted(MUESTRA.glob("[0-9]*.json"))]
+    assert len(ficheros) == 31
+    errores = [e for ruta in ficheros for e in _errores_de_niveles(ruta)]
+    assert not errores, "\n".join(errores[:5])
+    try:
+        catalogo = cargar_catalogo()
+    except FileNotFoundError:
+        print("(catalogo real no encontrado: se salta la validacion del ejemplo contra el catalogo)")
+        return
+    ejemplo = json.loads(ficheros[0].read_text(encoding="utf-8"))
+    assert validar_salida_agente1(ejemplo, catalogo, "000160.json") == []
+
+
 def main_pruebas() -> None:
     probar_ac001_ac002_con_datos_reales()
     probar_ac010_muestra_versionada()
+    probar_ac006_niveles_de_los_ejemplos_coherentes_con_los_umbrales()
     probar_ac001_seleccion_reproducible()
     probar_ac002_plan_sin_gastar_y_tope()
     probar_ac003_un_json_por_imagen_con_cache()
