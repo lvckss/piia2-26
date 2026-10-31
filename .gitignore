@@ -7,3 +7,6 @@ piia2_paquete_datos/
 
 # detecciones de PIIA-1 exportadas de Colab (derivadas de las anotaciones de CarDD)
 piia2_detecciones/
+
+# Credenciales locales (nunca se versionan)
+.env
