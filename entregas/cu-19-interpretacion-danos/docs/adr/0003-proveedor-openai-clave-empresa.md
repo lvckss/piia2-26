@@ -3,7 +3,7 @@
 - Estado: Aceptado
 - Fecha: 2026-10-19
 - GitHub Issue: https://github.com/lvckss/piia2-26/issues/37
-- Planes cubiertos (Issue/mini-spec/Spec): [entregas/cu-19-interpretacion-danos/specs/37-adrs-decisiones-previas.md](../../entregas/cu-19-interpretacion-danos/specs/37-adrs-decisiones-previas.md) — registro de una decisión ya vigente. La usan el Agente 1 (segunda opinión de visión) y, si se hace, el RAG (#32) y la orquestación (#33, #34).
+- Planes cubiertos (Issue/mini-spec/Spec): [entregas/cu-19-interpretacion-danos/specs/37-adrs-decisiones-previas.md](../../specs/37-adrs-decisiones-previas.md) — registro de una decisión ya vigente. La usan el Agente 1 (segunda opinión de visión) y, si se hace, el RAG (#32) y la orquestación (#33, #34).
 - Planning PR: https://github.com/lvckss/piia2-26/pull/51
 - Aceptación: Lucas García (`lvckss`), [revisión APPROVED del 2026-10-20](https://github.com/lvckss/piia2-26/pull/51#pullrequestreview-5588663399) sobre la versión `14b4b28` (aceptación expresa de los ADRs 0002, 0003, 0004 y 0005).
 - Sustituye / sustituido por: no aplica. Registra una decisión anterior sin ADR (`specs/piia2-arquitectura-multiagente.md`, tabla «Decisiones tomadas y pendientes», fila «Proveedor y modelos»).
@@ -43,8 +43,8 @@ La decisión se usa ya en el código (`agente1.py`, `vision.py`) y condiciona la
 
 ## Referencias y evidencia
 
-- Decisión en [`specs/piia2-arquitectura-multiagente.md`](../../entregas/cu-19-interpretacion-danos/specs/piia2-arquitectura-multiagente.md), «Decisiones tomadas y pendientes» (texto de la reunión con la empresa; no hay otro documento primario en el repositorio: supuesto declarado).
-- Cliente: `crear_cliente_openai()` en [`agente1.py`](../../entregas/cu-19-interpretacion-danos/app/agentes/agente_multimodal/agente1.py):
+- Decisión en [`specs/piia2-arquitectura-multiagente.md`](../../specs/piia2-arquitectura-multiagente.md), «Decisiones tomadas y pendientes» (texto de la reunión con la empresa; no hay otro documento primario en el repositorio: supuesto declarado).
+- Cliente: `crear_cliente_openai()` en [`agente1.py`](../../app/agentes/agente_multimodal/agente1.py):
 
   ```python
   if not os.environ.get("OPENAI_API_KEY"):
@@ -53,6 +53,6 @@ La decisión se usa ya en el código (`agente1.py`, `vision.py`) y condiciona la
   return OpenAI(default_headers={"Accept-Encoding": "gzip, deflate"}, ...)
   ```
 
-- Problema de `brotli` y su solución: [`app/agentes/README.md`](../../entregas/cu-19-interpretacion-danos/app/agentes/README.md), «Problemas conocidos».
-- Caché por modelo, consulta e imágenes: `analizar_hallazgo` en [`vision.py`](../../entregas/cu-19-interpretacion-danos/app/agentes/agente_multimodal/vision.py).
+- Problema de `brotli` y su solución: [`app/agentes/README.md`](../../app/agentes/README.md), «Problemas conocidos».
+- Caché por modelo, consulta e imágenes: `analizar_hallazgo` en [`vision.py`](../../app/agentes/agente_multimodal/vision.py).
 - Documentación oficial del SDK: https://github.com/openai/openai-python

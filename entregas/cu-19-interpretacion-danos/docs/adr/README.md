@@ -1,5 +1,9 @@
 # Registro de decisiones (ADRs)
 
+Este registro pertenece a CU-19 y se entrega dentro de su carpeta. La
+[reubicación documental y el mapa de rutas históricas](../README.md#ubicaciones-vigentes-y-referencias-históricas)
+conservan las decisiones, numeración, aceptación y evidencia existentes.
+
 Las decisiones técnicas/arquitectónicas suficientemente fundamentales, duraderas
 o costosas de revertir se registran aquí. Los cambios observables locales sin
 decisión estructural no requieren ADR; resolver y revisar explícitamente

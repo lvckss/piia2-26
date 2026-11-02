@@ -67,6 +67,7 @@ cu-19-interpretacion-danos/
 ├── README.md
 ├── justfile
 ├── scripts/
+├── docs/
 ├── specs/
 └── app/
     ├── agentes/
@@ -82,6 +83,7 @@ cu-19-interpretacion-danos/
 - `README.md`: presenta el problema, la motivación, el alcance y el equipo.
 - `justfile`: comandos de desarrollo y preparación de datos, propios de este caso.
 - `scripts/`: descargador de CARDD, dependencia opcional, SHA-256, pruebas y [guía de datos locales](scripts/README.md). Se entrega dentro del caso; las imágenes y el entorno Python permanecen fuera de Git.
+- `docs/`: [documentación del equipo](docs/README.md), workflow, plantillas y registro de ADRs. Forma parte de la entrega del caso.
 - `specs/`: especificaciones, arquitectura y guías del proyecto (tabla más abajo).
 - `app/`: código del proyecto. Su propio [README](app/README.md) explica cómo se ejecuta cada parte.
   - `app/agentes/`: **PIIA2**. [`agente_multimodal/`](app/agentes/agente_multimodal/) contiene el Agente 1 con sus pruebas; [`agente_recuperacion/`](app/agentes/agente_recuperacion/) y [`agente_redactor/`](app/agentes/agente_redactor/) son las carpetas de los Agentes 2 y 3 (por ahora, su README con el plan); [`ejemplos_contrato/`](app/agentes/ejemplos_contrato/) reúne JSON de ejemplo del contrato entre agentes. Su [README](app/agentes/README.md) describe el conjunto.

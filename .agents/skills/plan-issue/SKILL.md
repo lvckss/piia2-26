@@ -12,8 +12,8 @@ comandos, permisos, paginación ni verificaciones.
 ## Fuentes y alcance
 
 Leer desde la raíz del repo [AGENTS.md](../../../AGENTS.md),
-[lifecycle](../../../docs/workflow.md), [template de Spec](../../../docs/templates/spec-template.md),
-[template de ADR](../../../docs/adr/template.md), [registro de ADRs](../../../docs/adr/README.md),
+[lifecycle](../../../entregas/cu-19-interpretacion-danos/docs/workflow.md), [template de Spec](../../../entregas/cu-19-interpretacion-danos/docs/templates/spec-template.md),
+[template de ADR](../../../entregas/cu-19-interpretacion-danos/docs/adr/template.md), [registro de ADRs](../../../entregas/cu-19-interpretacion-danos/docs/adr/README.md),
 [template de Issue](../../../.github/ISSUE_TEMPLATE/work-item.md),
 [template de PR](../../../.github/pull_request_template.md) y
 [configuración del Project](../../../.github/project-config.json). Prevalecen
@@ -88,7 +88,7 @@ skill responsable. Un fallo detiene esa operación; no repetir mutaciones a cieg
 ## 3. Reanudar antes de crear artefactos
 
 Buscar primero planes en Issue y comentarios (incluida versión vigente), Specs relacionadas,
-[ADRs](../../../docs/adr/), ramas `plan/<issue>-*` y PRs (abiertas, cerradas e
+[ADRs](../../../entregas/cu-19-interpretacion-danos/docs/adr/), ramas `plan/<issue>-*` y PRs (abiertas, cerradas e
 integradas) del repositorio que referencien la Issue. Leer los artefactos en la
 rama/head de la PR existente, no solo lo presente en main. Una búsqueda por título
 no prueba identidad; comparar número/URL, alcance y enlaces de planificación.
@@ -147,7 +147,7 @@ clarify al recibir feedback que cambie requisitos; no ocultar incertidumbres.
 
 ## 4b. Elegir y completar el camino proporcional
 
-Aplicar los disparadores de revisión previa de docs/workflow.md: NEW_ADR,
+Aplicar los disparadores de revisión previa de `entregas/cu-19-interpretacion-danos/docs/workflow.md`: NEW_ADR,
 impacto crítico, reversión costosa, incertidumbre sustantiva que requiera
 revisión humana del diseño para acordar requisitos/contratos o revisión previa expresamente solicitada.
 Registrar riesgo real (consumidores, impacto, seguridad, reversibilidad,
@@ -318,7 +318,7 @@ Escenarios documentales de regresión (sin escribir producto ni tests):
 | Diff pequeño cambia schema JSON estable entre Agente 1 y Agente 2. | NEW_ADR si la decisión no está cubierta; REUSE_ADR solo si un ADR Aceptado cubre explícitamente ese cambio. Nunca NO_ADR_REQUIRED por tamaño. |
 
 Solo para NEW_ADR, elegir el siguiente número de cuatro dígitos libre,
-comprobando main y planes abiertos, y crear `docs/adr/<NNNN>-<slug>.md` desde el
+comprobando main y planes abiertos, y crear `entregas/<caso>/docs/adr/<NNNN>-<slug>.md` desde el
 template con estado Propuesto. Incluir contexto/motivación y drivers, propuesta,
 alternativas reales, ventajas/inconvenientes, consecuencias/riesgos, implicaciones
 para testing, evidencia e Issue/Spec. Distinguir supuestos de mediciones;
