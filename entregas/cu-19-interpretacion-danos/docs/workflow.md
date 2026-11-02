@@ -1,6 +1,6 @@
 # Lifecycle de desarrollo
 
-Las invariantes están en [AGENTS.md](../AGENTS.md). Issue, planificación,
+Las invariantes están en [AGENTS.md](https://github.com/lvckss/piia2-26/blob/10e8acb4845a7885cd11c16bba0d8b2cce810202/AGENTS.md). Issue, planificación,
 ejecución y entrega son responsabilidades distintas; la planificación no exige
 siempre un documento ni una PR independiente.
 
@@ -10,11 +10,11 @@ Issue → investigación + planificación proporcional → DoR → Ready
       → merge humano + DoD → Hechas
 ```
 
-[plan-issue](../.agents/skills/plan-issue/SKILL.md) cubre únicamente
+[plan-issue](https://github.com/lvckss/piia2-26/blob/10e8acb4845a7885cd11c16bba0d8b2cce810202/.agents/skills/plan-issue/SKILL.md) cubre únicamente
 Por hacer → Especificando → Ready.
-[implement-issue](../.agents/skills/implement-issue/SKILL.md) cubre Ready → En curso
+[implement-issue](https://github.com/lvckss/piia2-26/blob/10e8acb4845a7885cd11c16bba0d8b2cce810202/.agents/skills/implement-issue/SKILL.md) cubre Ready → En curso
 → Implementation PR → En revisión, con comprobación del plan, TDD/eval-first y
-verificación de AC. [finish-issue](../.agents/skills/finish-issue/SKILL.md) comprueba
+verificación de AC. [finish-issue](https://github.com/lvckss/piia2-26/blob/10e8acb4845a7885cd11c16bba0d8b2cce810202/.agents/skills/finish-issue/SKILL.md) comprueba
 integración en main y DoD, reutiliza evidencia y completa el registro de entrega
 y En revisión → Hechas de forma idempotente. Ninguna de estas skills aprueba o
 fusiona PRs ni cierra la GitHub Issue.
@@ -162,7 +162,7 @@ motivo. Para REUSE_ADR, leer igualmente el ADR desde main actualizado.
 ## Definition of Done
 
 La misma DoD aplica a todos los caminos. La checklist global del
-[template de Issue](../.github/ISSUE_TEMPLATE/work-item.md#definition-of-done)
+[template de Issue](https://github.com/lvckss/piia2-26/blob/10e8acb4845a7885cd11c16bba0d8b2cce810202/.github/ISSUE_TEMPLATE/work-item.md#definition-of-done)
 y los requisitos específicos del plan deben estar completamente satisfechos:
 
 - Todos los AC implementados y verificados con evidencia trazable.
@@ -199,7 +199,7 @@ PR documental; mantienen evidencia, revisión, aprobación humana e integración
 ## Seguimiento operacional con GitHub Projects v2
 
 El [Project PIIA2 — Seguimiento](https://github.com/users/lvckss/projects/1)
-se identifica mediante [project-config.json](../.github/project-config.json).
+se identifica mediante [project-config.json](https://github.com/lvckss/piia2-26/blob/10e8acb4845a7885cd11c16bba0d8b2cce810202/.github/project-config.json).
 No se añaden estados, campos ni automatismos. Issue es la unidad de trabajo y
 Project la fuente de verdad operacional; no sustituyen el plan ni los ADRs.
 
@@ -232,9 +232,9 @@ esa tarea mediante capacidades disponibles, respetando permisos del runtime y
 restricciones de datos. No exige un humano como intermediario; no implica instalar
 un framework, aprobar decisiones humanas ni comunicar con terceros ajenos al trabajo.
 
-Las skills [gh-verifying-context](../.agents/skills/gh-verifying-context/SKILL.md),
-[gh-issue-management](../.agents/skills/gh-issue-management/SKILL.md) y
-[gh-project-management](../.agents/skills/gh-project-management/SKILL.md) mantienen:
+Las skills [gh-verifying-context](https://github.com/lvckss/piia2-26/blob/10e8acb4845a7885cd11c16bba0d8b2cce810202/.agents/skills/gh-verifying-context/SKILL.md),
+[gh-issue-management](https://github.com/lvckss/piia2-26/blob/10e8acb4845a7885cd11c16bba0d8b2cce810202/.agents/skills/gh-issue-management/SKILL.md) y
+[gh-project-management](https://github.com/lvckss/piia2-26/blob/10e8acb4845a7885cd11c16bba0d8b2cce810202/.agents/skills/gh-project-management/SKILL.md) mantienen:
 verificar contexto → leer → cambio mínimo autorizado → escribir → releer →
 comprobar resultado → informar. Descubrir IDs actuales, paginar y exigir permisos.
 No borrar, archivar, cerrar ni modificar estructura/workflows; workflows automáticos
@@ -257,5 +257,5 @@ No se incorpora enforcement automático, CI adicional, protección de ramas ni
 orquestación. Revisión de DoR/DoD y operaciones siguen explícitas, ejecutables por
 agentes con evidencia y límites de autorización. Templates:
 [Spec](templates/spec-template.md), [ADR](adr/template.md),
-[Issue](../.github/ISSUE_TEMPLATE/work-item.md),
-[PR](../.github/pull_request_template.md).
+[Issue](https://github.com/lvckss/piia2-26/blob/10e8acb4845a7885cd11c16bba0d8b2cce810202/.github/ISSUE_TEMPLATE/work-item.md),
+[PR](https://github.com/lvckss/piia2-26/blob/10e8acb4845a7885cd11c16bba0d8b2cce810202/.github/pull_request_template.md).

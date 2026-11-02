@@ -3,7 +3,7 @@
 - Estado: Aceptado
 - Fecha: 2026-10-19
 - GitHub Issue: https://github.com/lvckss/piia2-26/issues/37
-- Planes cubiertos (Issue/mini-spec/Spec): [entregas/cu-19-interpretacion-danos/specs/37-adrs-decisiones-previas.md](../../entregas/cu-19-interpretacion-danos/specs/37-adrs-decisiones-previas.md) — registro de una decisión ya vigente. La consumen los planes de la #30 (`specs/30-costes-cobertura.md`) y la #31 (`specs/31-informe-peritaje.md`).
+- Planes cubiertos (Issue/mini-spec/Spec): [entregas/cu-19-interpretacion-danos/specs/37-adrs-decisiones-previas.md](../../specs/37-adrs-decisiones-previas.md) — registro de una decisión ya vigente. La consumen los planes de la #30 (`specs/30-costes-cobertura.md`) y la #31 (`specs/31-informe-peritaje.md`).
 - Planning PR: https://github.com/lvckss/piia2-26/pull/51
 - Aceptación: Lucas García (`lvckss`), [revisión APPROVED del 2026-10-20](https://github.com/lvckss/piia2-26/pull/51#pullrequestreview-5588663399) sobre la versión `14b4b28` (aceptación expresa de los ADRs 0002, 0003, 0004 y 0005).
 - Sustituye / sustituido por: no aplica. Registra una decisión anterior sin ADR (`specs/piia2-arquitectura-multiagente.md`, «Contrato de datos entre piezas»). El ADR 0001 (Issue #28, [PR #29](https://github.com/lvckss/piia2-26/pull/29), Propuesto y aún no integrado en `main`) propone ampliar este contrato con el campo `vehiculo`.
@@ -18,7 +18,7 @@ La decisión está escrita en la spec de arquitectura y se usa ya en el código 
 
 ## Decisión
 
-1. **Formato.** Los agentes se pasan **diccionarios JSON serializables**, uno por imagen, con la forma fijada por los ejemplos de [`ejemplos_contrato/`](../../entregas/cu-19-interpretacion-danos/app/agentes/ejemplos_contrato/). Los ejemplos son la referencia ejecutable del contrato: un cambio de forma actualiza los ejemplos y requiere ADR.
+1. **Formato.** Los agentes se pasan **diccionarios JSON serializables**, uno por imagen, con la forma fijada por los ejemplos de [`ejemplos_contrato/`](../../app/agentes/ejemplos_contrato/). Los ejemplos son la referencia ejecutable del contrato: un cambio de forma actualiza los ejemplos y requiere ADR.
 2. **Agente 1 → Agentes 2 y 3.** `image_id`, `resumen_filtro_previo` (`detecciones_totales`, `candidatas`, `descartadas_por_clase`) y `findings[]`. Cada hallazgo tiene exactamente: `finding_id`, `category`, `clase_tool`, `score`, `score_tier`, `confidence_tier`, `bbox_xywh`, `vision_verdict`, `pieza_id`, `severidad`, `regla_coste_aplicable`, `vision_description` y `crop_image_path`.
 3. **Ningún hallazgo desaparece sin rastro.** Cada detección candidata produce un hallazgo; lo que no se confirma queda como `needs_review` (incluidos los rechazados por la visión, con `vision_verdict = "rechazado"`), y lo que el filtro previo no manda a la visión queda contado en `resumen_filtro_previo` ([ADR 0005](0005-filtro-previo-detecciones-por-clase.md)).
 4. **Nivel de confianza en la frontera.** `confidence_tier` es `confirmed` solo si el score pasa el umbral de su clase, la visión confirma y hay pieza con regla de coste; si no, `needs_review`. Los Agentes 2 y 3 no recalculan la confianza: la consumen.
@@ -43,8 +43,8 @@ La decisión está escrita en la spec de arquitectura y se usa ya en el código 
 
 ## Referencias y evidencia
 
-- Contrato descrito en [`specs/piia2-arquitectura-multiagente.md`](../../entregas/cu-19-interpretacion-danos/specs/piia2-arquitectura-multiagente.md), «Contrato de datos entre piezas».
-- Ejemplos: [`agente1_salida.json`](../../entregas/cu-19-interpretacion-danos/app/agentes/ejemplos_contrato/agente1_salida.json), [`agente2_salida.json`](../../entregas/cu-19-interpretacion-danos/app/agentes/ejemplos_contrato/agente2_salida.json) (cifras calculadas con la herramienta real) y [`contexto_siniestro.json`](../../entregas/cu-19-interpretacion-danos/app/agentes/ejemplos_contrato/contexto_siniestro.json).
+- Contrato descrito en [`specs/piia2-arquitectura-multiagente.md`](../../specs/piia2-arquitectura-multiagente.md), «Contrato de datos entre piezas».
+- Ejemplos: [`agente1_salida.json`](../../app/agentes/ejemplos_contrato/agente1_salida.json), [`agente2_salida.json`](../../app/agentes/ejemplos_contrato/agente2_salida.json) (cifras calculadas con la herramienta real) y [`contexto_siniestro.json`](../../app/agentes/ejemplos_contrato/contexto_siniestro.json).
 - Comprobación ejecutable del lado del Agente 1 (medido: pasa en `main` `5bdabe2`):
 
   ```bash
@@ -52,5 +52,5 @@ La decisión está escrita en la spec de arquitectura y se usa ya en el código 
   python probar_agente1_stub.py   # compara las claves con CAMPOS_FINDING
   ```
 
-- Nivel de confianza: [`confianza.py`](../../entregas/cu-19-interpretacion-danos/app/agentes/agente_multimodal/confianza.py) (`decidir_tier`) y [`specs/agente-confianza-hallazgos.md`](../../entregas/cu-19-interpretacion-danos/specs/agente-confianza-hallazgos.md).
+- Nivel de confianza: [`confianza.py`](../../app/agentes/agente_multimodal/confianza.py) (`decidir_tier`) y [`specs/agente-confianza-hallazgos.md`](../../specs/agente-confianza-hallazgos.md).
 - Primera versión del contrato, sustituida: `git show d890c20:entregas/cu-19-interpretacion-danos/specs/piia2-arquitectura-multiagente.md`.

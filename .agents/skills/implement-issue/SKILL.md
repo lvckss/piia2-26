@@ -7,7 +7,7 @@ description: Implementar autónomamente una Issue de PIIA2 con DoR acreditada, u
 
 Entrada: `implement-issue 14` (entero positivo decimal, `#` opcional). Si falta,
 pedir la Issue; rechazar cero, negativos, texto extra, URLs y otros repos. Leer
-[AGENTS.md](../../../AGENTS.md), [workflow](../../../docs/workflow.md) y
+[AGENTS.md](../../../AGENTS.md), [workflow](../../../entregas/cu-19-interpretacion-danos/docs/workflow.md) y
 [template de PR](../../../.github/pull_request_template.md).
 
 Aplicar [gh-verifying-context](../gh-verifying-context/SKILL.md),

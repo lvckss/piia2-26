@@ -3,7 +3,7 @@
 - Estado: Aceptado
 - Fecha: 2026-10-20
 - GitHub Issue: https://github.com/lvckss/piia2-26/issues/32
-- Planes cubiertos (Issue/mini-spec/Spec): [32-rag-normativa.md](../../entregas/cu-19-interpretacion-danos/specs/32-rag-normativa.md), persistencia, contrato de citas y diagnóstico, composición y evaluación.
+- Planes cubiertos (Issue/mini-spec/Spec): [32-rag-normativa.md](../../specs/32-rag-normativa.md), persistencia, contrato de citas y diagnóstico, composición y evaluación.
 - Planning PR: https://github.com/lvckss/piia2-26/pull/56 — integrada en `main` (merge `9d2affb`).
 - Aceptación: Lucía Luis Castaño (`lucia-luis-castano`), [revisión APPROVED del 2026-10-28](https://github.com/lvckss/piia2-26/pull/56#pullrequestreview-5681219827) sobre la versión `b0a27d7` (v1.6), que cubre este ADR y la spec 32; incluye la decisión de Lucas del 2026-10-27 sobre el mínimo de 23/25. La adaptación del consumidor #31 está recogida por la #58 integrada; el plan de #34 sigue en revisión (PR #60).
 - Versión: propuesta alineada con la Spec v1.6; v1 conservada en `0197825`, v1.1 en `88bd84d` y v1.2 en `c77a17c`. Referencias previas del 2026-10-22, mínimo 23/25 y reparto explícito de Compose actualizados el 2026-10-27.
