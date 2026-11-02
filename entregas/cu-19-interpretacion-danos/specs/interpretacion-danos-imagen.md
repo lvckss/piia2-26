@@ -26,7 +26,7 @@ El Agente 1 (analista multimodal de PIIA2) convierte las detecciones de PIIA1 de
 | `vision_verdict`, `pieza_id`, `severidad`, `regla_coste_aplicable`, `vision_description` | Resultado de la segunda opinión de visión |
 | `crop_image_path` | Recorte de la zona, guardado en disco |
 
-**Dónde encaja.** Entre PIIA1 (detecciones guardadas) y el Agente 2 (costes y cobertura) y el Agente 3 (informe). El filtro previo de detecciones y el nivel de confianza se especifican en [`agente-confianza-hallazgos.md`](agente-confianza-hallazgos.md); la categoría del vehículo, que proponía la [Issue #28](https://github.com/lvckss/piia2-26/issues/28) y quedó aparcada (el vehículo es un dato de entrada obligatorio del siniestro, ver [`piia2-arquitectura-multiagente.md`](piia2-arquitectura-multiagente.md)), y que habría añadido el campo `vehiculo` a la salida.
+**Dónde encaja.** Entre PIIA1 (detecciones guardadas) y el Agente 2 (costes y cobertura) y el Agente 3 (informe). El filtro previo de detecciones y el nivel de confianza se especifican en [`agente-confianza-hallazgos.md`](agente-confianza-hallazgos.md); la categoría del vehículo, que propone la [Issue #28](https://github.com/lvckss/piia2-26/issues/28) (en planificación, retomada el 2026-10-27 para el recorrido web) y que añadiría el campo `vehiculo` a la salida; hasta que se acepte e implemente, el vehículo es un dato de entrada obligatorio del siniestro, ver [`piia2-arquitectura-multiagente.md`](piia2-arquitectura-multiagente.md).
 
 ## Por qué
 
@@ -37,7 +37,7 @@ Esta funcionalidad convierte las detecciones en hallazgos con veredicto, pieza y
 ## Alcance
 
 - **Incluido:** leer las detecciones guardadas; aplicar el filtro previo; recortar cada hallazgo candidato; consultar al modelo de visión, una vez por hallazgo y con caché; validar la respuesta; calcular `regla_coste_aplicable`; asignar el nivel de confianza; devolver el JSON del contrato.
-- **Fuera de alcance:** detectar daños o ejecutar SAM3 (PIIA1 los deja guardados); una API, una interfaz o la visualización de resultados; validar ficheros subidos; estimar la categoría del vehículo (propuesta aparcada de la Issue #28); calcular costes o cobertura (Agente 2); redactar el informe (Agente 3); comparar modelos de visión.
+- **Fuera de alcance:** detectar daños o ejecutar SAM3 (PIIA1 los deja guardados); una API, una interfaz o la visualización de resultados; validar ficheros subidos; estimar la categoría del vehículo (en planificación en la Issue #28; no forma parte de esta spec); calcular costes o cobertura (Agente 2); redactar el informe (Agente 3); comparar modelos de visión.
 
 ## Restricciones y supuestos
 
@@ -48,7 +48,7 @@ Esta funcionalidad convierte las detecciones en hallazgos con veredicto, pieza y
 - No se identifican personas, propietarios ni matrículas: la consulta solo pregunta por el daño de la zona marcada.
 - **La segunda opinión es orientativa.** No se puede medir contra CarDD si la pieza y la severidad son correctas, porque CarDD no trae esas etiquetas: hace falta revisar a mano una muestra.
 - La salida de los hallazgos no registra todavía el modelo de visión usado (la caché sí lo guarda).
-- El vehículo es un dato de entrada obligatorio del siniestro, no algo que el Agente 1 deduzca. La Issue #28, que proponía estimarlo y añadir el campo `vehiculo` a la salida, quedó aparcada: el criterio AC-001, que fija las claves de la salida, no cambia.
+- Hoy el vehículo es un dato de entrada obligatorio del siniestro, no algo que el Agente 1 deduzca. La Issue #28, en planificación, propone estimarlo y añadir el campo `vehiculo` a la salida; si se acepta e implementa, el criterio AC-001, que fija las claves de la salida, se actualizará en esa Issue. Mientras tanto no cambia.
 
 ## Criterios de aceptación
 
@@ -62,5 +62,5 @@ Esta funcionalidad convierte las detecciones en hallazgos con veredicto, pieza y
 | AC-004 | Una imagen con tres hallazgos candidatos y un cliente simulado con caché. | Se hace una consulta por hallazgo, con el modelo indicado, formato de respuesta JSON y dos imágenes adjuntas en `data:image/jpeg;base64`. Repetir la consulta con la caché activa no hace ninguna llamada nueva, y el contador de uso suma solo las llamadas reales. | `python probar_vision_stub.py` (`probar_enriquecer`). **Verificado.** |
 | AC-005 | Una imagen con 9 detecciones de las que el filtro previo deja 6. | Solo las 6 candidatas se convierten en hallazgos, y `resumen_filtro_previo` registra `detecciones_totales`, `candidatas` y `descartadas_por_clase`: ninguna detección desaparece sin dejar rastro. | `python probar_seleccion_stub.py` (`probar_casos_pequenos`). **Verificado.** |
 | AC-006 | El catálogo de la empresa extraído en `piia2_paquete_datos/`. | Contiene 35 piezas y 45 reglas de daño. | `python probar_vision_stub.py` (`probar_catalogo_real`). **Verificado** con el paquete presente. |
-| AC-007 | La salida de un hallazgo. | Registra el modelo de visión con el que se obtuvo. | **Pendiente.** La salida actual no lo incluye (solo la caché). La Issue #28, aparcada, lo habría añadido para `vehiculo`; para los hallazgos lo cubre la [Issue #45](https://github.com/lvckss/piia2-26/issues/45). |
+| AC-007 | La salida de un hallazgo. | Registra el modelo de visión con el que se obtuvo. | **Pendiente.** La salida actual no lo incluye (solo la caché). La Issue #28, en planificación, lo añadiría para `vehiculo`; para los hallazgos lo cubre la [Issue #45](https://github.com/lvckss/piia2-26/issues/45). |
 | AC-008 | El texto de la consulta de visión que se envía al modelo. | No pide matrículas, propietarios ni personas: solo el tipo de daño, la pieza y la severidad de la zona marcada. | **Pendiente de prueba automática.** El texto actual (`PROMPT_TEMPLATE` en [`vision.py`](../app/agentes/agente_multimodal/vision.py)) lo cumple al leerlo. |
