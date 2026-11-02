@@ -27,6 +27,9 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .cache
 *.tsbuildinfo
 
+# temporary Vite configuration bundles
+frontend/vite.config.*.timestamp-*.mjs
+
 # IntelliJ based IDEs
 .idea
 
