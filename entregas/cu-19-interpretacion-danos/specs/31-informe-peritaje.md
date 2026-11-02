@@ -51,23 +51,25 @@ El informe tiene estas secciones, con estos encabezados y en este orden:
 9. `## Fuentes consultadas`: la `normativa` con su fuente, o «Sin fuentes»; y, si el diagnóstico
    del RAG lo indica, cada tema cuya consulta no recuperó fuentes, con el motivo (AC-014).
 
+**Integración objetivo con la web.** La [orquestación, AC-008](34-orquestacion-web.md#acceptance-criteria) exige distinguir un coche de referencia confirmado de uno seleccionado por el usuario y advertir cuando el presupuesto usa un representante. El formato compartido de procedencia y la adaptación de esta función siguen pendientes de revisión en #34/ADR 0007. No se restaura el AC-010 retirado ni se presenta esta adaptación como implementada o aceptada.
+
 **Todas las cifras, tablas y listas se generan con código a partir de los JSON**; ningún importe
 se calcula ni se escribe a mano. No se usa ningún modelo de lenguaje.
 
 Encaja al final de la cadena: Agente 1 (`agente_multimodal/agente1.py`) → Agente 2 (#30, #32) →
 **Agente 3** → informe para el usuario. La orquestación (#34) llamará a `generar_informe`. El
-código de referencia de `specs/agente3-informe-guia.md` es el punto de partida.
+código de referencia de `docs/guias/agente3-informe-guia.md` es el punto de partida.
 
-### Estado actual (exploración en solo lectura, `origin/main` en `5bdabe2`)
+### Estado del snapshot de origen (exploración en solo lectura, `origin/main` en `5bdabe2`)
 
 | Qué | Evidencia |
 |---|---|
 | No existe código productivo del Agente 3: la carpeta solo tiene un README. | `app/agentes/agente_redactor/README.md` |
 | La entrada está fijada por ejemplos: 5 hallazgos (`160-1` y `160-4` confirmados; `160-3` pendiente por score 0,68; `160-5` pendiente con visión incierta; `160-2` rechazado por la visión) y la salida del Agente 2 con dos escenarios, 6 `arrastres_posibles`, 2 extractos de `normativa` y el campo `estimacion.aviso`. | `app/agentes/ejemplos_contrato/{agente1_salida,agente2_salida,contexto_siniestro}.json` |
 | Cifras del ejemplo: `confirmados` 1.019,46 € sin IVA / 1.233,55 € con IVA / 933,55 € de indemnización; `con_pendientes` 1.488,23 € / 1.800,76 € / 1.500,76 €; valor venal 17.491,54 €; franquicia 300,00 €. | `agente2_salida.json` |
-| La guía trae un generador de referencia (`generar_informe`, `comprobar_cifras`, `importes_en_euros`) y una prueba mínima (`probar_informe.py`), además de 5 casos a probar (tercero, sin confirmados, todos rechazados, pérdida total, sin arrastres y sin normativa). | `specs/agente3-informe-guia.md`, pasos 2 y 3 |
+| La guía trae un generador de referencia (`generar_informe`, `comprobar_cifras`, `importes_en_euros`) y una prueba mínima (`probar_informe.py`), además de 5 casos a probar (tercero, sin confirmados, todos rechazados, pérdida total, sin arrastres y sin normativa). | `docs/guias/agente3-informe-guia.md`, pasos 2 y 3 |
 | El generador de referencia solo muestra la cobertura del escenario `confirmados` en la sección de cobertura. | Ídem, sección «Cobertura e indemnización» del código |
-| El contrato Agente 2 → Agente 3 y los tres motivos de `hallazgos_fuera_del_coste` están en la arquitectura; el Agente 2 se planifica en la #30 (PR #40) sin cambiar ese contrato. | `specs/piia2-arquitectura-multiagente.md`; `specs/30-costes-cobertura.md` (rama `plan/30-costes-cobertura`) |
+| El contrato Agente 2 → Agente 3 y los tres motivos de `hallazgos_fuera_del_coste` están en la arquitectura; el Agente 2 se planifica en la #30 (PR #40) sin cambiar ese contrato. | `docs/piia2-arquitectura-multiagente.md`; `specs/30-costes-cobertura.md` (rama `plan/30-costes-cobertura`) |
 | La Issue #28 (categoría del vehículo) está **aparcada** desde el 2026-10-20 por decisión de Lucía: el coche es siempre dato de entrada. | [registro en la #31](https://github.com/lvckss/piia2-26/issues/31#issuecomment-6297183738) |
 | El plan del RAG (#32, PR #56 en borrador, ADR 0006 Propuesto) propone añadir `diagnostico_rag` a la salida del Agente 2: `estado` (`recuperadas`, `parcial`, `sin_resultados`, `error`, `no_aplica`) y `consultas` (cada una con `tema`, `estado`, `fuentes` e `incidencias` con `codigo`, `etapa`, `mensaje` y `reintentable`). Pide que la #31 muestre las incidencias y el carácter preliminar en `parcial`, `sin_resultados` o `error`, con el texto de referencia «Informe preliminar: no se han recuperado fuentes suficientes para respaldar las conclusiones indicadas sobre cobertura e indemnización. Estas conclusiones requieren revisión». | `plan/32-rag-normativa:specs/32-rag-normativa.md` («Contrato propuesto de diagnóstico») |
 | El README del caso (PR #39) declara las cifras económicas y de cobertura «orientativas y no vinculantes». | `impl/35-readme-alcance:entregas/cu-19-interpretacion-danos/README.md` |

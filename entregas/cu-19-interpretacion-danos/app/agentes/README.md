@@ -5,7 +5,7 @@ indemnización) a partir de la salida de detección de daños de PIIA-1
 (`../ml/`) y de los datos del siniestro.
 
 Diseño completo, contrato entre agentes y decisiones tomadas con la empresa:
-[`../../specs/piia2-arquitectura-multiagente.md`](../../specs/piia2-arquitectura-multiagente.md).
+[`../../specs/piia2-arquitectura-multiagente.md`](../../docs/piia2-arquitectura-multiagente.md).
 
 ```text
 agentes/

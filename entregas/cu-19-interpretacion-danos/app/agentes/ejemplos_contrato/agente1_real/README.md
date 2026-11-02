@@ -14,7 +14,7 @@ Un fichero por imagen, con el `image_id` de seis cifras (`001236.json`). Cinco p
 
 Qué hay y qué no:
 
-- Tienen el formato del contrato Agente 1 → Agente 2 y 3 ([`piia2-arquitectura-multiagente.md`](../../../../specs/piia2-arquitectura-multiagente.md)) y pasan `validar_salida_agente1`.
+- Tienen el formato del contrato Agente 1 → Agente 2 y 3 ([`piia2-arquitectura-multiagente.md`](../../../../docs/piia2-arquitectura-multiagente.md)) y pasan `validar_salida_agente1`.
 - **No hay fotos ni recortes.** `crop_image_path` es relativo a la carpeta del lote (`crops/...`) y esos recortes no están en el repositorio; el Agente 2 y el Agente 3 no los necesitan.
 - **No traen datos del siniestro** (vehículo, taller, póliza): para probar el Agente 2 hay que combinarlas con un contexto de prueba, por ejemplo `../contexto_siniestro.json`.
 - Los textos de `vision_description` son salida del modelo; una persona no los ha revisado uno a uno.

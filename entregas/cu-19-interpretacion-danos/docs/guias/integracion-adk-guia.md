@@ -1,6 +1,8 @@
 # Integración con Google ADK (guía para Lucas)
 
-Esta guía es autónoma. Antes, lee `specs/piia2-arquitectura-multiagente.md`
+> Material de apoyo de una versión anterior del diseño. La definición funcional vigente de esta entrega está en el [README](../../README.md) y sus specs. Los ejemplos de código y alternativas de esta guía no sustituyen esos contratos.
+
+Esta guía es autónoma. Antes, lee `docs/piia2-arquitectura-multiagente.md`
 (sistema completo, contrato JSON, decisiones tomadas con la empresa).
 
 ## Objetivo

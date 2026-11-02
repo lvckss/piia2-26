@@ -1,7 +1,9 @@
 # Agente 2 — Costes y cobertura (guía para Víctor)
 
+> Material de apoyo de una versión anterior del diseño. La definición funcional vigente de esta entrega está en el [README](../../README.md) y sus specs. Los ejemplos de código y alternativas de esta guía no sustituyen esos contratos.
+
 Esta guía es autónoma: léela entera (tú o tu Claude) antes de tocar código.
-Antes, lee también `specs/piia2-arquitectura-multiagente.md`: ahí está el
+Antes, lee también `docs/piia2-arquitectura-multiagente.md`: ahí está el
 sistema completo y el contrato JSON entre agentes. No necesitas el código de
 Lucía ni el de Lucas para trabajar: tienes ejemplos reales en
 `entregas/cu-19-interpretacion-danos/app/agentes/ejemplos_contrato/`.

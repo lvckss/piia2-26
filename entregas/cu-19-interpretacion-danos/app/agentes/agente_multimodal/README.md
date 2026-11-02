@@ -10,7 +10,7 @@ score de PIIA-1, decide qué hallazgos son fiables y produce la lista de
 (`../agente_redactor/`).
 
 Contrato de entrada/salida completo:
-[`../../../specs/piia2-arquitectura-multiagente.md`](../../../specs/piia2-arquitectura-multiagente.md).
+[`../../../specs/piia2-arquitectura-multiagente.md`](../../../docs/piia2-arquitectura-multiagente.md).
 Diseño del filtro de confianza:
 [`../../../specs/agente-confianza-hallazgos.md`](../../../specs/agente-confianza-hallazgos.md).
 

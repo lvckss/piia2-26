@@ -1,7 +1,9 @@
 # Agente 3 — Redactor del informe (guía para Víctor)
 
+> Material de apoyo de una versión anterior del diseño. La definición funcional vigente de esta entrega está en el [README](../../README.md) y sus specs. Los ejemplos de código y alternativas de esta guía no sustituyen esos contratos.
+
 Esta guía es autónoma: léela entera (tú o tu Claude) antes de tocar código.
-Antes, lee también `specs/piia2-arquitectura-multiagente.md`: ahí está el
+Antes, lee también `docs/piia2-arquitectura-multiagente.md`: ahí está el
 sistema completo, el contrato JSON entre agentes y las decisiones tomadas con
 la empresa. No necesitas esperar a nadie ni haber terminado tus costes: tienes
 ejemplos reales en `entregas/cu-19-interpretacion-danos/app/agentes/ejemplos_contrato/`.

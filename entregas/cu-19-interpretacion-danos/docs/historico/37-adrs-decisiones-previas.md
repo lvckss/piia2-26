@@ -9,13 +9,20 @@
 - Riesgo y revisión previa: **sí** (disparador: NEW_ADR). Impacto medio-alto: los ADRs fijan decisiones que condicionan las Issues #28, #30 y #31, y el equipo decidió el 2026-10-19 que los ADRs se integran en `main` antes de implementar. Reversibilidad alta (documentos). Incertidumbre baja: las cuatro decisiones están escritas y medidas en el repo.
 - Planning PR: https://github.com/lvckss/piia2-26/pull/51. La aprueba una persona distinta del autor (revisor acordado en el reparto: Lucas).
 
+> Reubicación documental del 2026-11-02, solicitada por Lucas: el
+> [registro vigente](../adr/README.md) está dentro del caso. El
+> [mapa de rutas](../README.md#mapa-de-rutas-de-esta-edición)
+> actualiza la ubicación canónica acordada en esta planificación; las rutas y
+> enlaces a commits de su versión revisada se conservan como evidencia histórica.
+> No cambia las decisiones, sus aceptaciones, AC ni compromisos de la #49.
+
 ## Qué construir
 
 Cuatro ADRs en `docs/adr/`, con el [template](https://github.com/lvckss/piia2-26/blob/6b8ff989823fa69226679bf3e693a48488f14cff/docs/adr/template.md) del repo, que registran decisiones estructurales ya vigentes:
 
 | ADR | Decisión | Dónde está hoy |
 |---|---|---|
-| 0002 | Contrato JSON por imagen entre los agentes: todos los hallazgos con su nivel de confianza (Agente 1 → 2 y 3) y dos escenarios de coste con cobertura y normativa (Agente 2 → 3). | `specs/piia2-arquitectura-multiagente.md`, `ejemplos_contrato/`, `probar_agente1_stub.py` |
+| 0002 | Contrato JSON por imagen entre los agentes: todos los hallazgos con su nivel de confianza (Agente 1 → 2 y 3) y dos escenarios de coste con cobertura y normativa (Agente 2 → 3). | `docs/piia2-arquitectura-multiagente.md`, `ejemplos_contrato/`, `probar_agente1_stub.py` |
 | 0003 | API de OpenAI con la clave de la empresa; clave en `OPENAI_API_KEY` y modelo en `OPENAI_MODEL`. | Arquitectura (decisiones), `agente1.py`, `vision.py`, `app/agentes/README.md` |
 | 0004 | Costes con la herramienta y los datos de la empresa (`estimar_coste`, `valor_venal`, `polizas.csv`), sin precios propios. | Arquitectura v2, `agente2-costes-cobertura-guia.md`, paquete de la empresa |
 | 0005 | Filtro previo por clase de las detecciones que van al modelo de visión. | `specs/agente-confianza-hallazgos.md`, `seleccion.py` |
@@ -90,14 +97,14 @@ Estrategia: **documental** (contenido, contraste con el repo, enlaces y diff). S
 
 | Referencia (ruta de Spec + AC) | Seam / contrato | Estrategia y nivel | Caso / resultado esperado | Datos / entorno | Comando o pasos previstos | Evidencia prevista |
 |---|---|---|---|---|---|---|
-| `specs/37-adrs-decisiones-previas.md#AC-001` | S1 | Documental | Secciones y metadatos del template en los 4 | `docs/adr/template.md` | `grep -n "^## \|^- Estado" docs/adr/000[2-5]-*.md` | Salida en la PR |
-| `specs/37-adrs-decisiones-previas.md#AC-002` | S1, S3 | Documental | Cada alternativa con motivo y fuente | Arquitectura v1 (`d890c20`) y v2, `agente-confianza-hallazgos.md`, ADR 0001 | Lectura de cada tabla contra su fuente citada | Tabla de contraste en la PR |
-| `specs/37-adrs-decisiones-previas.md#AC-003` | S1, S2 | Documental con ejecución de evidencia | Cifras, campos y valores = repo | `main`; paquete de la empresa en local | `python probar_agente1_stub.py`, `python probar_seleccion_stub.py` (desde `agente_multimodal/`), `git grep` de las variables y de `FILTRO_PREVIO`, y `valor_venal("V05", 3, 42000) == 17491.54` con el paquete | Salida de los comandos en la PR |
-| `specs/37-adrs-decisiones-previas.md#AC-004` | S1, S3 | Documental | Sin contradicciones | Specs integradas y ADR 0001 (PR #29) | Lectura cruzada | Tabla de cruce en la PR |
-| `specs/37-adrs-decisiones-previas.md#AC-005` | S1 | Revisión humana | ≥ 2 Aceptados (incluidos 0002 y 0004) con quién, referencia y versión | Revisión de la Planning PR | Leer la revisión y los metadatos de Aceptación desde `main` tras el merge | Registro en la Issue |
-| `specs/37-adrs-decisiones-previas.md#AC-006` | S1 | Documental | Enlaces que resuelven | `main` | Script que resuelve los enlaces relativos con `git cat-file -e` | Salida en la PR |
-| `specs/37-adrs-decisiones-previas.md#AC-007` | S1 | Documental | Sin secretos | — | `grep -n -iE "sk-[a-z0-9]{10,}\|api_key *= *['\"]" docs/adr/000[2-5]-*.md` sin resultados | Salida en la PR |
-| `specs/37-adrs-decisiones-previas.md#AC-008` | S1 | Documental | Diff acotado | — | `git diff --stat origin/main...HEAD` | Salida en la PR |
+| `docs/historico/37-adrs-decisiones-previas.md#AC-001` | S1 | Documental | Secciones y metadatos del template en los 4 | `docs/adr/template.md` | `grep -n "^## \|^- Estado" docs/adr/000[2-5]-*.md` | Salida en la PR |
+| `docs/historico/37-adrs-decisiones-previas.md#AC-002` | S1, S3 | Documental | Cada alternativa con motivo y fuente | Arquitectura v1 (`d890c20`) y v2, `agente-confianza-hallazgos.md`, ADR 0001 | Lectura de cada tabla contra su fuente citada | Tabla de contraste en la PR |
+| `docs/historico/37-adrs-decisiones-previas.md#AC-003` | S1, S2 | Documental con ejecución de evidencia | Cifras, campos y valores = repo | `main`; paquete de la empresa en local | `python probar_agente1_stub.py`, `python probar_seleccion_stub.py` (desde `agente_multimodal/`), `git grep` de las variables y de `FILTRO_PREVIO`, y `valor_venal("V05", 3, 42000) == 17491.54` con el paquete | Salida de los comandos en la PR |
+| `docs/historico/37-adrs-decisiones-previas.md#AC-004` | S1, S3 | Documental | Sin contradicciones | Specs integradas y ADR 0001 (PR #29) | Lectura cruzada | Tabla de cruce en la PR |
+| `docs/historico/37-adrs-decisiones-previas.md#AC-005` | S1 | Revisión humana | ≥ 2 Aceptados (incluidos 0002 y 0004) con quién, referencia y versión | Revisión de la Planning PR | Leer la revisión y los metadatos de Aceptación desde `main` tras el merge | Registro en la Issue |
+| `docs/historico/37-adrs-decisiones-previas.md#AC-006` | S1 | Documental | Enlaces que resuelven | `main` | Script que resuelve los enlaces relativos con `git cat-file -e` | Salida en la PR |
+| `docs/historico/37-adrs-decisiones-previas.md#AC-007` | S1 | Documental | Sin secretos | — | `grep -n -iE "sk-[a-z0-9]{10,}\|api_key *= *['\"]" docs/adr/000[2-5]-*.md` sin resultados | Salida en la PR |
+| `docs/historico/37-adrs-decisiones-previas.md#AC-008` | S1 | Documental | Diff acotado | — | `git diff --stat origin/main...HEAD` | Salida en la PR |
 
 ## Implementation Plan
 

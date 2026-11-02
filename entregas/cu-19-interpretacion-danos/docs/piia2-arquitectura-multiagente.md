@@ -1,5 +1,7 @@
 # PIIA2 — arquitectura multiagente y reparto final
 
+> Material de apoyo de una versión anterior del diseño. La definición funcional vigente de esta entrega está en el [README](../README.md) y sus specs. Los ejemplos de código y alternativas de esta guía no sustituyen esos contratos.
+
 Este documento es el punto de partida para los 3: describe el sistema
 completo, el contrato de datos entre piezas y quién hace qué. Las guías de
 cada pieza (`agente2-costes-cobertura-guia.md`, `agente2-rag-normativa-guia.md`,
@@ -271,10 +273,10 @@ puedan reasignar sin reescribirlas.
 | Pieza | Quién | Guía |
 |---|---|---|
 | Agente 1 — Analista de daños (multimodal), comparación de modelos de visión y coordinación | Lucía | `app/agentes/agente_multimodal/README.md` |
-| Agente 2, partes A y B — Costes y cobertura | Víctor | [`agente2-costes-cobertura-guia.md`](agente2-costes-cobertura-guia.md) |
-| Agente 3 — Redactor del informe | Víctor | [`agente3-informe-guia.md`](agente3-informe-guia.md) |
-| Agente 2, parte C — Normativa (RAG) | Lucas | [`agente2-rag-normativa-guia.md`](agente2-rag-normativa-guia.md) |
-| Integración de los tres agentes (Google ADK, o plan B en Python) | Lucas | [`integracion-adk-guia.md`](integracion-adk-guia.md) |
+| Agente 2, partes A y B — Costes y cobertura | Víctor | [`agente2-costes-cobertura-guia.md`](guias/agente2-costes-cobertura-guia.md) |
+| Agente 3 — Redactor del informe | Víctor | [`agente3-informe-guia.md`](guias/agente3-informe-guia.md) |
+| Agente 2, parte C — Normativa (RAG) | Lucas | [`agente2-rag-normativa-guia.md`](guias/agente2-rag-normativa-guia.md) |
+| Integración de los tres agentes (Google ADK, o plan B en Python) | Lucas | [`integracion-adk-guia.md`](guias/integracion-adk-guia.md) |
 
 **Por qué este reparto.** Lucas es quien mejor maneja este tipo de trabajo, así
 que se queda con lo que más incertidumbre técnica tiene: el RAG y ADK (que no

@@ -4,10 +4,12 @@
 - Estado: Revisada — por Lucas García (`lvckss`), [revisión APPROVED del 2026-10-20](https://github.com/lvckss/piia2-26/pull/40#pullrequestreview-5588541999) sobre la versión `c1e5b93`, que cubre la spec y sus planes.
 - ADR decision: NO_ADR_REQUIRED — justificación aceptada por Lucas García ([comentario del 2026-10-20](https://github.com/lvckss/piia2-26/pull/40#issuecomment-6290002285) y aprobación sobre `c1e5b93`) y por Lucía Luis Castaño (revisión de `408f393`).
 - ADR: No requerido — justificado en Spec.
-- Justificación: esta Issue implementa, sin cambiarlo, el contrato Agente 2 → Agente 3 ya acordado en `specs/piia2-arquitectura-multiagente.md` y fijado por `ejemplos_contrato/agente2_salida.json`. No introduce una decisión estructural nueva: usa la herramienta de costes de la empresa (decisión previa) y replica reglas de cobertura deterministas ya descritas. Registrar como ADR las decisiones previas (contrato entre agentes, herramienta de la empresa) es el alcance de la Issue #37, no de esta. El único cambio de contrato que toca esta Issue (`vehiculo_id` opcional y `vehiculo_origen`) lo decide el ADR 0001 de la Issue #28; aquí solo se consume (AC-009). **A confirmar en la revisión:** que esta justificación no oculta una decisión relevante.
+- Justificación: esta Issue implementa, sin cambiarlo, el contrato Agente 2 → Agente 3 ya acordado en `docs/piia2-arquitectura-multiagente.md` y fijado por `ejemplos_contrato/agente2_salida.json`. No introduce una decisión estructural nueva: usa la herramienta de costes de la empresa (decisión previa) y replica reglas de cobertura deterministas ya descritas. Registrar como ADR las decisiones previas (contrato entre agentes, herramienta de la empresa) es el alcance de la Issue #37, no de esta. El cálculo mantiene `vehiculo_id` obligatorio. La propuesta de categoría pertenece a #28 y la selección/procedencia a #34; el criterio histórico AC-009 permanece retirado y esta función no deduce ni elige un coche. **A confirmar en la revisión:** que esta justificación no oculta una decisión relevante.
 - Plan vigente / versión: este archivo, en la rama `plan/30-costes-cobertura`; el commit exacto se registra en un comentario de la Issue.
 - Riesgo y revisión previa: **sí, por solicitud expresa**. Por riesgo no haría falta (sin NEW_ADR, reversible, contrato preservado), pero el equipo acordó en el reparto de la Entrega 1 que esta mini-spec la revise Lucas antes de implementar. Según AGENTS.md («respetar también revisión previa expresamente solicitada») y el workflow, eso activa el camino con revisión previa: Spec Revisada y Planning PR aprobada e integrada por un humano antes de implementar. Consumidores: Agente 3 (#31) y la función `agente2()`, que es de la #32 (la escribe quien hace el RAG, según `agente2-rag-normativa-guia.md`, punto 3) y que la orquestación (#34) solo consume. Impacto medio (las cifras llegan al informe), reversibilidad alta (función nueva, sin datos persistentes), incertidumbre baja (código de referencia probado en la guía).
 - Planning PR: https://github.com/lvckss/piia2-26/pull/40, aprobada por una persona distinta del autor (revisor acordado en el reparto: Lucas). Al aprobarla, la spec pasa a Revisada y se registran quién la acepta, el permalink y la versión.
+
+> Edición documental de entrega, 2026-11-02: se aclara la obligatoriedad del vehículo y su frontera con #28/#34. Las aprobaciones citadas corresponden a la versión fuente; no se reactiva AC-009 ni se declara revisada una ampliación del contrato. Los registros fechados de decisiones anteriores se conservan como antecedentes.
 
 ## Qué construir
 
@@ -31,18 +33,18 @@ Una función determinista del Agente 2, `estimar_siniestro(salida_agente1, conte
   `normativa: []` (la rellena el RAG de la Issue #32).
 
 Encaja entre el Agente 1 (`agente_multimodal/agente1.py`) y el Agente 3 (#31). El código de
-referencia de `specs/agente2-costes-cobertura-guia.md` es el punto de partida.
+referencia de `docs/guias/agente2-costes-cobertura-guia.md` es el punto de partida.
 
-### Estado actual (exploración en solo lectura, `origin/main` en `5bdabe2`)
+### Estado del snapshot de origen (exploración en solo lectura, `origin/main` en `5bdabe2`)
 
 | Qué | Evidencia |
 |---|---|
 | No existe código productivo del Agente 2: la carpeta solo tiene un README. | `app/agentes/agente_recuperacion/README.md` |
 | El contrato de entrada y salida está fijado por ejemplos: 5 hallazgos (confirmado, rechazado, pendiente por score, pendiente con visión incierta, confirmado grave) y la salida esperada calculada con la herramienta real. | `app/agentes/ejemplos_contrato/{agente1_salida,contexto_siniestro,agente2_salida}.json` y su README |
 | Cifras de referencia del ejemplo: valor venal 17.491,54 €; `confirmados` 1.019,46 € sin IVA / 933,55 € de indemnización; `con_pendientes` 1.488,23 € / 1.500,76 €; `160-2` fuera por `rechazado_por_vision`. | `agente2_salida.json` |
-| La guía trae el código de referencia (`clasificar_hallazgos`, `calcular_cobertura`, `estimar_siniestro`) y la prueba mínima `probar_costes.py`. | `specs/agente2-costes-cobertura-guia.md` |
+| La guía trae el código de referencia (`clasificar_hallazgos`, `calcular_cobertura`, `estimar_siniestro`) y la prueba mínima `probar_costes.py`. | `docs/guias/agente2-costes-cobertura-guia.md` |
 | Las reglas de cobertura (pérdida total, tercero, lunas, daños propios, sin cobertura) están descritas en la guía, pieza B. | Ídem |
-| El contrato Agente 2 → Agente 3 y los motivos de `hallazgos_fuera_del_coste` están en la arquitectura. | `specs/piia2-arquitectura-multiagente.md`, «Agente 2 → Agente 3» |
+| El contrato Agente 2 → Agente 3 y los motivos de `hallazgos_fuera_del_coste` están en la arquitectura. | `docs/piia2-arquitectura-multiagente.md`, «Agente 2 → Agente 3» |
 | La Issue #28 (PR #29, ADR 0001 Propuesto) propone `vehiculo_id` opcional en el contexto y `vehiculo_origen` en la salida. | `plan/28-categoria-vehiculo:specs/28-categoria-vehiculo.md#AC-009` |
 | La herramienta y los datos de la empresa no están en git; cada miembro extrae `piia2_paquete_datos/` en la raíz del repo. | `.gitignore`, arquitectura |
 
@@ -59,8 +61,9 @@ pueda verificar.
 - Incluido: reparto de hallazgos en tres grupos con motivo; dos escenarios de coste con
   `estimar_coste`; valor venal, umbral y pérdida total; cobertura e indemnización estimada para
   rol propio y tercero perjudicado; salida con la forma del contrato; validación explícita de la
-  entrada del siniestro; uso del coche estimado por visión cuando el contexto no trae `vehiculo_id`
-  (condicionado a la #28); evaluación con los siniestros sintéticos de la empresa.
+  entrada del siniestro, incluido un `vehiculo_id` válido ya confirmado o seleccionado antes
+  del cálculo; evaluación con los siniestros sintéticos de la empresa. La propuesta visual y
+  su confirmación se resuelven en #28/#34, no dentro de `estimar_siniestro`.
 - Fuera de alcance: el RAG de normativa y la función `agente2()` que lo junta (#32); el informe
   (#31); la orquestación y ADK (#33, #34); modificar la herramienta o los datos de la empresa;
   precios reales; aprobar o rechazar reparaciones o indemnizaciones; cambiar el Agente 1.
