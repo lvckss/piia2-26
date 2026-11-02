@@ -63,7 +63,10 @@ responsabilidades de producto, datos, modelos e integración.
 
 ```text
 cu-19-interpretacion-danos/
+├── .gitignore
 ├── README.md
+├── justfile
+├── scripts/
 ├── specs/
 └── app/
     ├── agentes/
@@ -77,10 +80,29 @@ cu-19-interpretacion-danos/
 ```
 
 - `README.md`: presenta el problema, la motivación, el alcance y el equipo.
+- `justfile`: comandos de desarrollo y preparación de datos, propios de este caso.
+- `scripts/`: descargador de CARDD, dependencia opcional, SHA-256, pruebas y [guía de datos locales](scripts/README.md). Se entrega dentro del caso; las imágenes y el entorno Python permanecen fuera de Git.
 - `specs/`: especificaciones, arquitectura y guías del proyecto (tabla más abajo).
 - `app/`: código del proyecto. Su propio [README](app/README.md) explica cómo se ejecuta cada parte.
   - `app/agentes/`: **PIIA2**. [`agente_multimodal/`](app/agentes/agente_multimodal/) contiene el Agente 1 con sus pruebas; [`agente_recuperacion/`](app/agentes/agente_recuperacion/) y [`agente_redactor/`](app/agentes/agente_redactor/) son las carpetas de los Agentes 2 y 3 (por ahora, su README con el plan); [`ejemplos_contrato/`](app/agentes/ejemplos_contrato/) reúne JSON de ejemplo del contrato entre agentes. Su [README](app/agentes/README.md) describe el conjunto.
   - `app/ml/`, `app/server/`, `app/frontend/`, `app/bd/`, `app/docker/`, `app/docs/` y `app/notes/`: código, datos y documentación **heredados de PIIA1** (pipeline de detección y evaluador, API de inferencia, API y cliente web, esquema de datos, contenedor de la API de ML, documentación técnica y notas de diseño). No se amplían en PIIA2. Los archivos de configuración y de entorno de PIIA1 están en la raíz de `app/`.
+
+### Preparación local
+
+Desde la raíz del repositorio de la asignatura, entra en la carpeta del caso:
+
+```bash
+cd entregas/cu-19-interpretacion-danos
+just           # muestra los comandos disponibles
+just cardd     # prepara el entorno Python y descarga/comprueba CARDD
+```
+
+Si recibes esta carpeta por separado, ejecuta los mismos comandos desde su raíz.
+El descargador, sus requisitos y el `justfile` están incluidos; no dependen de
+archivos auxiliares de la raíz de la asignatura. Consulta los
+[prerrequisitos y comandos de frontend/backend](app/README.md#comandos-con-just)
+y la [guía de descarga](scripts/README.md). La preparación de archivos CARDD
+no crea ni carga PostgreSQL.
 
 ### Contenido de `specs/`
 

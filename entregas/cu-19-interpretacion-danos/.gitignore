@@ -1,0 +1,3 @@
+# Entorno y caché locales del descargador
+.venv-cardd/
+__pycache__/
