@@ -18,7 +18,7 @@ from urllib.request import urlopen
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_DESTINATION = ROOT / "entregas/cu-19-interpretacion-danos/app/bd"
+DEFAULT_DESTINATION = ROOT / "app/bd"
 METADATA = Path(__file__).with_name("cardd-dataset.json")
 MARKER = ".cardd-install.json"
 DIRECTORIES = ("rawdata", "clean_data")
@@ -223,7 +223,7 @@ def main():
     parser.add_argument("--sha256", default=os.environ.get("CARDD_SHA256", metadata["sha256"]),
                         help="SHA-256 esperado; por defecto la versión registrada en el repo.")
     parser.add_argument("--destination", type=Path, default=DEFAULT_DESTINATION,
-                        help="Destino; por defecto entregas/cu-19-interpretacion-danos/app/bd/.")
+                        help="Destino; por defecto app/bd/ dentro de la carpeta del proyecto.")
     args = parser.parse_args()
     if not args.url:
         args.url = os.environ.get("CARDD_URL")

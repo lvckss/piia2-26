@@ -1,11 +1,15 @@
 # Datos CARDD locales
 
-Plan v1 y AC-001–AC-005: [Issue #64](https://github.com/lvckss/piia2-26/issues/64#issuecomment-6448595256).
+Plan vigente v3 y AC-001–AC-009: [Issue #64](https://github.com/lvckss/piia2-26/issues/64#issuecomment-6576322792).
+La evidencia de descarga original se conserva en el [plan v1](https://github.com/lvckss/piia2-26/issues/64#issuecomment-6448595256).
 
-Desde la raíz del repositorio, `download_cardd.py` coloca el paquete en:
+Los comandos de esta guía parten de la **carpeta del proyecto**, donde están
+`justfile`, `scripts/` y `app/`. Dentro del repositorio de la asignatura es
+`entregas/cu-19-interpretacion-danos/`; si se entrega esa carpeta por separado,
+las rutas siguen siendo las mismas. `download_cardd.py` coloca el paquete en:
 
 ```text
-entregas/cu-19-interpretacion-danos/app/bd/
+app/bd/
 ├── rawdata/
 │   ├── image_info.xlsx
 │   ├── instances_train.json
@@ -24,11 +28,17 @@ permanecen en cada copia local. No hay que añadirlas con `git add -f`.
 ## Descargar desde Google Drive
 
 Con [Just](https://just.systems/) y Python 3.11+ con `venv`, el atajo desde
-la raíz o cualquier subcarpeta del repositorio es:
+la raíz o cualquier subcarpeta del proyecto es:
 
 ```bash
 just cardd
 ```
+
+Desde la raíz del repositorio de la asignatura, entra primero en
+`entregas/cu-19-interpretacion-danos/` o usa
+`just --justfile entregas/cu-19-interpretacion-danos/justfile cardd`.
+El descargador resuelve el destino desde su propia carpeta; no necesita `.git`
+ni depende del directorio desde el que se invoque.
 
 Prepara automáticamente `.venv-cardd`, instala la dependencia fijada y ejecuta
 el descargador con el enlace del paquete v1. Puedes proporcionar otra URL con

@@ -1,4 +1,6 @@
-"""CLI checks for plan v1, https://github.com/lvckss/piia2-26/issues/64#issuecomment-6448595256.
+"""CLI checks for plan v3, https://github.com/lvckss/piia2-26/issues/64#issuecomment-6576322792.
+
+Original AC-001–AC-005: https://github.com/lvckss/piia2-26/issues/64#issuecomment-6448595256.
 
 Fixtures contain synthetic bytes, never CARDD images or credentials.
 """
@@ -10,6 +12,7 @@ import io
 import json
 import os
 from pathlib import Path
+import shutil
 import subprocess
 import sys
 import tarfile
@@ -230,14 +233,39 @@ class DownloadCarddTests(unittest.TestCase):
         self.assertEqual(image.read_bytes(), b"changed")
 
     def test_AC005_data_and_local_state_are_ignored(self):
-        app = ROOT / "entregas/cu-19-interpretacion-danos/app"
+        # Validate the delivered ignore files without relying on the course repo.
+        project = self.root / "isolated-git"
+        app = project / "app"
+        app.mkdir(parents=True)
+        shutil.copy2(ROOT / ".gitignore", project)
+        shutil.copy2(ROOT / "app/.gitignore", app)
+        subprocess.run(["git", "init", "--quiet", str(project)], check=True)
         paths = [app / "bd/rawdata/image_info.xlsx", app / "bd/clean_data/test/fullsize/test.jpg",
-                 app / "bd/.cardd-install.json", app / "bd/.cardd-stage-test/file"]
+                 app / "bd/.cardd-install.json", app / "bd/.cardd-stage-test/file",
+                 project / ".venv-cardd/bin/python", project / "scripts/__pycache__/test.pyc"]
         result = subprocess.run(
             ["git", "check-ignore", "--no-index", *map(str, paths)],
-            cwd=ROOT, capture_output=True, text=True,
+            cwd=project, capture_output=True, text=True,
         )
         self.assertEqual(len(result.stdout.splitlines()), len(paths), result.stdout)
+
+    def test_AC009_copied_project_uses_its_own_default_destination(self):
+        # Plan v3: https://github.com/lvckss/piia2-26/issues/64#issuecomment-6576322792
+        project = self.root / "copia independiente del proyecto"
+        scripts = project / "scripts"
+        scripts.mkdir(parents=True)
+        shutil.copy2(SCRIPT, scripts / SCRIPT.name)
+        shutil.copy2(SCRIPT.with_name("cardd-dataset.json"), scripts)
+        result = subprocess.run(
+            [sys.executable, "-S", str(scripts / SCRIPT.name),
+             "--archive", str(self.archive), "--sha256", self.sha],
+            cwd=self.root, capture_output=True, text=True, timeout=30,
+        )
+        self.assert_success(result)
+        for name, data in self.files.items():
+            self.assertEqual((project / "app/bd" / name).read_bytes(), data)
+        self.assertTrue((project / "app/bd/.cardd-install.json").is_file())
+        self.assertFalse((project / "entregas").exists())
 
 
 if __name__ == "__main__":

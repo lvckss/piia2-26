@@ -19,15 +19,16 @@ app/
 
 ## Comandos con Just
 
-El [justfile de la raíz](../../../justfile) permite ejecutar los comandos desde
-la raíz o cualquier subcarpeta del repositorio. Necesitas [Just](https://just.systems/)
+El [justfile del proyecto](../justfile) permite ejecutar los comandos desde
+la carpeta del caso o cualquier subcarpeta, incluida esta `app/`. Necesitas [Just](https://just.systems/)
 y Bun; para CARDD, Python 3.11+ con `venv`.
 
-Instala una vez las dependencias Bun desde la raíz:
+Instala una vez las dependencias Bun desde la carpeta del caso
+(`entregas/cu-19-interpretacion-danos/` dentro del repositorio de la asignatura):
 
 ```bash
-(cd entregas/cu-19-interpretacion-danos/app && bun install)
-(cd entregas/cu-19-interpretacion-danos/app/frontend && bun install)
+(cd app && bun install)
+(cd app/frontend && bun install)
 ```
 
 Después, ejecuta el backend y frontend en terminales separadas:
@@ -36,6 +37,10 @@ Después, ejecuta el backend y frontend en terminales separadas:
 just backend   # Bun + Hono, por defecto http://localhost:3000
 just frontend  # React + Vite, por defecto http://localhost:5173
 ```
+
+Desde la raíz de la asignatura se puede indicar el archivo explícitamente:
+`just --justfile entregas/cu-19-interpretacion-danos/justfile frontend`.
+No se necesita un justfile ni scripts propios del caso fuera de su carpeta.
 
 El backend necesita PostgreSQL disponible y `DATABASE_URL` exportada en el shell
 o definida en un `.env` local dentro de `app/`. Estos comandos no crean la BD ni
@@ -49,12 +54,12 @@ just           # lista los comandos
 `just cardd` usa el paquete de Drive documentado; puedes cambiar su URL mediante
 `CARDD_URL`. No necesitas activar el entorno Python. La instalación conserva las
 validaciones SHA-256 y evita descargar de nuevo datos ya comprobados. Consulta
-[la guía de CARDD](../../../scripts/README.md) para modo offline y más opciones.
+[la guía de CARDD](../scripts/README.md) para modo offline y más opciones.
 
 ## Backend
 
 Antes de usar el explorador de imágenes, descarga sus datos siguiendo
-[la guía de CARDD local](../../../scripts/README.md). Las imágenes y anotaciones
+[la guía de CARDD local](../scripts/README.md). Las imágenes y anotaciones
 quedan en `bd/rawdata/` y `bd/clean_data/`, excluidas de Git. La descarga no carga
 PostgreSQL: el esquema y el importador están en `bd/`.
 

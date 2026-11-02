@@ -1,6 +1,6 @@
-# Plan v2, AC-006–AC-008:
-# https://github.com/lvckss/piia2-26/issues/64#issuecomment-6449486337
-app := 'entregas/cu-19-interpretacion-danos/app'
+# Plan v3, AC-006–AC-009:
+# https://github.com/lvckss/piia2-26/issues/64#issuecomment-6576322792
+app := 'app'
 cardd_url := env('CARDD_URL', 'https://drive.google.com/file/d/1TXnFJUyNsxciAz4pxKtwD8lJ1uWzcdBK/view?usp=sharing')
 
 # Mostrar los comandos disponibles.
