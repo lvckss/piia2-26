@@ -94,8 +94,8 @@
       "category": "scratch",
       "clase_tool": "scratch",
       "score": 0.681640625,
-      "score_tier": "needs_review",
-      "confidence_tier": "needs_review",
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
       "bbox_xywh": [
         532.0,
         579.0,
@@ -114,8 +114,8 @@
       "category": "scratch",
       "clase_tool": "scratch",
       "score": 0.59765625,
-      "score_tier": "needs_review",
-      "confidence_tier": "needs_review",
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
       "bbox_xywh": [
         9.0,
         445.0,

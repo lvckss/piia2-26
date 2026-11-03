@@ -74,7 +74,8 @@ def main() -> None:
         assert finding["clase_tool"] == finding["category"].replace(" ", "_")
 
     tiers = [f["confidence_tier"] for f in resultado["findings"]]
-    assert tiers == ["confirmed", "needs_review", "needs_review"], tiers
+    # lamp broken 0,91 firme; tire flat rechazado por la vision; dent 0,68 firme con el umbral 0,3 de la #44 (con 0,7 era needs_review)
+    assert tiers == ["confirmed", "needs_review", "confirmed"], tiers
 
     print(json.dumps(resultado, ensure_ascii=False, indent=2))
     print("\nTodo ok: el JSON final cumple el contrato Agente 1 -> Agente 2/3.")

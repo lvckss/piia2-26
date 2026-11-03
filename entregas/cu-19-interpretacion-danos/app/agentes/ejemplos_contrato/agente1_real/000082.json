@@ -175,8 +175,8 @@
       "category": "scratch",
       "clase_tool": "scratch",
       "score": 0.63818359375,
-      "score_tier": "needs_review",
-      "confidence_tier": "needs_review",
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
       "bbox_xywh": [
         466.0,
         405.0,
@@ -195,7 +195,7 @@
       "category": "dent",
       "clase_tool": "dent",
       "score": 0.5634765625,
-      "score_tier": "needs_review",
+      "score_tier": "confirmed",
       "confidence_tier": "needs_review",
       "bbox_xywh": [
         466.0,
