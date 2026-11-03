@@ -174,6 +174,112 @@ def probar_ac013_numeros_no_monetarios_no_valen_como_importe():
         assert obtenido == esperado, f"{linea!r} -> {obtenido}"
 
 
+def _escenario_vacio(escenario: dict) -> dict:
+    """Escenario sin hallazgos con la forma de specs/30-costes-cobertura.md#AC-007:
+    mismas claves, importes 0 y listas vacias."""
+    vacio = copy.deepcopy(escenario)
+    est = vacio["estimacion"]
+    est["lineas"], est["arrastres_posibles"] = [], []
+    est["desglose"] = {k: 0.0 for k in est["desglose"]}
+    est["subtotal_sin_iva_eur"] = est["iva_eur"] = est["total_con_iva_eur"] = 0.0
+    vacio["hallazgos_incluidos"] = []
+    vacio["cobertura"] = {"cubierto": False, "motivo": "Sin daños presupuestables", "franquicia_eur": 0.0,
+                          "perdida_total": False, "indemnizacion_estimada_eur": 0.0}
+    return vacio
+
+
+def _fila(seccion: str, inicio: str) -> str:
+    return next(l for l in seccion.splitlines() if l.startswith(inicio))
+
+
+# --- specs/31-informe-peritaje.md#AC-006 ------------------------------------
+def probar_ac006_tercero_perjudicado():
+    """AC-006: tercero sin poliza_id -> sin excepcion, cabecera con el tercero y
+    «Terceros (RC obligatoria)», cobertura de cada escenario tal como viene."""
+    a1, a2 = _ejemplos()
+    t = copy.deepcopy(a2)
+    t["contexto"]["rol"], t["contexto"]["poliza_id"] = "tercero_perjudicado", ""
+    t["umbral_perdida_total"] = 1.0
+    motivo = "Daños a tercero: RC obligatoria (acción directa, LRCSCVM art. 7)"
+    for e in t["escenarios"].values():
+        total = e["estimacion"]["total_con_iva_eur"]
+        e["cobertura"] = {"cubierto": True, "motivo": motivo, "franquicia_eur": 0.0,
+                          "perdida_total": False, "indemnizacion_estimada_eur": total}
+    md = generar_informe(a1, t, hoy=HOY)
+    s = _secciones(md)
+    cabecera = s[ENCABEZADOS[0]]
+    assert "Terceros (RC obligatoria)" in cabecera, cabecera
+    perjudicado = next((l for l in cabecera.splitlines() if "Perjudicado" in l), "")
+    assert "tercero" in perjudicado, f"la cabecera no indica que el perjudicado es un tercero:\n{cabecera}"
+    cobertura = s["## Cobertura e indemnización"]
+    assert motivo in cobertura, cobertura
+    for e in t["escenarios"].values():
+        assert informe.eur(e["cobertura"]["indemnizacion_estimada_eur"]) in cobertura
+    assert comprobar_cifras(md, t) == [], comprobar_cifras(md, t)
+
+
+# --- specs/31-informe-peritaje.md#AC-007 ------------------------------------
+def probar_ac007_sin_confirmados_y_todo_rechazado():
+    """AC-007: sin confirmados, y con todo rechazado (los dos escenarios vacios):
+    sin excepcion, «Ninguno», importes 0,00 €, comprobar_cifras == []."""
+    a1, a2 = _ejemplos()
+    sin_conf = copy.deepcopy(a2)
+    sin_conf["escenarios"]["confirmados"] = _escenario_vacio(a2["escenarios"]["confirmados"])
+    sin_conf["escenarios"]["con_pendientes"]["hallazgos_incluidos"] = ["160-3", "160-5"]
+    a1_sin = copy.deepcopy(a1)
+    for f in a1_sin["findings"]:
+        if f["finding_id"] in ("160-1", "160-4"):
+            f["confidence_tier"], f["vision_verdict"] = "needs_review", "incierto"
+    sin_conf["hallazgos_fuera_del_coste"] = a2["hallazgos_fuera_del_coste"] + [
+        {"finding_id": "160-1", "motivo": "sin_regla_de_coste"}, {"finding_id": "160-4", "motivo": "sin_regla_de_coste"}]
+    md = generar_informe(a1_sin, sin_conf, hoy=HOY)
+    s = _secciones(md)
+    assert "Ninguno" in s["## Daños confirmados"], s["## Daños confirmados"]
+    assert "0,00 €" in _fila(s["## Desglose del coste"], "| **Total con IVA**"), s["## Desglose del coste"]
+    assert comprobar_cifras(md, sin_conf) == [], comprobar_cifras(md, sin_conf)
+
+    todo = copy.deepcopy(a2)
+    todo["escenarios"] = {k: _escenario_vacio(v) for k, v in a2["escenarios"].items()}
+    todo["hallazgos_fuera_del_coste"] = [{"finding_id": f["finding_id"], "motivo": "rechazado_por_vision"}
+                                         for f in a1["findings"]]
+    a1_todo = copy.deepcopy(a1)
+    for f in a1_todo["findings"]:
+        f["confidence_tier"], f["vision_verdict"] = "needs_review", "rechazado"
+    md = generar_informe(a1_todo, todo, hoy=HOY)
+    s = _secciones(md)
+    for seccion in ("## Daños confirmados", "## Daños pendientes de revisión"):
+        assert "Ninguno" in s[seccion], s[seccion]
+    for f in a1["findings"]:
+        assert f["finding_id"] in s["## Detecciones no incluidas en el coste"], f["finding_id"]
+    fila_total = _fila(s["## Desglose del coste"], "| **Total con IVA**")
+    assert fila_total.count("0,00 €") == 2, fila_total
+    assert comprobar_cifras(md, todo) == [], comprobar_cifras(md, todo)
+
+
+# --- specs/31-informe-peritaje.md#AC-008 ------------------------------------
+def probar_ac008_perdida_total_solo_con_pendientes():
+    """AC-008: perdida total solo en con_pendientes -> «No» para confirmados y
+    «Sí» para con_pendientes en Resumen y en Cobertura, con motivo, franquicia e
+    indemnizacion de cada escenario."""
+    a1, a2 = _ejemplos()
+    pt = copy.deepcopy(a2)
+    cob_p = pt["escenarios"]["con_pendientes"]["cobertura"]
+    cob_p.update(perdida_total=True, motivo="Pérdida total", indemnizacion_estimada_eur=pt["valor_venal_eur"] - 300.0)
+    pt["valor_venal_eur"] = round(cob_p["indemnizacion_estimada_eur"] + 300.0, 2)
+    md = generar_informe(a1, pt, hoy=HOY)
+    s = _secciones(md)
+    linea = next(l for l in s["## Resumen"].splitlines() if "Pérdida total" in l)
+    assert "No con los confirmados" in linea and "Sí incluyendo los pendientes" in linea, linea
+    cobertura = s["## Cobertura e indemnización"]
+    assert _fila(cobertura, "| Pérdida total").replace(" ", "") == "|Pérdidatotal|No|Sí|", cobertura
+    cob_c = pt["escenarios"]["confirmados"]["cobertura"]
+    for c in (cob_c, cob_p):
+        assert c["motivo"] in _fila(cobertura, "| Motivo")
+        assert informe.eur(c["franquicia_eur"]) in _fila(cobertura, "| Franquicia")
+        assert informe.eur(c["indemnizacion_estimada_eur"]) in _fila(cobertura, "| Indemnización estimada")
+    assert comprobar_cifras(md, pt) == [], comprobar_cifras(md, pt)
+
+
 PRUEBAS = [
     probar_ac001_encabezados_cabecera_y_resumen,
     probar_ac002_confirmados_pendientes_y_no_incluidos,
@@ -182,6 +288,9 @@ PRUEBAS = [
     probar_ac003_sin_importes_inventados,
     probar_ac004_importe_inventado_con_y_sin_miles,
     probar_ac013_numeros_no_monetarios_no_valen_como_importe,
+    probar_ac006_tercero_perjudicado,
+    probar_ac007_sin_confirmados_y_todo_rechazado,
+    probar_ac008_perdida_total_solo_con_pendientes,
 ]
 
 
