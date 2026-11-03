@@ -171,5 +171,12 @@
       "vision_description": "Se observa una abolladura con pliegues marcados y rozaduras en la puerta trasera izquierda, junto a su borde delantero.",
       "crop_image_path": "crops/2536_dent_10.jpg"
     }
-  ]
+  ],
+  "vehiculo": {
+    "categoria": "B",
+    "vehiculo_id_referencia": "V07",
+    "confianza": "baja",
+    "descripcion": "Parece un turismo utilitario de tamaño pequeño; la vista parcial no permite identificar con seguridad la marca ni el modelo.",
+    "modelo": "gpt-6-luna"
+  }
 }

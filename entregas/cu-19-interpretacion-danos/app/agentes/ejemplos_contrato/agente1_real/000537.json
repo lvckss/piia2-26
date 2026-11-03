@@ -170,5 +170,12 @@
       "vision_description": "Se observa una abolladura marcada con raspaduras en la aleta delantera, junto al faro y sobre el paso de rueda.",
       "crop_image_path": "crops/537_dent_13.jpg"
     }
-  ]
+  ],
+  "vehiculo": {
+    "categoria": "C",
+    "vehiculo_id_referencia": "V02",
+    "confianza": "media",
+    "descripcion": "Turismo compacto, sin poder identificar con seguridad la marca ni el modelo.",
+    "modelo": "gpt-6-luna"
+  }
 }

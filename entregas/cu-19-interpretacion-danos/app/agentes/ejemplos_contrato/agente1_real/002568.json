@@ -170,5 +170,12 @@
       "vision_description": "En la zona marcada no se aprecia una abolladura ni deformación; se observa una línea superficial sobre la pintura. Hay arañazos visibles alrededor, fuera de la zona marcada.",
       "crop_image_path": "crops/2568_dent_21.jpg"
     }
-  ]
+  ],
+  "vehiculo": {
+    "categoria": "desconocido",
+    "vehiculo_id_referencia": null,
+    "confianza": "baja",
+    "descripcion": "El primer plano no permite distinguir con seguridad la categoría del vehículo.",
+    "modelo": "gpt-6-luna"
+  }
 }

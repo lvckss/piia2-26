@@ -170,5 +170,12 @@
       "vision_description": "Se observa una abrasión superficial clara en la cubierta negra del paragolpes delantero, dentro de la zona marcada. No se aprecia deformación importante.",
       "crop_image_path": "crops/1273_scratch_16.jpg"
     }
-  ]
+  ],
+  "vehiculo": {
+    "categoria": "SUV-C",
+    "vehiculo_id_referencia": "V11",
+    "confianza": "media",
+    "descripcion": "Vehículo tipo SUV mediano de diseño antiguo.",
+    "modelo": "gpt-6-luna"
+  }
 }

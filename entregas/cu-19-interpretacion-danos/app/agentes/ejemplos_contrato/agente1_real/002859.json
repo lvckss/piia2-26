@@ -170,5 +170,12 @@
       "vision_description": "Se observa un pequeño arañazo en la esquina del paragolpes trasero, debajo del piloto.",
       "crop_image_path": "crops/2859_scratch_24.jpg"
     }
-  ]
+  ],
+  "vehiculo": {
+    "categoria": "C",
+    "vehiculo_id_referencia": "V02",
+    "confianza": "media",
+    "descripcion": "Turismo compacto de carrocería berlina.",
+    "modelo": "gpt-6-luna"
+  }
 }

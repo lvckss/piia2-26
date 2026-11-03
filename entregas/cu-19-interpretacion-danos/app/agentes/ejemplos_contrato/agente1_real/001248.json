@@ -232,5 +232,12 @@
       "vision_description": "La aleta trasera izquierda está deformada alrededor del hueco del piloto, con chapa doblada y bordes dañados. También se aprecia que falta el piloto trasero.",
       "crop_image_path": "crops/1248_dent_23.jpg"
     }
-  ]
+  ],
+  "vehiculo": {
+    "categoria": "C",
+    "vehiculo_id_referencia": "V02",
+    "confianza": "media",
+    "descripcion": "Turismo compacto, probablemente de carrocería berlina.",
+    "modelo": "gpt-6-luna"
+  }
 }

@@ -170,5 +170,12 @@
       "vision_description": "La zona marcada muestra la luneta trasera rota, pero no se aprecia una abolladura.",
       "crop_image_path": "crops/3204_dent_14.jpg"
     }
-  ]
+  ],
+  "vehiculo": {
+    "categoria": "C",
+    "vehiculo_id_referencia": "V02",
+    "confianza": "media",
+    "descripcion": "Turismo compacto con carrocería tipo hatchback.",
+    "modelo": "gpt-6-luna"
+  }
 }

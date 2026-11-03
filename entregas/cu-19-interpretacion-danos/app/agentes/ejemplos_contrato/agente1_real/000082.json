@@ -210,5 +210,12 @@
       "vision_description": "En la zona marcada se observan rozaduras y transferencia de material oscuro, pero no se aprecia una deformación clara de la superficie que confirme un abollón.",
       "crop_image_path": "crops/82_dent_15.jpg"
     }
-  ]
+  ],
+  "vehiculo": {
+    "categoria": "C",
+    "vehiculo_id_referencia": "V02",
+    "confianza": "media",
+    "descripcion": "Turismo compacto de carrocería berlina.",
+    "modelo": "gpt-6-luna"
+  }
 }

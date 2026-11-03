@@ -150,5 +150,12 @@
       "vision_description": "Se aprecia una pequeña deformación superficial con una marca clara en la aleta delantera izquierda.",
       "crop_image_path": "crops/561_dent_19.jpg"
     }
-  ]
+  ],
+  "vehiculo": {
+    "categoria": "desconocido",
+    "vehiculo_id_referencia": null,
+    "confianza": "baja",
+    "descripcion": "Se observa un daño en la carrocería junto a una rueda, pero no se distingue el tipo de vehículo.",
+    "modelo": "gpt-6-luna"
+  }
 }

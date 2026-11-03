@@ -126,5 +126,12 @@
       "vision_description": "El parabrisas está muy agrietado y fracturado, pero no se aprecia un arañazo del tipo detectado.",
       "crop_image_path": "crops/3806_scratch_6.jpg"
     }
-  ]
+  ],
+  "vehiculo": {
+    "categoria": "SUV-C",
+    "vehiculo_id_referencia": "V11",
+    "confianza": "media",
+    "descripcion": "Vehículo todoterreno tipo SUV mediano; no se distingue la marca ni el modelo.",
+    "modelo": "gpt-6-luna"
+  }
 }
