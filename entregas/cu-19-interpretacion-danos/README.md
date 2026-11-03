@@ -113,6 +113,12 @@ vez y `just db-up` la arranca después conservando sus datos. El backend y el
 futuro RAG utilizan esa misma instancia. Consulta la
 [guía de PostgreSQL compartida](docs/postgresql-local.md).
 
+Para preparar e indexar las pólizas y legislación: `just rag-setup`,
+`just rag-plan` y `just rag-index <presupuesto-USD>`. El [README del RAG](app/agentes/agente_recuperacion/README.md#indexado-reproducible)
+explica los modelos, los datos locales y las pruebas. Consulta la
+[evidencia del primer indexado](docs/evidencias/32-indexado.md); la búsqueda y
+la evaluación de calidad se entregarán en los siguientes incrementos de #32.
+
 ### Contenido de `specs/`
 
 | Archivo | Tipo | Contenido |

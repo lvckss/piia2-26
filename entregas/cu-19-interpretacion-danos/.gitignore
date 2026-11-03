@@ -1,5 +1,7 @@
 # Entorno y caché locales del descargador
 .venv-cardd/
+.venv-rag/
+.cache-rag/
 __pycache__/
 
 # PostgreSQL local credentials and private migration backups

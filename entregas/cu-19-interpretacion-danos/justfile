@@ -36,3 +36,21 @@ db-psql:
 # Detener PostgreSQL conservando el volumen y todos sus datos.
 db-stop:
     docker compose --env-file .env.postgres stop postgres
+
+# Instalar las dependencias Python del RAG en un entorno local aislado.
+rag-setup:
+    @test -x .venv-rag/bin/python || python3 -m venv .venv-rag
+    @.venv-rag/bin/python -m pip install --disable-pip-version-check --quiet -r app/agentes/agente_recuperacion/requirements-rag.txt
+    @TIKTOKEN_CACHE_DIR=.cache-rag/tiktoken .venv-rag/bin/python -c 'import tiktoken; tiktoken.get_encoding("cl100k_base")'
+
+# Contar documentos/fragmentos y estimar tokens/coste, sin DB ni llamadas de pago.
+rag-plan model="both":
+    .venv-rag/bin/python app/agentes/agente_recuperacion/indexar_normativa.py --model {{ quote(model) }}
+
+# Indexar explícitamente con un presupuesto total en USD (small/large/both).
+rag-index budget model="both":
+    .venv-rag/bin/python app/agentes/agente_recuperacion/indexar_normativa.py --model {{ quote(model) }} --execute --max-cost-usd {{ quote(budget) }}
+
+# Probar el RAG con una PostgreSQL Docker desechable y proveedores simulados.
+rag-test:
+    .venv-rag/bin/python app/agentes/agente_recuperacion/probar_indexado.py --postgres
