@@ -18,7 +18,7 @@ import traceback
 from pathlib import Path
 
 import informe
-from informe import generar_informe
+from informe import comprobar_cifras, generar_informe
 
 AQUI = Path(__file__).resolve().parent
 EJ = AQUI.parent / "ejemplos_contrato"
@@ -142,11 +142,46 @@ def probar_ac009_arrastres_con_nombre_y_probabilidad():
     assert "Ninguno previsto" in seccion and "- " not in seccion, seccion
 
 
+# --- specs/31-informe-peritaje.md#AC-003 ------------------------------------
+def probar_ac003_sin_importes_inventados():
+    """AC-003: ningun importe inventado y los 6 importes del ejemplo presentes."""
+    a1, a2 = _ejemplos()
+    md = generar_informe(a1, a2, hoy=HOY)
+    assert comprobar_cifras(md, a2) == [], comprobar_cifras(md, a2)
+    for importe in ("1.019,46 €", "1.233,55 €", "1.488,23 €", "1.800,76 €", "933,55 €", "1.500,76 €"):
+        assert importe in md, f"falta {importe}"
+
+
+# --- specs/31-informe-peritaje.md#AC-004 ------------------------------------
+def probar_ac004_importe_inventado_con_y_sin_miles():
+    """AC-004: un importe inventado se detecta entero, con o sin separador de miles."""
+    a1, a2 = _ejemplos()
+    md = generar_informe(a1, a2, hoy=HOY)
+    for linea in ("Reparación extra: 1.234,56 €", "Reparación extra: 1234,56 €"):
+        obtenido = comprobar_cifras(md + linea + "\n", a2)
+        assert obtenido == [1234.56], f"{linea!r} -> {obtenido}"
+
+
+# --- specs/31-informe-peritaje.md#AC-013 ------------------------------------
+def probar_ac013_numeros_no_monetarios_no_valen_como_importe():
+    """AC-013: importes inventados que coinciden con image_id, km o edad_anios
+    del JSON del Agente 2 se detectan igualmente."""
+    a1, a2 = _ejemplos()
+    md = generar_informe(a1, a2, hoy=HOY)
+    assert (a2["image_id"], a2["contexto"]["km"], a2["contexto"]["edad_anios"]) == (160, 42000, 3)
+    for linea, esperado in (("Tasa: 160,00 €", [160.0]), ("Tasa: 42.000,00 €", [42000.0]), ("Tasa: 3,00 €", [3.0])):
+        obtenido = comprobar_cifras(md + linea + "\n", a2)
+        assert obtenido == esperado, f"{linea!r} -> {obtenido}"
+
+
 PRUEBAS = [
     probar_ac001_encabezados_cabecera_y_resumen,
     probar_ac002_confirmados_pendientes_y_no_incluidos,
     probar_ac005_normativa_vacia_y_con_extractos,
     probar_ac009_arrastres_con_nombre_y_probabilidad,
+    probar_ac003_sin_importes_inventados,
+    probar_ac004_importe_inventado_con_y_sin_miles,
+    probar_ac013_numeros_no_monetarios_no_valen_como_importe,
 ]
 
 

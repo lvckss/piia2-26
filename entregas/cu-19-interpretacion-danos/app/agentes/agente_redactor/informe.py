@@ -12,6 +12,7 @@ Catalogo de la empresa: piia2_paquete_datos/ (fuera de git).
 from __future__ import annotations
 
 import csv
+import re
 from datetime import date
 from pathlib import Path
 
@@ -233,3 +234,40 @@ def generar_informe(agente1: dict, agente2: dict, hoy: str | None = None) -> str
     ]
     md += [f"- {n['tema']}: «{n['extracto']}» ({n['fuente']})" for n in agente2["normativa"]] or ["_Sin fuentes._"]
     return "\n".join(md) + "\n"
+
+
+# Un importe seguido de `€`, con o sin separador de miles: el numero entero,
+# sin dejarse cifras delante (con `1234,56 €` el patron de la guia daba 234,56).
+_IMPORTE = re.compile(r"(?<![\d.,])(\d{1,3}(?:\.\d{3})+|\d+),(\d{2})\s?€")
+
+
+def importes_en_euros(texto: str) -> list[float]:
+    """Todos los importes en euros del texto, como float."""
+    return [float(entero.replace(".", "") + "." + dec) for entero, dec in _IMPORTE.findall(texto)]
+
+
+def _importes_permitidos(obj, en_desglose: bool = False) -> set[float]:
+    """Campos monetarios de la salida del Agente 2: las claves terminadas en
+    `_eur` (incluido el `importe_eur` de cada linea) y los valores de
+    `desglose`. Otros numeros (image_id, km, edad_anios, cantidades,
+    probabilidades) no cuentan (specs/31-informe-peritaje.md#AC-013)."""
+    permitidos = set()
+    if isinstance(obj, dict):
+        for clave, valor in obj.items():
+            if isinstance(valor, (int, float)) and not isinstance(valor, bool):
+                if en_desglose or clave.endswith("_eur"):
+                    permitidos.add(round(float(valor), 2))
+            else:
+                permitidos |= _importes_permitidos(valor, en_desglose=clave == "desglose")
+    elif isinstance(obj, list):
+        for valor in obj:
+            permitidos |= _importes_permitidos(valor)
+    return permitidos
+
+
+def comprobar_cifras(informe: str, agente2: dict) -> list[float]:
+    """Importes del informe que NO estan entre los campos monetarios de la
+    salida del Agente 2 (lista vacia = ninguna cifra inventada;
+    specs/31-informe-peritaje.md#AC-003, AC-004 y AC-013)."""
+    permitidos = _importes_permitidos(agente2)
+    return [x for x in importes_en_euros(informe) if round(x, 2) not in permitidos]
