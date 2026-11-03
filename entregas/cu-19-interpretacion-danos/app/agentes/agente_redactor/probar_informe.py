@@ -13,7 +13,12 @@ from __future__ import annotations
 
 import copy
 import json
+import os
+import shutil
+import socket
+import subprocess
 import sys
+import tempfile
 import traceback
 from pathlib import Path
 
@@ -280,6 +285,74 @@ def probar_ac008_perdida_total_solo_con_pendientes():
     assert comprobar_cifras(md, pt) == [], comprobar_cifras(md, pt)
 
 
+# --- specs/31-informe-peritaje.md#AC-011 ------------------------------------
+def _espera_error(a1, a2, identificador):
+    try:
+        generar_informe(a1, a2, hoy=HOY)
+    except ValueError as e:
+        assert identificador in str(e), f"el error no nombra «{identificador}»: {e}"
+        return
+    raise AssertionError(f"no se lanzo ValueError con «{identificador}»")
+
+
+def probar_ac011_entradas_incoherentes():
+    """AC-011: ids que no existen en el Agente 1, hallazgos sin grupo, image_id
+    distintos, vehiculo_id o pieza_id fuera del catalogo -> ValueError que
+    nombra el identificador; no se devuelve informe."""
+    a1, a2 = _ejemplos()
+    x = copy.deepcopy(a2)
+    x["escenarios"]["con_pendientes"]["hallazgos_incluidos"].append("160-9")
+    _espera_error(a1, x, "160-9")
+    x = copy.deepcopy(a2)
+    x["hallazgos_fuera_del_coste"].append({"finding_id": "160-8", "motivo": "sin_regla_de_coste"})
+    _espera_error(a1, x, "160-8")
+    x = copy.deepcopy(a2)
+    x["hallazgos_fuera_del_coste"] = []
+    _espera_error(a1, x, "160-2")
+    x = copy.deepcopy(a2)
+    x["image_id"] = 999
+    _espera_error(a1, x, "999")
+    x = copy.deepcopy(a2)
+    x["contexto"]["vehiculo_id"] = "V999"
+    _espera_error(a1, x, "V999")
+    y = copy.deepcopy(a1)
+    y["findings"][0]["pieza_id"] = "PIEZA_INVENTADA"
+    _espera_error(y, a2, "PIEZA_INVENTADA")
+
+
+def probar_ac011_paquete_ausente():
+    """AC-011: sin piia2_paquete_datos/ el modulo falla al importar con un
+    mensaje que indica la ruta esperada."""
+    with tempfile.TemporaryDirectory() as tmp:
+        raiz = Path(tmp)
+        (raiz / ".git").mkdir()
+        shutil.copy(AQUI / "informe.py", raiz / "informe.py")
+        r = subprocess.run([sys.executable, "-c", "import informe"], cwd=raiz, capture_output=True, text=True)
+        assert r.returncode != 0, "el modulo importo sin el paquete"
+        assert "ImportError" in r.stderr, f"no es un ImportError:\n{r.stderr[-400:]}"
+        esperado = (str(raiz.resolve() / "piia2_paquete_datos"), str(raiz / "piia2_paquete_datos"))
+        assert any(e in r.stderr for e in esperado), f"el error no indica la ruta esperada:\n{r.stderr[-400:]}"
+
+
+# --- specs/31-informe-peritaje.md#AC-012 ------------------------------------
+def probar_ac012_determinista_sin_clave_ni_red():
+    """AC-012: dos informes identicos con la misma fecha, sin OPENAI_API_KEY y sin red."""
+    a1, a2 = _ejemplos()
+    clave = os.environ.pop("OPENAI_API_KEY", None)
+    socket_original = socket.socket
+
+    def _sin_red(*args, **kwargs):
+        raise AssertionError("intento de conexion de red")
+
+    socket.socket = _sin_red
+    try:
+        assert generar_informe(a1, a2, hoy=HOY) == generar_informe(a1, a2, hoy=HOY)
+    finally:
+        socket.socket = socket_original
+        if clave is not None:
+            os.environ["OPENAI_API_KEY"] = clave
+
+
 PRUEBAS = [
     probar_ac001_encabezados_cabecera_y_resumen,
     probar_ac002_confirmados_pendientes_y_no_incluidos,
@@ -291,6 +364,9 @@ PRUEBAS = [
     probar_ac006_tercero_perjudicado,
     probar_ac007_sin_confirmados_y_todo_rechazado,
     probar_ac008_perdida_total_solo_con_pendientes,
+    probar_ac011_entradas_incoherentes,
+    probar_ac011_paquete_ausente,
+    probar_ac012_determinista_sin_clave_ni_red,
 ]
 
 

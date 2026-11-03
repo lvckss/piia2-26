@@ -24,7 +24,13 @@ def _raiz_repo() -> Path:
     raise RuntimeError("No se encontro la raiz del repo (.git)")
 
 
-DATA = _raiz_repo() / "piia2_paquete_datos" / "data"
+PAQUETE = _raiz_repo() / "piia2_paquete_datos"
+DATA = PAQUETE / "data"
+if not all((DATA / n).is_file() for n in ("piezas.csv", "vehiculos.csv", "polizas.csv", "reglas_dano.csv")):
+    raise ImportError(
+        f"No se encuentra el paquete de datos de la empresa en {PAQUETE}. "
+        "Extrae piia2_paquete_datos.zip en la raiz del repo (esta en .gitignore)."
+    )
 
 
 def _leer_csv(nombre: str, clave: str) -> dict[str, dict]:
@@ -136,9 +142,34 @@ def _arrastres(escenarios: dict) -> list[dict]:
     return lista
 
 
+def validar_entradas(agente1: dict, agente2: dict) -> None:
+    """Lanza ValueError si las salidas de los Agentes 1 y 2 no son coherentes,
+    nombrando el identificador (specs/31-informe-peritaje.md#AC-011)."""
+    if agente1["image_id"] != agente2["image_id"]:
+        raise ValueError(f"image_id distintos: Agente 1 {agente1['image_id']!r}, Agente 2 {agente2['image_id']!r}")
+    ids = {f["finding_id"] for f in agente1["findings"]}
+    en_agente2 = [i for e in agente2["escenarios"].values() for i in e["hallazgos_incluidos"]]
+    en_agente2 += [x["finding_id"] for x in agente2["hallazgos_fuera_del_coste"]]
+    for fid in en_agente2:
+        if fid not in ids:
+            raise ValueError(f"finding_id del Agente 2 que no esta en el Agente 1: {fid!r}")
+    sin_grupo = sorted(ids - set(en_agente2))
+    if sin_grupo:
+        raise ValueError(f"hallazgos del Agente 1 sin grupo en el Agente 2: {', '.join(sin_grupo)}")
+    if agente2["contexto"]["vehiculo_id"] not in VEHICULOS:
+        raise ValueError(f"vehiculo_id no esta en el catalogo de la empresa: {agente2['contexto']['vehiculo_id']!r}")
+    piezas = [f["pieza_id"] for f in agente1["findings"] if f["pieza_id"]]
+    for e in agente2["escenarios"].values():
+        piezas += [p for a in e["estimacion"]["arrastres_posibles"] for p in (a["pieza_id"], a["origen"])]
+    for pieza in piezas:
+        if pieza not in PIEZAS:
+            raise ValueError(f"pieza_id no esta en el catalogo de la empresa: {pieza!r}")
+
+
 def generar_informe(agente1: dict, agente2: dict, hoy: str | None = None) -> str:
     """Informe de peritaje en markdown (specs/31-informe-peritaje.md#AC-001).
     TODAS las cifras salen de `agente2`: ninguna se calcula aqui."""
+    validar_entradas(agente1, agente2)
     hoy = hoy or date.today().isoformat()
     ctx = agente2["contexto"]
     veh = VEHICULOS[ctx["vehiculo_id"]]
