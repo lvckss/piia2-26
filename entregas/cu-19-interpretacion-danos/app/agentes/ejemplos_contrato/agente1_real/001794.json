@@ -128,5 +128,12 @@
       "vision_description": "La cubierta del paragolpes delantero presenta deformación y rozaduras visibles en la esquina marcada. También se observa desajuste en el borde superior junto a la zona del faro.",
       "crop_image_path": "crops/1794_dent_11.jpg"
     }
-  ]
+  ],
+  "vehiculo": {
+    "categoria": "C",
+    "vehiculo_id_referencia": "V02",
+    "confianza": "media",
+    "descripcion": "Coupé de tamaño compacto; no se distingue con seguridad la marca ni el modelo.",
+    "modelo": "gpt-6-luna"
+  }
 }

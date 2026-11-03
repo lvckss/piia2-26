@@ -129,5 +129,12 @@
       "vision_description": "Se aprecia una marca lineal superficial en la cubierta del paragolpes trasero, dentro de la zona marcada. No se observa deformación asociada en ese punto.",
       "crop_image_path": "crops/702_scratch_6.jpg"
     }
-  ]
+  ],
+  "vehiculo": {
+    "categoria": "C",
+    "vehiculo_id_referencia": "V02",
+    "confianza": "media",
+    "descripcion": "Parece un turismo compacto, aunque el detalle visible no permite identificar con seguridad la marca ni el modelo.",
+    "modelo": "gpt-6-luna"
+  }
 }

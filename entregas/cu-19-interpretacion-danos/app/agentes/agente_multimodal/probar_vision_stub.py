@@ -72,10 +72,15 @@ class _Respuesta:
 RESPUESTA_GENERICA = {"veredicto": "incierto", "pieza_id": None, "severidad": None, "descripcion": "No se aprecia con claridad."}
 
 
+# respuesta a la consulta de categoria del vehiculo (Issue #28): lleva una sola imagen, la de hallazgo lleva dos
+RESPUESTA_VEHICULO = {"categoria": "C", "confianza": "media", "descripcion": "Turismo compacto de color gris."}
+
+
 class ClienteFalso:
     """Imita `OpenAI()`: registra las peticiones, responde un JSON segun la
-    clase que aparece en el prompt e informa de tokens (1.500 de entrada y 40
-    de salida por llamada)."""
+    clase que aparece en el prompt (o la categoria del vehiculo, si la consulta
+    lleva una sola imagen) e informa de tokens (1.500 de entrada y 40 de salida
+    por llamada)."""
 
     def __init__(self) -> None:
         self.llamadas: list[dict] = []
@@ -84,6 +89,8 @@ class ClienteFalso:
 
     def create(self, model: str, messages: list[dict], response_format: dict) -> _Respuesta:
         self.llamadas.append({"model": model, "messages": messages, "response_format": response_format})
+        if sum(1 for parte in messages[0]["content"] if parte["type"] == "image_url") == 1:
+            return _Respuesta([_Eleccion(_Mensaje(json.dumps(RESPUESTA_VEHICULO)))], _Uso(1500, 40))
         texto_prompt = messages[0]["content"][0]["text"]
         categoria = texto_prompt.split("tipo '")[1].split("'")[0]
         respuesta = RESPUESTAS_POR_CLASE.get(categoria, RESPUESTA_GENERICA)

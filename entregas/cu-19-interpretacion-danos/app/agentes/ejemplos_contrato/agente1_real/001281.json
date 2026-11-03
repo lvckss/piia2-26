@@ -169,5 +169,12 @@
       "vision_description": "El daño visible es una rotura extensa del parabrisas; no se aprecia un faro roto en la zona marcada.",
       "crop_image_path": "crops/1281_lamp_broken_9.jpg"
     }
-  ]
+  ],
+  "vehiculo": {
+    "categoria": "B",
+    "vehiculo_id_referencia": "V07",
+    "confianza": "media",
+    "descripcion": "Turismo utilitario de tamaño pequeño, sin identificar marca ni modelo.",
+    "modelo": "gpt-6-luna"
+  }
 }

@@ -30,6 +30,9 @@ from generar_lote import (
 )
 from probar_vision_stub import MINI_CATALOGO, ClienteFalso
 from seleccion import seleccionar_candidatos
+from vehiculo import CATEGORIAS as CATEGORIAS_VEHICULO, REFERENCIA as REFERENCIA_VEHICULO
+
+EJEMPLOS_CONTRATO = Path(__file__).resolve().parents[1] / "ejemplos_contrato"
 
 N_IMAGENES = 18
 RAIZ_REPO = Path(__file__).resolve().parents[5]
@@ -137,7 +140,8 @@ def probar_ac002_plan_sin_gastar_y_tope() -> None:
             "--cache-dir", str(cache), "--n-imagenes", "12", "--min-aciertos", "2",
         ]
         lote = elegir_lote(imagenes, n=12, min_aciertos=2, seed=42)
-        esperadas = sum(len(seleccionar_candidatos(i["predictions"])[0]) for i in lote)
+        # una consulta por hallazgo candidato y una de categoria del vehiculo por imagen (28-categoria-vehiculo.md#AC-001)
+        esperadas = sum(len(seleccionar_candidatos(i["predictions"])[0]) for i in lote) + len(lote)
         assert llamadas_previstas(lote) == esperadas
 
         # sin --ejecutar y sin OPENAI_API_KEY: plan, codigo 0, nada creado, 0 clientes
@@ -211,6 +215,11 @@ def probar_ac003_un_json_por_imagen_con_cache() -> None:
             assert (salida / nombre).read_bytes() == contenido, f"{nombre} cambio en la segunda pasada"
 
 
+def _consultas_de_vehiculo(cliente: ClienteFalso) -> int:
+    """Llamadas del cliente falso que fueron la consulta de categoria del vehiculo (llevan una sola imagen)."""
+    return sum(1 for c in cliente.llamadas if sum(1 for p in c["messages"][0]["content"] if p["type"] == "image_url") == 1)
+
+
 def probar_ac005_uso_y_coste() -> None:
     """PLAN + AC-005: llamadas y tokens realmente facturados; euros solo con precios."""
     with tempfile.TemporaryDirectory() as tmp:
@@ -219,10 +228,17 @@ def probar_ac005_uso_y_coste() -> None:
         salida, cache = tmp_dir / "salida", tmp_dir / "cache"
         cliente = ClienteFalso()
         resumen = _generar(tmp_dir, export, cardd, imagenes, cliente, salida, cache)
-        n = len(cliente.llamadas)
+        n = len(cliente.llamadas)  # todas las llamadas facturadas: los hallazgos y las de categoria del vehiculo
         assert n > 0
-        assert resumen["modelo"] == "modelo-falso" and resumen["hallazgos"] == n
-        assert resumen["llamadas_facturadas"] == n and resumen["hallazgos_desde_cache"] == 0
+        imagenes_ok = resumen["imagenes_ok"]
+        assert imagenes_ok == 6, resumen
+        vehiculo = _consultas_de_vehiculo(cliente)
+        # una consulta de categoria por imagen distinta: las fotos sinteticas son identicas y comparten cache
+        assert 1 <= vehiculo <= imagenes_ok, (vehiculo, imagenes_ok)
+        hallazgos = n - vehiculo
+        assert resumen["modelo"] == "modelo-falso" and resumen["hallazgos"] == hallazgos
+        assert resumen["llamadas_facturadas"] == n and resumen["llamadas_vehiculo_facturadas"] == vehiculo, resumen
+        assert resumen["hallazgos_desde_cache"] == 0
         assert resumen["tokens_entrada"] == 1500 * n and resumen["tokens_salida"] == 40 * n, resumen
         assert resumen["coste_eur"] is None and "sin precios" in resumen["coste_nota"], resumen
         assert resumen["duracion_s"] >= 0
@@ -231,7 +247,8 @@ def probar_ac005_uso_y_coste() -> None:
 
         # segunda pasada: todo sale de la cache y no se factura nada
         cacheado = _generar(tmp_dir, export, cardd, imagenes, ClienteFalso(), salida, cache)
-        assert cacheado["llamadas_facturadas"] == 0 and cacheado["hallazgos_desde_cache"] == n
+        assert cacheado["llamadas_facturadas"] == 0 and cacheado["llamadas_vehiculo_facturadas"] == 0
+        assert cacheado["hallazgos_desde_cache"] == hallazgos
         assert cacheado["tokens_entrada"] == cacheado["tokens_salida"] == 0
 
         # con precios por millon de tokens, el coste se calcula; sin ellos no hay ninguno por defecto
@@ -330,6 +347,58 @@ def probar_ac004_validador_de_contrato() -> None:
         assert any("image_id" in e for e in validar_salida_agente1(valida, MINI_CATALOGO, "000999.json"))
         sin_recorte = con(lambda s: s["findings"][0].update(crop_image_path="crops/no_existe.jpg"))
         assert any("crop_image_path" in e for e in validar_salida_agente1(sin_recorte, MINI_CATALOGO, None, tmp_dir))
+
+
+def probar_ac005_vehiculo_en_el_validador() -> None:
+    """28-categoria-vehiculo.md#AC-005: el validador exige `vehiculo` con exactamente sus cinco claves y valores
+    coherentes: categoria de la lista, confianza valida y el coche de referencia de la tabla (null con `desconocido`)."""
+    with tempfile.TemporaryDirectory() as tmp:
+        valida = _salida_valida_del_agente1(Path(tmp))
+    assert validar_salida_agente1(valida, MINI_CATALOGO) == []
+
+    def con(cambio: Any) -> dict[str, Any]:
+        copia = json.loads(json.dumps(valida))
+        cambio(copia)
+        return copia
+
+    # cada categoria con su coche de referencia, y `desconocido` sin coche, son validos
+    for categoria in (*CATEGORIAS_VEHICULO, "desconocido"):
+        otra = con(lambda s: s["vehiculo"].update(categoria=categoria, vehiculo_id_referencia=REFERENCIA_VEHICULO.get(categoria)))
+        assert validar_salida_agente1(otra, MINI_CATALOGO) == [], (categoria, validar_salida_agente1(otra, MINI_CATALOGO))
+
+    casos = {
+        "falta `vehiculo`": (con(lambda s: s.pop("vehiculo")), "vehiculo"),
+        "`vehiculo` no es un objeto": (con(lambda s: s.update(vehiculo="C")), "vehiculo"),
+        "falta una clave de `vehiculo`": (con(lambda s: s["vehiculo"].pop("descripcion")), "descripcion"),
+        "sobra una clave de `vehiculo`": (con(lambda s: s["vehiculo"].update(matricula="1234ABC")), "matricula"),
+        "categoria fuera de la lista": (con(lambda s: s["vehiculo"].update(categoria="Z-INVENTADA")), "categoria"),
+        "confianza fuera de la lista": (con(lambda s: s["vehiculo"].update(confianza="muy alta")), "confianza"),
+        "desconocido con confianza alta": (con(lambda s: s["vehiculo"].update(
+            categoria="desconocido", vehiculo_id_referencia=None, confianza="alta")), "confianza"),
+        "desconocido con coche de referencia": (con(lambda s: s["vehiculo"].update(categoria="desconocido")), "vehiculo_id_referencia"),
+        "categoria con otro coche": (con(lambda s: s["vehiculo"].update(categoria="C", vehiculo_id_referencia="V24")), "vehiculo_id_referencia"),
+        "categoria sin coche": (con(lambda s: s["vehiculo"].update(categoria="C", vehiculo_id_referencia=None)), "vehiculo_id_referencia"),
+        "modelo vacio": (con(lambda s: s["vehiculo"].update(modelo="")), "modelo"),
+        "descripcion que no es texto": (con(lambda s: s["vehiculo"].update(descripcion=5)), "descripcion"),
+    }
+    for nombre, (salida_mala, campo) in casos.items():
+        errores = validar_salida_agente1(salida_mala, MINI_CATALOGO)
+        assert errores, f"el validador acepto una salida con: {nombre}"
+        assert any(campo in e for e in errores), f"{nombre}: los errores no nombran '{campo}': {errores}"
+
+
+def probar_ac005_ejemplo_del_contrato_con_vehiculo() -> None:
+    """28-categoria-vehiculo.md#AC-005: `ejemplos_contrato/agente1_salida.json` contiene `vehiculo` con las cinco
+    claves y pasa `validar_salida_agente1`."""
+    datos = json.loads((EJEMPLOS_CONTRATO / "agente1_salida.json").read_text(encoding="utf-8"))
+    assert "vehiculo" in datos, "el ejemplo del contrato no tiene `vehiculo`"
+    assert set(datos["vehiculo"]) == {"categoria", "vehiculo_id_referencia", "confianza", "descripcion", "modelo"}
+    try:
+        catalogo = cargar_catalogo()
+    except FileNotFoundError:
+        print("(catalogo real no encontrado: se salta la validacion del ejemplo contra el catalogo)")
+        return
+    assert validar_salida_agente1(datos, catalogo) == []
 
 
 def probar_ac004_los_json_del_lote_validan() -> None:
@@ -448,7 +517,11 @@ def probar_ac007_un_fallo_no_tumba_el_lote() -> None:
         Image.new("RGB", (200, 100), "gray").save(foto(ilegible))
         recuperado = generar_lote(lote, export, cardd, salida, ClienteFalso(), "modelo-falso", MINI_CATALOGO, cache)
         assert recuperado["fallos"] == [] and recuperado["imagenes_ok"] == 6
-        assert facturadas_1 + recuperado["llamadas_facturadas"] == llamadas_previstas(lote), (facturadas_1, recuperado)
+        vehiculo = resumen["llamadas_vehiculo_facturadas"] + recuperado["llamadas_vehiculo_facturadas"]
+        hallazgos_previstos = llamadas_previstas(lote) - len(lote)  # sin la consulta de categoria de cada imagen
+        assert facturadas_1 + recuperado["llamadas_facturadas"] - vehiculo == hallazgos_previstos, (facturadas_1, recuperado)
+        # la categoria se paga como mucho una vez por imagen (las fotos sinteticas identicas comparten cache)
+        assert 1 <= vehiculo <= len(lote), vehiculo
         assert recuperado["llamadas_facturadas"] > 0
         assert len(list(salida.glob("[0-9]*.json"))) == 6
 
@@ -534,11 +607,16 @@ def probar_ac010_muestra_versionada() -> None:
         catalogo = None
         print("(catalogo real no encontrado: se salta la validacion de la muestra contra el catalogo)")
     privada = re.compile(r"[A-Za-z]:[\\/]|/Users/|/home/|/content/drive|Luc[ií]a")
+    # matricula espanola actual (4 cifras y 3 consonantes) o antigua (letras, 4 cifras y 1-2 letras)
+    matricula = re.compile(r"\b\d{4}[\s-]?[BCDFGHJKLMNPRSTVWXYZ]{3}\b|\b[A-Z]{1,2}[\s-]?\d{4}[\s-]?[A-Z]{2}\b")
     niveles: set[str] = set()
     for ruta in ficheros:
         texto = ruta.read_text(encoding="utf-8")
         assert not privada.search(texto), f"{ruta.name}: ruta absoluta o nombre de usuario"
         datos = json.loads(texto)
+        # 28-categoria-vehiculo.md#AC-005 y #AC-011: cada salida real lleva `vehiculo` y su descripcion no es una matricula
+        assert "vehiculo" in datos, f"{ruta.name}: falta `vehiculo` (hay que regenerar las 30 salidas con el modelo real)"
+        assert not matricula.search(str(datos["vehiculo"].get("descripcion", ""))), f"{ruta.name}: la descripcion parece llevar una matricula"
         if catalogo is not None:
             assert validar_salida_agente1(datos, catalogo, ruta.name) == [], ruta.name
         for finding in datos["findings"]:
@@ -582,6 +660,8 @@ def main_pruebas() -> None:
     probar_ac002_plan_sin_gastar_y_tope()
     probar_ac003_un_json_por_imagen_con_cache()
     probar_ac004_validador_de_contrato()
+    probar_ac005_vehiculo_en_el_validador()
+    probar_ac005_ejemplo_del_contrato_con_vehiculo()
     probar_ac004_los_json_del_lote_validan()
     probar_ac005_uso_y_coste()
     probar_ac006_repartos()

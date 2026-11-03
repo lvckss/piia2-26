@@ -150,5 +150,12 @@
       "vision_description": "En la zona marcada se observan arañazos y rozaduras superficiales junto al paso de rueda, pero no se aprecia una deformación o hundimiento tipo dent.",
       "crop_image_path": "crops/3637_dent_12.jpg"
     }
-  ]
+  ],
+  "vehiculo": {
+    "categoria": "desconocido",
+    "vehiculo_id_referencia": null,
+    "confianza": "baja",
+    "descripcion": "Se aprecia un primer plano del paso de rueda, pero no se distingue el tipo de vehículo.",
+    "modelo": "gpt-6-luna"
+  }
 }

@@ -210,5 +210,12 @@
       "vision_description": "En la zona marcada no se aprecia una abolladura; solo se ven marcas superficiales tenues sobre el paragolpes.",
       "crop_image_path": "crops/2086_dent_16.jpg"
     }
-  ]
+  ],
+  "vehiculo": {
+    "categoria": "desconocido",
+    "vehiculo_id_referencia": null,
+    "confianza": "baja",
+    "descripcion": "Es una camioneta pickup Toyota Hilux, un tipo de vehículo no incluido en las categorías disponibles.",
+    "modelo": "gpt-6-luna"
+  }
 }
