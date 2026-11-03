@@ -101,6 +101,10 @@ def _si_no(valor: bool) -> str:
     return "Sí" if valor else "No"
 
 
+def _clase(f: dict) -> str:
+    return CLASE_TEXTO.get(f["clase_tool"], f["category"])
+
+
 def _pieza(f: dict) -> str:
     return PIEZAS[f["pieza_id"]]["nombre"] if f["pieza_id"] else "—"
 
@@ -130,7 +134,7 @@ def _tabla_hallazgos(hallazgos: list[dict], con_motivo: bool = False) -> list[st
     filas = [f"| ID | Pieza | Daño | Severidad | Reparación | {ultima} |", "|---|---|---|---|---|---|"]
     for f in hallazgos:
         final = _motivos_pendiente(f) if con_motivo else _decimal(f["score"])
-        filas.append(f"| {f['finding_id']} | {_pieza(f)} | {CLASE_TEXTO.get(f['clase_tool'], f['category'])} | "
+        filas.append(f"| {f['finding_id']} | {_pieza(f)} | {_clase(f)} | "
                      f"{f['severidad'] or '—'} | {_reparacion(f)} | {final} |")
     imagenes = " ".join(f"![{f['finding_id']}]({f['crop_image_path']})" for f in hallazgos if f.get("crop_image_path"))
     return filas + ([""] + [imagenes] if imagenes else [])
@@ -239,7 +243,7 @@ def generar_informe(agente1: dict, agente2: dict, hoy: str | None = None) -> str
         "## Resumen",
         "",
         f"- {detecciones} detecciones de PIIA-1 frente a {len(agente1['findings'])} hallazgos analizados: "
-        f"{len(confirmados)} confirmados, {len(pendientes)} pendientes de revisión y {len(fuera)} no incluidos en el coste.",
+        f"{len(confirmados)} confirmados, {len(pendientes)} pendientes de revisión y {len(fuera)} fuera del coste.",
         f"- Coste **solo con los daños confirmados**: {eur(est_c['subtotal_sin_iva_eur'])} sin IVA "
         f"({eur(est_c['total_con_iva_eur'])} con IVA).",
         f"- Coste **incluyendo los pendientes**: {eur(est_p['subtotal_sin_iva_eur'])} sin IVA "
@@ -261,7 +265,7 @@ def generar_informe(agente1: dict, agente2: dict, hoy: str | None = None) -> str
         "",
         "## Detecciones no incluidas en el coste",
         "",
-        *([f"- {x['finding_id']} ({por_id[x['finding_id']]['category']}): {MOTIVO_FUERA[x['motivo']]}." for x in fuera]
+        *([f"- {x['finding_id']} ({_clase(por_id[x['finding_id']])}): {MOTIVO_FUERA[x['motivo']]}." for x in fuera]
           or [NINGUNO]),
         "",
         "## Desglose del coste",
@@ -279,8 +283,8 @@ def generar_informe(agente1: dict, agente2: dict, hoy: str | None = None) -> str
     arrastres = _arrastres(agente2["escenarios"])
     if arrastres:
         md += ["En impactos de esta gravedad suelen verse afectadas también estas piezas; hay que revisarlas en taller:", ""]
-        md += [f"- {PIEZAS[a['pieza_id']]['nombre']} (probabilidad {_porcentaje(a['probabilidad'])}, "
-               f"por el daño en {PIEZAS[a['origen']]['nombre'].lower()})" for a in arrastres]
+        md += [f"- {PIEZAS[a['pieza_id']]['nombre']}: probabilidad {_porcentaje(a['probabilidad'])}, "
+               f"por el daño en {PIEZAS[a['origen']]['nombre'].lower()}" for a in arrastres]
     else:
         md.append("_Ninguno previsto._")
 
