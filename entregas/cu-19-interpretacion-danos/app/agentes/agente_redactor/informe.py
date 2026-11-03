@@ -46,6 +46,11 @@ with open(DATA / "reglas_dano.csv", encoding="utf-8") as _f:
 
 AVISO_LEGAL = ("Informe generado automáticamente con datos sintéticos de prototipo. Las cifras son "
                "orientativas y no vinculantes, y no sustituyen a una valoración pericial.")
+# Texto de referencia de la #32 (specs/32-rag-normativa.md, «Contrato propuesto de diagnóstico»)
+AVISO_PRELIMINAR = ("Informe preliminar: no se han recuperado fuentes suficientes para respaldar las "
+                    "conclusiones indicadas sobre cobertura e indemnización. Estas conclusiones requieren revisión.")
+ESTADOS_RAG = ("recuperadas", "parcial", "sin_resultados", "error", "no_aplica")
+ESTADOS_PRELIMINARES = ("parcial", "sin_resultados", "error")
 POLIZA_TERCERO = "Terceros (RC obligatoria)"
 
 ACCION_TEXTO = {
@@ -164,6 +169,37 @@ def validar_entradas(agente1: dict, agente2: dict) -> None:
     for pieza in piezas:
         if pieza not in PIEZAS:
             raise ValueError(f"pieza_id no esta en el catalogo de la empresa: {pieza!r}")
+    if "diagnostico_rag" in agente2:
+        _validar_diagnostico(agente2["diagnostico_rag"])
+
+
+def _validar_diagnostico(diagnostico: dict) -> None:
+    """`diagnostico_rag` opcional, con la forma del contrato de la #32
+    (specs/31-informe-peritaje.md#AC-015). Solo se presenta, no se recalcula."""
+    if diagnostico.get("estado") not in ESTADOS_RAG:
+        raise ValueError(f"diagnostico_rag.estado no valido: {diagnostico.get('estado')!r} (debe ser {', '.join(ESTADOS_RAG)})")
+    consultas = diagnostico.get("consultas")
+    if not isinstance(consultas, list):
+        raise ValueError("diagnostico_rag.consultas debe ser una lista")
+    for n, consulta in enumerate(consultas):
+        if not consulta.get("tema"):
+            raise ValueError(f"diagnostico_rag.consultas[{n}] sin tema")
+        if not isinstance(consulta.get("incidencias", []), list):
+            raise ValueError(f"diagnostico_rag.consultas[{n}].incidencias debe ser una lista")
+
+
+def _consultas_sin_fuentes(diagnostico: dict | None) -> list[str]:
+    """Por cada consulta que no termino en `recuperadas`: su tema y el mensaje
+    de cada incidencia (o «sin resultados»). Nunca `codigo`, `etapa` ni
+    `reintentable` (specs/31-informe-peritaje.md#AC-014)."""
+    if not diagnostico or diagnostico["estado"] not in ESTADOS_PRELIMINARES:
+        return []
+    lineas = []
+    for c in diagnostico["consultas"]:
+        if c["estado"] != "recuperadas":
+            motivo = " ".join(i["mensaje"] for i in c.get("incidencias", [])) or "sin resultados"
+            lineas.append(f"- Sin fuentes para «{c['tema']}»: {motivo}")
+    return lineas
 
 
 def generar_informe(agente1: dict, agente2: dict, hoy: str | None = None) -> str:
@@ -194,9 +230,11 @@ def generar_informe(agente1: dict, agente2: dict, hoy: str | None = None) -> str
     ]
     if tercero:
         md.append("- **Perjudicado:** un tercero (reclamación por responsabilidad civil)")
+    diagnostico = agente2.get("diagnostico_rag")
+    md += ["", f"> {AVISO_LEGAL}"]
+    if diagnostico and diagnostico["estado"] in ESTADOS_PRELIMINARES:
+        md += ["", f"> **{AVISO_PRELIMINAR}**"]
     md += [
-        "",
-        f"> {AVISO_LEGAL}",
         "",
         "## Resumen",
         "",
@@ -264,6 +302,9 @@ def generar_informe(agente1: dict, agente2: dict, hoy: str | None = None) -> str
         "",
     ]
     md += [f"- {n['tema']}: «{n['extracto']}» ({n['fuente']})" for n in agente2["normativa"]] or ["_Sin fuentes._"]
+    sin_fuentes = _consultas_sin_fuentes(diagnostico)
+    if sin_fuentes:
+        md += ["", "Temas sin fuentes recuperadas (las conclusiones sobre ellos requieren revisión):", "", *sin_fuentes]
     return "\n".join(md) + "\n"
 
 

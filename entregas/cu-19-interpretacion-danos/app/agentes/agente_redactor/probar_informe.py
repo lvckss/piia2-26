@@ -353,6 +353,105 @@ def probar_ac012_determinista_sin_clave_ni_red():
             os.environ["OPENAI_API_KEY"] = clave
 
 
+# --- specs/31-informe-peritaje.md#AC-014 y AC-015 ---------------------------
+# `diagnostico_rag` con la forma del contrato integrado de la #32
+# (specs/32-rag-normativa.md, «Contrato propuesto de diagnóstico»; ADR 0006).
+AVISO_PRELIMINAR = ("Informe preliminar: no se han recuperado fuentes suficientes para respaldar las "
+                    "conclusiones indicadas sobre cobertura e indemnización. Estas conclusiones requieren revisión")
+TEMA_OK, TEMA_VACIO, TEMA_FALLO = "cobertura de daños propios", "franquicia de daños propios", "regla de indemnización"
+MENSAJE_FALLO = "No se pudo consultar el buscador de normativa: el servicio tardó demasiado en responder."
+MENSAJE_VACIO = "La búsqueda terminó sin encontrar fragmentos para este tema."
+TECNICOS = ("EMBEDDINGS_TIMEOUT", "SIN_RESULTADOS", "reintentable", "etapa")
+
+
+def _consulta(tema, estado, fuentes=(), incidencias=()):
+    return {"tema": tema, "estado": estado, "fuentes": list(fuentes), "incidencias": list(incidencias)}
+
+
+def _incidencia(codigo, etapa, mensaje, reintentable):
+    return {"codigo": codigo, "etapa": etapa, "mensaje": mensaje, "reintentable": reintentable}
+
+
+def _con_diagnostico(a2: dict, estado: str) -> dict:
+    """Copia de la salida del Agente 2 con un diagnostico en ese estado."""
+    x = copy.deepcopy(a2)
+    cita = a2["normativa"][0]
+    ok = _consulta(TEMA_OK, "recuperadas", [cita["fuente"]])
+    vacia = _consulta(TEMA_VACIO, "sin_resultados")
+    fallo = _consulta(TEMA_FALLO, "error", incidencias=[_incidencia("EMBEDDINGS_TIMEOUT", "embeddings", MENSAJE_FALLO, True)])
+    vacia_con_motivo = _consulta(TEMA_VACIO, "sin_resultados",
+                                 incidencias=[_incidencia("SIN_RESULTADOS", "consulta", MENSAJE_VACIO, False)])
+    consultas = {
+        "recuperadas": [ok],
+        "parcial": [ok, vacia, fallo],
+        "sin_resultados": [vacia_con_motivo],
+        "error": [fallo],
+        "no_aplica": [],
+    }[estado]
+    x["normativa"] = [cita] if estado in ("recuperadas", "parcial") else []
+    x["diagnostico_rag"] = {"estado": estado, "consultas": consultas}
+    return x
+
+
+def probar_ac014_diagnostico_en_sus_cinco_estados():
+    """AC-014: aviso preliminar literal solo en parcial, sin_resultados y error;
+    tema y mensaje de cada consulta no recuperada; en parcial se conserva la
+    cita; nunca «verificada» ni codigo/etapa/reintentable; cifras del Agente 2."""
+    a1, a2 = _ejemplos()
+    for estado in ("recuperadas", "parcial", "sin_resultados", "error", "no_aplica"):
+        x = _con_diagnostico(a2, estado)
+        md = generar_informe(a1, x, hoy=HOY)
+        s = _secciones(md)
+        preliminar = estado in ("parcial", "sin_resultados", "error")
+        assert (AVISO_PRELIMINAR in s[ENCABEZADOS[0]]) == preliminar, f"{estado}: aviso preliminar mal\n{s[ENCABEZADOS[0]]}"
+        assert md.count(AVISO_PRELIMINAR) == (1 if preliminar else 0), estado
+        fuentes = s["## Fuentes consultadas"]
+        for c in x["diagnostico_rag"]["consultas"]:
+            if c["estado"] == "recuperadas":
+                continue
+            linea = next((l for l in fuentes.splitlines() if c["tema"] in l), "")
+            assert linea, f"{estado}: falta el tema {c['tema']!r} en Fuentes consultadas\n{fuentes}"
+            esperados = [i["mensaje"] for i in c["incidencias"]] or ["sin resultados"]
+            for texto in esperados:
+                assert texto in linea, f"{estado}: falta {texto!r} en {linea!r}"
+        if estado == "parcial":
+            cita = x["normativa"][0]
+            assert cita["fuente"] in fuentes and cita["tema"] in fuentes, fuentes
+        assert "verificad" not in md.lower(), f"{estado}: aparece «verificada»"
+        for tecnico in TECNICOS:
+            assert tecnico not in md, f"{estado}: se muestra {tecnico!r}"
+        assert comprobar_cifras(md, x) == [], (estado, comprobar_cifras(md, x))
+
+
+def _espera_error_diagnostico(a1, a2, campo):
+    try:
+        generar_informe(a1, a2, hoy=HOY)
+    except ValueError as e:
+        assert campo in str(e), f"el error no nombra «{campo}»: {e}"
+        return
+    raise AssertionError(f"no se lanzo ValueError con {campo} malformado")
+
+
+def probar_ac015_sin_diagnostico_y_diagnostico_malformado():
+    """AC-015: sin el campo, el informe es el de siempre (sin aviso
+    preliminar); con estado fuera de los cinco valores o una consulta sin
+    tema, ValueError que nombra el campo."""
+    a1, a2 = _ejemplos()
+    assert "diagnostico_rag" not in a2
+    md = generar_informe(a1, a2, hoy=HOY)
+    assert "Informe preliminar" not in md
+    for prueba in (probar_ac001_encabezados_cabecera_y_resumen, probar_ac002_confirmados_pendientes_y_no_incluidos,
+                   probar_ac003_sin_importes_inventados, probar_ac004_importe_inventado_con_y_sin_miles,
+                   probar_ac005_normativa_vacia_y_con_extractos):
+        prueba()
+    x = _con_diagnostico(a2, "parcial")
+    x["diagnostico_rag"]["estado"] = "casi"
+    _espera_error_diagnostico(a1, x, "estado")
+    x = _con_diagnostico(a2, "parcial")
+    del x["diagnostico_rag"]["consultas"][1]["tema"]
+    _espera_error_diagnostico(a1, x, "tema")
+
+
 PRUEBAS = [
     probar_ac001_encabezados_cabecera_y_resumen,
     probar_ac002_confirmados_pendientes_y_no_incluidos,
@@ -367,6 +466,8 @@ PRUEBAS = [
     probar_ac011_entradas_incoherentes,
     probar_ac011_paquete_ausente,
     probar_ac012_determinista_sin_clave_ni_red,
+    probar_ac014_diagnostico_en_sus_cinco_estados,
+    probar_ac015_sin_diagnostico_y_diagnostico_malformado,
 ]
 
 
