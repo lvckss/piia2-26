@@ -66,6 +66,7 @@ cu-19-interpretacion-danos/
 ├── .gitignore
 ├── README.md
 ├── justfile
+├── compose.yaml
 ├── scripts/
 ├── docs/
 ├── specs/
@@ -82,6 +83,7 @@ cu-19-interpretacion-danos/
 
 - `README.md`: presenta el problema, la motivación, el alcance y el equipo.
 - `justfile`: comandos de desarrollo y preparación de datos, propios de este caso.
+- `compose.yaml`: PostgreSQL compartida con pgvector y volumen persistente; [arranque y migración de la base local](docs/postgresql-local.md). La integración de los demás servicios sigue en #34.
 - `scripts/`: descargador de CARDD, dependencia opcional, SHA-256, pruebas y [guía de datos locales](scripts/README.md). Se entrega dentro del caso; las imágenes y el entorno Python permanecen fuera de Git.
 - `docs/`: [documentación del equipo](docs/README.md), workflow, plantillas y registro de ADRs. Forma parte de la entrega del caso.
 - `specs/`: especificaciones, arquitectura y guías del proyecto (tabla más abajo).
@@ -105,6 +107,10 @@ archivos auxiliares de la raíz de la asignatura. Consulta los
 [prerrequisitos y comandos de frontend/backend](app/README.md#comandos-con-just)
 y la [guía de descarga](scripts/README.md). La preparación de archivos CARDD
 no crea ni carga PostgreSQL.
+
+Para preparar PostgreSQL en Docker o conservar los datos de una base que ya
+tengas en localhost, sigue la [guía de PostgreSQL compartida](docs/postgresql-local.md).
+El backend y el futuro RAG utilizan la misma instancia.
 
 ### Contenido de `specs/`
 

@@ -20,3 +20,31 @@ cardd:
     @test -x .venv-cardd/bin/python || python3 -m venv .venv-cardd
     @.venv-cardd/bin/python -m pip install --disable-pip-version-check --quiet -r scripts/requirements-cardd.txt
     @.venv-cardd/bin/python scripts/download_cardd.py --url {{ quote(cardd_url) }}
+
+# Generar una contraseña local y la configuración Docker sin sobrescribirla.
+db-configure:
+    python3 scripts/migrate_postgres.py --configure
+
+# Arrancar la PostgreSQL compartida (explorador y RAG) y esperar a que esté lista.
+db-up:
+    docker compose --env-file .env.postgres up -d --wait postgres
+
+# Ver el plan de copia; no cambia datos ni conexiones.
+db-migration-plan:
+    python3 scripts/migrate_postgres.py
+
+# Copiar la BD local a un destino vacío y conectar la app solo tras verificar.
+db-migrate:
+    python3 scripts/migrate_postgres.py --execute --update-app-env
+
+# Crear las tablas del explorador solo para una instalación nueva sin datos.
+db-init:
+    docker compose --env-file .env.postgres exec -T postgres sh -c 'exec psql -v ON_ERROR_STOP=1 --single-transaction -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < app/bd/schema.sql
+
+# Abrir psql en la misma base que usarán backend y RAG.
+db-psql:
+    docker compose --env-file .env.postgres exec postgres sh -c 'exec psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"'
+
+# Detener PostgreSQL conservando el volumen y todos sus datos.
+db-stop:
+    docker compose --env-file .env.postgres stop postgres

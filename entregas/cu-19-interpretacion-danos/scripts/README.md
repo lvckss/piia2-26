@@ -130,11 +130,15 @@ PostgreSQL**. El esquema está en `app/bd/schema.sql` y el importador heredado e
 `app/bd/scripts/import_cardd_to_db.py` (rutas relativas a `app/bd/` y variable
 `DATABASE_URL`). Cargar PostgreSQL se realiza por separado.
 
+La [guía de PostgreSQL compartida](../docs/postgresql-local.md) explica cómo
+levantar esa misma base con pgvector en Docker y copiar los datos existentes
+mediante `migrate_postgres.py`, conservando respaldo y verificando la copia.
+
 Las pruebas usan paquetes sintéticos pequeños, un servidor HTTP local y un
 sustituto controlado de `gdown`. No requieren el dataset ni acceso a Drive:
 
 ```bash
-python3 -m unittest discover -s scripts/tests -v
+python3 -m unittest discover -s scripts/tests -p test_download_cardd.py -v
 ```
 
 La prueba de descarga real desde Drive necesita el enlace del paquete subido;

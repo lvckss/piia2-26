@@ -43,8 +43,10 @@ Desde la raíz de la asignatura se puede indicar el archivo explícitamente:
 No se necesita un justfile ni scripts propios del caso fuera de su carpeta.
 
 El backend necesita PostgreSQL disponible y `DATABASE_URL` exportada en el shell
-o definida en un `.env` local dentro de `app/`. Estos comandos no crean la BD ni
-cargan sus tablas. Los valores de entorno se heredan sin fijar credenciales.
+o definida en un `.env` local dentro de `app/`. La [guía de PostgreSQL compartida](../docs/postgresql-local.md)
+explica `just db-configure`, `just db-up` y cómo migrar una base existente con
+`just db-migrate`. Se conserva el origen y se cambia `app/.env` solo tras comprobar
+la copia. `just backend` por sí solo no crea ni carga tablas.
 
 ```bash
 just cardd     # prepara .venv-cardd y descarga/comprueba los datos
