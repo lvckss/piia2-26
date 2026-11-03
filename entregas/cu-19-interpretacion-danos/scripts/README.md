@@ -131,8 +131,8 @@ PostgreSQL**. El esquema está en `app/bd/schema.sql` y el importador heredado e
 `DATABASE_URL`). Cargar PostgreSQL se realiza por separado.
 
 La [guía de PostgreSQL compartida](../docs/postgresql-local.md) explica cómo
-levantar esa misma base con pgvector en Docker y copiar los datos existentes
-mediante `migrate_postgres.py`, conservando respaldo y verificando la copia.
+preparar esa misma base con pgvector en Docker mediante `just db-init` y
+arrancarla después con `just db-up`, conservando los datos del volumen.
 
 Las pruebas usan paquetes sintéticos pequeños, un servidor HTTP local y un
 sustituto controlado de `gdown`. No requieren el dataset ni acceso a Drive:

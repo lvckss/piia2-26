@@ -4,5 +4,6 @@ __pycache__/
 
 # PostgreSQL local credentials and private migration backups
 .env.postgres
-app/.env.migrating
+app/.env.initializing
+app/.env.before-docker
 backups/

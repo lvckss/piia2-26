@@ -8,13 +8,14 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-cardd_webapp}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run just db-configure first}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run just db-init first}
     ports:
       - "127.0.0.1:${POSTGRES_PORT:-5433}:5432"
     volumes:
       # PostgreSQL 18 stores PGDATA under /var/lib/postgresql/18/docker.
       - postgres_data:/var/lib/postgresql
       - ./app/bd/docker/10-vector.sql:/docker-entrypoint-initdb.d/10-vector.sql:ro
+      - ./app/bd/schema.sql:/docker-entrypoint-initdb.d/20-explorer.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
       interval: 5s

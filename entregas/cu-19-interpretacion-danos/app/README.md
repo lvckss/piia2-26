@@ -44,9 +44,10 @@ No se necesita un justfile ni scripts propios del caso fuera de su carpeta.
 
 El backend necesita PostgreSQL disponible y `DATABASE_URL` exportada en el shell
 o definida en un `.env` local dentro de `app/`. La [guía de PostgreSQL compartida](../docs/postgresql-local.md)
-explica `just db-configure`, `just db-up` y cómo migrar una base existente con
-`just db-migrate`. Se conserva el origen y se cambia `app/.env` solo tras comprobar
-la copia. `just backend` por sí solo no crea ni carga tablas.
+explica `just db-init` para la primera preparación en Docker y `just db-up`
+para los siguientes arranques. La inicialización configura `app/.env` y crea
+las tablas en un volumen nuevo; no sustituye los datos de uno existente.
+`just backend` por sí solo no crea ni carga tablas.
 
 ```bash
 just cardd     # prepara .venv-cardd y descarga/comprueba los datos
