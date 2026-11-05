@@ -115,6 +115,15 @@ class CopiasTests(CasoTemporal):
         self.assertIn("](https://example.com/x)", copia)    # absoluto: sin cambio
         self.assertIn("[esto no es un enlace](../../no-existe.md)", copia)  # código: intacto
 
+    def test_ac002_conserva_la_barra_final_de_los_enlaces_a_carpetas(self):
+        """Plan v1.2 de #49 + AC-002: reescribir un enlace no quita la barra final de una carpeta."""
+        escribir(self.caso / "docs/adr/0004-d.md",
+                 ADR.format(n="0004", estado="Aceptado") + "\nCarpeta: [specs](../../specs/).\n")
+        v.generar(self.caso)
+        self.assertIn("[specs](../specs/).", self.leer("decisions/0004-d.md"))
+        self.assertEqual(v.comprobar_copias(self.caso), [])
+        self.assertEqual(v.comprobar_enlaces(self.caso)[2], [])
+
     def test_ac002_copias_correctas_no_dan_errores(self):
         """Plan v1.2 de #49 + AC-002: las copias recién generadas pasan la comprobación."""
         v.generar(self.caso)

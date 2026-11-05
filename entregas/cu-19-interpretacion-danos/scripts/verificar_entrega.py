@@ -142,7 +142,7 @@ def a_copia(texto: str, caso: Path, copiados: set[str]) -> str:
         meta = objetivo(origen, d)
         nuevo = meta.name if meta.parent == origen and meta.name in copiados else \
             PurePosixPath(Path(os.path.relpath(meta, destino)).as_posix())
-        nuevo = str(nuevo)
+        nuevo = str(nuevo) + ("/" if ruta.endswith("/") else "")
         return (quote(nuevo, safe="/.-_~") if unquote(ruta) != ruta else nuevo) + sufijo
 
     return recorrer(texto, reescribir)[0]
