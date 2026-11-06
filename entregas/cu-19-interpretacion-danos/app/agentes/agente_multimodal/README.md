@@ -122,6 +122,84 @@ demasiado grande. Resultados en `piia2_detecciones/evaluacion_vision/`.
 No puede medir si la pieza y la severidad son correctas (CarDD no trae esas
 etiquetas): eso se revisa a mano en una muestra.
 
+## Comparación de dos modelos de visión
+
+Ejecutada el 6 de noviembre de 2026 con
+`python evaluar_vision.py --modelos gpt-6-luna gpt-6.1-terra --ejecutar`. Cumple el criterio 5
+de la spec de arquitectura (comparar con números al menos dos modelos de visión). Los
+resultados en bruto (`resultados_<modelo>.json`) están en
+`piia2_detecciones/evaluacion_vision_comparacion/`, que no se sube a git.
+
+**Qué se comparó.** Las mismas 40 imágenes (semilla 42, al menos 8 aciertos de PIIA-1 por
+clase), con 309 detecciones: 49 aciertos de PIIA-1 y 260 falsos positivos según CarDD. Mismo
+prompt y mismas imágenes para los dos modelos y una sola ejecución por modelo. Se aplican los
+umbrales calibrados en la Issue #44 (0,3 en `dent`, `scratch` y `crack`; 0,6 en el resto).
+«Confirmada» sigue la regla de `confianza.decidir_tier`: la detección supera el umbral de su
+clase, la visión la confirma y se conoce la pieza con una regla de coste. Nada se descarta: lo
+que no se confirma queda en `needs_review`.
+
+| | Pasan el umbral | Confirmadas | Aciertos entre las confirmadas | Precisión | Aciertos conservados | Sin confirmar (de 309) |
+|---|---:|---:|---:|---:|---:|---:|
+| Solo umbral de PIIA-1 | 283 | 283 | 49 | 17,3 % | 49 de 49 | 26 |
+| `gpt-6-luna` | 283 | 147 | 48 | 32,7 % | 48 de 49 (98,0 %) | 162 (52 %) |
+| `gpt-6.1-terra` | 283 | 101 | 39 | 38,6 % | 39 de 49 (79,6 %) | 208 (67 %) |
+
+Por clase, con las detecciones confirmadas y, entre paréntesis, cuántas son aciertos reales:
+
+| Clase | Umbral | Pasan el umbral (aciertos) | `gpt-6-luna` | `gpt-6.1-terra` |
+|---|---:|---:|---:|---:|
+| `dent` | 0,3 | 65 (8 de 8) | 32 (8) | 26 (7) |
+| `scratch` | 0,3 | 56 (8 de 8) | 47 (7) | 33 (5) |
+| `crack` | 0,3 | 78 (8 de 8) | 37 (8) | 19 (6) |
+| `glass shatter` | 0,6 | 18 (8 de 8) | 9 (8) | 7 (7) |
+| `lamp broken` | 0,6 | 34 (8 de 8) | 12 (8) | 9 (7) |
+| `tire flat` | 0,6 | 32 (9 de 9) | 10 (9) | 7 (7) |
+
+Tokens y tiempo:
+
+| | Tokens de entrada | Tokens de salida | Tiempo |
+|---|---:|---:|---:|
+| `gpt-6.1-terra` (medido) | 565.471 | 47.262 | 1.176 s (unos 20 min) |
+| `gpt-6-luna` (estimado) | unos 0,55–0,57 M | unos 0,12 M | no medido |
+
+Lo de `gpt-6.1-terra` suma las 39 llamadas de la prueba previa y las 270 de la ejecución
+completa. Las respuestas de `gpt-6-luna` salían de la caché, que no guarda los tokens, así
+que su fila es una estimación a partir de sus lotes anteriores (unos 1.800 tokens de entrada
+y 380–400 de salida por llamada). No hay precios por millón de tokens, así que no se da coste
+en euros.
+
+**Qué muestra.**
+
+- `gpt-6.1-terra` es una versión más estricta de `gpt-6-luna`: de las 103 detecciones que
+  confirma, `gpt-6-luna` también confirma 102, y no confirma ningún acierto que
+  `gpt-6-luna` no confirme.
+- `gpt-6-luna` confirma 51 detecciones que `gpt-6.1-terra` no: 9 son aciertos de PIIA-1 y
+  42 no lo son.
+- `gpt-6.1-terra` contesta «incierto» en 60 detecciones (19,4 %) y `gpt-6-luna` en 8
+  (2,6 %). Con los neumáticos es muy prudente: deja en «incierto» 21 de los 30 falsos
+  positivos de `tire flat`, mientras que `gpt-6-luna` rechaza el 96,7 %.
+- Cuando los dos confirman (102 detecciones), coinciden en la pieza en 76 y en la severidad
+  en 64. CarDD no trae pieza ni severidad, así que esta medida no dice cuál acierta.
+
+**Límites.**
+
+- Son 40 imágenes y una sola ejecución, sin intervalos. Hay 8 o 9 aciertos por clase: un
+  87,5 % es 7 de 8. La muestra se eligió con un mínimo de aciertos por clase y no refleja
+  la proporción real.
+- Los dos modelos son de la familia `gpt-6.x`.
+- La verdad es el acierto de PIIA-1 contra CarDD. En `dent`, `scratch` y `crack` CarDD no
+  anota todo el daño, así que muchos «falsos positivos» son daño real: la precisión de los
+  dos modelos está infravalorada y quitar más falsos positivos no significa ser mejor en
+  esas clases.
+- `gpt-6.1-terra` fue también el juez de la Issue #44. Aquí no se usa el juez, la verdad es
+  CarDD, así que no hay circularidad.
+
+**Decisión.** El Agente 1 sigue con `gpt-6-luna`: conserva el 98 % de los aciertos de
+PIIA-1, y los umbrales de la Issue #44 y las validaciones de la categoría del vehículo se
+hicieron con sus respuestas. `gpt-6.1-terra` queda como alternativa más estricta, con más
+precisión a cambio de perder aciertos y de dejar más detecciones para revisión; usarlo
+obligaría a recalibrar los umbrales.
+
 ## Generar un lote real
 
 `generar_lote.py` ejecuta el Agente 1 (`analizar_imagen`) sobre un lote
@@ -319,8 +397,6 @@ esa parte).
 
 ## Pendiente
 
-- Ejecutar `evaluar_vision.py --ejecutar` con la API real y comparar varios
-  modelos.
 - Los 6 `CATEGORY_REVIEW_THRESHOLD` ya están calibrados (Issue #44, medición con las 500
   imágenes y etiquetas de un modelo juez, no verdad humana): `dent`, `scratch` y `crack`
   a 0,3 y el resto en 0,6. Se recalibran si cambian la estrategia, el prompt, el juez o el
