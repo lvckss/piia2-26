@@ -5,7 +5,7 @@
 - ADR decision: NO_ADR_REQUIRED — justificación aceptada por Lucas García ([comentario del 2026-10-20](https://github.com/lvckss/piia2-26/pull/40#issuecomment-6290002285) y aprobación sobre `c1e5b93`) y por Lucía Luis Castaño (revisión de `408f393`).
 - ADR: No requerido — justificado en Spec.
 - Justificación: esta Issue implementa, sin cambiarlo, el contrato Agente 2 → Agente 3 ya acordado en `specs/piia2-arquitectura-multiagente.md` y fijado por `ejemplos_contrato/agente2_salida.json`. No introduce una decisión estructural nueva: usa la herramienta de costes de la empresa (decisión previa) y replica reglas de cobertura deterministas ya descritas. Registrar como ADR las decisiones previas (contrato entre agentes, herramienta de la empresa) es el alcance de la Issue #37, no de esta. El único cambio de contrato que toca esta Issue (`vehiculo_id` opcional y `vehiculo_origen`) lo decide el ADR 0001 de la Issue #28; aquí solo se consume (AC-009). **A confirmar en la revisión:** que esta justificación no oculta una decisión relevante.
-- Plan vigente / versión: este archivo, en la rama `plan/30-costes-cobertura`; el commit exacto se registra en un comentario de la Issue.
+- Plan vigente / versión: este archivo, en la rama `plan/30-costes-cobertura`; el commit exacto se registra en un comentario de la Issue. **Corrección de coherencia (2026-11-09, [#48](https://github.com/lvckss/piia2-26/issues/48)):** se actualiza lo que decía de la #28 (retomada y aceptada) y se añade la fila de secretos a los failure modes; sin cambio de alcance, de AC ni de sus IDs.
 - Riesgo y revisión previa: **sí, por solicitud expresa**. Por riesgo no haría falta (sin NEW_ADR, reversible, contrato preservado), pero el equipo acordó en el reparto de la Entrega 1 que esta mini-spec la revise Lucas antes de implementar. Según AGENTS.md («respetar también revisión previa expresamente solicitada») y el workflow, eso activa el camino con revisión previa: Spec Revisada y Planning PR aprobada e integrada por un humano antes de implementar. Consumidores: Agente 3 (#31) y la función `agente2()`, que es de la #32 (la escribe quien hace el RAG, según `agente2-rag-normativa-guia.md`, punto 3) y que la orquestación (#34) solo consume. Impacto medio (las cifras llegan al informe), reversibilidad alta (función nueva, sin datos persistentes), incertidumbre baja (código de referencia probado en la guía).
 - Planning PR: https://github.com/lvckss/piia2-26/pull/40, aprobada por una persona distinta del autor (revisor acordado en el reparto: Lucas). Al aprobarla, la spec pasa a Revisada y se registran quién la acepta, el permalink y la versión.
 
@@ -74,7 +74,7 @@ pueda verificar.
   mensaje que dice dónde extraerlo (no con un error opaco).
 - La indemnización es **orientativa**: los datos de pólizas y precios son sintéticos (relacionado
   con la #35, alcance del README del caso).
-- Contexto obligatorio: `vehiculo_id` (siempre obligatorio: AC-009 retirado al aparcarse la #28), `region`,
+- Contexto obligatorio: `vehiculo_id` (siempre obligatorio: AC-009 retirado; la categoría de la #28 se resuelve antes, en la orquestación), `region`,
   `tipo_taller`, `acabado`, `tipo_pieza`, `rol`, `edad_anios` y `km`. `poliza_id` es obligatorio y
   debe existir en `polizas.csv` solo si `rol == "propio"`; con `tercero_perjudicado` se ignora
   (puede venir vacío, AC-003).
@@ -82,7 +82,7 @@ pueda verificar.
 | Incertidumbre | Clasificación | Evidencia / supuesto / pregunta y efecto |
 |---|---|---|
 | ¿Requiere ADR el contrato de salida del Agente 2, que consume el Agente 3? | Pregunta no bloqueante, a confirmar en la revisión | Se elige NO_ADR_REQUIRED porque el contrato ya está acordado y no cambia; su registro como ADR corresponde a la #37. Si el revisor lo pide, se crea el ADR en la #37 y esta Issue lo reutiliza (REUSE_ADR) sin cambiar los AC. |
-| ¿Se aprueba la #28 (`vehiculo_id` opcional y `vehiculo_origen`)? | Resuelta (decisión humana) | Aparcada por Lucía el 2026-10-20 ([registro](https://github.com/lvckss/piia2-26/issues/30#issuecomment-6297183183)); equivale a «rechazado»: AC-009 se retira sin renumerar y `vehiculo_id` sigue siendo obligatorio (AC-010), como preveía este plan. Actualizado en la Implementation PR, según la DoR. |
+| ¿Se aprueba la #28 (`vehiculo_id` opcional y `vehiculo_origen`)? | Resuelta (decisión humana) | Aparcada por Lucía el 2026-10-20 ([registro](https://github.com/lvckss/piia2-26/issues/30#issuecomment-6297183183)); equivale a «rechazado»: AC-009 se retira sin renumerar y `vehiculo_id` sigue siendo obligatorio (AC-010), como preveía este plan. **Actualización (2026-11-09):** la #28 se retomó el 2026-10-27, y su spec v1.3 y el ADR 0001 se aceptaron el 2026-10-28 ([PR #68](https://github.com/lvckss/piia2-26/pull/68)) y se integraron con la [PR #69](https://github.com/lvckss/piia2-26/pull/69). Para este agente no cambia nada: `vehiculo_id` sigue siendo un dato de entrada obligatorio, porque la orquestación convierte la categoría estimada, o la selección del usuario, en un `vehiculo_id` concreto antes de calcular costes (spec 28 y spec 34). AC-009 sigue retirado. Actualizado en la Implementation PR, según la DoR. |
 | Un hallazgo `confirmed` siempre trae pieza, severidad y `regla_coste_aplicable == true`. | Resuelta con evidencia | `decidir_tier` (`agente_multimodal/confianza.py`) solo devuelve `confirmed` si `pieza_id` existe y la regla es `true`, y `vision.py` solo calcula la regla si hay pieza y severidad. El Agente 2 confía en esa invariante y no vuelve a comprobar los confirmados. |
 | ¿Qué pólizas concretas usan AC-004, AC-005 y AC-006 y qué importes esperados salen? | Resuelta con evidencia | Calculado por Lucía con la herramienta real, la lógica de la guía y `polizas.csv` ([AC-004/005](https://github.com/lvckss/piia2-26/pull/40#discussion_r4303253777), [AC-006](https://github.com/lvckss/piia2-26/pull/40#discussion_r4303253779)); los importes se fijan en los AC. `P-TERC-BASICO` no cubre colisión ni lunas. Para AC-006 solo `P-TERC-AMPLIADO` tiene un límite anual de lunas que actúa (800 €), y se usa con `V25` para ejercitar el `min(...)`. |
 | La resta de la franquicia de lunas no se puede comprobar con los datos de la empresa. | Supuesto explícito aceptable (límite declarado) | Las tres pólizas que cubren lunas tienen `franquicia_lunas_eur = 0` ([comentario](https://github.com/lvckss/piia2-26/pull/40#discussion_r4303253779)), así que AC-006 no detectaría que se olvide restar una franquicia positiva. Se declara como límite; no se inventan pólizas. |
@@ -107,6 +107,7 @@ pueda verificar.
 | Ningún hallazgo presupuestable. | Escenarios con la misma forma que uno con daños (importes 0, listas vacías), cobertura «Sin daños presupuestables», sin excepción. | AC-007 |
 | `poliza_id`, `vehiculo_id` o `rol` inválidos, `edad_anios` o `km` no numéricos o negativos, o falta un campo obligatorio del contexto. | Excepción explícita que nombra el campo; no se devuelve una salida parcial. | AC-010 |
 | Paquete de la empresa ausente. | Error al importar que indica la ruta esperada. | AC-010 |
+| Se suben a git el paquete de la empresa, CarDD o una clave. | La clave solo va en `OPENAI_API_KEY` (este agente no la usa); ni el paquete, ni CarDD ni claves se suben a git. | PR de entrega (revisión de diff) |
 | Determinismo. | Misma entrada → misma salida, sin red ni clave. | AC-008 |
 | Rendimiento. | No aplica: cálculo local de milisegundos; sin requisito. | — |
 
@@ -162,7 +163,7 @@ comprobación lleva en su nombre o comentario `30-costes-cobertura.md#AC-0XX`.
 | 1 — Ejemplo del contrato | `estimar_siniestro` reproduce `agente2_salida.json` con el reparto de hallazgos. | AC-001, AC-002, AC-007 | `agente_recuperacion/costes_y_cobertura.py` (nuevo); contrato Agente 2 → 3 | Paquete de la empresa extraído en local | Filas AC-001, AC-002, AC-007 |
 | 2 — Reglas de cobertura | Tercero, póliza sin cobertura, pérdida total y lunas correctos. | AC-003, AC-004, AC-005, AC-006 | Ídem | Slice 1 | Filas AC-003 a AC-006 |
 | 3 — Robustez de la entrada | Errores explícitos y ejecución determinista sin red. | AC-008, AC-010 | Ídem | Slice 1 | Filas AC-008, AC-010 |
-| 4 — Coche estimado por visión | **Retirada** (AC-009 retirado; #28 aparcada). | — | — | — | — |
+| 4 — Coche estimado por visión | **Retirada** (AC-009 retirado; la #28 se retomó y la resuelve la orquestación, no este agente). | — | — | — | — |
 | 5 — Evaluación | MAPE y concordancias documentados. | AC-011 | `agente_recuperacion/evaluar_costes.py` (nuevo) | Slice 2 | Fila AC-011 |
 
 Al terminar, el README de `agente_recuperacion/` indica cómo ejecutar las pruebas y la evaluación.
