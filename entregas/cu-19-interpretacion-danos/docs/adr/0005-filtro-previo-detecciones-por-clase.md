@@ -1,9 +1,9 @@
 # ADR 0005: Filtro previo por clase de las detecciones que se envían al modelo de visión
 
 - Estado: Aceptado
-- Fecha: 2026-10-19
+- Fecha: 2026-10-19 (nota sobre los umbrales de `decidir_tier` actualizada el 2026-11-03, sin cambio de decisión)
 - GitHub Issue: https://github.com/lvckss/piia2-26/issues/37
-- Planes cubiertos (Issue/mini-spec/Spec): [entregas/cu-19-interpretacion-danos/specs/37-adrs-decisiones-previas.md](../../entregas/cu-19-interpretacion-danos/specs/37-adrs-decisiones-previas.md) — registro de una decisión ya vigente, especificada en `specs/agente-confianza-hallazgos.md` («Filtro previo»).
+- Planes cubiertos (Issue/mini-spec/Spec): [entregas/cu-19-interpretacion-danos/specs/37-adrs-decisiones-previas.md](../../specs/37-adrs-decisiones-previas.md) — registro de una decisión ya vigente, especificada en `specs/agente-confianza-hallazgos.md` («Filtro previo»).
 - Planning PR: https://github.com/lvckss/piia2-26/pull/51
 - Aceptación: Lucas García (`lvckss`), [revisión APPROVED del 2026-10-20](https://github.com/lvckss/piia2-26/pull/51#pullrequestreview-5588663399) sobre la versión `14b4b28` (aceptación expresa de los ADRs 0002, 0003, 0004 y 0005).
 - Sustituye / sustituido por: no aplica. Registra una decisión anterior sin ADR.
@@ -37,13 +37,13 @@ La decisión está medida e implementada (`seleccion.py`, commit `83c8155`), per
 - **Límites aceptados:**
   - El techo lo pone SAM3: en `dent`, `scratch` y `crack`, ni con las 5 mejores por imagen se recupera más del 26 %, 25 % y 48 %. Un daño que PIIA-1 no marca no llega al informe; se declara como limitación.
   - `is_true_positive` infravalora a la visión en `dent`, `scratch` y `crack` (CarDD no anota todos los daños), así que las medidas en esas clases son relativas.
-  - Los umbrales de `decidir_tier` siguen siendo placeholders; su calibración es la Issue #44.
+  - Los umbrales de `decidir_tier` eran placeholders cuando se aceptó este ADR (2026-10-19) y su calibración era la Issue #44. La #44 se integró el 2026-11-03 ([PR #70](https://github.com/lvckss/piia2-26/pull/70)): `dent`, `scratch` y `crack` pasan de 0,7 a 0,3, y `lamp broken`, `glass shatter` y `tire flat` se mantienen en 0,6 sin que ese valor esté demostrado (criterio y límites en [`specs/agente-confianza-hallazgos.md`](../../specs/agente-confianza-hallazgos.md)).
 - **Tests y AC:** `probar_seleccion_stub.py` verifica casos pequeños y, con el export presente, las cifras reales (18.507 → 3.712 y los mínimos de recall); `specs/agente-confianza-hallazgos.md` lo recoge como criterio verificado.
 
 ## Referencias y evidencia
 
-- Medición completa y razonamiento: [`specs/agente-confianza-hallazgos.md`](../../entregas/cu-19-interpretacion-danos/specs/agente-confianza-hallazgos.md), «Filtro previo».
-- Implementación: [`seleccion.py`](../../entregas/cu-19-interpretacion-danos/app/agentes/agente_multimodal/seleccion.py):
+- Medición completa y razonamiento: [`specs/agente-confianza-hallazgos.md`](../../specs/agente-confianza-hallazgos.md), «Filtro previo».
+- Implementación: [`seleccion.py`](../../app/agentes/agente_multimodal/seleccion.py):
 
   ```python
   FILTRO_PREVIO = {

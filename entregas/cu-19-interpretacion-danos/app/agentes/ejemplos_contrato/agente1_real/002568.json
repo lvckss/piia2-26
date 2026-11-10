@@ -135,7 +135,7 @@
       "category": "dent",
       "clase_tool": "dent",
       "score": 0.56005859375,
-      "score_tier": "needs_review",
+      "score_tier": "confirmed",
       "confidence_tier": "needs_review",
       "bbox_xywh": [
         351.0,
@@ -155,7 +155,7 @@
       "category": "dent",
       "clase_tool": "dent",
       "score": 0.5546875,
-      "score_tier": "needs_review",
+      "score_tier": "confirmed",
       "confidence_tier": "needs_review",
       "bbox_xywh": [
         566.0,
@@ -170,5 +170,12 @@
       "vision_description": "En la zona marcada no se aprecia una abolladura ni deformación; se observa una línea superficial sobre la pintura. Hay arañazos visibles alrededor, fuera de la zona marcada.",
       "crop_image_path": "crops/2568_dent_21.jpg"
     }
-  ]
+  ],
+  "vehiculo": {
+    "categoria": "desconocido",
+    "vehiculo_id_referencia": null,
+    "confianza": "baja",
+    "descripcion": "El primer plano no permite distinguir con seguridad la categoría del vehículo.",
+    "modelo": "gpt-6-luna"
+  }
 }

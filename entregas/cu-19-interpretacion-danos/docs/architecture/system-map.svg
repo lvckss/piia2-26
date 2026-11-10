@@ -20,7 +20,7 @@
   <path d="M23 1H1257Q1279 1 1279 23V153H1V23Q1 1 23 1" fill="#10243b"/>
   <text x="48" y="47" font-size="14" letter-spacing="2" fill="#8ddfc8" font-weight="700">ARQUITECTURA / CU-19</text>
   <text x="48" y="89" font-size="30" fill="#f5f9ff" font-weight="700">Un recorrido. Responsabilidades explícitas.</text>
-  <text x="48" y="124" font-size="15" fill="#bed1e4">Coordinación ADK y conexiones del recorrido: propuestas en #60 · Snapshot: 27 oct 2026</text>
+  <text x="48" y="124" font-size="15" fill="#bed1e4">Coordinación ADK y conexiones del recorrido: propuestas en #60 · Snapshot: 10 nov 2026</text>
   <rect x="882" y="30" width="18" height="12" rx="4" fill="#a2e9cf"/>
   <text x="910" y="41" font-size="13" fill="#e1edf7">Código integrado</text>
   <rect x="882" y="54" width="18" height="12" rx="4" fill="#ffdda0"/>
@@ -48,7 +48,7 @@
   <rect x="934" y="211" width="298" height="144" rx="14" class="pending"/>
   <text x="954" y="239" class="small" fill="#99701e">USUARIO · PROPUESTA #34</text>
   <text x="954" y="276" class="title">Confirmar vehículo</text>
-  <text x="954" y="306" class="body">Categoría: depende de #28</text>
+  <text x="954" y="306" class="body">Categoría integrada · #28</text>
   <text x="954" y="332" class="body">Póliza, taller, edad y km</text>
 
   <path d="M316 283H350" class="edge"/>
@@ -66,13 +66,13 @@
   <text x="70" y="585" class="body">Confirmados / con pendientes</text>
 
   <rect x="446" y="460" width="338" height="154" rx="14" class="pending"/>
-  <text x="468" y="489" class="small" fill="#99701e">RAG · PROPUESTA #32</text>
+  <text x="468" y="489" class="small" fill="#99701e">RAG · PLAN ACEPTADO #32</text>
   <text x="468" y="527" class="title">Fuentes por tema</text>
-  <text x="468" y="557" class="body">PostgreSQL + pgvector propuesto</text>
+  <text x="468" y="557" class="body">PostgreSQL + pgvector previsto</text>
   <text x="468" y="585" class="body">Filtro de póliza y citas literales</text>
 
   <rect x="844" y="460" width="388" height="154" rx="14" class="pending"/>
-  <text x="866" y="489" class="small" fill="#99701e">COMPOSICIÓN · PROPUESTA #32</text>
+  <text x="866" y="489" class="small" fill="#99701e">COMPOSICIÓN · PLAN #32</text>
   <text x="866" y="527" class="title">Resultado de agente2()</text>
   <text x="866" y="557" class="body">Importes conservados + normativa</text>
   <text x="866" y="585" class="body">Diagnóstico de recuperación explícito</text>

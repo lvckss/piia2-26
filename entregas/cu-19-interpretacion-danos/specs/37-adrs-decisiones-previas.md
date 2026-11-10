@@ -9,6 +9,13 @@
 - Riesgo y revisión previa: **sí** (disparador: NEW_ADR). Impacto medio-alto: los ADRs fijan decisiones que condicionan las Issues #28, #30 y #31, y el equipo decidió el 2026-10-19 que los ADRs se integran en `main` antes de implementar. Reversibilidad alta (documentos). Incertidumbre baja: las cuatro decisiones están escritas y medidas en el repo.
 - Planning PR: https://github.com/lvckss/piia2-26/pull/51. La aprueba una persona distinta del autor (revisor acordado en el reparto: Lucas).
 
+> Reubicación documental del 2026-11-02, solicitada por Lucas: el
+> [registro vigente](../docs/adr/README.md) está dentro del caso. El
+> [mapa de rutas](../docs/README.md#ubicaciones-vigentes-y-referencias-históricas)
+> actualiza la ubicación canónica acordada en esta planificación; las rutas y
+> enlaces a commits de su versión revisada se conservan como evidencia histórica.
+> No cambia las decisiones, sus aceptaciones, AC ni compromisos de la #49.
+
 ## Qué construir
 
 Cuatro ADRs en `docs/adr/`, con el [template](https://github.com/lvckss/piia2-26/blob/6b8ff989823fa69226679bf3e693a48488f14cff/docs/adr/template.md) del repo, que registran decisiones estructurales ya vigentes:

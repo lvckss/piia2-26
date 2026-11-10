@@ -114,7 +114,7 @@
       "category": "crack",
       "clase_tool": "crack",
       "score": 0.5322265625,
-      "score_tier": "needs_review",
+      "score_tier": "confirmed",
       "confidence_tier": "needs_review",
       "bbox_xywh": [
         374.0,
@@ -134,8 +134,8 @@
       "category": "scratch",
       "clase_tool": "scratch",
       "score": 0.46728515625,
-      "score_tier": "needs_review",
-      "confidence_tier": "needs_review",
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
       "bbox_xywh": [
         373.0,
         461.0,
@@ -174,7 +174,7 @@
       "category": "dent",
       "clase_tool": "dent",
       "score": 0.382568359375,
-      "score_tier": "needs_review",
+      "score_tier": "confirmed",
       "confidence_tier": "needs_review",
       "bbox_xywh": [
         722.0,
@@ -189,5 +189,12 @@
       "vision_description": "La zona marcada corresponde al borde y la unión entre el paragolpes y la aleta; no se aprecia una abolladura en ese punto.",
       "crop_image_path": "crops/1721_dent_11.jpg"
     }
-  ]
+  ],
+  "vehiculo": {
+    "categoria": "desconocido",
+    "vehiculo_id_referencia": null,
+    "confianza": "baja",
+    "descripcion": "Detalle de un turismo; la imagen no permite determinar con seguridad su categoría.",
+    "modelo": "gpt-6-luna"
+  }
 }

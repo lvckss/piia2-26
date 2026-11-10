@@ -51,8 +51,8 @@
       "category": "crack",
       "clase_tool": "crack",
       "score": 0.48193359375,
-      "score_tier": "needs_review",
-      "confidence_tier": "needs_review",
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
       "bbox_xywh": [
         0.0,
         0.0,
@@ -66,5 +66,12 @@
       "vision_description": "El parabrisas presenta una fractura extensa en forma de telaraña, con múltiples grietas que se extienden desde un punto de impacto.",
       "crop_image_path": "crops/3083_crack_3.jpg"
     }
-  ]
+  ],
+  "vehiculo": {
+    "categoria": "desconocido",
+    "vehiculo_id_referencia": null,
+    "confianza": "baja",
+    "descripcion": "No se distingue el tipo de vehículo en la imagen.",
+    "modelo": "gpt-6-luna"
+  }
 }

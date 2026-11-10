@@ -170,5 +170,12 @@
       "vision_description": "Se observa una abrasión con pérdida superficial de pintura en la cubierta del paragolpes trasero. El daño es pequeño y no se aprecia deformación importante.",
       "crop_image_path": "crops/2346_scratch_14.jpg"
     }
-  ]
+  ],
+  "vehiculo": {
+    "categoria": "desconocido",
+    "vehiculo_id_referencia": null,
+    "confianza": "baja",
+    "descripcion": "La imagen muestra un primer plano de la parte trasera de un turismo, pero no permite determinar su categoría.",
+    "modelo": "gpt-6-luna"
+  }
 }

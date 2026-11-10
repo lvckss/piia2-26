@@ -7,7 +7,7 @@ description: Verificar la entrega de una Issue de PIIA2 tras integración en mai
 
 Entrada: `finish-issue 14`, entero positivo decimal con `#` opcional. Pedir el
 número si falta; rechazar cero, negativos, texto extra, URLs y otros repos.
-Leer [AGENTS.md](../../../AGENTS.md), [workflow y DoD](../../../docs/workflow.md)
+Leer [AGENTS.md](../../../AGENTS.md), [workflow y DoD](../../../entregas/cu-19-interpretacion-danos/docs/workflow.md)
 y la DoD de la Issue/plan. No exigir Spec, ADR ni Planning PR si no aplican.
 
 Aplicar [gh-verifying-context](../gh-verifying-context/SKILL.md),

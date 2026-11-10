@@ -155,7 +155,7 @@
       "category": "dent",
       "clase_tool": "dent",
       "score": 0.6494140625,
-      "score_tier": "needs_review",
+      "score_tier": "confirmed",
       "confidence_tier": "needs_review",
       "bbox_xywh": [
         483.0,
@@ -170,5 +170,12 @@
       "vision_description": "En la zona marcada se aprecia una rozadura o transferencia de pintura, pero no una deformación visible compatible con un hundimiento.",
       "crop_image_path": "crops/2632_dent_14.jpg"
     }
-  ]
+  ],
+  "vehiculo": {
+    "categoria": "B",
+    "vehiculo_id_referencia": "V07",
+    "confianza": "media",
+    "descripcion": "Vehículo utilitario pequeño de tipo turismo.",
+    "modelo": "gpt-6-luna"
+  }
 }

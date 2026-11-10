@@ -85,6 +85,56 @@ def parsear_respuesta(texto: str, catalogo: Catalogo, clase_tool: str) -> dict[s
     }
 
 
+def consultar_modelo(
+    client: Any,
+    modelo: str,
+    prompt: str,
+    imagenes_b64: tuple[str, ...],
+    cache_dir: str | Path | None = None,
+    uso: dict[str, int] | None = None,
+) -> str:
+    """Una consulta al modelo de vision con `prompt` e `imagenes_b64` (JPEG en base64) y devuelve el texto de
+    la respuesta. Con `cache_dir`, la respuesta se guarda por (modelo, prompt, imagenes) en
+    `<sha256>.json` y no se vuelve a pagar la misma consulta; la clave es `sha256("|".join((modelo, prompt,
+    *imagenes)))`. Si se pasa `uso`, se le suman las llamadas y los tokens realmente facturados (lo que sale
+    de la cache no cuenta): claves `llamadas`, `prompt_tokens` y `completion_tokens`."""
+    ruta_cache = None
+    if cache_dir is not None:
+        clave = hashlib.sha256("|".join((modelo, prompt, *imagenes_b64)).encode("utf-8")).hexdigest()
+        ruta_cache = Path(cache_dir) / f"{clave}.json"
+        if ruta_cache.exists():
+            return json.loads(ruta_cache.read_text(encoding="utf-8"))["respuesta"]
+
+    respuesta = client.chat.completions.create(
+        model=modelo,
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": prompt},
+                    *({"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64}"}} for b64 in imagenes_b64),
+                ],
+            }
+        ],
+        response_format={"type": "json_object"},
+    )
+    texto = respuesta.choices[0].message.content or ""
+
+    if uso is not None:
+        tokens = getattr(respuesta, "usage", None)
+        uso["llamadas"] = uso.get("llamadas", 0) + 1
+        uso["prompt_tokens"] = uso.get("prompt_tokens", 0) + int(getattr(tokens, "prompt_tokens", 0) or 0)
+        uso["completion_tokens"] = uso.get("completion_tokens", 0) + int(getattr(tokens, "completion_tokens", 0) or 0)
+
+    if ruta_cache is not None:
+        ruta_cache.parent.mkdir(parents=True, exist_ok=True)
+        ruta_cache.write_text(
+            json.dumps({"modelo": modelo, "respuesta": texto}, ensure_ascii=False),
+            encoding="utf-8",
+        )
+    return texto
+
+
 def analizar_hallazgo(
     client: Any,
     modelo: str,
@@ -109,45 +159,7 @@ def analizar_hallazgo(
     with Image.open(finding["crop_image_path"]) as recorte:
         recorte_b64 = _jpeg_base64(recorte)
 
-    ruta_cache = None
-    if cache_dir is not None:
-        clave = hashlib.sha256(
-            "|".join((modelo, prompt, contexto_b64, recorte_b64)).encode("utf-8")
-        ).hexdigest()
-        ruta_cache = Path(cache_dir) / f"{clave}.json"
-        if ruta_cache.exists():
-            texto = json.loads(ruta_cache.read_text(encoding="utf-8"))["respuesta"]
-            return parsear_respuesta(texto, catalogo, clase_a_tool(finding["category"]))
-
-    respuesta = client.chat.completions.create(
-        model=modelo,
-        messages=[
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": prompt},
-                    {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{contexto_b64}"}},
-                    {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{recorte_b64}"}},
-                ],
-            }
-        ],
-        response_format={"type": "json_object"},
-    )
-    texto = respuesta.choices[0].message.content or ""
-
-    if uso is not None:
-        tokens = getattr(respuesta, "usage", None)
-        uso["llamadas"] = uso.get("llamadas", 0) + 1
-        uso["prompt_tokens"] = uso.get("prompt_tokens", 0) + int(getattr(tokens, "prompt_tokens", 0) or 0)
-        uso["completion_tokens"] = uso.get("completion_tokens", 0) + int(getattr(tokens, "completion_tokens", 0) or 0)
-
-    if ruta_cache is not None:
-        ruta_cache.parent.mkdir(parents=True, exist_ok=True)
-        ruta_cache.write_text(
-            json.dumps({"modelo": modelo, "respuesta": texto}, ensure_ascii=False),
-            encoding="utf-8",
-        )
-
+    texto = consultar_modelo(client, modelo, prompt, (contexto_b64, recorte_b64), cache_dir, uso)
     return parsear_respuesta(texto, catalogo, clase_a_tool(finding["category"]))
 
 

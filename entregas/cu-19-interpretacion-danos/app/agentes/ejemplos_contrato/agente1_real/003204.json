@@ -115,8 +115,8 @@
       "category": "dent",
       "clase_tool": "dent",
       "score": 0.56005859375,
-      "score_tier": "needs_review",
-      "confidence_tier": "needs_review",
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
       "bbox_xywh": [
         934.0,
         498.0,
@@ -135,8 +135,8 @@
       "category": "scratch",
       "clase_tool": "scratch",
       "score": 0.36572265625,
-      "score_tier": "needs_review",
-      "confidence_tier": "needs_review",
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
       "bbox_xywh": [
         934.0,
         498.0,
@@ -155,7 +155,7 @@
       "category": "dent",
       "clase_tool": "dent",
       "score": 0.33837890625,
-      "score_tier": "needs_review",
+      "score_tier": "confirmed",
       "confidence_tier": "needs_review",
       "bbox_xywh": [
         71.0,
@@ -170,5 +170,12 @@
       "vision_description": "La zona marcada muestra la luneta trasera rota, pero no se aprecia una abolladura.",
       "crop_image_path": "crops/3204_dent_14.jpg"
     }
-  ]
+  ],
+  "vehiculo": {
+    "categoria": "C",
+    "vehiculo_id_referencia": "V02",
+    "confianza": "media",
+    "descripcion": "Turismo compacto con carrocería tipo hatchback.",
+    "modelo": "gpt-6-luna"
+  }
 }

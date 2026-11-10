@@ -1,6 +1,6 @@
 # ADR <NNNN>: <título de la decisión>
 
-<!-- Copiar a docs/adr/<NNNN>-<nombre-kebab-case>.md. Este template no es un ADR aceptado. -->
+<!-- Copiar a entregas/<caso>/docs/adr/<NNNN>-<nombre-kebab-case>.md. Este template no es un ADR aceptado. -->
 
 - Estado: Propuesto
 - Fecha: <AAAA-MM-DD>

@@ -95,7 +95,7 @@
       "category": "dent",
       "clase_tool": "dent",
       "score": 0.67578125,
-      "score_tier": "needs_review",
+      "score_tier": "confirmed",
       "confidence_tier": "needs_review",
       "bbox_xywh": [
         272.0,
@@ -115,7 +115,7 @@
       "category": "dent",
       "clase_tool": "dent",
       "score": 0.658203125,
-      "score_tier": "needs_review",
+      "score_tier": "confirmed",
       "confidence_tier": "needs_review",
       "bbox_xywh": [
         191.0,
@@ -135,8 +135,8 @@
       "category": "scratch",
       "clase_tool": "scratch",
       "score": 0.6103515625,
-      "score_tier": "needs_review",
-      "confidence_tier": "needs_review",
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
       "bbox_xywh": [
         272.0,
         401.0,
@@ -155,8 +155,8 @@
       "category": "scratch",
       "clase_tool": "scratch",
       "score": 0.609375,
-      "score_tier": "needs_review",
-      "confidence_tier": "needs_review",
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
       "bbox_xywh": [
         260.0,
         661.0,
@@ -170,5 +170,12 @@
       "vision_description": "Se observa una abrasión superficial clara en la cubierta negra del paragolpes delantero, dentro de la zona marcada. No se aprecia deformación importante.",
       "crop_image_path": "crops/1273_scratch_16.jpg"
     }
-  ]
+  ],
+  "vehiculo": {
+    "categoria": "SUV-C",
+    "vehiculo_id_referencia": "V11",
+    "confianza": "media",
+    "descripcion": "Vehículo tipo SUV mediano de diseño antiguo.",
+    "modelo": "gpt-6-luna"
+  }
 }

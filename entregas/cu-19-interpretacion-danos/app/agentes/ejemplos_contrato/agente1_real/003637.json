@@ -95,7 +95,7 @@
       "category": "crack",
       "clase_tool": "crack",
       "score": 0.69189453125,
-      "score_tier": "needs_review",
+      "score_tier": "confirmed",
       "confidence_tier": "needs_review",
       "bbox_xywh": [
         198.0,
@@ -115,7 +115,7 @@
       "category": "scratch",
       "clase_tool": "scratch",
       "score": 0.66650390625,
-      "score_tier": "needs_review",
+      "score_tier": "confirmed",
       "confidence_tier": "needs_review",
       "bbox_xywh": [
         198.0,
@@ -135,7 +135,7 @@
       "category": "dent",
       "clase_tool": "dent",
       "score": 0.469970703125,
-      "score_tier": "needs_review",
+      "score_tier": "confirmed",
       "confidence_tier": "needs_review",
       "bbox_xywh": [
         198.0,
@@ -150,5 +150,12 @@
       "vision_description": "En la zona marcada se observan arañazos y rozaduras superficiales junto al paso de rueda, pero no se aprecia una deformación o hundimiento tipo dent.",
       "crop_image_path": "crops/3637_dent_12.jpg"
     }
-  ]
+  ],
+  "vehiculo": {
+    "categoria": "desconocido",
+    "vehiculo_id_referencia": null,
+    "confianza": "baja",
+    "descripcion": "Se aprecia un primer plano del paso de rueda, pero no se distingue el tipo de vehículo.",
+    "modelo": "gpt-6-luna"
+  }
 }

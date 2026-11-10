@@ -72,10 +72,15 @@ class _Respuesta:
 RESPUESTA_GENERICA = {"veredicto": "incierto", "pieza_id": None, "severidad": None, "descripcion": "No se aprecia con claridad."}
 
 
+# respuesta a la consulta de categoria del vehiculo (Issue #28): lleva una sola imagen, la de hallazgo lleva dos
+RESPUESTA_VEHICULO = {"categoria": "C", "confianza": "media", "descripcion": "Turismo compacto de color gris."}
+
+
 class ClienteFalso:
     """Imita `OpenAI()`: registra las peticiones, responde un JSON segun la
-    clase que aparece en el prompt e informa de tokens (1.500 de entrada y 40
-    de salida por llamada)."""
+    clase que aparece en el prompt (o la categoria del vehiculo, si la consulta
+    lleva una sola imagen) e informa de tokens (1.500 de entrada y 40 de salida
+    por llamada)."""
 
     def __init__(self) -> None:
         self.llamadas: list[dict] = []
@@ -84,6 +89,8 @@ class ClienteFalso:
 
     def create(self, model: str, messages: list[dict], response_format: dict) -> _Respuesta:
         self.llamadas.append({"model": model, "messages": messages, "response_format": response_format})
+        if sum(1 for parte in messages[0]["content"] if parte["type"] == "image_url") == 1:
+            return _Respuesta([_Eleccion(_Mensaje(json.dumps(RESPUESTA_VEHICULO)))], _Uso(1500, 40))
         texto_prompt = messages[0]["content"][0]["text"]
         categoria = texto_prompt.split("tipo '")[1].split("'")[0]
         respuesta = RESPUESTAS_POR_CLASE.get(categoria, RESPUESTA_GENERICA)
@@ -97,6 +104,13 @@ def probar_decidir_tier() -> None:
     assert decidir_tier("lamp broken", 0.95, "incierto", "FARO_DEL_D", True) == "needs_review"
     # la vision lo confirma pero el score no llega -> a revisar (la vision no rescata scores bajos)
     assert decidir_tier("lamp broken", 0.40, "confirmado", "FARO_DEL_D", True) == "needs_review"
+    # umbrales calibrados en la #44 (D-6): dent, scratch y crack desde 0,3; lamp broken, glass shatter y tire flat siguen en 0,6
+    for clase in ("dent", "scratch", "crack"):
+        assert decidir_tier(clase, 0.30, "confirmado", "PARAG_DEL", True) == "confirmed", clase
+        assert decidir_tier(clase, 0.29, "confirmado", "PARAG_DEL", True) == "needs_review", clase
+    for clase in ("lamp broken", "glass shatter", "tire flat"):
+        assert decidir_tier(clase, 0.60, "confirmado", "FARO_DEL_D", True) == "confirmed", clase
+        assert decidir_tier(clase, 0.59, "confirmado", "FARO_DEL_D", True) == "needs_review", clase
     # sin pieza o sin regla de coste no se puede presupuestar
     assert decidir_tier("lamp broken", 0.95, "confirmado", None, None) == "needs_review"
     assert decidir_tier("lamp broken", 0.95, "confirmado", "PARAG_DEL", False) == "needs_review"
@@ -194,9 +208,9 @@ def probar_enriquecer() -> None:
 
     assert lamp["confidence_tier"] == "confirmed" and lamp["pieza_id"] == "FARO_DEL_D"
     assert tire["vision_verdict"] == "rechazado" and tire["confidence_tier"] == "needs_review"
-    # la vision confirma el dent, pero su score (0.68) no llega al umbral de su clase (0.7)
-    assert dent["vision_verdict"] == "confirmado" and dent["score_tier"] == "needs_review"
-    assert dent["confidence_tier"] == "needs_review"
+    # la vision confirma el dent y su score (0.68) pasa el umbral de su clase (0.3, calibrado en la #44; con 0.7 quedaba en revision)
+    assert dent["vision_verdict"] == "confirmado" and dent["score_tier"] == "confirmed"
+    assert dent["confidence_tier"] == "confirmed"
 
     for f in hallazgos["findings"]:
         print(f"  {f['category']:12s} score={f['score']:.2f} vision={f['vision_verdict']:10s} "

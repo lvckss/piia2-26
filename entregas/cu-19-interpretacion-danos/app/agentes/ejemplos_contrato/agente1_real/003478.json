@@ -54,7 +54,7 @@
       "category": "crack",
       "clase_tool": "crack",
       "score": 0.66650390625,
-      "score_tier": "needs_review",
+      "score_tier": "confirmed",
       "confidence_tier": "needs_review",
       "bbox_xywh": [
         417.0,
@@ -74,7 +74,7 @@
       "category": "scratch",
       "clase_tool": "scratch",
       "score": 0.4365234375,
-      "score_tier": "needs_review",
+      "score_tier": "confirmed",
       "confidence_tier": "needs_review",
       "bbox_xywh": [
         417.0,
@@ -94,7 +94,7 @@
       "category": "scratch",
       "clase_tool": "scratch",
       "score": 0.40673828125,
-      "score_tier": "needs_review",
+      "score_tier": "confirmed",
       "confidence_tier": "needs_review",
       "bbox_xywh": [
         240.0,
@@ -109,5 +109,12 @@
       "vision_description": "La zona marcada en la carrocería blanca no muestra un arañazo apreciable. El roce visible en el piloto trasero queda fuera del rectángulo.",
       "crop_image_path": "crops/3478_scratch_5.jpg"
     }
-  ]
+  ],
+  "vehiculo": {
+    "categoria": "FURG",
+    "vehiculo_id_referencia": "V09",
+    "confianza": "media",
+    "descripcion": "Furgoneta pequeña de reparto; no se distingue con seguridad la marca ni el modelo.",
+    "modelo": "gpt-6-luna"
+  }
 }

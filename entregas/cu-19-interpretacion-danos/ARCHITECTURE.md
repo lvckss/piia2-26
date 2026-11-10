@@ -8,10 +8,10 @@
 
 | Caso de uso | Base documentada | Lectura del estado |
 |---|---|---|
-| CU-19 · PIIA2 · Plexus | [`main` · `d5dd44d`](https://github.com/lvckss/piia2-26/tree/d5dd44d4ff89d64fecb7eeff83ef7a55b5b560af) · 27 de octubre de 2026 | Componentes existentes y evolución propuesta, identificados por separado. |
+| CU-19 · PIIA2 · Plexus | [`main` · `8a38e02`](https://github.com/lvckss/piia2-26/tree/8a38e02310f8cb3b5e2994684715fe34dfee4613) · 10 de noviembre de 2026 | Componentes existentes y evolución propuesta, identificados por separado. |
 
 > [!IMPORTANT]
-> Este documento describe un **snapshot**, no acredita que el flujo completo esté implementado. Agente 1 y costes tienen código integrado. El informe tiene su plan integrado; RAG y orquestación web siguen en las propuestas [#56][pr56] y [#60][pr60]. Documentarlas aquí no acepta sus ADRs ni habilita su implementación.
+> Este documento describe un **snapshot**, no acredita que el flujo completo esté implementado. Agente 1, categoría y costes tienen código integrado. El RAG tiene el plan y ADR 0006 aceptados; su implementación está en la PR #72. El informe tiene el plan v2.1 integrado y su implementación está en la PR #75. La orquestación web sigue en la propuesta [#60][pr60]. Las PR abiertas no forman parte del código integrado; documentarlas no acepta el ADR 0007 ni acredita el recorrido completo.
 
 <p align="center">
   <a href="#01--el-sistema-en-un-vistazo">Mapa del sistema</a> ·
@@ -34,7 +34,7 @@ esa revisión: conserva incertidumbre, separa escenarios y muestra procedencia.
 
 ![Mapa de componentes: visión y costes existentes; RAG, informe y coordinación pendientes; conexiones propuestas indicadas con trazo discontinuo.](docs/architecture/system-map.svg)
 
-**Cómo leer el mapa.** Verde indica código integrado; ámbar, una pieza planificada
+**Cómo leer el mapa.** Representa la arquitectura objetivo y el color indica el estado en el snapshot. Verde indica código integrado; ámbar, una pieza planificada
 pendiente de implementación o aceptación; violeta identifica datos o servicios
 externos. Las conexiones discontinuas muestran la integración objetivo. Tener
 dos componentes implementados no implica que estén conectados automáticamente.
@@ -74,12 +74,12 @@ no cambie de significado cuando se actualice una rama.
 | Detección PIIA1 | **Código integrado** | [`StrategyPipeline/`](app/ml/StrategyPipeline/) y [`ml/api/`](app/ml/api/). La API admite una imagen; los agentes se han desarrollado con detecciones guardadas. |
 | Explorador web | **Código integrado, heredado de PIIA1** | [`routes/explorer.tsx`](app/frontend/src/routes/explorer.tsx), Hono y schema SQL. Todavía no hay pestaña de peritaje. |
 | Agente 1 | **Código integrado** | [`analizar_imagen`](app/agentes/agente_multimodal/agente1.py): detecciones + foto → hallazgos enriquecidos con visión. |
-| Categoría de vehículo | **Propuesta por adaptar** | [#28][i28] / [#29][pr29], aparcada en el plan anterior; [#60][pr60] propone retomarla con confirmación. No está en el Agente 1 integrado. |
+| Categoría de vehículo | **Código integrado por #69; plan v1.3.2 en main** | [#28][i28] / [#29][pr29] y [ADR 0001 Aceptado][adr1]. Agente 1 entrega `vehiculo`; `desconocido` lleva `vehiculo_id_referencia: null`. La resolución del vehículo y procedencia corresponden a #34; el aviso del informe, a #31. |
 | Costes y cobertura | **Código integrado por [#59][pr59]** | [`estimar_siniestro`](app/agentes/agente_recuperacion/costes_y_cobertura.py) produce ambos escenarios. Devuelve `normativa: []`. |
-| RAG + `agente2()` | **Borrador abierto [#56][pr56]** | [Spec v1.2][rag-spec] y [ADR 0006 Propuesto][adr6]. No hay implementación productiva de recuperación. |
-| Agente 3 | **Plan v2 integrado por [#58][pr58]; implementación pendiente** | [Spec #31](specs/31-informe-peritaje.md); [`agente_redactor/`](app/agentes/agente_redactor/) solo contiene README. El diagnóstico RAG depende del contrato de #56. |
+| RAG + `agente2()` | **Plan v1.6 integrado; implementación abierta #72** | [Spec v1.6][rag-spec] y [ADR 0006 Aceptado][adr6], #56/#67 integradas. El indexado y PostgreSQL de #72 no están en main; búsqueda y composición siguen pendientes. |
+| Agente 3 | **Plan v2.1 integrado; implementación abierta #75** | [Spec #31](specs/31-informe-peritaje.md); [`agente_redactor/`](app/agentes/agente_redactor/) solo contiene README en main. El contrato RAG ya está aceptado. #75 implementa el informe, sin procedencia de vehículo; ese AC nuevo se acuerda en #31 al fijar #34 su contrato. |
 | ADK + OpenAI | **Experimento integrado por [#52][pr52]** | [`orquestador/README.md`](app/agentes/orquestador/README.md). Acredita una tool y su cifra, no la coordinación del producto. |
-| Orquestación y web de peritaje | **Borrador abierto [#60][pr60]** | [Spec v1][orq-spec] y [ADR 0007 Propuesto][adr7]. Las rutas, estados y servicios nuevos no existen todavía. |
+| Orquestación y web de peritaje | **Borrador abierto [#60][pr60]** | [Spec v1.2][orq-spec] y [ADR 0007 Propuesto][adr7]. Las rutas, estados y servicios nuevos no existen todavía. |
 | Docker Compose | **Integrado para ML** | [`docker-compose.yml`](app/docker/ml-api/docker-compose.yml) levanta el servicio ML. El Compose del conjunto es parte de #34. |
 
 ### Conexiones disponibles y conexiones pendientes
@@ -188,10 +188,13 @@ La propuesta de categoría distingue ocho grupos: `A`, `B`, `C`, `SUV-B`,
 `SUV-C`, `FURG`, `C-PREMIUM` y `D-PREMIUM`. Un vehículo representante del catálogo
 sirve para estimar; no demuestra que sea el modelo fotografiado.
 
-La propuesta #60 pide confirmación o selección explícita. Con categoría
-`desconocido`, el usuario seleccionará un vehículo; no se asumirá uno por defecto.
-Este comportamiento necesita adaptar la propuesta anterior de #29 y acordar
-con #31 cómo mostrar la procedencia. El contrato definitivo sigue pendiente.
+Agente 1 ya devuelve la categoría y su representante; con `desconocido`, la
+referencia es `null`, sin fallback a C. Los AC-009/010 de #28 se transfirieron
+a #34/#31: la resolución y procedencia son de #34, y el aviso del informe, de #31.
+La v1.2 publicada de #60 pide selección manual. Los acuerdos posteriores sobre
+precio máximo están en la [#34](https://github.com/lvckss/piia2-26/issues/34#issuecomment-6611207541)
+y deben incorporarse al plan/ADR 0007 y revisarse con #31 antes de implementar.
+Un fallo técnico no equivale a una respuesta válida `desconocido` y detiene el flujo.
 
 La póliza, rol, taller, región, acabado, tipo de pieza, antigüedad y kilómetros
 se recogen del contexto. Una imagen de un golpe no permite deducir esas condiciones.
@@ -200,7 +203,7 @@ En el código actual `vehiculo_id` es siempre obligatorio.
 ## 04 · Contratos y datos
 
 La frontera estable entre agentes son **diccionarios JSON serializables por
-imagen**, según [ADR 0002](../../docs/adr/0002-contrato-json-entre-agentes.md).
+imagen**, según [ADR 0002](docs/adr/0002-contrato-json-entre-agentes.md).
 Los ejemplos son la referencia común; el documento no añade campos al contrato.
 
 | Frontera | Entrada → salida | Estado |
@@ -264,10 +267,14 @@ ni rutas que deba aceptar un navegador.
 
 **`confirmed` exige la combinación** del umbral de score de la clase,
 `vision_verdict = "confirmado"`, una pieza y una regla de coste aplicable.
-El resto es `needs_review`. Los umbrales de confianza de
-[`confianza.py`](app/agentes/agente_multimodal/confianza.py) están señalados en
-el código como punto de partida pendiente de calibración; no son porcentajes
-de probabilidad de que el diagnóstico sea correcto.
+El resto es `needs_review`. La calibración de [#44](https://github.com/lvckss/piia2-26/issues/44),
+integrada por #70, fija 0,3 para `dent`, `scratch` y `crack`. `lamp broken`,
+`glass shatter` y `tire flat` conservan 0,6 sin demostrar el criterio de calidad.
+Se usaron 500 imágenes y etiquetas de un modelo juez validado con 60 etiquetas
+humanas; los límites están en [la spec de confianza](specs/agente-confianza-hallazgos.md).
+PIIA1 no entrega detecciones por debajo de 0,3: en las tres primeras clases
+el score ya no frena y decide la visión junto a pieza y regla. Estos umbrales
+no son probabilidades de que el diagnóstico sea correcto.
 
 ### 4.3 · Contexto del siniestro
 
@@ -368,6 +375,8 @@ que propone #34 para el flujo web.
 
 [`analizar_imagen`](app/agentes/agente_multimodal/agente1.py) coordina:
 carga de detecciones → selección → recortes → visión → JSON del contrato.
+La consulta de categoría de #28 sobre la imagen completa añade `vehiculo`;
+no modifica los trece campos de cada hallazgo.
 El cliente OpenAI y el modelo se configuran explícitamente; el catálogo de
 Plexus restringe piezas y reglas válidas.
 
@@ -437,9 +446,9 @@ al implementarlo; el entorno del experimento no acredita ya esa integración.
 ## 06 · RAG: recuperación con fuentes
 
 > [!NOTE]
-> Todo este apartado resume la [propuesta versionada de #32][rag-spec]. PostgreSQL
-> con pgvector, el esquema documental y `diagnostico_rag` siguen sujetos a la
-> aceptación de [ADR 0006][adr6].
+> Este apartado resume el [plan v1.6 de #32][rag-spec], revisado e integrado.
+> PostgreSQL con pgvector y `diagnostico_rag` están aceptados en el [ADR 0006][adr6].
+> La implementación #72 sigue abierta; el plan aceptado no acredita recuperación ejecutada.
 
 ### Por qué conviven datos estructurados y documentos
 
@@ -495,7 +504,7 @@ El arranque tampoco debe generar embeddings ni lanzar evaluaciones de pago.
 
 ### Qué significa que falten fuentes
 
-`diagnostico_rag` es una ampliación propuesta del JSON de Agente 2. Conserva
+`diagnostico_rag` es una ampliación aceptada del JSON de Agente 2 (ADR 0006). Conserva
 el estado global y una lista de consultas con `tema`, estado, fuentes e incidencias.
 Cada incidencia tiene `codigo`, `etapa`, `mensaje` y `reintentable`.
 
@@ -513,8 +522,8 @@ Texto de referencia acordado entre los planes #32 y #31:
 > las conclusiones indicadas sobre cobertura e indemnización. Estas conclusiones
 > requieren revisión.
 
-La [v2 de #31](specs/31-informe-peritaje.md) incorpora AC-014 y AC-015 para
-consumir ese contrato, condicionados a su aceptación. El lector verá tema y
+La [v2.1 de #31](specs/31-informe-peritaje.md) incorpora AC-014 y AC-015 para
+consumir ese contrato, cuya aceptación ya está registrada en #56/#67. El lector verá tema y
 mensaje, no códigos internos de infraestructura. Los errores de costes, contratos
 o programación inesperados no se convertirán en un informe preliminar válido.
 
@@ -562,8 +571,8 @@ flowchart LR
 ```
 
 La PostgreSQL relacional ya existe como dependencia; **su integración en este
-Compose y la extensión vectorial** son parte de la propuesta, como muestra el
-color de su nodo. El objetivo es una sola instancia con datos del explorador
+Compose** es parte de #34 y la extensión vectorial está aceptada por ADR 0006, como muestra el
+color de su nodo pendiente de implementación en main. El objetivo es una sola instancia con datos del explorador
 y almacenamiento RAG separados, no dos despliegues independientes.
 
 La ubicación propuesta es `compose.yaml` en la raíz de la carpeta del caso,
@@ -655,11 +664,11 @@ frontera necesita su verificación, y la integración aún tiene trabajo pendien
 
 | Nivel | Evidencia disponible o prevista | Límite de la afirmación |
 |---|---|---|
-| Contratos | Ejemplos JSON y pruebas por componente; [ADR 0002](../../docs/adr/0002-contrato-json-entre-agentes.md). | Coincidir en claves no demuestra calidad visual ni pericial. |
-| Visión | [Lote real](app/agentes/ejemplos_contrato/agente1_real/README.md): 30 imágenes, 234 hallazgos, 48 `confirmed` y 186 `needs_review`. | Selección orientada a cubrir clases; no es una muestra representativa ni una evaluación global. |
+| Contratos | Ejemplos JSON y pruebas por componente; [ADR 0002](docs/adr/0002-contrato-json-entre-agentes.md). | Coincidir en claves no demuestra calidad visual ni pericial. |
+| Visión | [Lote real](app/agentes/ejemplos_contrato/agente1_real/README.md): 30 imágenes, 234 hallazgos, 94 `confirmed` y 140 `needs_review`. | Selección orientada a cubrir clases; no es una muestra representativa ni una evaluación global. |
 | Costes | [#59][pr59] documenta tests y evaluación frente a siniestros sintéticos. | Reproduce el entorno sintético, no una tasación real. |
 | ADK | [Prueba #33](app/agentes/orquestador/README.md): una tool real invocada una vez y `1233.55` conservado. | No prueba los tres agentes, RAG, web ni el flujo completo. |
-| Recuperación | [#32][rag-spec] prevé 25 preguntas: 16 de póliza y 9 legales; comparación small/large y baseline directo de pólizas. | Objetivo del modelo elegido: ≥24/25; **pendiente de medir**, benchmark conocido, sin garantía de generalización. |
+| Recuperación | [#32][rag-spec] prevé 25 preguntas: 16 de póliza y 9 legales; comparación small/large y baseline directo de pólizas. | Objetivo del modelo elegido: ≥23/25; **pendiente de medir**, benchmark conocido, sin garantía de generalización. |
 | Informe | [#31](specs/31-informe-peritaje.md) prevé ejemplos, bordes y comprobación monetaria restringida. | Funciones productivas pendientes en el snapshot. |
 | Integración | [#34][orq-spec] prevé 3–5 casos reales del recorrido web; [#46][i46] la evaluación global. | No se han ejecutado como parte de esta documentación. |
 
@@ -700,46 +709,57 @@ de cada componente; aquí no se lanza ninguna ejecución de pago.
 
 | ADR | Decisión que documenta | Consecuencia en esta arquitectura |
 |---|---|---|
-| [0002 · Contrato JSON](../../docs/adr/0002-contrato-json-entre-agentes.md) · **Aceptado** | Hallazgos completos, confianza y dos escenarios. | Los agentes conservan el contrato; no desaparecen dudas ni se recalculan tiers. |
-| [0003 · OpenAI](../../docs/adr/0003-proveedor-openai-clave-empresa.md) · **Aceptado** | Proveedor y clave de la empresa. | Visión usa ese proveedor; configuración y secretos quedan fuera de Git. |
-| [0004 · Herramienta de costes](../../docs/adr/0004-herramienta-costes-datos-empresa.md) · **Aceptado** | Tool y datos recibidos de Plexus. | Cálculo determinista y datos sintéticos; el RAG no inventa procedimientos ni precios. |
-| [0005 · Filtro previo](../../docs/adr/0005-filtro-previo-detecciones-por-clase.md) · **Aceptado** | Selección de candidatas antes de visión. | La orquestación entrega las detecciones y Agente 1 aplica su filtro. |
+| [0002 · Contrato JSON](docs/adr/0002-contrato-json-entre-agentes.md) · **Aceptado** | Hallazgos completos, confianza y dos escenarios. | Los agentes conservan el contrato; no desaparecen dudas ni se recalculan tiers. |
+| [0003 · OpenAI](docs/adr/0003-proveedor-openai-clave-empresa.md) · **Aceptado** | Proveedor y clave de la empresa. | Visión usa ese proveedor; configuración y secretos quedan fuera de Git. |
+| [0004 · Herramienta de costes](docs/adr/0004-herramienta-costes-datos-empresa.md) · **Aceptado** | Tool y datos recibidos de Plexus. | Cálculo determinista y datos sintéticos; el RAG no inventa procedimientos ni precios. |
+| [0005 · Filtro previo](docs/adr/0005-filtro-previo-detecciones-por-clase.md) · **Aceptado** | Selección de candidatas antes de visión. | La orquestación entrega las detecciones y Agente 1 aplica su filtro. |
 
-### Propuestas que todavía no son decisiones aceptadas
+### Categoría y RAG aceptados; orquestación propuesta
 
 | Propuesta | Estado y efecto pendiente |
 |---|---|
-| [ADR 0001 · Categoría de vehículo][adr1] / [#29][pr29] | **Propuesto**, fuera de main. #60 pide adaptar el fallback anterior a confirmación/selección; requiere acuerdo con #28 y #31. |
-| [ADR 0006 · RAG y diagnóstico][adr6] / [#56][pr56] | **Propuesto**, fuera de main. Decide persistencia vectorial y ampliación del contrato con diagnóstico de recuperación. |
+| [ADR 0001 · Categoría de vehículo][adr1] / [#29][pr29] | **Aceptado** y registrado por #68; implementación #69 integrada. `desconocido` sin referencia; confirmación/procedencia en #34 y aviso del informe en #31. |
+| [ADR 0006 · RAG y diagnóstico][adr6] / [#56][pr56] | **Aceptado** e integrado, aceptación registrada por #67. Persistencia vectorial y ampliación del contrato con diagnóstico; implementación #72 abierta. |
 | [ADR 0007 · Orquestación ADK y web efímera][adr7] / [#60][pr60] | **Propuesto**, fuera de main. Decide coordinación de producto, frontera HTTP y ciclo de vida temporal. |
 
 Este documento corresponde a [#38][i38], **NO_ADR_REQUIRED**: reúne y explica
 evidencia y propuestas sin introducir ni aceptar una decisión nueva. El
-[registro de ADRs](../../docs/adr/README.md) conserva la autoridad sobre sus estados.
+[registro de ADRs](docs/adr/README.md) conserva la autoridad sobre sus estados.
+
+### Specs y componentes que las soportan
+
+| Spec | Componentes y frontera verificable |
+|---|---|
+| [Interpretación de daños](specs/interpretacion-danos-imagen.md) y [confianza](specs/agente-confianza-hallazgos.md) | API ML → Agente 1: detecciones, recortes, hallazgos y tiers. |
+| [Evaluación y trazabilidad](specs/evaluacion-trazabilidad.md) | Export y evaluador PIIA1; IDs de imagen/hallazgo y evidencia de los lotes. |
+| [Categoría #28](specs/28-categoria-vehiculo.md) | Consulta visual de Agente 1 → `vehiculo`; resolución en #34 y aviso en #31. |
+| [Costes #30](specs/30-costes-cobertura.md) | Contexto y hallazgos → tool Plexus → ambos escenarios e indemnización. |
+| [RAG #32](specs/32-rag-normativa.md) e [informe #31](specs/31-informe-peritaje.md) | Recuperación → citas y diagnóstico → Markdown y comprobación monetaria. |
+| [Orquestación #34][orq-spec] | Adaptación ML, dos fases, procedencia, HTTP, descarga y Compose; propuesta abierta. |
 
 ### Lecturas anteriores y cómo se relacionan
 
-La [arquitectura inicial](specs/piia2-arquitectura-multiagente.md) explica el
+La [arquitectura inicial](https://github.com/lvckss/piia2-26/blob/8a38e02310f8cb3b5e2994684715fe34dfee4613/entregas/cu-19-interpretacion-danos/specs/piia2-arquitectura-multiagente.md) explica el
 origen del reparto y los contratos. Las guías de
-[costes](specs/agente2-costes-cobertura-guia.md),
-[RAG](specs/agente2-rag-normativa-guia.md),
-[informe](specs/agente3-informe-guia.md) y
-[ADK](specs/integracion-adk-guia.md) contienen referencias y ejemplos de desarrollo.
+[costes](https://github.com/lvckss/piia2-26/blob/8a38e02310f8cb3b5e2994684715fe34dfee4613/entregas/cu-19-interpretacion-danos/specs/agente2-costes-cobertura-guia.md),
+[RAG](https://github.com/lvckss/piia2-26/blob/8a38e02310f8cb3b5e2994684715fe34dfee4613/entregas/cu-19-interpretacion-danos/specs/agente2-rag-normativa-guia.md),
+[informe](https://github.com/lvckss/piia2-26/blob/8a38e02310f8cb3b5e2994684715fe34dfee4613/entregas/cu-19-interpretacion-danos/specs/agente3-informe-guia.md) y
+[ADK](https://github.com/lvckss/piia2-26/blob/8a38e02310f8cb3b5e2994684715fe34dfee4613/entregas/cu-19-interpretacion-danos/specs/integracion-adk-guia.md) contienen referencias y ejemplos de desarrollo.
 Su código ilustrativo no equivale a implementación integrada.
 
-El [README del caso](README.md) conserva el alcance del hito anterior, con
-detecciones guardadas, categoría aparcada y sin nueva UI. La solicitud de ampliar
-ese recorrido está registrada en [#34][scope34] y descrita en [#60][orq-spec].
-La distinción es deliberada: este documento no reescribe ese historial ni
-declara aprobadas las propuestas nuevas.
+El [README del caso](README.md) describe la categoría retomada y el estado del
+hito, sin presentar la nueva UI como entregada. La ampliación desde una foto subida
+está registrada en [#34][scope34] y descrita en [#60][orq-spec]. La #79 prepara
+el README y la estructura de Entrega 2 después de integrar esta arquitectura.
+El corte de Entrega 1 ya está separado en `entrega-1`; esta PR corresponde a Entrega 2.
 
 ## 12 · Evolución pendiente y mapa del repositorio
 
 | Siguiente integración | Dependencia verificable |
 |---|---|
-| Completar RAG y `agente2()` | Revisión/aceptación de #56 y ADR 0006, integración, DoR y ejecución de #32. |
-| Implementar el informe | DoR de #31 y contrato RAG aceptado para AC-014/015; código, ejemplo y revisión humana. |
-| Recuperar categoría con confirmación | Adaptación del plan #28 por su responsable, contrato de procedencia y coordinación con #31. |
+| Completar RAG y `agente2()` | Plan/ADR ya aceptados; completar búsqueda, composición y evaluación en #72, y verificar DoD de #32. |
+| Implementar el informe | DoR y contrato RAG ya acreditados; revisar #75, lectura humana del informe e integración. |
+| Conectar categoría y confirmación | Categoría ya integrada en #69; revisar contrato de procedencia de #34 y adaptación de #31 con su AC nuevo. |
 | Conectar la pestaña de peritaje | Revisión/aceptación de #60 y ADR 0007; contratos acordados y componentes disponibles para integración final. |
 | Levantar el conjunto con Compose | Rutas de datos configurables, servicios conectados, preparación explícita e instrucciones verificadas. |
 | Acreditar el recorrido completo | Casos reales, comprobación monetaria, errores, lectura manual y evaluación global. |
@@ -782,7 +802,7 @@ cu-19-interpretacion-danos/
 → [secciones de pendientes y fuera del coste](specs/31-informe-peritaje.md).
 
 **Para seguir una fuente:** [corpus y filtro propuestos][rag-spec]
-→ [diagnóstico contractual propuesto][adr6]
+→ [diagnóstico contractual aceptado][adr6]
 → [AC-014/015 del informe](specs/31-informe-peritaje.md).
 
 ---
@@ -798,9 +818,9 @@ cu-19-interpretacion-danos/
 [pr58]: https://github.com/lvckss/piia2-26/pull/58
 [pr59]: https://github.com/lvckss/piia2-26/pull/59
 [pr60]: https://github.com/lvckss/piia2-26/pull/60
-[rag-spec]: https://github.com/lvckss/piia2-26/blob/c77a17c431770c1f6325e5a53d2f6ddc56a863b0/entregas/cu-19-interpretacion-danos/specs/32-rag-normativa.md
-[orq-spec]: https://github.com/lvckss/piia2-26/blob/733c5d019622b6da99c2a5caa614c61ac68c4624/entregas/cu-19-interpretacion-danos/specs/34-orquestacion-web.md
-[adr1]: https://github.com/lvckss/piia2-26/blob/e18021933a34c7b4309812cd5b01650da843805b/docs/adr/0001-categoria-vehiculo-contrato-agente1.md
-[adr6]: https://github.com/lvckss/piia2-26/blob/c77a17c431770c1f6325e5a53d2f6ddc56a863b0/docs/adr/0006-rag-postgresql-estado-recuperacion.md
-[adr7]: https://github.com/lvckss/piia2-26/blob/733c5d019622b6da99c2a5caa614c61ac68c4624/docs/adr/0007-orquestacion-adk-web-efimera.md
+[rag-spec]: https://github.com/lvckss/piia2-26/blob/8a38e02310f8cb3b5e2994684715fe34dfee4613/entregas/cu-19-interpretacion-danos/specs/32-rag-normativa.md
+[orq-spec]: https://github.com/lvckss/piia2-26/blob/5ed9ca67fc1ff94f250cd7d3ea1d2a63ad54d543/entregas/cu-19-interpretacion-danos/specs/34-orquestacion-web.md
+[adr1]: https://github.com/lvckss/piia2-26/blob/8a38e02310f8cb3b5e2994684715fe34dfee4613/entregas/cu-19-interpretacion-danos/docs/adr/0001-categoria-vehiculo-contrato-agente1.md
+[adr6]: https://github.com/lvckss/piia2-26/blob/8a38e02310f8cb3b5e2994684715fe34dfee4613/entregas/cu-19-interpretacion-danos/docs/adr/0006-rag-postgresql-estado-recuperacion.md
+[adr7]: https://github.com/lvckss/piia2-26/blob/5ed9ca67fc1ff94f250cd7d3ea1d2a63ad54d543/docs/adr/0007-orquestacion-adk-web-efimera.md
 [scope34]: https://github.com/lvckss/piia2-26/issues/34#issuecomment-6426795027
