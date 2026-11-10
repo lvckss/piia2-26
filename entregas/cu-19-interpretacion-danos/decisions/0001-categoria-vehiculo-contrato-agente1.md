@@ -3,7 +3,7 @@
 > **Copia de [`docs/adr/0001-categoria-vehiculo-contrato-agente1.md`](../docs/adr/0001-categoria-vehiculo-contrato-agente1.md).** El registro canónico de los ADRs es `docs/adr/`; esta copia está en `decisions/` porque la entrega la pide y no se edita aquí.
 
 - Estado: Aceptado
-- Fecha: 2026-10-13 (revisado el 2026-10-27, v1.2; punto 5 aclarado el 2026-10-28, v1.3; aceptado el 2026-10-28)
+- Fecha: 2026-10-13 (revisado el 2026-10-27, v1.2; punto 5 aclarado el 2026-10-28, v1.3; aceptado el 2026-10-28; cifras de error de `B` y `SUV-B` corregidas el 2026-11-03, sin cambio de decisión)
 - GitHub Issue: https://github.com/lvckss/piia2-26/issues/28
 - Planes cubiertos (Issue/mini-spec/Spec): [entregas/cu-19-interpretacion-danos/specs/28-categoria-vehiculo.md](../specs/28-categoria-vehiculo.md) — la decisión de contrato (campo `vehiculo`) y la consulta por imagen. No cubre la elección ni la comparación de modelos de visión.
 - Planning PR: https://github.com/lvckss/piia2-26/pull/29 — integrada en `main` (merge `246634f`).
@@ -12,7 +12,7 @@
 
 ## Contexto y motivación
 
-La herramienta de costes de la empresa (`estimar_coste`) exige un `vehiculo_id` de un catálogo de 27 modelos agrupados en 8 segmentos. Las fotos de CarDD llevan la matrícula censurada, no traen etiqueta de vehículo y, según la spec de arquitectura, casi ningún coche pertenece a ese catálogo. Sin coche no hay presupuesto, y el coche importa: con el mismo siniestro el coste sin IVA va de unos 1.100 € (furgoneta) a unos 2.100 € (berlina premium) en una medición de la exploración previa que aún hay que reproducir.
+La herramienta de costes de la empresa (`estimar_coste`) exige un `vehiculo_id` de un catálogo de 27 modelos agrupados en 8 segmentos. Las fotos de CarDD llevan la matrícula censurada, no traen etiqueta de vehículo y, según la spec de arquitectura, casi ningún coche pertenece a ese catálogo. Sin coche no hay presupuesto, y el coche importa: con el mismo siniestro el coste sin IVA va de unos 1.100 € (furgoneta) a unos 2.100 € (berlina premium); reproducido el 2026-10-29 con la herramienta de la empresa y el coche representante de cada categoría, de 1.075 € (furgoneta) a 2.143 € (BMW Serie 3).
 
 Hoy el `vehiculo_id` es un dato de entrada del siniestro (spec de arquitectura y [ADR 0002](0002-contrato-json-entre-agentes.md), apartado 6), «no deducido por el LLM», y el Agente 2 integrado (#30) lo exige. Con fotos de CarDD el dato no existe, así que el sistema no puede presupuestar de punta a punta sin que alguien lo elija.
 
@@ -48,7 +48,7 @@ Esto cubre la implementación prevista en la Spec: slices 1 a 3 (contrato y cons
 - **Costes:** una llamada más por imagen (para las 500 imágenes del export, +500 sobre las ~3.700 que quedan con el filtro previo); la caché evita repetirla.
 - **Riesgos y límites aceptados:**
   - La categoría es una hipótesis del modelo de visión sin etiqueta contra la que medirla; se valida a mano con 20 fotos (AC-011) y se declara como límite.
-  - Dentro de una categoría el coste varía según el coche; la exploración previa midió hasta un 9 % de error con el representante, salvo en `B` y `SUV-B` (hasta 30 %). Es una medición sin publicar, que se reproduce en la implementación.
+  - Dentro de una categoría el coste varía según el coche; reproducido el 2026-10-29 con `estimar_coste` y el siniestro de referencia de la Spec (tabla en la [PR #69](https://github.com/lvckss/piia2-26/pull/69)), el error máximo del representante (diferencia en valor absoluto entre el coste del representante y el del coche, dividida por el coste del coche; máximo por categoría) es de 0,0 % a 8,1 % en seis categorías y de **45,6 % en `B` y 43,4 % en `SUV-B`**. La exploración previa decía «hasta 30 %» en esas dos; esa cifra coincide con dividir por el coste del representante (31,3 % y 30,3 %), pero la medición no está en el repositorio y no se puede confirmar. El error se concentra en tres coches de esas categorías sin cámara ADAS (Citroën C3, Dacia Sandero y Dacia Duster) cuyo representante sí la tiene, así que sus presupuestos no llevan el calibrado ADAS que sí lleva el del representante; el resto queda a un 2,3 % o menos del representante (seis de los ocho coches de `B` y dos de los tres de `SUV-B`, el representante incluido). Se mantienen los representantes (decisión de Lucía Luis Castaño del 2026-11-03, con el apoyo de Víctor en su [review de la #69](https://github.com/lvckss/piia2-26/pull/69#pullrequestreview-5755779701)): cambiar el representante solo desplaza el error dentro de la categoría y partir `B` y `SUV-B` cambiaría el contrato. La limitación debe constar en el informe (#31) y en la presentación (#47).
   - `desconocido` no propone coche: la persona usuaria tiene que elegir.
   - La tabla de representantes está acoplada a los identificadores del catálogo de la empresa: un cambio de ese catálogo rompe el test de AC-004, que es la forma de detectarlo.
 - **Implicaciones para tests y AC:** AC-001 a AC-008 se prueban con un cliente falso a través de `analizar_imagen`; AC-009 se transfiere a la #34 y AC-010 a la #31, que lo recoge con un AC de ID nuevo cuando el ADR 0007 fije el campo; AC-011 es una evaluación manual con el modelo real, sin umbral fijado de antemano.
@@ -63,5 +63,5 @@ Esto cubre la implementación prevista en la Spec: slices 1 a 3 (contrato y cons
 - `entregas/cu-19-interpretacion-danos/specs/agente-confianza-hallazgos.md`: filtro previo (3.712 llamadas para las 500 imágenes exportadas).
 - `entregas/cu-19-interpretacion-danos/specs/mejora-robustez-tipos-vehiculo.md`: antecedente del `vehicle_type` revertido.
 - **Medido:** 3.712 llamadas con filtro previo para las 500 imágenes (reproducido por los tests del repositorio).
-- **Medido en la exploración previa, sin publicar y pendiente de reproducir:** rango de coste por categoría con un siniestro de referencia y error del representante dentro de su categoría.
+- **Reproducido el 2026-10-29** con `estimar_coste` (tabla en la [PR #69](https://github.com/lvckss/piia2-26/pull/69) y en el [registro de la Issue](https://github.com/lvckss/piia2-26/issues/28#issuecomment-6494187218)): rango de coste por categoría con un siniestro de referencia (1.075 € la furgoneta, 2.143 € el BMW Serie 3) y error del representante dentro de su categoría; difiere de la exploración previa en `B` y `SUV-B` (ver «Riesgos y límites aceptados»).
 - **Supuesto, sin medir:** que casi ningún coche de CarDD esté en el catálogo de 27 modelos (afirmado en la spec de arquitectura) y el acierto del modelo de visión al clasificar la categoría (AC-011).
