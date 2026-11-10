@@ -1,13 +1,13 @@
 # Spec: RAG de normativa y composición del Agente 2
 
 - GitHub Issue: https://github.com/lvckss/piia2-26/issues/32
-- Estado: Borrador (v1.7), pendiente de revisión e integración antes de implementar la slice 3. La aceptación anterior se conserva como antecedente; no se atribuye a este cambio.
+- Estado: Revisada (v1.7) por Víctor (`Vija97`), [APPROVED del 2026-11-10 sobre `a82c4fe`](https://github.com/lvckss/piia2-26/pull/80#pullrequestreview-5845895245), que acepta esta Planning PR y confirma REUSE_ADR. Pendientes la comprobación del diff final de este registro y la integración humanas antes de implementar la slice 3.
 - ADR decision: REUSE_ADR
 - ADR: [0006 — RAG con PostgreSQL y estado de recuperación](../docs/adr/0006-rag-postgresql-estado-recuperacion.md) — Aceptado e integrado por #56 (merge `9d2affb`); no se modifica.
-- Justificación: el ADR 0006 cubre persistencia, modelos separados, composición con costes preservados, consultas según el caso y diagnóstico. La v1.7 precisa la selección de temas de AC-007 sin cambiar firmas, schema entre agentes ni decisiones arquitectónicas. Se reutiliza su cobertura; la revisión humana de esta versión la confirmará. La v1.6 resolvió NEW_ADR mediante ese ADR, cuya aceptación se conserva.
+- Justificación: el ADR 0006 cubre persistencia, modelos separados, composición con costes preservados, consultas según el caso y diagnóstico. La v1.7 precisa la selección de temas de AC-007 sin cambiar firmas, schema entre agentes ni decisiones arquitectónicas. Víctor confirmó su cobertura en la revisión enlazada sobre `a82c4fe`; no se modifica el ADR. La v1.6 resolvió NEW_ADR mediante ese documento, cuya aceptación se conserva.
 - Plan vigente / versión: propuesta v1.7 en `plan/32-rag-normativa-v1-7`, a partir de `main` `8a38e02310f8cb3b5e2994684715fe34dfee4613`; el comentario de planificación fijará el commit publicado. Cambia AC-007 y su verificación para incluir falta de cobertura y unión de escenarios; conserva los 14 IDs, el resto de AC, contratos, protocolo, evaluación y DoD. Antecedentes: v1 `0197825`, v1.1 `88bd84d`, v1.2 `c77a17c`, v1.3 `1b2d62f`, v1.4 `51be306`, v1.5 `6cb6527` y v1.6 `b0a27d7`.
 - Riesgo y revisión previa: sí, por el acuerdo explícito de revisar esta precisión antes de la slice 3. Riesgo localizado: omitir la explicación documental de una falta de cobertura o los temas exclusivos del escenario con pendientes. No cambia cálculos ni contrato de #31/#34; calidad de recuperación pendiente de evaluación. Revisión de AC-007, Test Plan y cobertura del ADR reutilizado antes de implementar la parte afectada.
-- Planning PR: https://github.com/lvckss/piia2-26/pull/80 — v1.7, pendiente de revisión e integración humanas.
+- Planning PR: https://github.com/lvckss/piia2-26/pull/80 — v1.7 aprobada por Víctor sobre `a82c4fe`; este registro solo cambia metadatos, pendiente de comprobación final e integración humanas.
 - Antecedente aceptado: v1.6 Revisada por Lucía Luis Castaño (`lucia-luis-castano`), [APPROVED del 2026-10-28 sobre `b0a27d7`](https://github.com/lvckss/piia2-26/pull/56#pullrequestreview-5681219827), integrada por [#56](https://github.com/lvckss/piia2-26/pull/56) (`9d2affb`) y registrada por #67. Esa aprobación cubre la versión anterior y el ADR 0006, no la nueva v1.7.
 
 ### Motivo de la v1.7 y situación al replanificar
@@ -307,8 +307,8 @@ tablas propias del RAG, sin alterar las tablas existentes.
 |---|---|---|
 | Rol propio sin cobertura de daños propios | Resuelta en el alcance solicitado | Observación 1 de Víctor y acuerdo de Lucía enlazados al inicio: consultar la cláusula explicativa de la póliza, preservando la decisión y cifras de #30; no `no_aplica` por cobertura negativa. |
 | Temas presentes solo en uno de los escenarios | Resuelta en el alcance solicitado | Unión de `confirmados` y `con_pendientes` para todos los temas, una consulta por tema distinto. Un escenario vacío no cancela el otro. |
-| ¿Introduce una decisión arquitectónica o contrato nuevo? | Resuelta por inspección; cobertura a confirmar en revisión | REUSE_ADR: puntos 5 a 8 del ADR 0006 Aceptado; mismas firmas, filtro, JSON, cinco estados y conservación de costes. No se edita ni se crea otro ADR. |
-| Aceptación de la v1.7 antes de slice 3 | Pendiente y bloqueante para esa implementación | Esta propuesta debe revisarse e integrarse y acreditar su DoR; los acuerdos de #67 autorizan prepararla, no acreditan aceptación de su head final. |
+| ¿Introduce una decisión arquitectónica o contrato nuevo? | Resuelta y cobertura confirmada por Víctor | REUSE_ADR: puntos 5 a 8 del ADR 0006 Aceptado; mismas firmas, filtro, JSON, cinco estados y conservación de costes. Confirmado en la revisión de `a82c4fe` enlazada en la cabecera; no se edita ni se crea otro ADR. |
+| Aceptación de la v1.7 antes de slice 3 | Contenido aceptado; integración y DoR pendientes | Víctor aprobó la Planning PR sobre `a82c4fe`. Registrar esa aceptación no sustituye la comprobación final del diff de metadatos, el merge humano ni la DoR desde main. |
 | Posible traspaso de evaluación a Víctor | Fuera de esta actualización, sin acuerdo confirmado | Se conserva el protocolo y no se reasigna responsabilidad ni se presenta ese traspaso como aceptado. |
 
 ## Comportamiento que debe preservarse
@@ -514,10 +514,11 @@ y el resto de la DoD siguen siendo necesarios para terminar #32.
 
 ## Pendientes para Ready
 
-- **Pendiente para v1.7:** revisión humana de las reglas de temas, AC-007 y sus
-  casos/Test Plan, y confirmación de cobertura del ADR 0006 reutilizado.
-  Después, integración humana de la Planning PR de v1.7 y comprobación de DoR
-  de esa versión antes de implementar la slice 3. No basta la aceptación de v1.6.
+- **Contenido aceptado de v1.7:** Víctor aprobó la Planning PR sobre `a82c4fe`
+  y confirmó la cobertura del ADR 0006 reutilizado en la revisión de cabecera.
+  Este registro no cambia reglas, AC ni planes. Quedan comprobación/aprobación
+  del diff final de metadatos, integración humana de #80 y DoR desde main
+  antes de la slice 3; no se sustituyen por la aceptación histórica de v1.6.
 - **Antecedente cumplido, v1.6:** Planning PR #56 aprobada por Lucía Luis Castaño (`lucia-luis-castano`) sobre el head final
   `b0a27d7` ([revisión](https://github.com/lvckss/piia2-26/pull/56#pullrequestreview-5681219827)) e integrada (merge `9d2affb`); spec Revisada y
   ADR 0006 Aceptado. #67 registró esa aceptación sin cambios técnicos; se
@@ -554,7 +555,7 @@ y el resto de la DoD siguen siendo necesarios para terminar #32.
 | Actualización v1.6 | Se explicita el reparto de Compose propuesto por Lucía: #34 mantiene el archivo común del caso y verifica el conjunto; #32 aporta PostgreSQL/pgvector, volumen, schema y comandos RAG. Se alinea con #60 y ambos ADRs propuestos. Los 14 AC y el resto de requisitos se conservan; no se implementa configuración ni se atribuye aceptación humana del plan. |
 | Actualización v1.7 | Solicitud explícita de Lucas del 2026-11-10 sobre la observación 1 de Víctor y el acuerdo de #67: falta de cobertura de daños propios → consulta explicativa; para todos los temas, unión de confirmados y con_pendientes sin duplicados. Solo cambia AC-007, sus reglas/casos/verificación y la dependencia de slice 3; los demás AC, contrato de diagnóstico, evaluación, objetivo 23/25 y DoD se conservan. |
 | Verificación documental de v1.7 | Los 14 IDs siguen presentes; cada AC conserva Test Plan y slice. La preservación de costes se protege por AC-006; la nueva selección por AC-007 y sus casos; la agregación por AC-008 permanece idéntica. Sin código, tests ejecutables, configuración runtime ni datos en esta Planning PR. |
-| Gaps actuales | Falta la revisión/integración humana de v1.7 y su DoR antes de slice 3. La v1.6 y el ADR 0006 siguen aceptados como antecedentes. Calidad, integración final con consumidores y entorno completo siguen pendientes; #72 contiene progreso parcial, no entrega integrada. No se da por confirmado el traspaso de evaluación. |
+| Gaps actuales | V1.7 aceptada por Víctor sobre `a82c4fe`; quedan comprobación del diff final de metadatos, integración humana y DoR antes de slice 3. La v1.6 y el ADR 0006 conservan su aceptación. Calidad, integración final con consumidores y entorno completo siguen pendientes; #72 contiene progreso parcial, no entrega integrada. No se da por confirmado el traspaso de evaluación. |
 
 ## Definition of Done
 
