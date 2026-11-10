@@ -1,11 +1,11 @@
 # Spec: Orquestación desde la web, de una imagen subida al informe
 
 - GitHub Issue: https://github.com/lvckss/piia2-26/issues/34
-- Estado: Borrador v1.3, 2026-11-10.
+- Estado: Borrador v1.4, 2026-11-10.
 - ADR decision: NEW_ADR.
 - ADR: [0007 — Orquestación ADK y ejecución web efímera](../docs/adr/0007-orquestacion-adk-web-efimera.md), Propuesto.
 - Justificación: adopta ADK como dependencia del producto, define una frontera HTTP entre web y servicio Python y el ciclo de vida de las ejecuciones. Los ADRs 0002–0005 aceptados cubren contratos, proveedor, costes y filtro previo; no cubren estas decisiones.
-- Plan vigente / versión: v1.3 en la misma PR #60; el registro de #34 fija el commit publicado. Versiones conservadas: v1 `733c5d0`, v1.1 `9a65c26`, v1.2 `5ed9ca6`. La v1.3 incorpora los acuerdos posteriores sobre `desconocido`, propone el contrato de procedencia y límites operativos, y ordena primero el recorrido CLI. Conserva los 14 IDs y la DoD; actualiza AC-003/008 y sus verificaciones con trazabilidad a las decisiones humanas. Continúa el [registro de alcance](https://github.com/lvckss/piia2-26/issues/34#issuecomment-6426795027).
+- Plan vigente / versión: v1.4 en la misma PR #60; el registro de #34 fija el commit publicado. Versiones conservadas: v1 `733c5d0`, v1.1 `9a65c26`, v1.2 `5ed9ca6` y v1.3 `06f4c08`. La v1.4 recoge las precisiones de Víctor sobre compatibilidad y validación de `contexto.vehiculo_origen` en AC-008 y su Test Plan; conserva los 14 IDs, los demás AC, la DoD y las decisiones de la v1.3. No acredita aceptación del documento completo ni del ADR 0007. Continúa el [registro de alcance](https://github.com/lvckss/piia2-26/issues/34#issuecomment-6426795027).
 - Riesgo y revisión previa: sí, por NEW_ADR y por el acuerdo del equipo. Impacto en cifras y fuentes del informe, frontera entre servicios, subida de archivos y nuevas dependencias de #28/#31/#32. La implementación y sus planes deben revisarse por los responsables afectados; el documento completo todavía no tiene aceptación humana.
 - Planning PR: https://github.com/lvckss/piia2-26/pull/60 — draft mientras se acuerdan las dependencias indicadas al final.
 
@@ -173,13 +173,14 @@ El contexto entregado a costes siempre tiene `vehiculo_id` válido. Una sola
 función del orquestador resuelve el vehículo antes de llamar a #30 y es usada
 por CLI y web. No se introduce otro fallback dentro de los Agentes 1, 2 o 3.
 
-Contrato de procedencia **propuesto v1.3**, pendiente de aceptación por Víctor
-y de revisión del ADR 0007:
+Contrato de procedencia: Víctor [acepta el formato v1.3 y fija dos precisiones](https://github.com/lvckss/piia2-26/pull/60#issuecomment-6773699753)
+como responsable de #31. La v1.4 las incorpora; el documento completo y el
+ADR 0007 siguen pendientes de revisión y aceptación por el equipo.
 
 | Campo | Regla propuesta |
 |---|---|
 | `contexto.vehiculo_id` | Vehículo válido efectivamente usado para costes, valor venal, pérdida total e indemnización. |
-| `contexto.vehiculo_origen` | `referencia_confirmada`: la persona confirma el representante de #28; `seleccion_usuario`: elige un coche válido; `maximo_por_defecto`: categoría válida `desconocido` y ninguna elección, por lo que se usa V25 fijo. |
+| `contexto.vehiculo_origen` | Campo opcional para consumidores y entradas anteriores; si aparece, solo admite `referencia_confirmada` (se confirma el representante de #28), `seleccion_usuario` (se elige un coche válido) o `maximo_por_defecto` (categoría válida `desconocido` sin elección, se usa V25 fijo). El flujo nuevo CLI/web lo construye y conserva siempre. |
 | `agente1.vehiculo` | Predicción original íntegra de #28, sin modificar `categoria` ni `vehiculo_id_referencia`; para `desconocido` la referencia sigue siendo `null`. |
 
 No hay un objeto de procedencia separado. El campo aditivo se construye en el
@@ -188,6 +189,23 @@ un V25 por defecto declarado por el cliente. `seleccion_usuario` también cubre
 elegir expresamente V25: es distinto de recibirlo por defecto. Confirmar una
 referencia exige que coincida con el representante; Si no hay elección y la
 categoría es reconocida, se exige confirmación/corrección antes de fase B.
+
+Compatibilidad: si `contexto.vehiculo_origen` **no viene**, #31 trata
+`contexto.vehiculo_id` como dato de entrada y no muestra aviso de procedencia;
+el resto del informe se conserva. No se infiere un origen ni se añade un aviso
+de V25 por el ID del coche a solas. Esto mantiene los ejemplos y ejecuciones
+anteriores; no permite al flujo nuevo omitir o perder la procedencia que acaba
+de construir. Una clave presente con valor inválido no equivale a una ausencia.
+
+Si el campo viene, #31 valida su valor y coherencia antes de devolver informe:
+`maximo_por_defecto` exige `contexto.vehiculo_id = "V25"`;
+`referencia_confirmada` exige que ese ID coincida con
+`agente1.vehiculo.vehiculo_id_referencia` (una referencia nula no puede confirmarse).
+Un valor fuera de los tres o una incoherencia produce una excepción explícita
+que nombra el campo/ID problemático. #34 comunica `CONTRATO_INVALIDO` en la
+etapa de informe y no publica ni permite descargar un informe final. Elegir
+V25 explícitamente con `seleccion_usuario` sigue siendo válido y distinto de
+`maximo_por_defecto`. Se mantienen las demás validaciones de vehículo/contexto.
 
 La salida de #30 ya conserva `contexto` íntegro: se verificará el paso del campo
 aditivo sin modificar fórmulas, firmas ni los dos escenarios. #31 debe adaptar
@@ -211,8 +229,10 @@ una referencia de cálculo. Pérdida total e indemnización se calculan también
 ese coche, como propone Víctor: el valor venal no es el del vehículo real y la
 pérdida total no es fiable. La frase fija no sustituye este aviso ni implica que
 se haya identificado el coche. No se introduce el estado «no evaluable» en #30.
-La aceptación completa de este contrato y del AC consumidor sigue pendiente;
-la decisión de Lucas sobre V25 no se atribuye a la revisión de Víctor o Lucía.
+El formato y las dos precisiones tienen la aceptación de Víctor enlazada arriba;
+la adaptación de #31 con su AC nuevo y la aceptación/integración del plan
+completo de #34/ADR 0007 siguen pendientes. La elección de Lucas de V25 no se
+presenta como aprobación global de estos documentos.
 
 ### Frontera HTTP propuesta
 
@@ -367,7 +387,7 @@ pertenece al AC-013 de #32; el arranque y recorrido del conjunto, al AC-013 de
 |---|---|---|
 | Web, imagen subida, edición y salida | Resuelta por Lucas en la conversación | Pestaña independiente; una imagen; daños sin edición; vehículo corregible; Markdown visible/descargable; sin historial. Se fija la versión de estas decisiones en #34. |
 | Framework | Resuelta por Lucas | ADK tras #33/#52. La secuencia nativa y el servicio efímero son propuestas técnicas de este borrador, no resultados de una integración ya probada. |
-| Categoría y procedencia | Categoría integrada; contrato propuesto bloqueante para Ready | #28/#69 y ADR 0001 aceptados. Lucas elige V25 fijo el 2026-11-10. `contexto.vehiculo_origen` y AC nuevo de #31 requieren aceptación de Víctor; no se restaura AC-010. |
+| Categoría y procedencia | Formato aceptado por Víctor; adaptación consumidora pendiente | #28/#69 y ADR 0001 aceptados. Lucas elige V25 fijo el 2026-11-10. Víctor acepta los tres valores y fija compatibilidad/validaciones en el comentario enlazado en «Adaptación de imagen y procedencia»; v1.4 las recoge. Falta el AC nuevo de #31, sin restaurar AC-010, y la aceptación del plan/ADR completos. |
 | RAG | Contrato aceptado; implementación pendiente | #56/#67 y ADR 0006 Aceptado; #34 consume `agente2()` y `diagnostico_rag` conservando sus estados. #72 aporta PostgreSQL y RAG al Compose común. Código real requerido para integración final. |
 | Contrato web/Python y límites configurados | Propuestos para revisión | HTTP, idempotencia, estado efímero y límites iniciales 10 MiB / 20 millones de píxeles / 60 min / 2 casos. Son valores de partida, sin benchmark ni aceptación atribuida. |
 | Modelo concreto y dependencias | Comprobación de entorno | Visión por configuración y embeddings según #32; no elegir aquí otro modelo de chat ni copiar automáticamente las dependencias del experimento. Registrar versiones/acceso al preparar la implementación. |
@@ -396,6 +416,8 @@ pertenece al AC-013 de #32; el arranque y recorrido del conjunto, al AC-013 de
 | Respuesta ML incompatible o geometría no válida | Error de etapa PIIA 1; no se fabrican detecciones ni se continúa con datos alterados. | AC-002, AC-011 |
 | Categoría válida desconocida o contexto incompleto | Si no se elige coche, resolver V25 con aviso; el resto de datos sigue siendo obligatorio. Un fallo técnico detiene el caso. | AC-003, AC-004, AC-011 |
 | Error de visión, costes o informe | Detención explícita, sin informe final ni éxito aparente. | AC-011 |
+| Procedencia ausente en una entrada anterior o llamada directa al informe | Mantener `vehiculo_id` como dato de entrada y el informe previo, sin aviso de procedencia. El flujo nuevo conserva siempre su origen resuelto. | AC-008 |
+| Procedencia presente fuera del enum o incoherente con el vehículo/referencia | #31 lanza excepción explícita; #34 comunica `CONTRATO_INVALIDO` en informe, sin publicación ni descarga final. No se trata como campo ausente. | AC-008, AC-011 |
 | Falta de fuentes o fallo tipado del RAG | Resultado preliminar, causas por tema, citas de consultas `recuperadas` conservadas. | AC-007 |
 | Cifra inventada en el informe | Bloqueo de publicación/descarga; error de verificación. | AC-009 |
 | Doble clic, polling y peticiones duplicadas | Sin repetir inferencia, visión, costes ni generación. | AC-005, AC-010 |
@@ -414,7 +436,7 @@ pertenece al AC-013 de #32; el arranque y recorrido del conjunto, al AC-013 de
 | AC-005 | Ejecutar ambas fases con dependencias que registran llamadas. | Se usa el runtime nativo ADK, con orden PIIA 1 → Agente 1; tras contexto válido, `agente2()` → Agente 3 → verificación. No se llama al coste antes de `agente2()` ni se añade un LLM para coordinar/redactar cifras. Una fase fallida no ejecuta sus sucesoras. |
 | AC-006 | Findings con confirmados, pendientes y rechazados, y escenario sin daños. | La web solo muestra los resultados, sin permitir cambiar daños; una petición con findings editados se rechaza. Los JSON de entrada al cálculo y al informe conservan hallazgos y tiers, y los dos escenarios y sus cifras coinciden con la ejecución directa de #30/#32 para el mismo contexto. |
 | AC-007 | Respuestas `diagnostico_rag` en los cinco estados y con citas parciales. | JSON e informe conservan el diagnóstico acordado con #32/#31. `parcial`, `sin_resultados` y `error` producen aviso preliminar y causas por tema, sin perder citas de consultas `recuperadas`. `recuperadas` no se presenta como verificación; `no_aplica` no genera fallo técnico. |
-| AC-008 | Representante confirmado, vehículo elegido y V25 por defecto producen informe. | `contexto.vehiculo_origen` conserva `referencia_confirmada`, `seleccion_usuario` o `maximo_por_defecto` hasta la salida. Informe y pantalla distinguen referencia de coche identificado, selección humana y V25 por defecto. En el último caso muestran el aviso de AC-003 y aclaran que valor venal, pérdida total e indemnización se calculan con V25 y la pérdida total no es fiable para el coche real. Contrato propuesto en #34/ADR 0007 y AC nuevo consumidor en #31 requieren aceptación antes de Ready; no se presentan hoy como aceptados. |
+| AC-008 | Representante confirmado, vehículo elegido y V25 por defecto; además, una entrada anterior sin origen y entradas con origen inválido o incoherente. | El flujo nuevo conserva `referencia_confirmada`, `seleccion_usuario` o `maximo_por_defecto` hasta la salida. Informe/pantalla distinguen las tres procedencias; con máximo por defecto muestran el aviso de AC-003 y la limitación del valor venal, pérdida total e indemnización calculados con V25. Sin el campo, #31 conserva el informe previo con `vehiculo_id` como entrada y sin aviso de procedencia. Con un valor fuera de los tres, máximo por defecto con ID distinto de V25 o referencia confirmada distinta de `vehiculo_id_referencia` (incluida referencia nula), #31 lanza una excepción explícita que nombra el campo/ID; #34 comunica error y no publica informe final. La aceptación de Víctor del formato/precisiones no sustituye el AC nuevo consumidor de #31 ni la aceptación del plan/ADR completos antes de Ready. |
 | AC-009 | Informe correcto y otro con un importe inventado respecto a salida de Agente 2. | Se ejecuta `comprobar_cifras` antes de publicar. Correcto: el generador conserva los escenarios y los importes monetarios de Agente 2; el verificador detecta importes ajenos en euros, sin demostrar por sí solo la coherencia de escenarios. Inventado: error `CIFRAS_INCONSISTENTES`, sin informe terminado ni descarga. El LLM no recibe el encargo de reescribir el presupuesto. |
 | AC-010 | Consultar progreso; repetir cada POST con misma clave/contenido, con contenido distinto y durante ejecución; reiniciar/caducar caso. | GET no ejecuta etapas. Repetir devuelve el mismo caso/resultado y recuento de llamadas; reutilización conflictiva da `409`. Doble envío de fase B inicia una sola generación. Caso perdido deja de mostrarse como procesando y no se reenvía automáticamente. |
 | AC-011 | Simular por separado fallos de ML, visión/categoría, costes, informe, contrato y timeout. | Se comunica código, etapa, mensaje y posibilidad de reintento sin credenciales/rutas privadas. No se oculta como RAG vacío, no se publica informe final y no se reejecuta el flujo en silencio. Los fallos esperados propios del RAG siguen AC-007. |
@@ -463,7 +485,7 @@ repetir conservando resultados. No se crea un umbral nuevo de precisión para
 | `specs/34-orquestacion-web.md#AC-005` | S3 | TDD: ejecución nativa y orden con detención en fallos. | ADK real, funciones públicas/proveedores falsos con registro. | Suite Python por fase y recorrido completo. | Red/Green; secuencia de invocaciones. |
 | `specs/34-orquestacion-web.md#AC-006` | S1 + S3 + S4 | TDD y regresión: daños inmutables, dos escenarios y caso vacío. | Ejemplos de contrato; paquete real; salida directa de #30/#32 como referencia independiente. | Suites Python/HTTP; comparar JSON y rechazar edición de findings. | Igualdad de campos/entradas y escenarios. |
 | `specs/34-orquestacion-web.md#AC-007` | S1 + S3 | TDD: los cinco estados RAG y conservación de citas parciales. | Contrato final #56; respuestas guionizadas. | Ejecutar fase B y revisar JSON/Markdown con #31. | Red/Green; texto de aviso y temas afectados. |
-| `specs/34-orquestacion-web.md#AC-008` | S1 + S3 | TDD: tres procedencias y aviso V25/pérdida total. | Contrato propuesto y futuro AC nuevo de #31; su aceptación es gate de Ready. | CLI y formulario → Agente 3 → pantalla/descarga; verificar origen y avisos, sin mutar predicción. | Red/Green; misma procedencia, cifras y advertencias. |
+| `specs/34-orquestacion-web.md#AC-008` | S1 + S3 | TDD: tres procedencias, aviso V25/pérdida total, compatibilidad sin campo y rechazo de valores/coherencia inválidos. | Ejemplos anteriores sin origen; copias con los tres valores, valor inventado, máximo con V05, referencia V05 con ID V25 y referencia nula; selección explícita de V25 válida. AC nuevo consumidor pendiente en #31. | Llamada pública a #31 y recorrido CLI/formulario → informe → pantalla/descarga; comparar con informe previo, observar errores sin publicación y verificar que el flujo nuevo siempre transporta el origen. | Red/Green; ausencia sin aviso, errores explícitos con campo/ID, misma procedencia/cifras/advertencias y predicción intacta. |
 | `specs/34-orquestacion-web.md#AC-009` | S3 | TDD: informe correcto e importe inventado bloqueado. | Salida Agente 2 del contrato y generador guionizado con importe añadido. | Suite Python/HTTP; comprobar ausencia de descarga en error. | Red/Green; error y cifras originales conservadas. |
 | `specs/34-orquestacion-web.md#AC-010` | S1 + S3 + S5 | TDD: polling, reenvíos, concurrencia, tercera plaza y caso perdido. | Proveedores con contadores; fase detenida por el doble; reinicio del servicio. | Repetir GET/POST; enviar dos confirmaciones simultáneas; reiniciar/caducar. | Recuentos y estados; ninguna llamada duplicada. |
 | `specs/34-orquestacion-web.md#AC-011` | S1 + S3 | TDD: un fallo de cada etapa, timeout y respuesta de contrato inválida. | Dobles públicos; límites de tiempo controlados por el test. | Inyectar fallos por separado y consultar estado/descarga. | Red/Green; códigos y detención sin éxito aparente. |
@@ -511,12 +533,13 @@ antes de implementar esa alternativa; no hay cambio automático ni recorte de we
 
 ## Pendientes para Ready
 
-1. Revisión humana del documento v1.3 completo y aceptación/integración de
+1. Revisión humana del documento v1.4 completo y aceptación/integración de
    Planning PR #60 y ADR 0007 sobre el head final. Lucía es la revisora prevista.
-2. Víctor acepta el formato propuesto de `contexto.vehiculo_origen` y recoge
-   el aviso en un AC nuevo del plan #31. #28/ADR 0001 y #32/ADR 0006 ya están
-   aceptados en main; no se exige que vuelvan a aprobarlos ni se les atribuye
-   aceptación del nuevo contrato.
+2. Víctor ya acepta el formato de `contexto.vehiculo_origen` con las dos
+   precisiones recogidas en v1.4; debe incorporar aviso, compatibilidad y
+   validación en un AC nuevo del plan #31. Ese plan consumidor sigue pendiente,
+   sin reutilizar AC-010. #28/ADR 0001 y #32/ADR 0006 ya están aceptados en main;
+   no se les atribuye aceptación del nuevo plan/ADR.
 3. Revisar límites, HTTP, calendario y disparador ADK. Confirmar lector de
    los 3–5 informes y equipo/perfil ML; acceso al proveedor se comprueba antes
    de verificaciones de pago, sin suponer autorización de gasto por este plan.
@@ -531,7 +554,8 @@ antes de implementar esa alternativa; no hay cambio automático ni recorte de we
 | Trazabilidad | 14 IDs conservados; cada AC tiene fila Test Plan y slice. AC-003/008 adaptados a decisiones de #34 y a V25 elegido por Lucas; AC-010 de #31 sigue retirado. |
 | Preservación | Predicción #28 intacta; costes y dos escenarios #30 sin cambios; contrato RAG aceptado consumido sin reescribir cifras. Procedencia es ampliación propuesta a revisar con #31. |
 | Decisión arquitectónica | NEW_ADR: 0007 sigue Propuesto; incorpora la política del orquestador y campo aditivo, sin modificar la salida de #28 ni las fórmulas de #30. No se crea otro ADR por la misma decisión. |
-| Estado | Borrador v1.3, no Ready. V25 es decisión de Lucas; contrato, límites y calendario siguen propuestos. La aceptación de planes previos no acepta esta versión. |
+| Estado | Borrador v1.4, no Ready. Víctor acepta el formato de procedencia y sus precisiones, no el documento/ADR completos; el AC nuevo consumidor sigue pendiente. V25 es decisión de Lucas; los demás parámetros y calendario mantienen su revisión pendiente. |
+| Actualización v1.4 | Petición de Lucas de recoger el comentario de Víctor en #60: campo opcional para compatibilidad y validación de valores/coherencia en el informe. Se precisa AC-008 y su Test Plan, conservando los otros 13 AC, IDs, cifras, frase de AC-003, política V25, calendario, disparador ADK y DoD. |
 | Verificación | Revisión documental de AC, enlaces, tablas y diff. No se ha ejecutado el flujo ni una inferencia de pago durante esta planificación. |
 
 ## Definition of Done

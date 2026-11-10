@@ -2,11 +2,11 @@
 
 - Estado: Propuesto
 - Fecha: 2026-10-27
-- Versión: propuesta v1.3 (2026-11-10); conserva v1 `733c5d0`, v1.1 `9a65c26` y v1.2 `5ed9ca6`. Incorpora V25 fijo elegido por Lucas, procedencia y límites propuestos, orden CLI primero y disparador de revisión ADK.
+- Versión: propuesta v1.4 (2026-11-10); conserva v1 `733c5d0`, v1.1 `9a65c26`, v1.2 `5ed9ca6` y v1.3 `06f4c08`. Recoge las precisiones de Víctor sobre compatibilidad y validación de procedencia; mantiene V25 fijo, límites propuestos, orden CLI primero y disparador ADK.
 - GitHub Issue: https://github.com/lvckss/piia2-26/issues/34
 - Planes cubiertos: [34-orquestacion-web.md](../../specs/34-orquestacion-web.md), coordinación, frontera web/Python, estado temporal y Compose.
 - Planning PR: https://github.com/lvckss/piia2-26/pull/60 — draft.
-- Aceptación: pendiente de revisión humana del documento completo, los contratos y las alternativas. Las decisiones de producto de Lucas no equivalen a aceptar este ADR.
+- Aceptación: pendiente de revisión humana del documento completo y sus alternativas. Víctor acepta el formato de procedencia v1.3 y fija dos precisiones en [su comentario](https://github.com/lvckss/piia2-26/pull/60#issuecomment-6773699753), recogidas en v1.4; esa aceptación de consumidor no acepta el conjunto del ADR. Las decisiones de producto de Lucas tampoco equivalen a aceptarlo.
 - Sustituye / sustituido por: no sustituye un ADR aceptado. Reutiliza las responsabilidades base de los ADRs 0002–0005; se apoya en #28/ADR 0001 y #32/ADR 0006 ya aceptados en main. El contrato nuevo de procedencia requiere revisión propia.
 
 ## Contexto y motivación
@@ -24,7 +24,9 @@ AC-009/010 se transfirieron a #34/#31. Lucas decide el 2026-11-10 usar V25 fijo
 si el vehículo es `desconocido` y la persona no elige, sobre las propuestas de
 Lucía y Víctor registradas en #34. Los fallos técnicos detienen el flujo.
 La regla vive en una sola función del orquestador para CLI y web; #30 recibe
-siempre vehículo válido. El formato de procedencia sigue propuesto a Víctor.
+siempre vehículo válido. Víctor acepta el formato de procedencia con
+compatibilidad para entradas anteriores y validaciones explícitas, como se
+recoge abajo; el plan completo y este ADR siguen Propuestos.
 
 La web y backend son React/Bun/Hono; los agentes son Python. PIIA 1 ya ofrece
 `POST /v1/damage-assessment` con archivo, pero su JSON necesita adaptación al
@@ -65,10 +67,22 @@ previos no cubren esa frontera ni este recorrido.
    resuelve V25 fijo y construye el origen en servidor. V25 calcula también
    valor venal, pérdida total e indemnización; la pérdida total no es fiable
    para el coche real. No se calcula el máximo exacto entre los 27 modelos.
-   La predicción `vehiculo` queda intacta, incluida su referencia nula. #31 debe
-   aceptar este contrato y añadir un AC nuevo, sin reutilizar el retirado.
+   La predicción `vehiculo` queda intacta, incluida su referencia nula.
+   Para compatibilidad, `vehiculo_origen` es opcional en entradas anteriores
+   al consumidor: si falta, #31 trata `vehiculo_id` como dato de entrada y no
+   muestra aviso de procedencia. El flujo nuevo CLI/web siempre lo construye
+   y transporta; no se infiere el origen por el ID del coche a solas.
+   Si viene, solo admite los tres valores: `maximo_por_defecto` exige V25 y
+   `referencia_confirmada` exige coincidencia con
+   `agente1.vehiculo.vehiculo_id_referencia`, no nula. Valor fuera del enum o
+   incoherencia → excepción explícita de #31 que nombra el campo/ID; #34
+   comunica `CONTRATO_INVALIDO` en informe, sin publicación/descarga final.
+   Una selección expresa de V25 sigue siendo `seleccion_usuario`, válida y
+   distinta del valor por defecto. #31 debe añadir su AC nuevo con aviso,
+   compatibilidad y validación, sin reutilizar el retirado.
    Pantalla e informe conservan la frase literal y el aviso adicional de la
-   Spec. Este diseño sigue propuesto, sin atribuir aceptación a Víctor. Conservar el
+   Spec. Víctor acepta el formato y fija estas dos precisiones en el comentario
+   enlazado; no se presenta esa aceptación como aprobación global de este ADR. Conservar el
    `diagnostico_rag` acordado con #32/#31 y sus avisos preliminares.
 5. **Estado efímero, sin historial de casos.** Mantener estado y artefactos
    temporales hasta descarga/descartado/caducidad, sin tablas de casos ni su
@@ -120,8 +134,9 @@ previos no cubren esa frontera ni este recorrido.
 - Categoría #28/ADR 0001 y RAG #32/ADR 0006 están aceptados e integrados;
   #72/#75 siguen abiertos. No se presenta el índice, `agente2()` ni el informe
   como entregados en main por el hecho de tener planes aceptados.
-- El contrato nuevo de procedencia y el AC consumidor de #31 siguen pendientes
-  de revisión. La política fija V25 fue elegida por Lucas; la frase «vehículo de
+- El formato de procedencia tiene la aceptación de Víctor con las dos
+  precisiones recogidas aquí; su AC nuevo consumidor de #31 y la revisión
+  global del plan/ADR siguen pendientes. La política fija V25 fue elegida por Lucas; la frase «vehículo de
   mayor coste» de Lucía se conserva por instrucción, con la limitación explícita
   de que V25 no es necesariamente el máximo exacto para cualquier siniestro.
 - Los temporales necesitan limpieza y límites documentados; la base del
@@ -135,6 +150,9 @@ previos no cubren esa frontera ni este recorrido.
 - TDD en cableado, estado, errores, contratos y cifras; integración real sobre
   3–5 imágenes con lectura humana y métricas disponibles. La evaluación de
   calidad a mayor escala permanece en #46 y las de categoría/RAG en sus Issues.
+- AC-008 verifica las tres procedencias, la compatibilidad sin campo y el
+  rechazo de valores/coherencia inválidos a través de #31, sin mutar la
+  predicción ni las cifras. Son pruebas futuras; esta actualización no las ejecuta.
 
 ## Referencias y evidencia
 
