@@ -140,6 +140,16 @@ def _tabla_hallazgos(hallazgos: list[dict], con_motivo: bool = False) -> list[st
     return filas + ([""] + [imagenes] if imagenes else [])
 
 
+def _bloque_literal(texto: str) -> list[str]:
+    """El extracto tal cual, en un bloque de codigo dentro del elemento de la
+    lista, para que sus lineas (p. ej. «# Fuente: ...» de los preambulos
+    legales) no se interpreten como Markdown del informe
+    (specs/31-informe-peritaje.md#AC-001 y AC-005)."""
+    racha = max((len(r) for r in re.findall(r"`+", texto)), default=0)
+    valla = "`" * max(3, racha + 1)
+    return [f"  {valla}text", *(f"  {linea}" for linea in texto.split("\n")), f"  {valla}"]
+
+
 def _arrastres(escenarios: dict) -> list[dict]:
     """Arrastres de los dos escenarios, sin repetir pieza y origen."""
     vistos, lista = set(), []
@@ -157,8 +167,18 @@ def validar_entradas(agente1: dict, agente2: dict) -> None:
     if agente1["image_id"] != agente2["image_id"]:
         raise ValueError(f"image_id distintos: Agente 1 {agente1['image_id']!r}, Agente 2 {agente2['image_id']!r}")
     ids = {f["finding_id"] for f in agente1["findings"]}
-    en_agente2 = [i for e in agente2["escenarios"].values() for i in e["hallazgos_incluidos"]]
-    en_agente2 += [x["finding_id"] for x in agente2["hallazgos_fuera_del_coste"]]
+    fuera = [x["finding_id"] for x in agente2["hallazgos_fuera_del_coste"]]
+    listas = {f"escenarios.{n}.hallazgos_incluidos": e["hallazgos_incluidos"] for n, e in agente2["escenarios"].items()}
+    listas["hallazgos_fuera_del_coste"] = fuera
+    for nombre, lista in listas.items():
+        repetidos = sorted({fid for fid in lista if lista.count(fid) > 1})
+        if repetidos:
+            raise ValueError(f"finding_id repetido en {nombre}: {', '.join(repetidos)}")
+    en_coste = {fid for n, e in agente2["escenarios"].items() for fid in e["hallazgos_incluidos"]}
+    en_los_dos = sorted(en_coste & set(fuera))
+    if en_los_dos:
+        raise ValueError(f"finding_id a la vez en un escenario de coste y fuera del coste: {', '.join(en_los_dos)}")
+    en_agente2 = sorted(en_coste) + fuera
     for fid in en_agente2:
         if fid not in ids:
             raise ValueError(f"finding_id del Agente 2 que no esta en el Agente 1: {fid!r}")
@@ -305,7 +325,10 @@ def generar_informe(agente1: dict, agente2: dict, hoy: str | None = None) -> str
         "## Fuentes consultadas",
         "",
     ]
-    md += [f"- {n['tema']}: «{n['extracto']}» ({n['fuente']})" for n in agente2["normativa"]] or ["_Sin fuentes._"]
+    for n in agente2["normativa"]:
+        md += [f"- {n['tema']} ({n['fuente']}):", *_bloque_literal(n["extracto"]), ""]
+    if not agente2["normativa"]:
+        md.append("_Sin fuentes._")
     sin_fuentes = _consultas_sin_fuentes(diagnostico)
     if sin_fuentes:
         md += ["", "Temas sin fuentes recuperadas (las conclusiones sobre ellos requieren revisión):", "", *sin_fuentes]

@@ -125,6 +125,40 @@ def probar_ac005_normativa_vacia_y_con_extractos():
     assert len(lineas) == 1 and "Sin fuentes" in lineas[0], lineas
 
 
+def _bloque_literal(seccion: str, fuente: str) -> list[str]:
+    """Lineas del bloque literal (entre vallas de codigo) que sigue a la linea
+    de la cita con esa fuente, sin la sangria de la lista."""
+    lineas = seccion.splitlines()
+    i = next(n for n, l in enumerate(lineas) if fuente in l)
+    apertura = lineas[i + 1].strip()
+    assert apertura.startswith("```"), f"la cita de {fuente} no va en un bloque literal: {lineas[i + 1]!r}"
+    valla = apertura[:len(apertura) - len(apertura.lstrip("`"))]
+    sangria = len(lineas[i + 1]) - len(lineas[i + 1].lstrip())
+    contenido = []
+    for l in lineas[i + 2:]:
+        if l.strip() == valla:
+            return contenido
+        contenido.append(l[sangria:])
+    raise AssertionError(f"el bloque literal de {fuente} no se cierra")
+
+
+def probar_ac001_ac005_cita_con_titulos_no_rompe_el_informe():
+    """AC-001 y AC-005: un extracto con lineas que empiezan por «#» (como los
+    preambulos de la legislacion del corpus) no anade encabezados al informe y
+    se conserva literal, con su tema y su fuente."""
+    a1, a2 = _ejemplos()
+    extracto = "# Título de la fuente\n# Fuente: referencia\n\nTexto literal con ``` comillas."
+    x = copy.deepcopy(a2)
+    x["normativa"] = [{"tema": "consulta de prueba", "extracto": extracto, "fuente": "fixture:preambulo"}]
+    md = generar_informe(a1, x, hoy=HOY)
+    encontrados = [l for l in md.splitlines() if l.startswith("# ") or l.startswith("## ")]
+    assert encontrados == ENCABEZADOS, f"encabezados: {encontrados}"
+    fuentes = _secciones(md)["## Fuentes consultadas"]
+    linea = next(l for l in fuentes.splitlines() if "fixture:preambulo" in l)
+    assert "consulta de prueba" in linea, linea
+    assert _bloque_literal(fuentes, "fixture:preambulo") == extracto.split("\n")
+
+
 # --- specs/31-informe-peritaje.md#AC-009 ------------------------------------
 def probar_ac009_arrastres_con_nombre_y_probabilidad():
     """AC-009: cada arrastre con su nombre del catalogo y su probabilidad en la
@@ -320,6 +354,29 @@ def probar_ac011_entradas_incoherentes():
     _espera_error(y, a2, "PIEZA_INVENTADA")
 
 
+def probar_ac011_hallazgos_repetidos_o_en_grupos_incompatibles():
+    """AC-002 y AC-011: un hallazgo repetido dentro de una lista, o que esta a la
+    vez en un escenario de coste y fuera del coste, lanza ValueError que nombra
+    el id. Un confirmado en los dos escenarios es lo previsto y no da error."""
+    a1, a2 = _ejemplos()
+    generar_informe(a1, a2, hoy=HOY)  # 160-1 y 160-4 estan en los dos escenarios
+    x = copy.deepcopy(a2)
+    x["hallazgos_fuera_del_coste"].append({"finding_id": "160-1", "motivo": "sin_regla_de_coste"})
+    _espera_error(a1, x, "160-1")
+    x = copy.deepcopy(a2)
+    x["hallazgos_fuera_del_coste"].append({"finding_id": "160-3", "motivo": "sin_regla_de_coste"})
+    _espera_error(a1, x, "160-3")
+    x = copy.deepcopy(a2)
+    x["escenarios"]["confirmados"]["hallazgos_incluidos"].append("160-1")
+    _espera_error(a1, x, "160-1")
+    x = copy.deepcopy(a2)
+    x["escenarios"]["con_pendientes"]["hallazgos_incluidos"].append("160-5")
+    _espera_error(a1, x, "160-5")
+    x = copy.deepcopy(a2)
+    x["hallazgos_fuera_del_coste"].append(dict(x["hallazgos_fuera_del_coste"][0]))
+    _espera_error(a1, x, "160-2")
+
+
 def probar_ac011_paquete_ausente():
     """AC-011: sin piia2_paquete_datos/ el modulo falla al importar con un
     mensaje que indica la ruta esperada."""
@@ -464,6 +521,8 @@ PRUEBAS = [
     probar_ac007_sin_confirmados_y_todo_rechazado,
     probar_ac008_perdida_total_solo_con_pendientes,
     probar_ac011_entradas_incoherentes,
+    probar_ac011_hallazgos_repetidos_o_en_grupos_incompatibles,
+    probar_ac001_ac005_cita_con_titulos_no_rompe_el_informe,
     probar_ac011_paquete_ausente,
     probar_ac012_determinista_sin_clave_ni_red,
     probar_ac014_diagnostico_en_sus_cinco_estados,
