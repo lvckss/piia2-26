@@ -1,7 +1,7 @@
 # Registro de decisiones (ADRs)
 
 Este registro pertenece a CU-19 y se entrega dentro de su carpeta. La
-[reubicación documental y el mapa de rutas históricas](../README.md#ubicaciones-vigentes-y-referencias-históricas)
+[reubicación documental y el mapa de rutas históricas](../README.md#mapa-de-rutas-de-esta-edición)
 conservan las decisiones, numeración, aceptación y evidencia existentes.
 
 Las decisiones técnicas/arquitectónicas suficientemente fundamentales, duraderas
