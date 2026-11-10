@@ -65,6 +65,7 @@ responsabilidades de producto, datos, modelos e integración.
 cu-19-interpretacion-danos/
 ├── .gitignore
 ├── README.md
+├── ARCHITECTURE.md
 ├── justfile
 ├── scripts/
 ├── docs/
@@ -81,6 +82,7 @@ cu-19-interpretacion-danos/
 ```
 
 - `README.md`: presenta el problema, la motivación, el alcance y el equipo.
+- [`ARCHITECTURE.md`](ARCHITECTURE.md): mapa visual de componentes, contratos, flujo y decisiones; ilustraciones en `docs/architecture/`.
 - `justfile`: comandos de desarrollo y preparación de datos, propios de este caso.
 - `scripts/`: descargador de CARDD, dependencia opcional, SHA-256, pruebas y [guía de datos locales](scripts/README.md). Se entrega dentro del caso; las imágenes y el entorno Python permanecen fuera de Git.
 - `docs/`: [documentación del equipo](docs/README.md), workflow, plantillas y registro de ADRs. Forma parte de la entrega del caso.
