@@ -44,7 +44,7 @@ ausente o una caída del proveedor. Lucas pide un informe preliminar cuando
 falta respaldo, con tipos de error bien diferenciados. Esto modifica una
 frontera consumida por otras personas y requiere revisión previa.
 
-## Decisión propuesta
+## Decisión
 
 1. **Persistencia:** PostgreSQL con pgvector, tablas propias para documentos,
    fragmentos, embeddings y manifiesto de generación. Texto y procedencia se
