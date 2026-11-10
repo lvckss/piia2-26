@@ -50,7 +50,7 @@ Esta funcionalidad convierte las detecciones en hallazgos con veredicto, pieza y
 - La salida de los hallazgos no registra todavía el modelo de visión usado (la caché sí lo guarda).
 - Hoy el vehículo es un dato de entrada obligatorio del siniestro, no algo que el Agente 1 deduzca. La Issue #28, en planificación, propone estimarlo y añadir el campo `vehiculo` a la salida; si se acepta e implementa, el criterio AC-001, que fija las claves de la salida, se actualizará en esa Issue. Mientras tanto no cambia.
 
-## Criterios de aceptación
+## Acceptance Criteria
 
 **Cómo leer la columna de verificación.** *Verificado*: el comando se ejecuta y pasa. *Parcial*: parte del criterio está verificada y se indica cuál. *Pendiente*: no hay verificación todavía, con el motivo o la Issue que la cubrirá. Los comandos se ejecutan desde `app/agentes/agente_multimodal/`; algunos usan el paquete de datos de la empresa (`piia2_paquete_datos/`) o el export de 500 imágenes en local y se saltan con un aviso si no están.
 

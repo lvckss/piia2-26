@@ -52,8 +52,8 @@ Los precios, los tiempos de reparación, los vehículos y las pólizas son **dat
 
 | Integrante | Rol inicial | Contacto |
 |---|---|---|
-| Lucía Luis Castaño | Desarrollo e investigación de IA | lucia.luis.castano@rai.usc.gal |
-| Víctor Hidalgo Carreira | Desarrollo e investigación de IA | victor.hidalgo@rai.usc.gal |
+| Lucía Luis Castaño | Desarrollo e investigación de IA | lucia.luis.castano@rai.usc.es |
+| Víctor Hidalgo Carreira | Desarrollo e investigación de IA | victor.hidalgo@rai.usc.es |
 | Lucas García Ruiz | Desarrollo e investigación de IA | lucas.garcia0@rai.usc.es |
 
 Los roles son iniciales y podrán concretarse conforme se repartan las
