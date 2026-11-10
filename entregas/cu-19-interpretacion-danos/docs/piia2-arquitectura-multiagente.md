@@ -200,7 +200,7 @@ rastro. Entre las candidatas, lo que no se confirma queda como `needs_review`:
 | `vehiculo.descripcion` | Una o dos frases en español sobre el coche (color y tipo; marca y modelo si se reconocen). El prompt no pide matrículas ni personas. |
 | `vehiculo.modelo` | Id del modelo de visión con el que se hizo la consulta (el mismo de los hallazgos). |
 
-`vehiculo` es un campo **aditivo** ([ADR 0001](../../../docs/adr/0001-categoria-vehiculo-contrato-agente1.md)):
+`vehiculo` es un campo **aditivo** ([ADR 0001](adr/0001-categoria-vehiculo-contrato-agente1.md)):
 `image_id`, `resumen_filtro_previo` y `findings` no cambian y un consumidor que no
 lo conozca lo ignora. Se pide **una vez por imagen**, no por hallazgo, con la foto
 completa reducida (1.024 px de lado largo) y sin las cajas dibujadas, también si la
@@ -253,7 +253,7 @@ complejo: la empresa dijo que se vea más adelante).
 | Proveedor y modelos | **Decidido por la empresa:** API de OpenAI con la clave que nos dieron (solo en variable de entorno `OPENAI_API_KEY`, **nunca** en el repo ni en el chat). Recomiendan un modelo concreto, pero piden probar varios y comparar si compensa el esfuerzo. El id del modelo va en `OPENAI_MODEL` o en el parámetro `modelo`; usad el id exacto que figure en la cuenta. |
 | Presupuesto | La empresa dice que 50-100 € está bien y no restringe. Aun así: cache de respuestas (`cache_dir` en el Agente 1), comparar modelos solo con 30-50 imágenes, y el modelo elegido con el resto. |
 | Veredicto de visión | **Asumido (confirmar):** no descarta nada; un rechazo deja el hallazgo como `needs_review` con `vision_verdict = rechazado`, y el informe lo muestra aparte, fuera del coste. Alternativa: sacarlo del informe. |
-| `vehiculo_id` | **Decidido ([ADR 0001](../../../docs/adr/0001-categoria-vehiculo-contrato-agente1.md)):** dato de entrada del siniestro, no deducido por el LLM. El Agente 1 propone categoría y coche de referencia (`vehiculo`); la persona usuaria los confirma o corrige en la web (#34), que entrega el `vehiculo_id`. |
+| `vehiculo_id` | **Decidido ([ADR 0001](adr/0001-categoria-vehiculo-contrato-agente1.md)):** dato de entrada del siniestro, no deducido por el LLM. El Agente 1 propone categoría y coche de referencia (`vehiculo`); la persona usuaria los confirma o corrige en la web (#34), que entrega el `vehiculo_id`. |
 | Framework | La empresa trabaja con **Google ADK** y lo recomienda. La tool de la empresa ya trae un ejemplo (`scripts/ejemplo_tool.py`: funciones Python normales pasadas como `tools=[...]` a un `Agent`), **sin probar** con la librería. Plan: toda la lógica son funciones Python normales, testeables sin red; se envuelven en agentes de ADK al final. Antes de comprometerse, hacer una prueba mínima de ADK con un modelo de OpenAI (probablemente vía un adaptador tipo LiteLLM; **comprobarlo en su documentación**). |
 | Formato del informe | Markdown ahora; PDF más adelante, solo si sobra tiempo. |
 | Reparador con API (puente a un taller real) | Opcional según la empresa; solo si no complica. |
@@ -303,10 +303,10 @@ puedan reasignar sin reescribirlas.
 | Pieza | Quién | Guía |
 |---|---|---|
 | Agente 1 — Analista de daños (multimodal), comparación de modelos de visión y coordinación | Lucía | `app/agentes/agente_multimodal/README.md` |
-| Agente 2, partes A y B — Costes y cobertura | Víctor | [`agente2-costes-cobertura-guia.md`](agente2-costes-cobertura-guia.md) |
-| Agente 3 — Redactor del informe | Víctor | [`agente3-informe-guia.md`](agente3-informe-guia.md) |
-| Agente 2, parte C — Normativa (RAG) | Lucas | [`agente2-rag-normativa-guia.md`](agente2-rag-normativa-guia.md) |
-| Integración de los tres agentes (Google ADK, o plan B en Python) | Lucas | [`integracion-adk-guia.md`](integracion-adk-guia.md) |
+| Agente 2, partes A y B — Costes y cobertura | Víctor | [`agente2-costes-cobertura-guia.md`](guias/agente2-costes-cobertura-guia.md) |
+| Agente 3 — Redactor del informe | Víctor | [`agente3-informe-guia.md`](guias/agente3-informe-guia.md) |
+| Agente 2, parte C — Normativa (RAG) | Lucas | [`agente2-rag-normativa-guia.md`](guias/agente2-rag-normativa-guia.md) |
+| Integración de los tres agentes (Google ADK, o plan B en Python) | Lucas | [`integracion-adk-guia.md`](guias/integracion-adk-guia.md) |
 
 **Por qué este reparto.** Lucas es quien mejor maneja este tipo de trabajo, así
 que se queda con lo que más incertidumbre técnica tiene: el RAG y ADK (que no

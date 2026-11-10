@@ -10,8 +10,8 @@
 - Planning PR: https://github.com/lvckss/piia2-26/pull/51. La aprueba una persona distinta del autor (revisor acordado en el reparto: Lucas).
 
 > Reubicación documental del 2026-11-02, solicitada por Lucas: el
-> [registro vigente](../docs/adr/README.md) está dentro del caso. El
-> [mapa de rutas](../docs/README.md#ubicaciones-vigentes-y-referencias-históricas)
+> [registro vigente](../adr/README.md) está dentro del caso. El
+> [mapa de rutas](../README.md#ubicaciones-vigentes-y-referencias-históricas)
 > actualiza la ubicación canónica acordada en esta planificación; las rutas y
 > enlaces a commits de su versión revisada se conservan como evidencia histórica.
 > No cambia las decisiones, sus aceptaciones, AC ni compromisos de la #49.

@@ -3,7 +3,7 @@
 Responsable: Víctor.
 
 Guía paso a paso (léela entera antes de empezar):
-[`../../../specs/agente3-informe-guia.md`](../../../specs/agente3-informe-guia.md).
+[`../../../specs/agente3-informe-guia.md`](../../../docs/guias/agente3-informe-guia.md).
 
 Junta los hallazgos del Agente 1 y los costes/cobertura del Agente 2 en un
 informe de peritaje en markdown. Las cifras salen siempre del código a partir

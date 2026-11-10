@@ -3,7 +3,7 @@
 - Estado: Aceptado
 - Fecha: 2026-10-19
 - GitHub Issue: https://github.com/lvckss/piia2-26/issues/37
-- Planes cubiertos (Issue/mini-spec/Spec): [entregas/cu-19-interpretacion-danos/specs/37-adrs-decisiones-previas.md](../../specs/37-adrs-decisiones-previas.md) — registro de una decisión ya vigente, especificada en `specs/agente-confianza-hallazgos.md` («Filtro previo»).
+- Planes cubiertos (Issue/mini-spec/Spec): [entregas/cu-19-interpretacion-danos/specs/37-adrs-decisiones-previas.md](../historico/37-adrs-decisiones-previas.md) — registro de una decisión ya vigente, especificada en `specs/agente-confianza-hallazgos.md` («Filtro previo»).
 - Planning PR: https://github.com/lvckss/piia2-26/pull/51
 - Aceptación: Lucas García (`lvckss`), [revisión APPROVED del 2026-10-20](https://github.com/lvckss/piia2-26/pull/51#pullrequestreview-5588663399) sobre la versión `14b4b28` (aceptación expresa de los ADRs 0002, 0003, 0004 y 0005).
 - Sustituye / sustituido por: no aplica. Registra una decisión anterior sin ADR.

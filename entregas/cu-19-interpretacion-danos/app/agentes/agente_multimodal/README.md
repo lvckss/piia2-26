@@ -15,7 +15,7 @@ en la web: el Agente 2 sigue recibiendo el `vehiculo_id` como dato de entrada de
 siniestro. Ver «Categoría del vehículo».
 
 Contrato de entrada/salida completo:
-[`../../../specs/piia2-arquitectura-multiagente.md`](../../../specs/piia2-arquitectura-multiagente.md).
+[`../../../specs/piia2-arquitectura-multiagente.md`](../../../docs/piia2-arquitectura-multiagente.md).
 Diseño del filtro de confianza:
 [`../../../specs/agente-confianza-hallazgos.md`](../../../specs/agente-confianza-hallazgos.md).
 
