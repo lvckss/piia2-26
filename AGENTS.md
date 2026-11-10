@@ -124,5 +124,5 @@ distinción no permite introducir código productivo sin los requisitos anterior
 Para su DoD, la PR documental cumple los requisitos de evidencia, revisión,
 aprobación e integración; los requisitos funcionales no aplicables se justifican.
 
-Consultar el [lifecycle](docs/workflow.md), el [template de Spec](docs/templates/spec-template.md)
-y el [registro de ADRs](docs/adr/README.md).
+Consultar el [lifecycle](entregas/cu-19-interpretacion-danos/docs/workflow.md), el [template de Spec](entregas/cu-19-interpretacion-danos/docs/templates/spec-template.md)
+y el [registro de ADRs](entregas/cu-19-interpretacion-danos/docs/adr/README.md).

@@ -2,12 +2,12 @@
 
 - Estado: Propuesto
 - Fecha: 2026-10-27
-- Versión: propuesta v1.2; actualiza las referencias a #28 v1.2 respecto a `9a65c26` y aclara que #34 define la procedencia y #31 la consume. El formato sigue pendiente de acuerdo; no cambia el resultado observable de los AC. Historial: v1 en `733c5d0`; v1.1 en `9a65c26`, reparto de Compose con #32.
+- Versión: propuesta v1.3 (2026-11-10); conserva v1 `733c5d0`, v1.1 `9a65c26` y v1.2 `5ed9ca6`. Incorpora V25 fijo elegido por Lucas, procedencia y límites propuestos, orden CLI primero y disparador de revisión ADK.
 - GitHub Issue: https://github.com/lvckss/piia2-26/issues/34
-- Planes cubiertos: [34-orquestacion-web.md](../../entregas/cu-19-interpretacion-danos/specs/34-orquestacion-web.md), coordinación, frontera web/Python, estado temporal y Compose.
+- Planes cubiertos: [34-orquestacion-web.md](../../specs/34-orquestacion-web.md), coordinación, frontera web/Python, estado temporal y Compose.
 - Planning PR: https://github.com/lvckss/piia2-26/pull/60 — draft.
 - Aceptación: pendiente de revisión humana del documento completo, los contratos y las alternativas. Las decisiones de producto de Lucas no equivalen a aceptar este ADR.
-- Sustituye / sustituido por: no sustituye un ADR aceptado. Reutiliza las responsabilidades base de los ADRs 0002–0005; depende de acordar la ampliación de categoría de #28/ADR 0001 y el diagnóstico RAG de #32/ADR 0006.
+- Sustituye / sustituido por: no sustituye un ADR aceptado. Reutiliza las responsabilidades base de los ADRs 0002–0005; se apoya en #28/ADR 0001 y #32/ADR 0006 ya aceptados en main. El contrato nuevo de procedencia requiere revisión propia.
 
 ## Contexto y motivación
 
@@ -18,13 +18,13 @@ acredita la integración completa ni convierte sus dependencias en las del produ
 
 Lucas ha elegido ADK y un recorrido desde una pestaña de la web: subir una
 imagen, ver los daños sin editarlos, confirmar/corregir el vehículo, completar
-datos y mostrar/descargar Markdown. Ha elegido no tener historial. La v1.2 de
-#28, publicada en #29 (`dca27ad`), ya planifica la categoría automática solo en
-el Agente 1 y transfiere AC-009/010 a #34/#31. Con `desconocido` entrega una
-referencia nula: #34 pide selección al usuario, sin asignar un compacto. Un
-fallo técnico del proveedor se propaga y detiene el flujo (AC-007 de #28).
-Su revisión e integración siguen pendientes, igual que acordar con el
-responsable del informe el formato de procedencia definido por #34.
+datos y mostrar/descargar Markdown. Ha elegido no tener historial. #28/#69 y
+ADR 0001 ya están integrados: `desconocido` entrega referencia nula y los
+AC-009/010 se transfirieron a #34/#31. Lucas decide el 2026-11-10 usar V25 fijo
+si el vehículo es `desconocido` y la persona no elige, sobre las propuestas de
+Lucía y Víctor registradas en #34. Los fallos técnicos detienen el flujo.
+La regla vive en una sola función del orquestador para CLI y web; #30 recibe
+siempre vehículo válido. El formato de procedencia sigue propuesto a Víctor.
 
 La web y backend son React/Bun/Hono; los agentes son Python. PIIA 1 ya ofrece
 `POST /v1/damage-assessment` con archivo, pero su JSON necesita adaptación al
@@ -39,7 +39,12 @@ previos no cubren esa frontera ni este recorrido.
 
 1. **ADK nativo con orden fijo.** Usar sus workflows/agentes nativos y adaptadores
    mínimos para llamar a las funciones existentes, con estado independiente por
-   ejecución. No añadir un modelo que elija el orden o reescriba cifras. La
+   ejecución. Se reutilizan sesiones/eventos y workflows de ADK; el precio lo
+   calcula código y no mejora por adoptar el framework. #52 probó ADK 2.12.0 y
+   LiteLLM 1.106.0, no las APIs nativas de esta integración. El smoke CLI del hito
+   del 10 de noviembre valida fases, aislamiento, orden y detención. Si falla,
+   se registra y se propone Python directo al equipo; cambiar requiere revisar
+   este ADR y AC-005, sin aplicar la alternativa automáticamente. No añadir un modelo que elija el orden o reescriba cifras. La
    documentación de ADK describe `SequentialAgent` como secuencia determinista
    y `BaseAgent` como extensión para lógica propia; las APIs y dependencias se
    fijan y comprueban al implementar. No se construye otro framework de agentes.
@@ -54,17 +59,27 @@ previos no cubren esa frontera ni este recorrido.
    La API de peritaje se valida de forma independiente del JSON de los agentes.
 4. **Cálculos y procedencia preservados.** Resolver `vehiculo_id` antes de #30,
    conservar findings y cifras y comprobar el informe antes de publicarlo.
-   #34 define aquí y en su Spec el contrato de procedencia; #31 lo consume
-   para mostrarla en el informe. Revisar el formato con Víctor, respetando la
-   predicción `vehiculo` de #28, sin restaurar unilateralmente campos o AC
-   retirados. Conservar el
+   #34 propone `contexto.vehiculo_origen`: `referencia_confirmada`,
+   `seleccion_usuario` o `maximo_por_defecto`; no un objeto separado. Para
+   categoría válida `desconocido` sin elección, una función común CLI/web
+   resuelve V25 fijo y construye el origen en servidor. V25 calcula también
+   valor venal, pérdida total e indemnización; la pérdida total no es fiable
+   para el coche real. No se calcula el máximo exacto entre los 27 modelos.
+   La predicción `vehiculo` queda intacta, incluida su referencia nula. #31 debe
+   aceptar este contrato y añadir un AC nuevo, sin reutilizar el retirado.
+   Pantalla e informe conservan la frase literal y el aviso adicional de la
+   Spec. Este diseño sigue propuesto, sin atribuir aceptación a Víctor. Conservar el
    `diagnostico_rag` acordado con #32/#31 y sus avisos preliminares.
 5. **Estado efímero, sin historial de casos.** Mantener estado y artefactos
    temporales hasta descarga/descartado/caducidad, sin tablas de casos ni su
    listado en la web. Las subidas no se incorporan a CarDD. Reinicios/caducidad
    pueden perder el caso y se comunican, sin prometer reanudación durable ni
    repetirlo automáticamente. La descarga no elimina inmediatamente el
-   resultado mientras siga disponible en pantalla.
+   resultado mientras siga disponible en pantalla. Límites iniciales propuestos:
+   10 MiB, 20.000.000 píxeles, 60 minutos de inactividad y dos casos retenidos
+   por proceso. Son valores conservadores sin medición de carga; ver reglas
+   de capacidad, actividad y limpieza en la Spec. Polling no renueva caducidad
+   y una etapa en curso termina o vence timeout antes de limpiar.
 6. **Idempotencia durante la vida del caso.** POST repetido con misma clave y
    contenido reutiliza el trabajo; contenido distinto con la misma clave da
    conflicto. Generar informe es una transición atómica. No hay garantía
@@ -90,7 +105,7 @@ previos no cubren esa frontera ni este recorrido.
 | Alternativa | Ventajas | Costes / motivo de la propuesta |
 |---|---|---|
 | ADK nativo con secuencia fija, propuesta | Respeta la elección de Lucas y reutiliza el framework probado; orden y cifras controlados por código. | Añade dependencia/entorno ADK y adaptadores que hay que probar de extremo a extremo. |
-| Python directo | Cableado pequeño y sencillo; mismas funciones deterministas. | Alternativa de recorte del plan del equipo, pero no es la elección actual de Lucas. Cambiar a ella requeriría registrar y revisar la decisión. |
+| Python directo | Cableado pequeño y sencillo; mismas funciones deterministas. | Menos dependencias para el orden fijo; alternativa si falla el smoke CLI de ADK del 10 de noviembre. Requiere decisión humana, revisión de ADR/AC-005 y registro antes de cambiar, sin recortar web. |
 | Coordinador LLM que decide qué tools llamar | Flexible para recorridos variables. | El recorrido está fijado; introduce llamadas y riesgo de saltarse pasos o reformular cifras sin una necesidad identificada. |
 | Mantener únicamente un comando con archivos de CarDD | Reduce trabajo de interfaz y subida. | No cumple la entrada web con una imagen nueva elegida por Lucas. |
 | Una petición HTTP larga hasta el informe | Menos estados y operaciones. | No encaja con la confirmación/corrección del vehículo entre las fases ni con consultar progreso sin repetir trabajo. |
@@ -102,13 +117,13 @@ previos no cubren esa frontera ni este recorrido.
 
 - La integración pasa a tener dos fronteras explícitas: HTTP web/Python y los
   JSON entre agentes. Cada una se prueba sin utilizar mocks de funciones privadas.
-- El plan de categoría #28 v1.2/#29 ya recoge `desconocido` sin referencia y
-  una evaluación manual sin umbral del 70 %. Su revisión, aceptación del ADR
-  0001 e implementación siguen pendientes; este ADR no las acredita.
-- El informe debe distinguir representante de coche identificado. El plan #31
-  actual no acredita esa adaptación; acordarla con Víctor bloquea Ready.
-- El ADR 0006 del RAG sigue Propuesto en #56. Aceptar este ADR no lo acepta por
-  transitividad ni entrega `agente2()` ni el índice.
+- Categoría #28/ADR 0001 y RAG #32/ADR 0006 están aceptados e integrados;
+  #72/#75 siguen abiertos. No se presenta el índice, `agente2()` ni el informe
+  como entregados en main por el hecho de tener planes aceptados.
+- El contrato nuevo de procedencia y el AC consumidor de #31 siguen pendientes
+  de revisión. La política fija V25 fue elegida por Lucas; la frase «vehículo de
+  mayor coste» de Lucía se conserva por instrucción, con la limitación explícita
+  de que V25 no es necesariamente el máximo exacto para cualquier siniestro.
 - Los temporales necesitan limpieza y límites documentados; la base del
   explorador y el índice RAG conservan su persistencia. Sin historial no implica
   borrar esos datos ni eliminar el resultado antes de poder descargarlo.
@@ -128,15 +143,17 @@ previos no cubren esa frontera ni este recorrido.
 - [Prueba ADK/OpenAI #52](https://github.com/lvckss/piia2-26/pull/52), integrada:
   evidencia de una tool, importe conservado y replay documentado; no prueba el
   presente servicio ni una ejecución de los tres agentes.
-- [RAG #56](https://github.com/lvckss/piia2-26/pull/56), `c77a17c`, draft;
-  [categoría #29](https://github.com/lvckss/piia2-26/pull/29), v1.2 en
-  [`dca27ad`](https://github.com/lvckss/piia2-26/blob/dca27add4cf87fc460fb7516625672798552e3c4/entregas/cu-19-interpretacion-danos/specs/28-categoria-vehiculo.md),
-  revisión e integración pendientes;
-  [informe v2 #58](https://github.com/lvckss/piia2-26/pull/58), integrada.
+- [RAG v1.6](https://github.com/lvckss/piia2-26/blob/8a38e02310f8cb3b5e2994684715fe34dfee4613/entregas/cu-19-interpretacion-danos/specs/32-rag-normativa.md), ADR 0006 Aceptado;
+  [categoría v1.3.2](https://github.com/lvckss/piia2-26/blob/8a38e02310f8cb3b5e2994684715fe34dfee4613/entregas/cu-19-interpretacion-danos/specs/28-categoria-vehiculo.md), ADR 0001 Aceptado;
+  [informe v2.1](https://github.com/lvckss/piia2-26/blob/8a38e02310f8cb3b5e2994684715fe34dfee4613/entregas/cu-19-interpretacion-danos/specs/31-informe-peritaje.md).
+- Decisiones de [Lucía](https://github.com/lvckss/piia2-26/issues/34#issuecomment-6611207541),
+  [Víctor](https://github.com/lvckss/piia2-26/issues/34#issuecomment-6657185939) y
+  [frase literal](https://github.com/lvckss/piia2-26/issues/34#issuecomment-6736461374).
+  La v1.3 recoge además la elección de Lucas de V25 fijo en sesión del 2026-11-10.
 - [ADK: secuencia nativa](https://adk.dev/agents/workflow-agents/sequential-agents/)
   y [agentes personalizados](https://adk.dev/agents/custom-agents/), consultadas
   el 2026-10-26. La compatibilidad de las versiones de producto se comprobará
   durante implementación, sin dar por hecho que el experimento cubra estas APIs.
-- Código y despliegue inspeccionados en `main` `d5dd44d`: referencias concretas
+- Código y despliegue inspeccionados en `main` `8a38e02`: referencias concretas
   en «Estado actual y evidencia» de la Spec. No se han ejecutado modelos,
   instalado dependencias ni realizado pruebas funcionales para este borrador.

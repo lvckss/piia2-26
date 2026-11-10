@@ -135,7 +135,7 @@
       "category": "scratch",
       "clase_tool": "scratch",
       "score": 0.69287109375,
-      "score_tier": "needs_review",
+      "score_tier": "confirmed",
       "confidence_tier": "needs_review",
       "bbox_xywh": [
         261.0,
@@ -150,5 +150,12 @@
       "vision_description": "Se observa un arañazo largo con pérdida de pintura en una puerta, pero no es posible determinar con seguridad si corresponde al lado izquierdo o derecho del vehículo.",
       "crop_image_path": "crops/1746_scratch_9.jpg"
     }
-  ]
+  ],
+  "vehiculo": {
+    "categoria": "C",
+    "vehiculo_id_referencia": "V02",
+    "confianza": "baja",
+    "descripcion": "Turismo compacto visto de cerca, sin rasgos suficientes para identificar la marca o el modelo.",
+    "modelo": "gpt-6-luna"
+  }
 }

@@ -12,8 +12,8 @@ Procesos reproducibles que miden el sistema y dejan registrado con qué datos, c
    - ejemplos visuales de verdaderos positivos, falsos positivos y falsos negativos;
    - un registro de la configuración y versiones utilizadas.
 
-   Los resultados de esa detección están guardados para 500 imágenes de CarDD; PIIA2 los consume y no los vuelve a calcular ejecutando SAM3.
-2. **Sistema PIIA2.** Evaluación de cada pieza con los datos disponibles: la segunda opinión del modelo de visión del Agente 1 y el techo que marcan las detecciones guardadas; el error de costes del Agente 2; la recuperación del RAG; y la coincidencia de las cifras del informe con las del Agente 2. La evaluación de la categoría del vehículo (Issue #28) queda fuera: la Issue está aparcada.
+   Los resultados de esa detección están guardados para 500 imágenes de CarDD; PIIA2 los consume y no los vuelve a calcular ejecutando SAM3. Ese export se identifica por el SHA-256 de su `_manifest.json`, `f426f0c5d8a6d8441f4bf988a4b9a6da81e765cf8a83491288786fd9ca9d5a0c`, que recoge el modo `baseline`, las 500 imágenes (`image_ids`), la semilla 42, el mínimo de 25 por clase, los splits `val` y `test`, `score_threshold` 0,3 e `iou_threshold` 0,5. Se genera con PIIA1 en Colab y se descarga en `piia2_detecciones/baseline_500/`, carpeta fuera de git; las mediciones del proyecto que lo usan deben citar ese identificador.
+2. **Sistema PIIA2.** Evaluación de cada pieza con los datos disponibles: la segunda opinión del modelo de visión del Agente 1 y el techo que marcan las detecciones guardadas; el error de costes del Agente 2; la recuperación del RAG; y la coincidencia de las cifras del informe con las del Agente 2. La evaluación de la categoría del vehículo (Issue #28) queda pendiente de que se acepte su planificación (criterio AC-013).
 
 ## Por qué
 
@@ -23,7 +23,7 @@ En PIIA2 hay una razón más: cada pieza del sistema se apoya en datos distintos
 
 ## Alcance
 
-- **Incluido:** el proceso de evaluación de la detección de PIIA1 (heredado); la medición de la segunda opinión de visión; el análisis del techo de las detecciones guardadas; la evaluación del coste del Agente 2, del RAG, del informe (la evaluación de la categoría del vehículo queda fuera: la Issue #28 está aparcada); el registro de la configuración y de los datos usados en cada evaluación.
+- **Incluido:** el proceso de evaluación de la detección de PIIA1 (heredado); la medición de la segunda opinión de visión; el análisis del techo de las detecciones guardadas; la evaluación del coste del Agente 2, del RAG, del informe (la evaluación de la categoría del vehículo depende de la Issue #28, en planificación: criterio AC-013); el registro de la configuración y de los datos usados en cada evaluación.
 - **Fuera de alcance:** ejecutar SAM3 o mejorar la detección de PIIA1; el cálculo de costes, la recuperación de normativa y la redacción del informe, que son de los Agentes 2 y 3; calibrar los umbrales de confianza (ver [`agente-confianza-hallazgos.md`](agente-confianza-hallazgos.md)); cambiar el código de evaluación.
 
 ## Restricciones y supuestos
@@ -40,7 +40,7 @@ En PIIA2 hay una razón más: cada pieza del sistema se apoya en datos distintos
 - Los siniestros sintéticos de la empresa no tienen foto: evalúan los costes y la cobertura, no la cadena completa desde la imagen.
 - Las evaluaciones que llaman al modelo de visión cuestan dinero: por defecto solo cuentan las llamadas que harían, y gastar requiere pedirlo de forma explícita.
 
-## Criterios de aceptación
+## Acceptance Criteria
 
 **Cómo leer la columna de verificación.** *Verificado*: el comando se ejecuta y pasa. *Parcial*: parte del criterio está verificada y se indica cuál. *Pendiente*: no hay verificación todavía, con el motivo o la Issue que la cubrirá. Los comandos se ejecutan desde `app/agentes/agente_multimodal/`; los que usan el export de 500 imágenes o el paquete de datos de la empresa se saltan con un aviso si no están en local.
 
@@ -55,7 +55,7 @@ Se conservan como especificación del `Evaluator` de PIIA1; no son requisitos de
 | AC-003 | El informe de una evaluación. | Incluye, como mínimo, calidad de segmentación o localización, falsos positivos por imagen y tiempo medio de inferencia. | **Pendiente de prueba automática.** Implementado en `SummaryMetrics`: `mask_ap_50_95`, `ap75`, `ap_small`, `fp_per_image` y `ms_per_image`. |
 | AC-004 | Una evaluación determinista repetida con la misma entrada y configuración. | Produce los mismos resultados numéricos, salvo tolerancias documentadas. | **Pendiente.** No hay prueba ni tolerancias documentadas. |
 | AC-005 | La comparación entre dos estrategias evaluadas con particiones o protocolos incompatibles. | La comparación se rechaza o lo señala. | **Pendiente.** No existe una función de comparación en `app/ml/StrategyPipeline`. |
-| AC-006 | Una métrica agregada. | Permite localizar los resultados por imagen que contribuyen a ella y visualizar ejemplos de error. | **Pendiente de prueba automática.** Implementado en `EvalOutput.per_image` y `Evaluator.get_inspection()` ([`inspection.py`](../app/ml/StrategyPipeline/evaluation/inspection.py)). |
+| AC-006 | Una evaluación terminada (`Evaluator.finalize()`) con una métrica agregada, por ejemplo `mask_ap_50_95`. | `EvalOutput.per_image` tiene una fila por imagen evaluada, con su `image_id` y sus `tp_iou50`, `fp_iou50` y `fn_iou50`, de modo que se puede localizar qué imágenes contribuyen a la métrica. `Evaluator.get_inspection().get(image_id)` devuelve el registro de esa imagen (instancias de referencia y predichas) y lanza `KeyError` si el `image_id` no está en la evaluación. `plot(image_id)` dibuja en dos paneles la referencia y las predicciones de esa imagen: con trazo continuo las instancias que coinciden con IoU 0,5 y con trazo discontinuo (referencia) o punteado (predicciones) las que no, que son los errores. | **Pendiente de prueba automática.** Implementado en `EvalOutput.per_image` y `Evaluator.get_inspection()` ([`inspection.py`](../app/ml/StrategyPipeline/evaluation/inspection.py)). |
 | AC-007 | Imágenes con condiciones adversas. | La evaluación de robustez identifica por separado cada condición y cuantifica su degradación respecto al conjunto limpio. | **Pendiente de prueba automática.** Implementado en `per_condition` y en las métricas `pclean`, `mpc` y `rpc`. |
 
 ### Nivel 2 — sistema PIIA2
@@ -67,4 +67,4 @@ Se conservan como especificación del `Evaluator` de PIIA1; no son requisitos de
 | AC-010 | Los siniestros sintéticos de la empresa (`split` val y test) con su coste facturado sin IVA. | Se mide el error de coste de la herramienta de la empresa con los daños reales (referencia ≈ 9 %), que es el suelo de error que hereda el Agente 2. | **Pendiente.** Depende del Agente 2 ([Issue #30](https://github.com/lvckss/piia2-26/issues/30)). |
 | AC-011 | Las 25 preguntas de evaluación de la empresa. | Se mide en cuántas aparece la fuente esperada entre los k fragmentos que devuelve el RAG. | **Pendiente.** Depende del RAG ([Issue #32](https://github.com/lvckss/piia2-26/issues/32)); la métrica mínima la fija su plan. |
 | AC-012 | Un informe generado a partir de la salida del Agente 2. | Todas las cifras en euros del informe coinciden con las de esa salida, y una comprobación automática lo verifica. | **Pendiente.** Depende del Agente 3 ([Issue #31](https://github.com/lvckss/piia2-26/issues/31)). |
-| AC-013 | Una muestra de fotos de CarDD y la categoría de vehículo estimada para cada una. | Se documenta, por foto, la categoría estimada y la que juzga una persona, y la tasa de coincidencia. | **Aparcado.** La [Issue #28](https://github.com/lvckss/piia2-26/issues/28) está aparcada, así que este criterio no se evalúa en este ciclo; corresponde al criterio AC-011 de su planificación, que fijaba el umbral. |
+| AC-013 | Una muestra de fotos de CarDD y la categoría de vehículo estimada para cada una. | Se documenta, por foto, la categoría estimada y la que juzga una persona, y la tasa de coincidencia. | **Pendiente.** Depende de la [Issue #28](https://github.com/lvckss/piia2-26/issues/28), en planificación (retomada el 2026-10-27): no se evalúa hasta que se acepte e implemente su plan; corresponde al criterio AC-011 de esa planificación, que fija el umbral. |

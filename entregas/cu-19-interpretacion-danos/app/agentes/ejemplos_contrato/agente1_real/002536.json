@@ -116,8 +116,8 @@
       "category": "scratch",
       "clase_tool": "scratch",
       "score": 0.6396484375,
-      "score_tier": "needs_review",
-      "confidence_tier": "needs_review",
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
       "bbox_xywh": [
         112.0,
         266.0,
@@ -136,8 +136,8 @@
       "category": "dent",
       "clase_tool": "dent",
       "score": 0.626953125,
-      "score_tier": "needs_review",
-      "confidence_tier": "needs_review",
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
       "bbox_xywh": [
         473.0,
         204.0,
@@ -156,8 +156,8 @@
       "category": "dent",
       "clase_tool": "dent",
       "score": 0.505859375,
-      "score_tier": "needs_review",
-      "confidence_tier": "needs_review",
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
       "bbox_xywh": [
         0.0,
         373.0,
@@ -171,5 +171,12 @@
       "vision_description": "Se observa una abolladura con pliegues marcados y rozaduras en la puerta trasera izquierda, junto a su borde delantero.",
       "crop_image_path": "crops/2536_dent_10.jpg"
     }
-  ]
+  ],
+  "vehiculo": {
+    "categoria": "B",
+    "vehiculo_id_referencia": "V07",
+    "confianza": "baja",
+    "descripcion": "Parece un turismo utilitario de tamaño pequeño; la vista parcial no permite identificar con seguridad la marca ni el modelo.",
+    "modelo": "gpt-6-luna"
+  }
 }

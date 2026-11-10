@@ -36,7 +36,7 @@
       "category": "scratch",
       "clase_tool": "scratch",
       "score": 0.685546875,
-      "score_tier": "needs_review",
+      "score_tier": "confirmed",
       "confidence_tier": "needs_review",
       "bbox_xywh": [
         249.0,
@@ -56,8 +56,8 @@
       "category": "scratch",
       "clase_tool": "scratch",
       "score": 0.67333984375,
-      "score_tier": "needs_review",
-      "confidence_tier": "needs_review",
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
       "bbox_xywh": [
         434.0,
         296.0,
@@ -76,7 +76,7 @@
       "category": "crack",
       "clase_tool": "crack",
       "score": 0.66015625,
-      "score_tier": "needs_review",
+      "score_tier": "confirmed",
       "confidence_tier": "needs_review",
       "bbox_xywh": [
         448.0,
@@ -96,7 +96,7 @@
       "category": "dent",
       "clase_tool": "dent",
       "score": 0.525390625,
-      "score_tier": "needs_review",
+      "score_tier": "confirmed",
       "confidence_tier": "needs_review",
       "bbox_xywh": [
         434.0,
@@ -116,7 +116,7 @@
       "category": "dent",
       "clase_tool": "dent",
       "score": 0.494873046875,
-      "score_tier": "needs_review",
+      "score_tier": "confirmed",
       "confidence_tier": "needs_review",
       "bbox_xywh": [
         448.0,
@@ -171,5 +171,12 @@
       "vision_description": "La zona marcada está en la puerta y no muestra un neumático desinflado. Se aprecian roces en la carrocería, fuera de la zona señalada.",
       "crop_image_path": "crops/1711_tire_flat_37.jpg"
     }
-  ]
+  ],
+  "vehiculo": {
+    "categoria": "desconocido",
+    "vehiculo_id_referencia": null,
+    "confianza": "baja",
+    "descripcion": "Vista parcial de un turismo; no se distingue con seguridad su categoría.",
+    "modelo": "gpt-6-luna"
+  }
 }

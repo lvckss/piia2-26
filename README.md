@@ -234,9 +234,9 @@ Referencias oficiales: [Codex AGENTS.md](https://developers.openai.com/codex/gui
 ## Estructura del repositorio
 
 Las reglas de desarrollo están en [AGENTS.md](AGENTS.md). El
-[lifecycle esperado](docs/workflow.md) describe la planificación e implementación
-en PRs distintas, con [template de Spec](docs/templates/spec-template.md) y
-[registro y template de ADRs](docs/adr/README.md). Esta foundation establece el
+[lifecycle esperado](entregas/cu-19-interpretacion-danos/docs/workflow.md) describe la planificación e implementación
+en PRs distintas, con [template de Spec](entregas/cu-19-interpretacion-danos/docs/templates/spec-template.md) y
+[registro y template de ADRs](entregas/cu-19-interpretacion-danos/docs/adr/README.md). Esta foundation establece el
 proceso manual y los templates; las automatizaciones se incorporarán en fases posteriores.
 
 | Carpeta / fichero | Contenido |
