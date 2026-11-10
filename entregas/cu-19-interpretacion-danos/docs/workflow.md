@@ -232,6 +232,18 @@ esa tarea mediante capacidades disponibles, respetando permisos del runtime y
 restricciones de datos. No exige un humano como intermediario; no implica instalar
 un framework, aprobar decisiones humanas ni comunicar con terceros ajenos al trabajo.
 
+### Gestión activa de bloqueos
+
+Una tarea está **bloqueada** cuando no puede avanzar por una dependencia o un impedimento ajenos a su trabajo: una revisión pendiente, una PR de la que depende, una decisión humana o un acceso. Solo se marca `Bloqueadas` ante un bloqueo real, nunca para demostrar el proceso.
+
+1. **Detectar.** En cada revisión semanal y a mitad de semana se buscan las tarjetas que llevan tres días laborables sin moverse o que esperan a otra persona.
+2. **Marcar.** Se registra en la Issue un comentario con la [plantilla de bloqueo](templates/bloqueo-comentario.md): motivo, impedimento o dependencia, quién puede resolverlo, siguiente acción y fecha límite con su alternativa. Después se mueve la tarjeta a `Bloqueadas`.
+3. **Escalar con plazos.** Se avisa a quien puede resolverlo al registrar el bloqueo. Si no responde en 24 horas laborables, se ejecuta la alternativa registrada: otra persona, otro camino o una reorganización. A las 48 horas laborables el equipo decide ese mismo día.
+4. **Reorganizar.** Se pueden reasignar revisiones y tareas para desbloquear, dejando constancia en la Issue. Reasignar no cambia el alcance ni los requisitos de revisión sin una decisión humana explícita.
+5. **Desbloquear y dejar rastro.** Al resolverse, se registra cómo y se devuelve la tarjeta al estado operativo apropiado, como exige el desbloqueo. Cada revisión semanal repasa los bloqueos abiertos y los resueltos, con sus fechas de detección y de resolución.
+
+El umbral de tres días y los plazos de 24 y 48 horas son los iniciales del equipo; se ajustan por decisión del equipo si no funcionan.
+
 Las skills [gh-verifying-context](https://github.com/lvckss/piia2-26/blob/10e8acb4845a7885cd11c16bba0d8b2cce810202/.agents/skills/gh-verifying-context/SKILL.md),
 [gh-issue-management](https://github.com/lvckss/piia2-26/blob/10e8acb4845a7885cd11c16bba0d8b2cce810202/.agents/skills/gh-issue-management/SKILL.md) y
 [gh-project-management](https://github.com/lvckss/piia2-26/blob/10e8acb4845a7885cd11c16bba0d8b2cce810202/.agents/skills/gh-project-management/SKILL.md) mantienen:
