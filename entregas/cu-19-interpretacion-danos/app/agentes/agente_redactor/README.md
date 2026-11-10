@@ -7,7 +7,7 @@ informe de peritaje en markdown. Las cifras salen siempre del código a partir
 de los JSON (nunca las escribe un LLM) y se comprueban automáticamente.
 
 - Spec: [`specs/31-informe-peritaje.md`](../../../specs/31-informe-peritaje.md).
-- Guía de partida: [`specs/agente3-informe-guia.md`](../../../specs/agente3-informe-guia.md).
+- Guía de partida: [`docs/guias/agente3-informe-guia.md`](../../../docs/guias/agente3-informe-guia.md).
 - Datos de entrada de ejemplo: `../ejemplos_contrato/`.
 
 ## Uso
