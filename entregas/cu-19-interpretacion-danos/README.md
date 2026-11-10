@@ -66,6 +66,7 @@ cu-19-interpretacion-danos/
 ├── .gitignore
 ├── README.md
 ├── justfile
+├── compose.yaml
 ├── scripts/
 ├── docs/
 ├── specs/
@@ -82,6 +83,7 @@ cu-19-interpretacion-danos/
 
 - `README.md`: presenta el problema, la motivación, el alcance y el equipo.
 - `justfile`: comandos de desarrollo y preparación de datos, propios de este caso.
+- `compose.yaml`: PostgreSQL compartida con pgvector y volumen persistente; [preparación y arranque](docs/postgresql-local.md). La integración de los demás servicios sigue en #34.
 - `scripts/`: descargador de CARDD, dependencia opcional, SHA-256, pruebas y [guía de datos locales](scripts/README.md). Se entrega dentro del caso; las imágenes y el entorno Python permanecen fuera de Git.
 - `docs/`: [documentación del equipo](docs/README.md), workflow, plantillas y registro de ADRs. Forma parte de la entrega del caso.
 - `specs/`: especificaciones, arquitectura y guías del proyecto (tabla más abajo).
@@ -105,6 +107,22 @@ archivos auxiliares de la raíz de la asignatura. Consulta los
 [prerrequisitos y comandos de frontend/backend](app/README.md#comandos-con-just)
 y la [guía de descarga](scripts/README.md). La preparación de archivos CARDD
 no crea ni carga PostgreSQL.
+
+La base del proyecto se ejecuta en Docker: `just db-init` la prepara la primera
+vez y `just db-up` la arranca después conservando sus datos. El backend y el
+RAG utilizan esa misma instancia. Consulta la
+[guía de PostgreSQL compartida](docs/postgresql-local.md).
+
+Para preparar e indexar las pólizas y legislación: `just rag-setup`,
+`just rag-plan` y `just rag-index <presupuesto-USD>`. El [README del RAG](app/agentes/agente_recuperacion/README.md#indexado-reproducible)
+explica los modelos, los datos locales y las pruebas. Consulta la
+[evidencia del primer indexado](docs/evidencias/32-indexado.md).
+La búsqueda con filtro por póliza está disponible mediante `just rag-query-plan`
+y `just rag-query <presupuesto-USD> <pregunta> [poliza-id] [modelo]`;
+[uso y errores](app/agentes/agente_recuperacion/README.md#búsqueda-con-fuentes-y-filtro-por-póliza).
+Las comprobaciones están en la [evidencia de búsqueda](docs/evidencias/32-busqueda.md).
+Las recetas Just usan Linux/macOS/WSL; el README del RAG incluye equivalentes
+de PowerShell para Windows. `agente2()` y la evaluación de calidad siguen pendientes.
 
 ### Contenido de `specs/`
 
