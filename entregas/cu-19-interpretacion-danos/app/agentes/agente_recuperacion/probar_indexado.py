@@ -292,7 +292,7 @@ class IndexTests(unittest.TestCase):
         self.assertEqual(self.count("generations"), 0)
 
 
-def run_postgres_tests():
+def run_postgres_tests(test_file=None):
     """An explicit integration run owns and removes only its disposable project."""
     case = Path(__file__).resolve().parents[3]
     project = "cu19-rag-test-" + uuid.uuid4().hex[:10]
@@ -312,7 +312,7 @@ def run_postgres_tests():
         env["RAG_TEST_DATABASE_URL"] = f"postgresql://postgres:{quote(password,safe='')}@127.0.0.1:{port}/cu19_test_rag_index"
         try:
             subprocess.run([*compose,"up","-d","--wait","postgres"],env=env,check=True)
-            return subprocess.run([sys.executable,str(Path(__file__).resolve()),"-v"],env=env).returncode
+            return subprocess.run([sys.executable,str(test_file or Path(__file__).resolve()),"-v"],env=env).returncode
         finally:
             subprocess.run([*compose,"down","--volumes"],env=env,check=True)
 

@@ -1,12 +1,19 @@
 # PostgreSQL del proyecto, siempre en Docker
 
-El backend del explorador y el futuro RAG comparten una sola PostgreSQL con
+El backend del explorador y el RAG comparten una sola PostgreSQL con
 pgvector. Se ejecuta desde el [Compose del caso](../compose.yaml), con un volumen
 persistente; no necesita una instalación PostgreSQL en el host.
 
 ## Primera vez
 
 Necesitas Docker con Compose, Just y Python 3.11+. Desde la carpeta del caso:
+
+Las recetas `just` utilizan shell POSIX y rutas Linux/macOS/WSL. En Windows
+nativo, desde PowerShell, el equivalente de `just db-init` es
+`py -3 scripts/init_postgres.py`; los siguientes arranques usan
+`docker compose --env-file .env.postgres up -d --wait postgres`.
+Docker Desktop debe ejecutar contenedores Linux. Los comandos Python del RAG
+para PowerShell están en [su README](../app/agentes/agente_recuperacion/README.md#windows-nativo-powershell).
 
 ```bash
 just db-init
@@ -62,10 +69,13 @@ de PostgreSQL 18. Detener o recrear el contenedor conserva el volumen.
 `docker compose down` sin `-v` también lo conserva; **`down -v` elimina los datos**
 y no forma parte del uso habitual.
 
-El esquema `rag` está preparado para las futuras tablas de recuperación; las
-tablas del explorador siguen en `public`. Todavía no hay indexado ni búsqueda:
-este incremento prepara PostgreSQL dentro de #32. #34 integrará el resto de
-servicios en este mismo Compose.
+El inicializador prepara el espacio `rag`; el indexador crea en él las tablas
+de documentos, fragmentos, embeddings, generaciones y consumo. Las tablas del
+explorador siguen en `public`. El [RAG](../app/agentes/agente_recuperacion/README.md)
+ya permite indexar explícitamente y buscar en una generación completa, con
+filtro por póliza y fuentes literales. La búsqueda no crea tablas ni indexa.
+`agente2()` y la evaluación de calidad siguen pendientes en #32; #34 integrará
+el resto de servicios en este mismo Compose.
 
 Los respaldos de una migración puntual pueden conservarse en `backups/postgres/`,
 ignorada por Git. El uso habitual se realiza desde Docker; no sincroniza datos

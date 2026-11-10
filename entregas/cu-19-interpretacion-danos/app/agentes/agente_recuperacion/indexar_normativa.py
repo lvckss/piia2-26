@@ -8,29 +8,16 @@ import json
 import math
 import os
 from pathlib import Path
-import shlex
 import sys
 
 import psycopg
 
 from corpus_normativa import load_corpus
+from configuracion_rag import load_environment
 from embeddings_openai import OpenAIEmbeddings, SpendingBudget, count_tokens
 from normativa_rag import IndexStore, MODELS, RagError
 
 CASE = Path(__file__).resolve().parents[3]
-
-
-def load_environment():
-    for path in (CASE / ".env", CASE / "app/.env"):
-        if not path.exists():
-            continue
-        for line in path.read_text().splitlines():
-            line = line.strip().removeprefix("export ")
-            if not line or line.startswith("#") or "=" not in line:
-                continue
-            key,value = line.split("=",1)
-            values = shlex.split(value,comments=True)
-            os.environ.setdefault(key.strip()," ".join(values))
 
 
 def resolve_package(value):

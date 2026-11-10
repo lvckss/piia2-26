@@ -1,11 +1,16 @@
-"""PostgreSQL index lifecycle: spec 32, AC-001/002/012/013."""
+"""Persistent indexing and retrieval: spec 32, AC-001 to AC-005/012/013."""
 
 from dataclasses import dataclass
 import hashlib
 import json
 import math
+import os
 from pathlib import Path
 import time
+
+import psycopg
+
+from corpus_normativa import PROTOCOL
 
 
 @dataclass(frozen=True)
@@ -32,6 +37,150 @@ class RagError(Exception):
     def __init__(self, code, message, *, stage="indexado", retryable=False):
         super().__init__(message)
         self.code, self.stage, self.retryable = code, stage, retryable
+
+
+class NormativaRetriever:
+    def __init__(self, connection, embedder, model=MODELS["small"]):
+        self.connection, self.embedder, self.model = connection, embedder, model
+
+    def search(self, pregunta, k=4, poliza_id=""):
+        validate_query(pregunta, k, poliza_id)
+        from embeddings_openai import count_tokens
+
+        if count_tokens(pregunta) > 8192:
+            raise RagError("ENTRADA_INVALIDA", "La pregunta supera el límite de 8192 tokens", stage="entrada")
+        if self.model not in MODELS.values():
+            raise RagError("INDICE_INCOMPATIBLE", "Modelo o dimensiones no compatibles", stage="busqueda")
+        generation, expected_documents, expected_fragments = self._generation()
+        # FKs and these counts reject an incomplete generation before paying.
+        counts = self._execute("""SELECT count(*), count(DISTINCT f.document_id)
+            FROM rag.generation_fragments gf
+            JOIN rag.fragments f ON f.id=gf.fragment_id AND f.input_hash=gf.input_hash
+            JOIN rag.documents d ON d.id=f.document_id
+            JOIN rag.embeddings e ON e.model=gf.model AND e.dimensions=gf.dimensions AND e.input_hash=gf.input_hash
+            WHERE gf.generation_id=%s AND gf.model=%s AND gf.dimensions=%s""",
+            (generation, self.model.name, self.model.dimensions)).fetchone()
+        if counts[:2] != (expected_fragments, expected_documents):
+            raise RagError("INDICE_NO_PREPARADO", "La generación del índice está incompleta", stage="busqueda")
+        policies = {row[0] for row in self._execute("""SELECT DISTINCT d.policy_id
+            FROM rag.generation_fragments gf JOIN rag.fragments f ON f.id=gf.fragment_id
+            JOIN rag.documents d ON d.id=f.document_id WHERE gf.generation_id=%s AND d.kind='poliza'""",
+            (generation,)).fetchall()}
+        if poliza_id and poliza_id not in policies:
+            raise RagError("ENTRADA_INVALIDA", "La póliza indicada no pertenece al corpus activo", stage="entrada")
+        parameters = (generation, poliza_id)
+        candidates = self._execute("""SELECT count(*) FROM rag.generation_fragments gf
+            JOIN rag.fragments f ON f.id=gf.fragment_id JOIN rag.documents d ON d.id=f.document_id
+            WHERE gf.generation_id=%s AND (d.kind='legal' OR d.policy_id=%s)""", parameters).fetchone()[0]
+        if not candidates:
+            return []
+        # Pin the generation before the external call; an index published meanwhile
+        # must not change the model, corpus or eligible policies for this query.
+        batch = self.embedder.embed([pregunta], self.model)
+        if (not isinstance(batch, EmbeddingBatch) or not isinstance(batch.vectors, list)
+                or len(batch.vectors) != 1 or not _valid_vector(batch.vectors[0], self.model.dimensions)):
+            raise RagError("EMBEDDINGS_RESPUESTA_INVALIDA", "El vector de consulta es inválido o incompatible", stage="embeddings")
+        # Materialize only IDs/distances first, so PostgreSQL never decompresses
+        # and compares every full legal document before applying LIMIT.
+        rows = self._execute("""WITH nearest AS MATERIALIZED (
+                SELECT f.id,e.embedding <=> %s::vector AS distance
+                FROM rag.generation_fragments gf
+                JOIN rag.fragments f ON f.id=gf.fragment_id
+                JOIN rag.documents d ON d.id=f.document_id
+                JOIN rag.embeddings e ON e.model=gf.model AND e.dimensions=gf.dimensions AND e.input_hash=gf.input_hash
+                WHERE gf.generation_id=%s AND (d.kind='legal' OR d.policy_id=%s)
+                ORDER BY distance,f.id COLLATE "C" LIMIT %s
+            ) SELECT f.body,f.source,
+                f.body=substring(d.body FROM f.char_start+1 FOR f.char_end-f.char_start) AS literal
+            FROM nearest n JOIN rag.fragments f ON f.id=n.id JOIN rag.documents d ON d.id=f.document_id
+            ORDER BY n.distance,n.id COLLATE "C"
+            """,
+            (json.dumps(batch.vectors[0]), *parameters, min(k, candidates))).fetchall()
+        if any(not literal or not body.strip() or not source.strip() for body, source, literal in rows):
+            raise RagError("INDICE_INCOMPATIBLE", "Un pasaje recuperado no coincide con su documento", stage="busqueda")
+        return [{"tema": pregunta, "extracto": body, "fuente": source} for body, source, _ in rows]
+
+    def _execute(self, query, parameters=()):
+        try:
+            return self.connection.execute(query, parameters)
+        except (psycopg.OperationalError, psycopg.InterfaceError) as error:
+            raise RagError("BD_NO_DISPONIBLE", "No se ha podido consultar la base de datos",
+                           stage="base_datos", retryable=True) from error
+        except (psycopg.errors.UndefinedTable, psycopg.errors.InvalidSchemaName) as error:
+            raise RagError("INDICE_NO_PREPARADO", "El índice no está preparado; ejecuta el indexado explícitamente",
+                           stage="busqueda") from error
+        except (psycopg.errors.UndefinedColumn, psycopg.errors.UndefinedFunction) as error:
+            raise RagError("INDICE_INCOMPATIBLE", "El esquema del índice no es compatible con este buscador",
+                           stage="busqueda") from error
+
+    def _generation(self):
+        row = self._execute("""SELECT a.generation_id,a.dimensions,g.model,g.dimensions,g.protocol,
+            g.status,g.corpus_hash,g.document_count,g.fragment_count
+            FROM rag.active_generations a JOIN rag.generations g ON g.id=a.generation_id
+            WHERE a.model=%s""", (self.model.name,)).fetchone()
+        if row is None:
+            raise RagError("INDICE_NO_PREPARADO", "No hay generación activa para el modelo solicitado", stage="busqueda")
+        generation, active_dims, model, dimensions, protocol, status, corpus_hash, documents, fragments = row
+        identity = f"{corpus_hash}\0{protocol}\0{model}\0{dimensions}"
+        if (active_dims != self.model.dimensions or model != self.model.name
+                or dimensions != self.model.dimensions or protocol != PROTOCOL
+                or generation != hashlib.sha256(identity.encode()).hexdigest()):
+            raise RagError("INDICE_INCOMPATIBLE", "El manifiesto no coincide con el modelo o protocolo esperado", stage="busqueda")
+        if status != "ready":
+            raise RagError("INDICE_NO_PREPARADO", "La generación activa no está completa", stage="busqueda")
+        return generation, documents, fragments
+
+
+def _valid_vector(vector, dimensions):
+    return (isinstance(vector, list) and len(vector) == dimensions
+            and all(type(x) in (float, int) and math.isfinite(x) and abs(x) <= 3.402823466e38 for x in vector)
+            and any(abs(x) >= 1.175494351e-38 for x in vector))
+
+
+def validate_query(pregunta, k=4, poliza_id=""):
+    if (not isinstance(pregunta, str) or not pregunta.strip() or "\0" in pregunta
+            or type(k) is not int or k <= 0 or not isinstance(poliza_id, str)
+            or "\0" in poliza_id or (poliza_id and not poliza_id.strip())):
+        raise RagError("ENTRADA_INVALIDA", "Indica una pregunta no vacía, k entero positivo y una póliza válida",
+                       stage="entrada")
+
+
+def _configured_search(pregunta, k, poliza_id):
+    from configuracion_rag import load_environment
+    from embeddings_openai import OpenAIEmbeddings, SpendingBudget
+
+    load_environment()
+    if os.environ.get("RAG_QUERY_EXECUTE") != "1":
+        raise PermissionError("Consultar requiere RAG_QUERY_EXECUTE=1 y un presupuesto explícito")
+    try:
+        budget = float(os.environ["RAG_QUERY_MAX_COST_USD"])
+    except (KeyError, ValueError):
+        raise PermissionError("Falta un presupuesto válido en RAG_QUERY_MAX_COST_USD") from None
+    if not math.isfinite(budget) or budget < 0:
+        raise PermissionError("RAG_QUERY_MAX_COST_USD debe ser finito y no negativo")
+    name = os.environ.get("RAG_MODEL", "small")
+    if name not in MODELS:
+        raise RagError("INDICE_INCOMPATIBLE", "RAG_MODEL debe ser small o large", stage="busqueda")
+    return query_database(pregunta, k, poliza_id, MODELS[name], OpenAIEmbeddings(SpendingBudget(budget)))
+
+
+def query_database(pregunta, k, poliza_id, model, embedder):
+    """Explicitly configured entry for CLI/integration; never prepares an index."""
+    validate_query(pregunta, k, poliza_id)
+    dsn = os.environ.get("DATABASE_URL")
+    if not dsn:
+        raise RagError("BD_NO_DISPONIBLE", "Falta configurar DATABASE_URL", stage="base_datos", retryable=True)
+    try:
+        with psycopg.connect(dsn, autocommit=True, connect_timeout=5) as connection:
+            return NormativaRetriever(connection, embedder, model).search(pregunta, k, poliza_id)
+    except (psycopg.OperationalError, psycopg.InterfaceError) as error:
+        raise RagError("BD_NO_DISPONIBLE", "No se ha podido conectar con la base de datos",
+                       stage="base_datos", retryable=True) from error
+
+
+def buscar_normativa(pregunta, k=4, poliza_id=""):
+    validate_query(pregunta, k, poliza_id)
+    return _configured_search(pregunta, k, poliza_id)
 
 
 class IndexStore:

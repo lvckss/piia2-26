@@ -51,6 +51,15 @@ rag-plan model="both":
 rag-index budget model="both":
     .venv-rag/bin/python app/agentes/agente_recuperacion/indexar_normativa.py --model {{ quote(model) }} --execute --max-cost-usd {{ quote(budget) }}
 
+# Preparar una consulta sin conectar a la base ni llamar al proveedor.
+rag-query-plan question policy="" model="small":
+    .venv-rag/bin/python app/agentes/agente_recuperacion/consultar_normativa.py {{ quote(question) }} --poliza-id {{ quote(policy) }} --model {{ quote(model) }}
+
+# Consultar explícitamente con presupuesto máximo por consulta en USD.
+rag-query budget question policy="" model="small":
+    .venv-rag/bin/python app/agentes/agente_recuperacion/consultar_normativa.py {{ quote(question) }} --poliza-id {{ quote(policy) }} --model {{ quote(model) }} --execute --max-cost-usd {{ quote(budget) }}
+
 # Probar el RAG con una PostgreSQL Docker desechable y proveedores simulados.
 rag-test:
     .venv-rag/bin/python app/agentes/agente_recuperacion/probar_indexado.py --postgres
+    .venv-rag/bin/python app/agentes/agente_recuperacion/probar_rag.py --postgres

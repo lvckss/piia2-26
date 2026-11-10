@@ -5,7 +5,7 @@ Dos piezas en esta carpeta, con dos responsables y un único punto de contacto.
 | Pieza | Responsable | Guía |
 |---|---|---|
 | **Costes y cobertura**: convierte los hallazgos del Agente 1 en dos presupuestos con la tool de la empresa (`piia2_paquete_datos/scripts/estimar_coste.py`) y calcula pérdida total, cobertura e indemnización. Fichero: `costes_y_cobertura.py`. | Víctor | [`agente2-costes-cobertura-guia.md`](../../../specs/agente2-costes-cobertura-guia.md) |
-| **Normativa (RAG)**: PostgreSQL/pgvector compartida con el explorador. Indexado de pólizas y legislación; búsqueda y evaluación de 25 preguntas en los siguientes incrementos. | Lucas | [Spec 32](../../../specs/32-rag-normativa.md) |
+| **Normativa (RAG)**: PostgreSQL/pgvector compartida con el explorador. Indexado y búsqueda de pólizas y legislación; evaluación de 25 preguntas pendiente. | Lucas | [Spec 32](../../../specs/32-rag-normativa.md) |
 
 **Punto de contacto:** `buscar_normativa(pregunta, k=4, poliza_id="") -> [{"tema", "extracto", "fuente"}]`
 (la escribe Lucas y rellena el campo `normativa` de la salida de Víctor).
@@ -14,8 +14,13 @@ Datos de entrada y salida de ejemplo: `../ejemplos_contrato/`.
 
 Los documentos, fragmentos, vectores y generaciones se guardan en el esquema
 `rag` de la misma PostgreSQL Docker del explorador. No se utiliza ChromaDB.
-Este incremento entrega el indexado; `buscar_normativa()`, `agente2()` y la
-evaluación de calidad todavía no están implementados.
+Ya están implementados el indexado y `buscar_normativa()`; `agente2()` y la
+evaluación de calidad siguen pendientes. Antes de componer `agente2()` debe
+revisarse e integrarse la v1.7 acordada para AC-007.
+
+Las recetas `just` usan un shell POSIX y las rutas de entorno virtual de Linux,
+macOS o WSL. Para Windows nativo se ofrecen [comandos de PowerShell](#windows-nativo-powershell);
+no se afirma que las recetas POSIX funcionen en PowerShell.
 
 ## Indexado reproducible
 
@@ -77,26 +82,125 @@ petición y se desactivan los reintentos automáticos del SDK. Fuentes de tarifa
 [small](https://developers.openai.com/api/docs/models/text-embedding-3-small),
 [large](https://developers.openai.com/api/docs/models/text-embedding-3-large).
 
-## Pruebas del indexado
+## Búsqueda con fuentes y filtro por póliza
+
+```bash
+just rag-query-plan '¿Qué cubre esta póliza?' POLIZA_ID small
+just rag-query 0.01 '¿Qué cubre esta póliza?' POLIZA_ID small
+just rag-query 0.01 'Responsabilidad civil del asegurador' '' large
+```
+
+Sustituye `POLIZA_ID` por el nombre del fichero de póliza sin `.md`, respetando
+mayúsculas. El primer comando solo estima tokens/coste, sin conectar a la base
+ni comprobar que exista esa póliza. Los dos siguientes ejecutan una consulta
+con un máximo explícito de 0,01 USD **por comando**, no un presupuesto global.
+Para fijar otro k se puede usar `consultar_normativa.py --k N` directamente.
+La estimación usa las tarifas registradas el 2026-11-03; no es una factura.
+
+La recuperación usa la generación activa del modelo seleccionado, búsqueda
+exacta por coseno, filtro SQL antes del límite y el ID del fragmento para
+desempatar. Con póliza se consulta esa póliza y legislación; con ID vacío,
+únicamente legislación. Un ID desconocido falla antes de llamar a OpenAI.
+No hay inferencia de póliza por similitud, umbral de relevancia ni índices
+HNSW/IVFFlat: la columna `vector` conserva 1.536/3.072 dimensiones separadas
+por modelo. Esta configuración sigue la referencia inicial aceptada.
+
+Cada resultado tiene exactamente `tema`, `extracto` y `fuente`: pregunta de
+consulta, pasaje literal y ruta relativa con sección/ventana y líneas.
+La consulta fija una generación antes de pedir el embedding y la conserva
+aunque se publique otra mientras espera. No crea tablas ni indexa al consultar.
+
+La función de integración conserva su firma:
+
+```python
+from normativa_rag import buscar_normativa
+
+fragmentos = buscar_normativa("Responsabilidad civil del asegurador", k=4)
+```
+
+Para ejecutarla se configuran `DATABASE_URL`, `OPENAI_API_KEY`,
+`RAG_QUERY_EXECUTE=1`, `RAG_QUERY_MAX_COST_USD` y opcionalmente `RAG_MODEL=small`
+o `large` (small por defecto provisional). El límite es **por invocación**;
+no controla todo el gasto de una aplicación. Un consumidor con varias
+consultas puede reutilizar `NormativaRetriever` con un único cliente
+`OpenAIEmbeddings(SpendingBudget(limite_total))` para compartir presupuesto.
+Importar el módulo no conecta ni llama al proveedor. Las variables exportadas
+tienen prioridad sobre `.env` del caso y `app/.env`; solo se cargan al ejecutar.
+
+`RagError` expone `code`, `stage`, `retryable` y un mensaje sin credenciales.
+Distingue entrada inválida, índice no preparado/incompatible, BD no disponible,
+autenticación, cuota, límite temporal, timeout y respuesta inválida.
+`[]` indica únicamente una consulta válida sin candidatos permitidos; no oculta
+fallos técnicos. La falta de autorización o presupuesto lanza `PermissionError`.
+Los errores inesperados se propagan. No hay reintentos automáticos.
+
+**Límite de calidad:** top-k devuelve candidatos, no acredita que respalden una
+conclusión. Se conserva el protocolo v1, incluidos los fragmentos cortos de
+tablas legales señalados en revisión. No se filtran silenciosamente antes de
+medir la referencia inicial. Cualquier mejora requiere versionar el experimento
+y comparar ambos modelos; sigue pendiente el objetivo de 23/25.
+
+## Pruebas del indexado y la búsqueda
 
 ```bash
 just rag-test
 ```
 
-Ejecuta las pruebas deterministas y de PostgreSQL en un proyecto/volumen Docker
+Ejecuta las suites de indexado y búsqueda, cada una con proyecto/volumen Docker
 desechable y un puerto libre, con documentos sintéticos y OpenAI simulado; no
 usa la base real ni realiza llamadas de pago. Incluye literalidad, artículos,
 repetición, separación de modelos, caché, fallo de lote, retirada de documentos,
 respuestas incompatibles, cuota frente a límite temporal y autorización de gasto.
+También comprueba las cuatro pólizas, vacío/desconocida, orden por coseno,
+desempate, fuentes literales, índice incompleto, cambio concurrente de generación,
+caída de BD y consultas demasiado largas sin gasto.
 La referencia es `specs/32-rag-normativa.md` + cada ID AC en el nombre del test.
 
 Para solo las pruebas sin base, se puede ejecutar `probar_indexado.py` sin
 `--postgres`: omite las siete de integración, que no se presentan como superadas.
 La calidad 23/25 y las pruebas de composición no se acreditan con estas pruebas.
 
+Para ejecutar solo la suite de búsqueda con base desechable:
+
+```bash
+.venv-rag/bin/python app/agentes/agente_recuperacion/probar_rag.py --postgres
+```
+
+Sin `--postgres` ni `RAG_TEST_DATABASE_URL`, `probar_rag.py` omite las pruebas
+de integración; los skips no acreditan PostgreSQL. No se debe exportar la URL
+de la base real como `RAG_TEST_DATABASE_URL`.
+
 Si cambia el troceado o el prefijo de embeddings, se debe versionar el protocolo
 y conservar la comparación con la baseline. Una generación completa no se
 reutiliza si sus IDs o entradas ya no coinciden con el manifiesto declarado.
+
+## Windows nativo (PowerShell)
+
+Desde la carpeta del caso, con Python 3.11+ y Docker Desktop configurado para
+contenedores Linux, estos son los equivalentes sin Just:
+
+```powershell
+py -3 scripts/init_postgres.py
+docker compose --env-file .env.postgres up -d --wait postgres
+py -3 -m venv .venv-rag
+$ragPython = ".\.venv-rag\Scripts\python.exe"
+$ragDir = "app/agentes/agente_recuperacion"
+& $ragPython -m pip install -r "$ragDir/requirements-rag.txt"
+$env:TIKTOKEN_CACHE_DIR = "$PWD/.cache-rag/tiktoken"
+& $ragPython -c 'import tiktoken; tiktoken.get_encoding("cl100k_base")'
+& $ragPython "$ragDir/indexar_normativa.py" --model both
+& $ragPython "$ragDir/consultar_normativa.py" 'Responsabilidad civil del asegurador'
+& $ragPython "$ragDir/probar_indexado.py" --postgres
+& $ragPython "$ragDir/probar_rag.py" --postgres
+```
+
+El indexado o la consulta de pago se solicitan añadiendo
+`--execute --max-cost-usd 0.01` al comando correspondiente, ajustando el máximo
+antes de ejecutarlo. Para el paquete fuera de las rutas por defecto:
+`$env:PLEXUS_DATA_DIR = 'C:/ruta/al/paquete'`. Para detener la base:
+`docker compose --env-file .env.postgres stop postgres`.
+Los ejemplos nativos se han revisado, pero no ejecutado en Windows en esta
+entrega; la verificación de este incremento se ha realizado en Linux.
 
 ## Costes y cobertura: uso y pruebas
 

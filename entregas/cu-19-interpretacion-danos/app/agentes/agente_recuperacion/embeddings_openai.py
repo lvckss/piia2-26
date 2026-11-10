@@ -66,10 +66,10 @@ class OpenAIEmbeddings:
             raise RagError("EMBEDDINGS_RESPUESTA_INVALIDA", "OpenAI no ha devuelto un consumo válido", stage="embeddings")
         self.budget.reported_usd += usage * model.usd_per_million / 1_000_000
         data = getattr(response,"data",None)
-        if (response.model != model.name or not isinstance(data,list) or len(data)!=len(texts)
-                or any(type(item.index) is not int for item in data)
+        if (getattr(response,"model",None) != model.name or not isinstance(data,list) or len(data)!=len(texts)
+                or any(type(getattr(item,"index",None)) is not int for item in data)
                 or sorted(item.index for item in data)!=list(range(len(texts)))
-                or any(not isinstance(item.embedding,list) for item in data)):
+                or any(not isinstance(getattr(item,"embedding",None),list) for item in data)):
             raise RagError("EMBEDDINGS_RESPUESTA_INVALIDA", "Respuesta incompleta o incompatible con el modelo solicitado", stage="embeddings")
         return EmbeddingBatch([item.embedding for item in sorted(data,key=lambda item:item.index)],
                               usage,str(getattr(response,"_request_id","") or ""))
