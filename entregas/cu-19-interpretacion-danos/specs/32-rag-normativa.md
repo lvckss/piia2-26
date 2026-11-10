@@ -1,13 +1,30 @@
 # Spec: RAG de normativa y composición del Agente 2
 
 - GitHub Issue: https://github.com/lvckss/piia2-26/issues/32
-- Estado: Revisada (v1.6) — por Lucía Luis Castaño (`lucia-luis-castano`), [revisión APPROVED del 2026-10-28](https://github.com/lvckss/piia2-26/pull/56#pullrequestreview-5681219827) sobre la versión `b0a27d7`, integrada en `main` (merge `9d2affb`), que cubre la spec y sus planes.
-- ADR decision: NEW_ADR
-- ADR: [0006 — RAG con PostgreSQL y estado de recuperación](../docs/adr/0006-rag-postgresql-estado-recuperacion.md) — Aceptado en la misma [revisión](https://github.com/lvckss/piia2-26/pull/56#pullrequestreview-5681219827); integrado en `main` con esta Planning PR.
-- Justificación: fija la persistencia vectorial, la separación de índices por modelo y una ampliación del contrato Agente 2 → Agente 3/orquestación para distinguir fuentes ausentes y fallos técnicos. Los ADRs previos 0002, 0003 y 0004 están Aceptados e integrados por la #51; cubren el contrato base, el proveedor y el cálculo, pero no la persistencia vectorial ni el diagnóstico nuevo, por lo que se mantiene NEW_ADR.
-- Plan vigente / versión: v1.6, este archivo en `plan/32-rag-normativa`; el comentario de planificación de la Issue fija el commit publicado. Versiones anteriores: v1 `0197825`, v1.1 `88bd84d`, v1.2 `c77a17c`, v1.3 `1b2d62f`, v1.4 `51be306` y v1.5 `6cb6527`. La v1.6 explicita el reparto de Compose con #34; conserva los 14 AC, contratos, protocolo y DoD. La v1.5 ordenó núcleo y comparación; la v1.4 fijó 23/25 suficiente, 24/25 genial y 25/25 GOD; la v1.3 actualizó las referencias a costes.
-- Riesgo y revisión previa: sí, por NEW_ADR y por la revisión de planes en PR acordada para la entrega. Impacto: fuentes de conclusiones económicas; consumidores independientes: #31 y #34. Reversión de la tecnología posible regenerando el índice; incertidumbre de calidad pendiente de evaluación.
-- Planning PR: https://github.com/lvckss/piia2-26/pull/56 — integrada en `main` (merge `9d2affb`).
+- Estado: Revisada (v1.7) por Víctor (`Vija97`), [APPROVED del 2026-11-10 sobre `a82c4fe`](https://github.com/lvckss/piia2-26/pull/80#pullrequestreview-5845895245), que acepta esta Planning PR y confirma REUSE_ADR. Pendientes la comprobación del diff final de este registro y la integración humanas antes de implementar la slice 3.
+- ADR decision: REUSE_ADR
+- ADR: [0006 — RAG con PostgreSQL y estado de recuperación](../docs/adr/0006-rag-postgresql-estado-recuperacion.md) — Aceptado e integrado por #56 (merge `9d2affb`); no se modifica.
+- Justificación: el ADR 0006 cubre persistencia, modelos separados, composición con costes preservados, consultas según el caso y diagnóstico. La v1.7 precisa la selección de temas de AC-007 sin cambiar firmas, schema entre agentes ni decisiones arquitectónicas. Víctor confirmó su cobertura en la revisión enlazada sobre `a82c4fe`; no se modifica el ADR. La v1.6 resolvió NEW_ADR mediante ese documento, cuya aceptación se conserva.
+- Plan vigente / versión: propuesta v1.7 en `plan/32-rag-normativa-v1-7`, a partir de `main` `8a38e02310f8cb3b5e2994684715fe34dfee4613`; el comentario de planificación fijará el commit publicado. Cambia AC-007 y su verificación para incluir falta de cobertura y unión de escenarios; conserva los 14 IDs, el resto de AC, contratos, protocolo, evaluación y DoD. Antecedentes: v1 `0197825`, v1.1 `88bd84d`, v1.2 `c77a17c`, v1.3 `1b2d62f`, v1.4 `51be306`, v1.5 `6cb6527` y v1.6 `b0a27d7`.
+- Riesgo y revisión previa: sí, por el acuerdo explícito de revisar esta precisión antes de la slice 3. Riesgo localizado: omitir la explicación documental de una falta de cobertura o los temas exclusivos del escenario con pendientes. No cambia cálculos ni contrato de #31/#34; calidad de recuperación pendiente de evaluación. Revisión de AC-007, Test Plan y cobertura del ADR reutilizado antes de implementar la parte afectada.
+- Planning PR: https://github.com/lvckss/piia2-26/pull/80 — v1.7 aprobada por Víctor sobre `a82c4fe`; este registro solo cambia metadatos, pendiente de comprobación final e integración humanas.
+- Antecedente aceptado: v1.6 Revisada por Lucía Luis Castaño (`lucia-luis-castano`), [APPROVED del 2026-10-28 sobre `b0a27d7`](https://github.com/lvckss/piia2-26/pull/56#pullrequestreview-5681219827), integrada por [#56](https://github.com/lvckss/piia2-26/pull/56) (`9d2affb`) y registrada por #67. Esa aprobación cubre la versión anterior y el ADR 0006, no la nueva v1.7.
+
+### Motivo de la v1.7 y situación al replanificar
+
+Lucas solicita esta actualización el 2026-11-10 para recoger la
+[observación 1 de Víctor](https://github.com/lvckss/piia2-26/pull/56#pullrequestreview-5682427266),
+el [acuerdo de Lucía](https://github.com/lvckss/piia2-26/pull/67#issuecomment-6494037892)
+y la [confirmación de Víctor](https://github.com/lvckss/piia2-26/pull/67#pullrequestreview-5700573126).
+La [replanificación registrada](https://github.com/lvckss/piia2-26/issues/32#issuecomment-6771685793)
+conserva la DoR histórica de v1.6 y el trabajo ya publicado.
+
+La [Implementation PR #72](https://github.com/lvckss/piia2-26/pull/72), head
+`6f6551433aec92c886681b5b300a844e82387c59`, contiene persistencia y búsqueda
+con verificación parcial de las slices 1/2. Sigue en borrador y no está integrada;
+esta Planning PR no incluye sus archivos productivos. `agente2()` y la
+evaluación siguen pendientes. La Issue vuelve a Especificando para revisar
+v1.7; ni esta propuesta ni la aprobación histórica habilitan aún la slice 3.
 
 ## Qué construir
 
@@ -27,9 +44,9 @@ relativo al paquete y la sección. `tema` es la pregunta de esa consulta.
 
 `agente2(salida_agente1, contexto)` llama a `estimar_siniestro`, obtiene las
 fuentes relevantes para ese caso y devuelve el resultado con `normativa` y
-el diagnóstico de recuperación propuesto más abajo. La #34 consume esa función.
+el diagnóstico de recuperación definido más abajo. La #34 consume esa función.
 
-### Estado actual y evidencia
+### Exploración y evidencia de partida (histórico hasta v1.6)
 
 - Exploración inicial: `main` en `5bdabe2ef6d9aa63ca3ea68f20a57fc85f79f449`.
   Referencias a costes actualizadas el 2026-10-27 contra `main`
@@ -175,21 +192,36 @@ en las 25 preguntas sin introducir ahora avisos automáticos sobre ellos.
   desempatar. No se fija un umbral de relevancia sin calibración. Un top-k es un
   conjunto de candidatos, no una prueba automática de que la respuesta existe.
 - Las consultas de `agente2()` se eligen por reglas deterministas a partir de
-  los datos y resultados de costes. Se mantienen separadas por tema:
+  los datos y resultados de costes. Para **todos** los temas se toma la unión
+  de los aplicables en `escenarios.confirmados` y `escenarios.con_pendientes`;
+  se consulta una sola vez cada tema distinto, aunque aparezca en ambos.
+  Se usan el rol validado, `cobertura.motivo` y `cobertura.perdida_total` de
+  cada escenario; sus `hallazgos_incluidos` permiten asociar los daños ya
+  considerados por #30. No se recalculan cobertura ni pérdida total para
+  seleccionar las consultas. Se mantienen separadas por tema:
   daños propios por colisión → cobertura y franquicia de daños propios;
   daños de cristal → cobertura, franquicia y límite de lunas;
   pérdida total en algún escenario → criterio y regla de indemnización;
   tercero perjudicado → responsabilidad civil, únicamente legislación.
-  Solo se incluye una consulta para cada tema distinto aplicable.
-- Si ningún escenario tiene daños presupuestables, no se fuerza una consulta
-  genérica: diagnóstico `no_aplica`. La lista vacía de ese caso no equivale a fallo.
+  Con rol `propio`, si algún escenario con daños presupuestables devuelve
+  `cobertura.motivo = "Póliza sin cobertura de daños propios para este siniestro"`,
+  se incluye la consulta de cobertura de daños propios para buscar la cláusula
+  de esa póliza que explica su falta de cobertura. Ni `cubierto=false` ni una
+  indemnización de cero justifican omitirla o producir `no_aplica`.
+  Si ya se seleccionó ese tema en el otro escenario, no se duplica.
+- Si ambos escenarios carecen de daños presupuestables (sin hallazgos
+  incluidos) y no aplica ningún tema, no se fuerza una consulta genérica:
+  diagnóstico `no_aplica`. Un escenario vacío no anula los temas del otro.
+  Falta de cobertura es distinta de falta de daños. Si una consulta aplicable
+  no recupera pasajes o falla, se aplican `sin_resultados`/`error` y la agregación
+  existente; no se sustituye por `no_aplica` ni se inventa una cita.
 - Con rol propio, la póliza viene del contexto validado por #30. Con tercero se
   omite la póliza aunque el contexto contenga un valor residual, igual que #30.
 - Se conservan todos los resultados y cifras de `estimar_siniestro`; únicamente
   se sustituye `normativa` y se añade `diagnostico_rag`. Los errores de costes y
   de contrato se propagan; no se producen cifras alternativas ante ellos.
 
-### Contrato propuesto de diagnóstico — coordinación con #31 y #34
+### Contrato de diagnóstico — coordinación con #31 y #34
 
 El JSON del Agente 2 incorpora `diagnostico_rag`, objeto con:
 
@@ -222,10 +254,13 @@ integrada mediante la [PR #58](https://github.com/lvckss/piia2-26/pull/58)
 del informe en [este comentario de la #56](https://github.com/lvckss/piia2-26/pull/56#issuecomment-6321492952),
 y Lucas confirmó la correspondencia con este contrato en
 [su revisión de la #58](https://github.com/lvckss/piia2-26/pull/58#pullrequestreview-5615735502).
-Esos AC siguen condicionados a la aceptación e integración de la #56 y del
-ADR 0006; la revisión de la #58 no acepta el conjunto de esta Spec ni este ADR.
-La #34 todavía debe recoger en su plan el transporte del diagnóstico y la
-distinción entre esos fallos y un error que impide calcular costes.
+Esos AC quedaron condicionados a la aceptación e integración de la #56 y del
+ADR 0006, cumplidas en v1.6; la revisión de la #58 por sí sola no las acreditaba.
+El transporte y la distinción de fallos de #34 constan en la
+[DoR registrada](https://github.com/lvckss/piia2-26/issues/32#issuecomment-6609611397).
+La v1.7 no cambia esta representación ni su agregación. La aceptación del
+conjunto de #60 y la integración ejecutada con consumidores siguen siendo
+comprobaciones independientes; no se dan por cumplidas aquí.
 
 ### Entorno reproducible
 
@@ -250,7 +285,7 @@ evaluación de pago serán comandos explícitos, separados del arranque normal.
 El cliente RAG y el backend deben poder usar el mismo servicio PostgreSQL con
 tablas propias del RAG, sin alterar las tablas existentes.
 
-### Clarify
+### Clarify de partida (histórico hasta v1.6)
 
 | Incertidumbre | Clasificación | Evidencia / decisión y efecto |
 |---|---|---|
@@ -265,6 +300,16 @@ tablas propias del RAG, sin alterar las tablas existentes.
 | ¿Necesitan embeddings estas cuatro pólizas? | Resuelta en el diseño, aportación pendiente de medir | Son pequeñas, homogéneas y su póliza es conocida. Se conserva la búsqueda vectorial y se añade una referencia directa por póliza/sección (AC-014); se reportará si no aporta mejora en ese subconjunto. El caso de legislación se evalúa aparte. |
 | Relevancia de candidatos en ejecución | Límite declarado | El top-k no garantiza soporte. No se introduce un clasificador de soporte ni un umbral de distancia sin evidencia; el informe conserva la necesidad de revisión. |
 | Disponibilidad en la cuenta Plexus | Comprobación de entorno previa a implementación | Validar acceso a ambos modelos sin publicar la clave; una restricción requiere resolver el impedimento, no sustituir un modelo silenciosamente. |
+
+### Clarify de v1.7
+
+| Incertidumbre | Clasificación | Evidencia / decisión y efecto |
+|---|---|---|
+| Rol propio sin cobertura de daños propios | Resuelta en el alcance solicitado | Observación 1 de Víctor y acuerdo de Lucía enlazados al inicio: consultar la cláusula explicativa de la póliza, preservando la decisión y cifras de #30; no `no_aplica` por cobertura negativa. |
+| Temas presentes solo en uno de los escenarios | Resuelta en el alcance solicitado | Unión de `confirmados` y `con_pendientes` para todos los temas, una consulta por tema distinto. Un escenario vacío no cancela el otro. |
+| ¿Introduce una decisión arquitectónica o contrato nuevo? | Resuelta y cobertura confirmada por Víctor | REUSE_ADR: puntos 5 a 8 del ADR 0006 Aceptado; mismas firmas, filtro, JSON, cinco estados y conservación de costes. Confirmado en la revisión de `a82c4fe` enlazada en la cabecera; no se edita ni se crea otro ADR. |
+| Aceptación de la v1.7 antes de slice 3 | Contenido aceptado; integración y DoR pendientes | Víctor aprobó la Planning PR sobre `a82c4fe`. Registrar esa aceptación no sustituye la comprobación final del diff de metadatos, el merge humano ni la DoR desde main. |
+| Posible traspaso de evaluación a Víctor | Fuera de esta actualización, sin acuerdo confirmado | Se conserva el protocolo y no se reasigna responsabilidad ni se presenta ese traspaso como aceptado. |
 
 ## Comportamiento que debe preservarse
 
@@ -290,6 +335,8 @@ tablas propias del RAG, sin alterar las tablas existentes.
 | Respuesta de embeddings no válida | `EMBEDDINGS_RESPUESTA_INVALIDA`; error de proveedor, no usar vectores parciales ni incompatibles. | AC-002, AC-005 |
 | Error inesperado de programación o contrato de costes inválido | Propagar; no ocultarlo como una incidencia recuperable ni producir un informe de éxito. | AC-007 |
 | Algunas consultas fallan | Conservar resultados buenos y distinguir incidencias por tema. | AC-008 |
+| Daños propios presupuestables sin cobertura | Buscar la cláusula explicativa con la póliza validada; no confundirlo con ausencia de daños ni emitir `no_aplica` por indemnización cero. | AC-006, AC-007 |
+| Un tema aparece solo en uno de los escenarios o se repite en ambos | Unión de temas de ambos escenarios, sin omisiones ni consultas duplicadas por tema. No recalcular los escenarios. | AC-006, AC-007 |
 | Reinicio o reindexado | Persistencia, idempotencia y generación activa íntegra. | AC-001, AC-002, AC-013 |
 | Latencia y coste | Medir ambos modelos sin inventar presupuestos de latencia ni afirmar rendimiento no observado. | AC-010, AC-011 |
 
@@ -303,7 +350,7 @@ tablas propias del RAG, sin alterar las tablas existentes.
 | AC-004 | Consultas con cada póliza válida, con póliza vacía, con póliza desconocida, pregunta vacía o k inválido. | Póliza válida: todos los resultados son de esa póliza o legales. Vacía: todos legales. Entradas inválidas: `ENTRADA_INVALIDA` y ninguna consulta de pago. |
 | AC-005 | Se simulan por separado ausencia de candidatos, índice ausente/incompatible, caída de PostgreSQL y cada error de embeddings de la tabla. | Ausencia válida devuelve []; fallos técnicos producen un error tipado con código, etapa, mensaje y reintentable acordes. Ningún error técnico se transforma en un resultado vacío válido. |
 | AC-006 | Salida válida de la función de costes y respuestas de RAG guionizadas; se llama a `agente2()`. | Todos los campos originales son idénticos salvo `normativa`; se añaden citas y `diagnostico_rag`. Entradas sin mutaciones. Con la #30 integrada, la integración reproduce las cifras del ejemplo real. |
-| AC-007 | Casos de colisión, cristal, pérdida total en un escenario, tercero y escenarios sin daños; también una excepción de costes y un error inesperado del RAG. | Se consultan solo los temas aplicables definidos en el plan; tercero usa únicamente legal; sin temas → `no_aplica`. Errores de costes o inesperados se propagan. No hay llamadas RAG cuando costes falla. |
+| AC-007 | Casos de colisión, cristal, pérdida total, tercero y ambos escenarios sin daños; además rol propio con el motivo «Póliza sin cobertura de daños propios para este siniestro», temas exclusivos de uno de los escenarios, temas compartidos y excepciones de costes/RAG inesperadas. | Los temas son la unión de los aplicables en `confirmados` y `con_pendientes`, con una consulta por tema distinto. Con daños propios no cubiertos se consulta la cobertura de esa póliza para explicar la falta de cobertura; no se etiqueta `no_aplica` por `cubierto=false` ni indemnización cero. Un escenario vacío no elimina los temas del otro. Tercero usa únicamente legal; si ningún tema aplica, `no_aplica`. Errores de costes o inesperados se propagan; costes fallidos no generan llamadas RAG. |
 | AC-008 | Todas las consultas devuelven citas, algunas vacías, todas vacías, algunas fallan, todas fallan y ningún tema aplica. | El diagnóstico sigue exactamente la agregación descrita, conserva las citas válidas y señala cada tema/código afectado. Una prueba de consumidor acordada con #31/#34 demuestra que se puede mostrar el aviso preliminar y distinguir ausencia de resultados de fallo técnico. |
 | AC-009 | Las 25 preguntas del CSV local y su versión/hash; se ejecuta la evaluación. | Produce una fila por pregunta/modelo, IDs de fragmentos, fuentes, hit@4, juicio de suficiencia y motivo de fallo; resúmenes total y por tipo. Las respuestas esperadas y fuentes gold se usan solo al puntuar. |
 | AC-010 | small y large disponibles; se comparan con el mismo corpus, troceado, preguntas, filtros y k=4. | Informe de ambos modelos con configuración, dimensiones, tokens, coste, latencia de consultas e indexado, aciertos y fallos. No se comparan configuraciones ocultamente diferentes ni se mezclan sus índices. |
@@ -345,7 +392,7 @@ Durante esta planificación no se escriben ni ejecutan esos archivos.
 | `specs/32-rag-normativa.md#AC-004` | S1 + S2 | TDD, integración | Cada póliza y vacío respetan filtro; inválidos fallan antes de gastar. | Cuatro pólizas de prueba y fragmentos legales. | `python probar_rag.py` | Red/Green; ninguna fuente de otra póliza. |
 | `specs/32-rag-normativa.md#AC-005` | S2 | TDD, fallos externos | Un caso por código; [] solo en consulta válida sin candidatos. | Cliente falso y conexión controlada de prueba. | `python probar_rag.py` | Red/Green; código/etapa/reintentable. |
 | `specs/32-rag-normativa.md#AC-006` | S3 | TDD + integración final | Campos de costes preservados; solo citas y diagnóstico cambian. | Dobles para aislar; ejemplos y código real de #30 ya integrado por #59, con paquete presente. | `python probar_rag.py`; ejecutar integración con paquete presente. | Red/Green y comparación estructural de las cifras. |
-| `specs/32-rag-normativa.md#AC-007` | S3 | TDD, integración | Temas por caso; tercero; no_aplica; propagación de fallos ajenos. | Contextos y salidas guionizados. | `python probar_rag.py` | Red/Green; consultas observadas. |
+| `specs/32-rag-normativa.md#AC-007` | S3 | TDD, integración | Motivo de falta de cobertura → consulta explicativa con su póliza, nunca no_aplica por ese motivo; unión de temas de ambos escenarios, exclusivos y compartidos, sin duplicar; tercero solo legal; ambos sin daños → no_aplica; fallos ajenos se propagan. | Salidas guionizadas de #30 con cobertura negativa/cero, confirmado vacío y pendiente presupuestable, cristal confirmado y colisión añadida en con_pendientes, pérdida total solo en un escenario y tema repetido; después integración con costes reales. | `python probar_rag.py`; observar consultas del doble y comparar escenarios antes/después. | Red/Green de selección y no duplicación; registro de temas/filtros y preservación de costes por AC-006. |
 | `specs/32-rag-normativa.md#AC-008` | S3 + S5 | TDD, contrato | Seis combinaciones del diagnóstico; consumidor distingue avisos. | Salidas por tema y contrato revisado con #31/#34. | `python probar_rag.py`; prueba de consumidor acordada. | Red/Green y aceptación del contrato. |
 | `specs/32-rag-normativa.md#AC-009` | S4 | TDD del evaluador sin red | Cuenta las 25 filas, puntúa aciertos y fallos conocidos sin filtrar gold al buscador. | CSV local; buscador falso con respuestas controladas. | `python probar_rag.py` | Red/Green del protocolo y resultados sintéticos. |
 | `specs/32-rag-normativa.md#AC-010` | S4 | Eval-first | Comparación small/large con variables controladas y mediciones reales. | Corpus y CSV con hashes anteriores; cuenta Plexus. | Ejecutar indexados y `evaluar_rag.py` con permiso explícito de gasto. | Tabla por modelo, datos, tiempos, tokens y coste. |
@@ -353,6 +400,21 @@ Durante esta planificación no se escriben ni ejecutan esos archivos.
 | `specs/32-rag-normativa.md#AC-012` | S1 + S2 + S4 | TDD y comprobación de arranque | Sin flag de ejecución no se llama OpenAI; cliente falso sin clave. | Entorno de prueba, contador/guardia de red. | `python probar_rag.py`; arranque sin clave. | Red/Green y cero llamadas externas. |
 | `specs/32-rag-normativa.md#AC-013` | S5 | Integración y comprobación de diff | Preparar/indexar/consultar/recrear; datos conservados. | Docker Compose y paquete en montaje de lectura. | Seguir README en entorno limpio; revisar diff de entrega. | Versiones, comandos y resultados reproducibles. |
 | `specs/32-rag-normativa.md#AC-014` | S4 | TDD del evaluador y reglas; evaluación de la referencia | Producto y concepto conocidos → secciones literales, sin API ni gold; 16 preguntas de póliza puntuadas como small/large. | Pólizas y CSV local congelados; textos de prueba con producto y tema controlados. | `python probar_rag.py`; ejecutar referencia directa de `evaluar_rag.py` y revisar los pasajes. | Red/Green de las reglas; tabla de las 16 preguntas por estrategia y explicación de aportación vectorial. |
+
+#### Casos verificables añadidos a AC-007 en v1.7
+
+Se probarán en la frontera pública `agente2()` con costes y RAG guionizados,
+observando temas, filtros y salida; después se contrastarán con costes reales.
+Son verificaciones previstas, no tests implementados ni resultados ejecutados.
+
+| Entrada / caso | Resultado observable esperado |
+|---|---|
+| Rol propio, daños incluidos, motivo de falta de cobertura, `cubierto=false` e indemnización cero. | Se consulta el tema de cobertura de daños propios con la póliza validada; se mantienen las cifras y la cobertura negativa. El diagnóstico depende de los resultados de esa consulta, no se fuerza `no_aplica`. |
+| `confirmados` sin daños y `con_pendientes` con colisión presupuestable. | Se consultan los temas de colisión aplicables del segundo escenario, aunque el primero no aporte ninguno. |
+| `confirmados` con cristal; `con_pendientes` añade colisión. | Se conservan tanto los temas de cristal aplicables del primero como los de colisión del segundo, sin sustituir un conjunto por otro. |
+| Pérdida total solo en uno de los escenarios, con otros temas compartidos. | Se incluye criterio/regla de indemnización; cada tema compartido se consulta una sola vez. |
+| Ambos escenarios incluyen el mismo motivo de falta de cobertura. | Una consulta del tema de cobertura de daños propios, no dos; la misma póliza validada. |
+| Ambos escenarios sin daños; tercero con una póliza residual; fallo de costes. | Se conservan las regresiones: `no_aplica` sin búsquedas; tercero solo legal con ID vacío; ante fallo de costes se propaga el error y no se consulta RAG. |
 
 ### Protocolo de evaluación
 
@@ -446,32 +508,35 @@ y el resto de la DoD siguen siendo necesarios para terminar #32.
 |---|---|---|---|---|---|
 | 1 — Corpus persistente reproducible | Índice completo, repetible y separado por modelo; conserva generación activa ante fallos. | AC-001, AC-002, AC-012, AC-013 | PostgreSQL/pgvector, indexado y parte RAG del Compose raíz. | ADR aceptado; paquete local; Docker. | Filas AC-001, AC-002, AC-012, AC-013. |
 | 2 — Recuperación con citas y filtros | Búsqueda con la firma acordada, fuentes literales y errores distinguibles. | AC-003, AC-004, AC-005 | `normativa_rag.py`, contrato de errores RAG. | Slice 1. | Filas AC-003 a AC-005. |
-| 3 — Agente 2 completo | Cálculos intactos, temas por caso y diagnóstico para consumidores. | AC-006, AC-007, AC-008 | `agente2()`, `diagnostico_rag`, ejemplos/documentación de contrato. | Slice 2; código de costes disponible en `main` por #59 y paquete local; contrato acordado con #31/#34. | Filas AC-006 a AC-008. |
+| 3 — Agente 2 completo | Cálculos intactos, temas por caso (incluida falta de cobertura y unión de ambos escenarios) y diagnóstico para consumidores. | AC-006, AC-007, AC-008 | `agente2()`, `diagnostico_rag`, ejemplos/documentación de contrato. | v1.7 revisada/integrada y DoR acreditada antes de empezar esta slice; slice 2; costes disponibles en `main` por #59 y paquete local; contrato acordado con #31/#34. | Filas AC-006 a AC-008 y casos añadidos a AC-007. |
 | 4 — Evaluación y comparación | Evaluador verificable; referencia directa de pólizas, tabla de ambos modelos y selección con al menos 23/25, informando la valoración acordada. | AC-009, AC-010, AC-011, AC-014 | `evaluar_rag.py`, protocolo y resultados. | Slice 2; acceso a ambos modelos. | Filas AC-009 a AC-011 y AC-014. |
 | 5 — Uso y entrega | Componente ejecutable desde Compose; documentación y evidencia final. | AC-012, AC-013 | README del RAG, guía actualizada y comandos del entorno. | Slices 1 a 3 para disponibilidad operativa; slice 4 para cerrar la entrega con toda la evaluación. | Arranque reproducible, checks y diff. |
 
 ## Pendientes para Ready
 
-- Revisar este borrador completo y el ADR 0006: aceptar o ajustar la ampliación
-  de contrato, códigos y reparto de los avisos. La representación de #31 ya
-  está recogida en la #58 integrada; falta incorporarla al plan de #34.
-  Conservar IDs al cambiar el plan. La aprobación de #58 no acepta esta #56.
-- **Revisión previa cumplida:** Planning PR #56 aprobada por Lucía Luis Castaño (`lucia-luis-castano`) sobre el head final
+- **Contenido aceptado de v1.7:** Víctor aprobó la Planning PR sobre `a82c4fe`
+  y confirmó la cobertura del ADR 0006 reutilizado en la revisión de cabecera.
+  Este registro no cambia reglas, AC ni planes. Quedan comprobación/aprobación
+  del diff final de metadatos, integración humana de #80 y DoR desde main
+  antes de la slice 3; no se sustituyen por la aceptación histórica de v1.6.
+- **Antecedente cumplido, v1.6:** Planning PR #56 aprobada por Lucía Luis Castaño (`lucia-luis-castano`) sobre el head final
   `b0a27d7` ([revisión](https://github.com/lvckss/piia2-26/pull/56#pullrequestreview-5681219827)) e integrada (merge `9d2affb`); spec Revisada y
-  ADR 0006 Aceptado. Esta spec registra la aceptación en una corrección documental
-  posterior (solo metadatos).
+  ADR 0006 Aceptado. #67 registró esa aceptación sin cambios técnicos; se
+  conserva, sin extenderla a esta propuesta v1.7.
 - Dependencia resuelta: ADRs 0002, 0003 y 0004 Aceptados e integrados por #51
-  (`4a279e9`), comprobados en `main` `73f6075`; referencias en «Estado actual y evidencia».
+  (`4a279e9`), comprobados en `main` `73f6075`; referencias en «Exploración y evidencia de partida».
 - Dependencia de costes resuelta: contrato de #30 accesible en la spec
   integrada por #40 (`e950b50`) y código integrado por #59 (`bea84a1`),
   comprobado en `main` `d5dd44d`. AC-006 ya puede verificarse con
   `estimar_siniestro` real cuando se implemente la composición y esté presente
   el paquete de la empresa; no depende de una entrega futura de #30.
-- Revisar el reparto de Compose explícito aquí y en #60: #34 responsable del
-  archivo común y de la integración; #32 aporta PostgreSQL/pgvector y preparación.
-  Revisar también el transporte del diagnóstico en el plan de #34.
-  La presentación de avisos en el plan de #31 está recogida por #58.
-  Confirmar acceso a ambos modelos al preparar entorno.
+- El [registro DoR de v1.6](https://github.com/lvckss/piia2-26/issues/32#issuecomment-6609611397)
+  acredita el reparto de Compose y el transporte del diagnóstico en el plan
+  de #34, además de la presentación de #31 por #58. Se conservan sin cambiar
+  firmas ni JSON; esto no acepta el conjunto de #60 ni acredita integración
+  ejecutada con consumidores. El acceso a ambos modelos y el indexado constan
+  en #72, todavía sin integrar. La evaluación y el entorno completo siguen
+  pendientes de implementación/verificación, no se declaran cumplidos aquí.
 
 ### Resultado de analyze
 
@@ -481,14 +546,16 @@ y el resto de la DoD siguen siendo necesarios para terminar #32.
 | Cada AC tiene verificación y slice | AC-001 a AC-014 con fila en Test Plan y al menos una slice. |
 | Ampliaciones autorizadas | Lucas incluye `agente2()`, elige PostgreSQL y Compose, A ahora/B futura, diagnóstico preliminar, errores distintos y comparación small/large. El 2026-10-27 fija el mínimo en 23/25 y las valoraciones 23 «bien», 24 «genial», 25 «GOD». Registrar estas decisiones en la Issue con enlace a esta versión. |
 | Preservación | Costes, entradas y firma protegidos; adición de diagnóstico requiere revisión de consumidores. |
-| ADR decision | NEW_ADR por persistencia y ampliación de la frontera compartida; los ADRs 0002–0004 Aceptados cubren las decisiones previas, no el índice vectorial ni el diagnóstico propuesto. |
+| ADR decision | REUSE_ADR para v1.7: el ADR 0006 Aceptado cubre persistencia, composición por caso y diagnóstico; no cambian esas decisiones. Antecedente conservado: v1.6 resolvió NEW_ADR mediante el ADR 0006, aceptado e integrado por #56. No se edita ni se crea otro ADR. |
 | Adaptación v1.1 | Solicitud explícita de Lucas tras discutir la necesidad del RAG: justificar pólizas/legislación, precisar su fase y añadir referencia directa. AC-001 a AC-013 y objetivo 24/25 conservados; AC-014 añadido. No había aceptación humana del documento que se atribuya a esta versión. |
 | Actualización v1.2 | Solicitud de Lucas del 2026-10-22: actualizar referencias. ADRs previos y plan de costes integrados; plan de presentación del diagnóstico en #31 recogido por #58. Los 14 AC, decisiones y planes de verificación e implementación no cambian; sin aceptación del conjunto de #56 ni del ADR 0006. |
 | Actualización v1.3 | Solicitud de Lucas del 2026-10-27 tras la revisión de Lucía: corregir las referencias desfasadas a costes. #59 ya integra su código en `main`; se actualizan estado, datos del Test Plan y dependencia de la slice 3. Los 14 AC, contratos, objetivo de calidad, estrategia y decisiones no cambian; no acredita aceptación ni ejecución del RAG. |
 | Actualización v1.4 | Decisión explícita de Lucas del 2026-10-27: «23 de 25 bien, 24 de 25 genial, 25 de 25 GOD». Se conserva AC-011 y se cambia su mínimo de 24 a 23, alineando Test Plan, protocolo, slice 4, DoD y contexto del ADR propuesto. AC-001 a AC-010 y AC-012 a AC-014, la rúbrica de pregunta correcta, el corpus y la comparación de ambos modelos se conservan. No acepta el plan completo ni el ADR ni acredita resultados medidos. |
 | Actualización v1.5 | Tras explicar a Lucas el punto 2 de la revisión de Lucía, se explicita la prioridad del núcleo y el orden de las slices, con preparación eval-first y comparación completa posterior. Se aclara la dependencia de la slice 5 y se prevé escalar retrasos al equipo. Los 14 AC, ambos modelos, mínimo 23/25, protocolo, contratos y DoD permanecen idénticos; cualquier recorte exige decisión humana. |
 | Actualización v1.6 | Se explicita el reparto de Compose propuesto por Lucía: #34 mantiene el archivo común del caso y verifica el conjunto; #32 aporta PostgreSQL/pgvector, volumen, schema y comandos RAG. Se alinea con #60 y ambos ADRs propuestos. Los 14 AC y el resto de requisitos se conservan; no se implementa configuración ni se atribuye aceptación humana del plan. |
-| Gaps | Pendientes el plan de #34 y la revisión y aceptación de esta Spec y del ADR 0006: se mantiene draft; no Ready ni código productivo. Calidad y rendimiento aún no medidos; son verificaciones futuras, no checks superados. |
+| Actualización v1.7 | Solicitud explícita de Lucas del 2026-11-10 sobre la observación 1 de Víctor y el acuerdo de #67: falta de cobertura de daños propios → consulta explicativa; para todos los temas, unión de confirmados y con_pendientes sin duplicados. Solo cambia AC-007, sus reglas/casos/verificación y la dependencia de slice 3; los demás AC, contrato de diagnóstico, evaluación, objetivo 23/25 y DoD se conservan. |
+| Verificación documental de v1.7 | Los 14 IDs siguen presentes; cada AC conserva Test Plan y slice. La preservación de costes se protege por AC-006; la nueva selección por AC-007 y sus casos; la agregación por AC-008 permanece idéntica. Sin código, tests ejecutables, configuración runtime ni datos en esta Planning PR. |
+| Gaps actuales | V1.7 aceptada por Víctor sobre `a82c4fe`; quedan comprobación del diff final de metadatos, integración humana y DoR antes de slice 3. La v1.6 y el ADR 0006 conservan su aceptación. Calidad, integración final con consumidores y entorno completo siguen pendientes; #72 contiene progreso parcial, no entrega integrada. No se da por confirmado el traspaso de evaluación. |
 
 ## Definition of Done
 
