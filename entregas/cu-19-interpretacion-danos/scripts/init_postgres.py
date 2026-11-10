@@ -13,7 +13,7 @@ CASE = Path(__file__).resolve().parents[1]
 
 def read_config(path):
     return {
-        key: shlex.split(value)[0]
+        key: (shlex.split(value) or [""])[0]
         for line in path.read_text().splitlines()
         if line.strip() and not line.startswith("#")
         for key, value in [line.split("=", 1)]

@@ -5,15 +5,33 @@ POSTGRES_BASELINE_REF optionally reproduces the missing behavior on a Git ref.
 """
 
 import os
+import importlib.util
 from pathlib import Path
 import shutil
 import socket
 import subprocess
 import tempfile
 import unittest
+from unittest.mock import patch
 import uuid
 
 CASE = Path(__file__).resolve().parents[2]
+
+
+class PostgresConfigTests(unittest.TestCase):
+    def test_ac013_empty_password_has_explicit_error_before_docker(self):
+        spec = importlib.util.spec_from_file_location("init_postgres_test", CASE / "scripts/init_postgres.py")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        with tempfile.TemporaryDirectory() as directory:
+            case = Path(directory)
+            for value in ("", '""', "''"):
+                with self.subTest(value=value):
+                    (case / ".env.postgres").write_text("POSTGRES_PASSWORD=" + value + "\n")
+                    with patch.object(module, "CASE", case), patch.object(module.subprocess, "run") as docker:
+                        with self.assertRaisesRegex(ValueError, "POSTGRES_PASSWORD no puede estar vacía"):
+                            module.main()
+                        docker.assert_not_called()
 
 
 @unittest.skipUnless(os.environ.get("RUN_POSTGRES_INTEGRATION") == "1", "requires Docker integration opt-in")
