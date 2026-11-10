@@ -79,7 +79,7 @@ no cambie de significado cuando se actualice una rama.
 | RAG + `agente2()` | **Plan v1.6 integrado; implementación abierta #72** | [Spec v1.6][rag-spec] y [ADR 0006 Aceptado][adr6], #56/#67 integradas. El indexado y PostgreSQL de #72 no están en main; búsqueda y composición siguen pendientes. |
 | Agente 3 | **Plan v2.1 integrado; implementación abierta #75** | [Spec #31](specs/31-informe-peritaje.md); [`agente_redactor/`](app/agentes/agente_redactor/) solo contiene README en main. El contrato RAG ya está aceptado. #75 implementa el informe, sin procedencia de vehículo; ese AC nuevo se acuerda en #31 al fijar #34 su contrato. |
 | ADK + OpenAI | **Experimento integrado por [#52][pr52]** | [`orquestador/README.md`](app/agentes/orquestador/README.md). Acredita una tool y su cifra, no la coordinación del producto. |
-| Orquestación y web de peritaje | **Borrador abierto [#60][pr60]** | [Spec v1.2][orq-spec] y [ADR 0007 Propuesto][adr7]. Las rutas, estados y servicios nuevos no existen todavía. |
+| Orquestación y web de peritaje | **Borrador abierto [#60][pr60]** | [Spec v1.3][orq-spec] y [ADR 0007 Propuesto][adr7]. Las rutas, estados y servicios nuevos no existen todavía. |
 | Docker Compose | **Integrado para ML** | [`docker-compose.yml`](app/docker/ml-api/docker-compose.yml) levanta el servicio ML. El Compose del conjunto es parte de #34. |
 
 ### Conexiones disponibles y conexiones pendientes
@@ -191,10 +191,16 @@ sirve para estimar; no demuestra que sea el modelo fotografiado.
 Agente 1 ya devuelve la categoría y su representante; con `desconocido`, la
 referencia es `null`, sin fallback a C. Los AC-009/010 de #28 se transfirieron
 a #34/#31: la resolución y procedencia son de #34, y el aviso del informe, de #31.
-La v1.2 publicada de #60 pide selección manual. Los acuerdos posteriores sobre
-precio máximo están en la [#34](https://github.com/lvckss/piia2-26/issues/34#issuecomment-6611207541)
-y deben incorporarse al plan/ADR 0007 y revisarse con #31 antes de implementar.
-Un fallo técnico no equivale a una respuesta válida `desconocido` y detiene el flujo.
+La v1.3 de [#60][orq-spec] recoge V25 fijo (BMW Serie 3) si la categoría
+válida es `desconocido` y la persona no elige coche, según decisión de Lucas
+el 2026-11-10. La selección manual sigue disponible. Propone
+`contexto.vehiculo_origen` con `referencia_confirmada`, `seleccion_usuario` o
+`maximo_por_defecto`, pendiente de aceptación por Víctor y adaptación de #31.
+Valor venal, pérdida total e indemnización se calculan también con V25; el
+informe debe avisar de que esa pérdida total no es fiable para el coche real.
+El plan conserva la frase de Lucía sobre el techo prudente y aclara que V25
+no garantiza ser el máximo exacto para cualquier siniestro. No modifica el
+`null` de #28 ni aplica el valor por defecto ante fallos técnicos.
 
 La póliza, rol, taller, región, acabado, tipo de pieza, antigüedad y kilómetros
 se recogen del contexto. Una imagen de un golpe no permite deducir esas condiciones.
@@ -819,8 +825,8 @@ cu-19-interpretacion-danos/
 [pr59]: https://github.com/lvckss/piia2-26/pull/59
 [pr60]: https://github.com/lvckss/piia2-26/pull/60
 [rag-spec]: https://github.com/lvckss/piia2-26/blob/8a38e02310f8cb3b5e2994684715fe34dfee4613/entregas/cu-19-interpretacion-danos/specs/32-rag-normativa.md
-[orq-spec]: https://github.com/lvckss/piia2-26/blob/5ed9ca67fc1ff94f250cd7d3ea1d2a63ad54d543/entregas/cu-19-interpretacion-danos/specs/34-orquestacion-web.md
+[orq-spec]: https://github.com/lvckss/piia2-26/blob/d950fb6/entregas/cu-19-interpretacion-danos/specs/34-orquestacion-web.md
 [adr1]: https://github.com/lvckss/piia2-26/blob/8a38e02310f8cb3b5e2994684715fe34dfee4613/entregas/cu-19-interpretacion-danos/docs/adr/0001-categoria-vehiculo-contrato-agente1.md
 [adr6]: https://github.com/lvckss/piia2-26/blob/8a38e02310f8cb3b5e2994684715fe34dfee4613/entregas/cu-19-interpretacion-danos/docs/adr/0006-rag-postgresql-estado-recuperacion.md
-[adr7]: https://github.com/lvckss/piia2-26/blob/5ed9ca67fc1ff94f250cd7d3ea1d2a63ad54d543/docs/adr/0007-orquestacion-adk-web-efimera.md
+[adr7]: https://github.com/lvckss/piia2-26/blob/d950fb6/entregas/cu-19-interpretacion-danos/docs/adr/0007-orquestacion-adk-web-efimera.md
 [scope34]: https://github.com/lvckss/piia2-26/issues/34#issuecomment-6426795027
