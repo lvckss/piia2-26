@@ -26,7 +26,7 @@ El Agente 1 (analista multimodal de PIIA2) convierte las detecciones de PIIA1 de
 | `vision_verdict`, `pieza_id`, `severidad`, `regla_coste_aplicable`, `vision_description` | Resultado de la segunda opinión de visión |
 | `crop_image_path` | Recorte de la zona, guardado en disco |
 
-**Dónde encaja.** Entre PIIA1 (detecciones guardadas) y el Agente 2 (costes y cobertura) y el Agente 3 (informe). El filtro previo de detecciones y el nivel de confianza se especifican en [`agente-confianza-hallazgos.md`](agente-confianza-hallazgos.md); la categoría del vehículo, que propone la [Issue #28](https://github.com/lvckss/piia2-26/issues/28) (en planificación, retomada el 2026-10-27 para el recorrido web) y que añadiría el campo `vehiculo` a la salida; hasta que se acepte e implemente, el vehículo es un dato de entrada obligatorio del siniestro, ver [`piia2-arquitectura-multiagente.md`](piia2-arquitectura-multiagente.md).
+**Dónde encaja.** Entre PIIA1 (detecciones guardadas) y el Agente 2 (costes y cobertura) y el Agente 3 (informe). El filtro previo de detecciones y el nivel de confianza se especifican en [`agente-confianza-hallazgos.md`](agente-confianza-hallazgos.md); la categoría del vehículo, que propone la [Issue #28](https://github.com/lvckss/piia2-26/issues/28) (en planificación, retomada el 2026-10-27 para el recorrido web) y que añadiría el campo `vehiculo` a la salida; hasta que se acepte e implemente, el vehículo es un dato de entrada obligatorio del siniestro, ver [`piia2-arquitectura-multiagente.md`](../docs/piia2-arquitectura-multiagente.md).
 
 ## Por qué
 

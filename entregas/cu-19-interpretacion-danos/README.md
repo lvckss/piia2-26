@@ -2,123 +2,102 @@
 
 ## Qué es el proyecto
 
-Este proyecto continúa el trabajo de PIIA1, donde se desarrolló un pipeline de segmentación de daños en vehículos basado en SAM3 y evaluado sobre CarDD. En PIIA2 se construye encima de esa salida un **sistema multiagente multimodal que imita el comportamiento de un perito de seguros**: a partir de la foto de un vehículo dañado y de los datos del siniestro, interpreta los daños, estima su reparación y la cobertura de la póliza, y redacta un informe de peritaje.
+Un prototipo que ayuda a un perito o tramitador de seguros a convertir la foto de un vehículo dañado y los datos del siniestro en un **informe de peritaje orientativo**. Combina la detección de daños heredada de PIIA1, una segunda opinión con visión, el cálculo determinista de reparación y cobertura y la recuperación de pólizas y legislación con fuentes.
 
-El punto de partida son los **resultados de detección de PIIA1 ya guardados**: se generaron una sola vez para 500 imágenes de CarDD (particiones `val` y `test`) y PIIA2 los consume como entrada. **No se ejecuta SAM3 en línea.**
-
-El sistema se organiza en tres agentes, coordinados por una orquestación:
-
-1. **Agente 1 — Analista de daños (multimodal).** Mira la foto, no solo el JSON de detecciones: da una segunda opinión con un modelo de visión sobre cada detección (¿hay un daño de verdad?), identifica la pieza afectada y su severidad y asigna a cada hallazgo un nivel de confianza (`confirmed` o `needs_review`). Está en planificación que además estime la categoría del vehículo cuando no se dispone del coche, para el recorrido web ([Issue #28](https://github.com/lvckss/piia2-26/issues/28), retomada el 2026-10-27); hasta que se acepte e implemente, el vehículo es un dato de entrada obligatorio del siniestro.
-2. **Agente 2 — Costes, cobertura y normativa.** Calcula el coste de reparación con la herramienta de costes que entregó la empresa, determina la pérdida total, la cobertura de la póliza y una indemnización estimada, y recupera de una base de datos vectorial los fragmentos de pólizas y legislación que justifican la cobertura y la pérdida total, cuando los hay.
-3. **Agente 3 — Redactor.** Genera el informe de peritaje agregado en markdown. Las cifras las calcula el código, y una comprobación automática verifica que todas las cifras en euros del informe coinciden con las del Agente 2.
-
-El resultado se orienta a asistir a peritos o tramitadores de siniestros de una aseguradora durante la inspección, no a sustituir su criterio profesional.
+**Este README presenta el proyecto completo; la Entrega 2 añade su arquitectura y sus decisiones de implementación.** Las funcionalidades tienen distintos estados de desarrollo; describir el flujo objetivo no significa que la integración completa ya esté implementada o evaluada. La [arquitectura](ARCHITECTURE.md) explica cómo se conectan las piezas y los [ADRs](decisions/) recogen las decisiones de implementación. El código adjunto sirve como contexto de esa arquitectura.
 
 ## Motivación
 
-La inspección manual de imágenes de vehículos requiere tiempo y puede variar entre personas. Un detector de daños por sí solo tampoco basta para un peritaje: con las detecciones de PIIA1 a score ≥ 0,3, la precisión es inferior al 15 % en todas las clases de CarDD (medido sobre las 500 imágenes exportadas; ver [`specs/agente-confianza-hallazgos.md`](specs/agente-confianza-hallazgos.md)), de modo que tratar cada detección como un hecho produciría informes con daños y costes falsos presentados con autoridad.
+La inspección manual de daños requiere tiempo. Además, una detección automática puede ser un falso positivo: en las 500 imágenes analizadas de CarDD, las predicciones iniciales con score ≥ 0,3 presentan una precisión inferior al 15 % por clase (medición y límites en [confianza de los hallazgos](specs/agente-confianza-hallazgos.md)). Convertirlas directamente en afirmaciones económicas produciría presupuestos con daños no confirmados.
 
-El proyecto busca estudiar hasta qué punto un sistema de agentes puede convertir esas detecciones, con muchos falsos positivos, en un informe consistente, trazable y con cifras comprobables, dejando claro qué parte del resultado es firme y cuál requiere revisión. Al finalizar se pretende disponer de una ejecución reproducible de punta a punta, de la foto y los datos del siniestro al informe, y de una evaluación que muestre los aciertos, los errores y las limitaciones de cada pieza.
+Queremos estudiar si una segunda opinión de visión y una separación explícita entre hallazgos confirmados, pendientes y rechazados permiten elaborar un informe más claro y trazable. Las cifras se calculan mediante la herramienta de Plexus, no las inventa un modelo de lenguaje. El RAG aporta los textos que respaldan las conclusiones y el informe declara cuándo faltan fuentes.
+
+El destinatario es una persona que revisa el siniestro. El prototipo no sustituye su criterio ni toma decisiones vinculantes.
 
 ## Alcance
 
-El proyecto incluye:
+El recorrido objetivo es:
 
-- la **entrada**: los resultados de detección de PIIA1 ya guardados para 500 imágenes de CarDD y los datos del siniestro (taller, póliza y demás parámetros que necesita la herramienta de costes), descritos en [`specs/interpretacion-danos-imagen.md`](specs/interpretacion-danos-imagen.md) y en [`specs/piia2-arquitectura-multiagente.md`](specs/piia2-arquitectura-multiagente.md);
-- el **Agente 1**: segunda opinión de visión, pieza, severidad y veredicto de cada hallazgo ([`specs/interpretacion-danos-imagen.md`](specs/interpretacion-danos-imagen.md)), niveles de confianza y filtro previo de detecciones ([`specs/agente-confianza-hallazgos.md`](specs/agente-confianza-hallazgos.md)); la categoría del vehículo cuando no se dispone del coche, en planificación para el recorrido web ([Issue #28](https://github.com/lvckss/piia2-26/issues/28)); mientras no se acepte e implemente, el `vehiculo_id` es un dato de entrada obligatorio;
-- el **Agente 2**: costes, pérdida total, cobertura e indemnización orientativas ([`specs/30-costes-cobertura.md`](specs/30-costes-cobertura.md)) y recuperación de pólizas y legislación desde una base de datos vectorial ([Issue #32](https://github.com/lvckss/piia2-26/issues/32));
-- el **Agente 3**: informe de peritaje en markdown con cifras comprobadas ([`specs/31-informe-peritaje.md`](specs/31-informe-peritaje.md));
-- la **orquestación** de los tres agentes de punta a punta ([Issue #33](https://github.com/lvckss/piia2-26/issues/33), prueba de viabilidad de Google ADK, e [Issue #34](https://github.com/lvckss/piia2-26/issues/34));
-- la **evaluación** de cada pieza con datos etiquetados o sintéticos, y el registro de la configuración y la procedencia de los resultados ([`specs/evaluacion-trazabilidad.md`](specs/evaluacion-trazabilidad.md)).
+1. **Subir una foto** en una pestaña de la web. El flujo consume la detección de PIIA1 y entrega sus resultados al Agente 1. Las detecciones guardadas de 500 imágenes de CarDD se conservan como base reproducible de evaluación y desarrollo. Ese export se identifica por el SHA-256 de su `_manifest.json` (ver [evaluación y trazabilidad](specs/evaluacion-trazabilidad.md)).
+2. **Interpretar los daños:** pieza, severidad, veredicto de visión, caja y nivel de confianza. Los hallazgos se muestran sin edición; los dudosos no se presentan como confirmados.
+3. **Proponer una categoría de vehículo y un coche de referencia.** La persona confirma o corrige la elección. Si el vehículo es `desconocido`, el presupuesto usa el vehículo de menor coste del catálogo, como hacen las aseguradoras y los peritos; si en el taller el importe resulta mayor, se avisa a la aseguradora (decisión con el profesorado del 10 de noviembre). En un parte real la categoría es un dato obligatorio, así que este caso solo aparece en el prototipo con foto; cómo puede la persona elegir otro coche se fija en la spec de orquestación. Un fallo técnico de la consulta detiene el flujo. No se identifica la marca y el modelo reales por la foto.
+4. **Completar el contexto del siniestro:** vehículo elegido, taller, región, rol y demás datos necesarios; póliza cuando corresponda. El cálculo exige un `vehiculo_id` válido antes de empezar.
+5. **Calcular dos escenarios de reparación, cobertura e indemnización:** solo daños confirmados y confirmados más pendientes presupuestables. Las reglas y los importes proceden del cálculo determinista con el paquete sintético de Plexus.
+6. **Recuperar pólizas y legislación con fuentes**, filtrando por póliza cuando proceda. Se compararán embeddings small y large; la planificación del RAG fija PostgreSQL/pgvector local y su evaluación con 25 preguntas.
+7. **Generar, comprobar, mostrar y descargar el informe Markdown.** Se distinguen los dos escenarios, las dudas y los límites de las fuentes; un importe inconsistente impide publicarlo.
 
-Los **procedimientos de reparación** salen de las reglas de la herramienta de costes de la empresa (clase de daño, zona y severidad determinan la acción de reparación); la base de datos vectorial recupera **pólizas y legislación**.
+La [spec de orquestación](https://github.com/lvckss/piia2-26/pull/60) reúne el recorrido web, las confirmaciones y los errores. **Su diseño técnico y el ADR 0007 siguen como propuesta en revisión**: incluirlos en esta entrega no los da por aprobados ni habilita su implementación. Las specs de categoría y RAG ya tienen su planificación revisada; eso tampoco acredita que el código esté terminado.
 
-Las capacidades enlazadas a una Issue (la recuperación de pólizas y legislación y la orquestación) tienen su especificación en elaboración: se publicarán en `specs/` conforme se integren.
+Se incluye también la evaluación reproducible de las piezas: configuración, datos usados, calidad y limitaciones. El objetivo del proyecto completo es levantar la aplicación con un único Compose local. **En esta entrega todavía no existe ningún Compose; el Compose completo es una evolución de la #34, no un compromiso de la entrega.** No se indexa con servicios de pago al arrancar.
 
-Quedan fuera del alcance:
+Queda fuera del alcance:
 
-- una tasación económica vinculante;
-- la aprobación o rechazo automático de reparaciones o indemnizaciones;
-- la identificación de propietarios, matrículas o personas;
-- ejecutar SAM3 en línea o mejorar la detección de PIIA1;
-- una interfaz de usuario, una API o la visualización de resultados sobre la imagen (el código de PIIA1 que lo hacía se conserva en `app/`, sin ampliarse);
-- el informe en PDF: el informe se genera en markdown;
-- una aplicación preparada para uso comercial sin supervisión humana;
-- garantizar resultados fiables en imágenes o tipos de daño no representados en los datos de evaluación.
+- una tasación vinculante, la aprobación automática de reparaciones o la resolución de un expediente de seguro;
+- identificar propietarios, personas, matrículas o el modelo exacto del coche desde la imagen;
+- entrenar o mejorar el detector de PIIA1; la orquestación reutiliza su servicio, sin investigar otro detector;
+- editar los daños desde la interfaz, mantener un historial de casos o generar PDF;
+- integrar sistemas reales de aseguradoras o talleres;
+- ampliar en esta versión el RAG a un motor completo de exclusiones y plazos: queda como evolución requerida, separada del respaldo documental inicial;
+- garantizar fiabilidad en daños que el detector no proponga o en condiciones no cubiertas por la evaluación.
 
-Los precios, los tiempos de reparación, los vehículos y las pólizas son **datos sintéticos** entregados por la empresa; solo la legislación es real. Por eso todas las cifras económicas y de cobertura son **orientativas y no vinculantes**.
+Los vehículos, precios, tiempos de reparación y pólizas de Plexus son **sintéticos**; la legislación es real. Las cifras de reparación y cobertura son orientativas y no vinculantes. Recuperar una cita no equivale a verificar una conclusión. Si faltan fuentes suficientes, el informe lo advierte expresamente y requiere revisión.
 
 ## Equipo
 
-| Integrante | Rol inicial | Contacto |
+| Integrante | Responsabilidad | Contacto |
 |---|---|---|
-| Lucía Luis Castaño | Desarrollo e investigación de IA | lucia.luis.castano@rai.usc.es |
-| Víctor Hidalgo Carreira | Desarrollo e investigación de IA | victor.hidalgo@rai.usc.es |
-| Lucas García Ruiz | Desarrollo e investigación de IA | lucas.garcia0@rai.usc.es |
+| Lucía Luis Castaño | Visión, datos y evaluación; coordinación de la entrega | lucia.luis.castano@rai.usc.es |
+| Víctor Hidalgo Carreira | Costes, cobertura e informe | victor.hidalgo@rai.usc.es |
+| Lucas García Ruiz | RAG, orquestación e integración | lucas.garcia0@rai.usc.es |
 
-Los roles son iniciales y podrán concretarse conforme se repartan las
-responsabilidades de producto, datos, modelos e integración.
-
-## Estructura
+## Estructura y guía de lectura
 
 ```text
 cu-19-interpretacion-danos/
-├── .gitignore
-├── README.md
-├── ARCHITECTURE.md
-├── justfile
-├── scripts/
-├── docs/
-├── specs/
-└── app/
-    ├── agentes/
-    ├── ml/
-    ├── server/
-    ├── frontend/
-    ├── bd/
-    ├── docker/
-    ├── docs/
-    └── notes/
+├── README.md        # visión del proyecto, alcance y equipo
+├── ARCHITECTURE.md  # arquitectura de la solución: diagrama, componentes y flujo
+├── specs/           # funcionalidades y sus criterios de aceptación (la de orquestación, en revisión)
+├── decisions/       # ADRs de las decisiones de implementación (0001–0006)
+├── docs/            # registro de ADRs, workflow y material de apoyo
+│   ├── adr/
+│   ├── guias/
+│   ├── historico/
+│   └── templates/
+└── app/             # código y documentación adjuntos como contexto
 ```
 
-- `README.md`: presenta el problema, la motivación, el alcance y el equipo.
-- [`ARCHITECTURE.md`](ARCHITECTURE.md): mapa visual de componentes, contratos, flujo y decisiones; ilustraciones en `docs/architecture/`.
-- `justfile`: comandos de desarrollo y preparación de datos, propios de este caso.
-- `scripts/`: descargador de CARDD, dependencia opcional, SHA-256, pruebas y [guía de datos locales](scripts/README.md). Se entrega dentro del caso; las imágenes y el entorno Python permanecen fuera de Git.
-- `docs/`: [documentación del equipo](docs/README.md), workflow, plantillas y registro de ADRs. Forma parte de la entrega del caso.
-- `specs/`: especificaciones, arquitectura y guías del proyecto (tabla más abajo).
-- `app/`: código del proyecto. Su propio [README](app/README.md) explica cómo se ejecuta cada parte.
-  - `app/agentes/`: **PIIA2**. [`agente_multimodal/`](app/agentes/agente_multimodal/) contiene el Agente 1 con sus pruebas; [`agente_recuperacion/`](app/agentes/agente_recuperacion/) contiene los costes y la cobertura del Agente 2 con sus pruebas (el RAG de normativa está planificado en la #32); [`agente_redactor/`](app/agentes/agente_redactor/) contiene el Agente 3, que redacta el informe de peritaje, con sus pruebas; [`ejemplos_contrato/`](app/agentes/ejemplos_contrato/) reúne JSON de ejemplo del contrato entre agentes. Su [README](app/agentes/README.md) describe el conjunto.
-  - `app/ml/`, `app/server/`, `app/frontend/`, `app/bd/`, `app/docker/`, `app/docs/` y `app/notes/`: código, datos y documentación **heredados de PIIA1** (pipeline de detección y evaluador, API de inferencia, API y cliente web, esquema de datos, contenedor de la API de ML, documentación técnica y notas de diseño). No se amplían en PIIA2. Los archivos de configuración y de entorno de PIIA1 están en la raíz de `app/`.
+### Specs funcionales que se evalúan
 
-### Preparación local
+Cada fichero explica qué construir, por qué, sus restricciones y los criterios verificables. Los estados de verificación se incluyen como información de desarrollo: un criterio pendiente no es una afirmación de que la funcionalidad ya esté implementada. Los IDs se mantienen para conservar la trazabilidad.
 
-Desde la raíz del repositorio de la asignatura, entra en la carpeta del caso:
-
-```bash
-cd entregas/cu-19-interpretacion-danos
-just           # muestra los comandos disponibles
-just cardd     # prepara el entorno Python y descarga/comprueba CARDD
-```
-
-Si recibes esta carpeta por separado, ejecuta los mismos comandos desde su raíz.
-El descargador, sus requisitos y el `justfile` están incluidos; no dependen de
-archivos auxiliares de la raíz de la asignatura. Consulta los
-[prerrequisitos y comandos de frontend/backend](app/README.md#comandos-con-just)
-y la [guía de descarga](scripts/README.md). La preparación de archivos CARDD
-no crea ni carga PostgreSQL.
-
-### Contenido de `specs/`
-
-| Archivo | Tipo | Contenido |
+| Funcionalidad | Spec | Resultado definido |
 |---|---|---|
-| [`interpretacion-danos-imagen.md`](specs/interpretacion-danos-imagen.md) | Spec funcional | Agente 1: de las detecciones guardadas y la foto a los hallazgos con pieza, severidad y veredicto. |
-| [`agente-confianza-hallazgos.md`](specs/agente-confianza-hallazgos.md) | Spec funcional | Niveles de confianza (`confirmed`, `needs_review`), filtro previo de detecciones y su medición. |
-| [`evaluacion-trazabilidad.md`](specs/evaluacion-trazabilidad.md) | Spec funcional | Evaluación y trazabilidad de los resultados. |
-| [`30-costes-cobertura.md`](specs/30-costes-cobertura.md) | Spec funcional | Agente 2: de los hallazgos y los datos del siniestro a costes, pérdida total, cobertura e indemnización orientativas. |
-| [`31-informe-peritaje.md`](specs/31-informe-peritaje.md) | Spec funcional | Agente 3: del resultado de los Agentes 1 y 2 al informe de peritaje en markdown, con las cifras comprobadas. |
-| [`piia2-arquitectura-multiagente.md`](specs/piia2-arquitectura-multiagente.md) | Arquitectura | Diseño del sistema, contrato JSON entre agentes, decisiones tomadas con la empresa y plan. |
-| [`agente2-costes-cobertura-guia.md`](specs/agente2-costes-cobertura-guia.md), [`agente2-rag-normativa-guia.md`](specs/agente2-rag-normativa-guia.md), [`agente3-informe-guia.md`](specs/agente3-informe-guia.md), [`integracion-adk-guia.md`](specs/integracion-adk-guia.md) | Guías | Guías de implementación de cada pieza, con código de referencia probado. |
-| [`mejora-robustez-tipos-vehiculo.md`](specs/mejora-robustez-tipos-vehiculo.md) | Spec histórica | Mejora de robustez del detector de PIIA1; la parte de `vehicle_type` se implementó y se revirtió, y así consta en el documento. |
-| [`14-validar-scores-confianza.md`](specs/14-validar-scores-confianza.md) | Plan de la [Issue #14](https://github.com/lvckss/piia2-26/issues/14) | Validación del rango del score antes de clasificar un hallazgo; su implementación se retiró y la tarea está pendiente de rehacerse. |
-| [`37-adrs-decisiones-previas.md`](specs/37-adrs-decisiones-previas.md) | Plan de la [Issue #37](https://github.com/lvckss/piia2-26/issues/37) | Registro como ADRs de las decisiones estructurales previas del sistema: contrato entre agentes, proveedor de modelos, herramienta de costes y filtro previo de detecciones. |
+| Interpretación visual de daños | [interpretacion-danos-imagen.md](specs/interpretacion-danos-imagen.md) | De predicciones e imagen a hallazgos con pieza, severidad y veredicto. |
+| Confianza y filtro de hallazgos | [agente-confianza-hallazgos.md](specs/agente-confianza-hallazgos.md) | Distinguir confirmados y pendientes, registrando lo filtrado. |
+| Categoría del vehículo | [28-categoria-vehiculo.md](specs/28-categoria-vehiculo.md) | Proponer un segmento y su representante, o declarar `desconocido`. |
+| Costes y cobertura | [30-costes-cobertura.md](specs/30-costes-cobertura.md) | Dos escenarios de coste y su cobertura e indemnización orientativas. |
+| Recuperación documental y Agente 2 | [32-rag-normativa.md](specs/32-rag-normativa.md) | Fuentes de póliza/legislación, diagnóstico de recuperación y composición con costes. |
+| Informe de peritaje | [31-informe-peritaje.md](specs/31-informe-peritaje.md) | Markdown con cifras comprobadas y advertencias diferenciadas. |
+| Orquestación web | [34-orquestacion-web.md](https://github.com/lvckss/piia2-26/pull/60) | Recorrido foto → confirmación → informe; propuesta técnica en revisión. |
+| Evaluación y trazabilidad | [evaluacion-trazabilidad.md](specs/evaluacion-trazabilidad.md) | Medidas reproducibles por componente y límites de la evaluación. |
+
+Para seguir la cadena principal, leer visión → categoría → costes → RAG → informe → orquestación. Confianza y evaluación describen cómo se controlan las dudas y cómo se comprobarán los resultados.
+
+### Arquitectura y decisiones (Entrega 2)
+
+- [ARCHITECTURE.md](ARCHITECTURE.md): diagrama, componentes y flujo de punta a punta de la solución.
+- [decisions/](decisions/): decisiones de implementación en el formato de la asignatura (copia de [docs/adr/](docs/adr/README.md), que conserva su historial de aceptación). Cada una recoge decisión, motivación, alternativas y referencias:
+  - [ADR 0001: Categoría del vehículo estimada por visión en el contrato del Agente 1](decisions/0001-categoria-vehiculo-contrato-agente1.md)
+  - [ADR 0002: Contrato JSON entre agentes, con todos los hallazgos y su nivel de confianza](decisions/0002-contrato-json-entre-agentes.md)
+  - [ADR 0003: API de OpenAI con la clave de la empresa como proveedor de modelos](decisions/0003-proveedor-openai-clave-empresa.md)
+  - [ADR 0004: Costes con la herramienta y los datos de la empresa, no con precios propios](decisions/0004-herramienta-costes-datos-empresa.md)
+  - [ADR 0005: Filtro previo por clase de las detecciones que se envían al modelo de visión](decisions/0005-filtro-previo-detecciones-por-clase.md)
+  - [ADR 0006: RAG con PostgreSQL, comparación de embeddings y estado de recuperación](decisions/0006-rag-postgresql-estado-recuperacion.md)
+
+### Material de apoyo
+
+- [Índice de documentación](docs/README.md): decisiones, guías anteriores y mapa de documentos reubicados.
+- [Registro de ADRs](docs/adr/README.md): decisiones 0001–0006 aceptadas con su evidencia; el [ADR 0007](https://github.com/lvckss/piia2-26/pull/60) sigue Propuesto (PR #60).
+- [Workflow](docs/workflow.md) y [template de Spec](docs/templates/spec-template.md): procedimientos internos, no funcionalidades adicionales.
+- [Diseño previo multiagente](docs/piia2-arquitectura-multiagente.md), `docs/guias/` y `docs/historico/`: referencias de apoyo con sus decisiones y versiones históricas. Los contratos vigentes de esta entrega son los de `specs/`; una guía anterior no los sustituye.
+- [Aplicación](app/README.md): backend, frontend, ML, contenedores y agentes adjuntos. Se conserva el código del corte original y no se presenta como una integración completa del flujo objetivo.

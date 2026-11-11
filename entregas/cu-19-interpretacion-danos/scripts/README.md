@@ -139,3 +139,26 @@ python3 -m unittest discover -s scripts/tests -v
 
 La prueba de descarga real desde Drive necesita el enlace del paquete subido;
 las pruebas del adaptador de Drive no acreditan esa descarga remota.
+
+## Verificar la Entrega 2
+
+Independiente de CARDD. `scripts/verificar_entrega.py` comprueba tres criterios del
+[plan de la #49](https://github.com/lvckss/piia2-26/issues/49#issuecomment-6590271954)
+sobre la carpeta del caso (o sobre otra copia con `--snapshot CARPETA`), solo con la
+biblioteca estándar:
+
+| AC | Qué comprueba |
+|---|---|
+| AC-001 | Estructura mínima: `README.md`, `ARCHITECTURE.md`, al menos 2 specs funcionales y 2 ADRs en `decisions/`, con sus secciones, y nombres en kebab-case. |
+| AC-002 | `decisions/` tiene una copia de cada ADR Aceptado de `docs/adr/`, idéntica salvo la nota de cabecera y los enlaces reescritos, y ninguna de un ADR que no lo esté. |
+| AC-004 | Todo enlace relativo de `README.md`, `ARCHITECTURE.md`, `specs/`, `decisions/` y `docs/` resuelve dentro de la carpeta del caso, con las mayúsculas exactas (como en GitHub). |
+
+```bash
+python3 scripts/verificar_entrega.py generar     # crea o actualiza decisions/ desde docs/adr/
+python3 scripts/verificar_entrega.py comprobar   # AC-001, AC-002 y AC-004; sale con 1 si alguno falla
+python3 scripts/verificar_entrega.py comprobar --ac 002 004 --snapshot RUTA
+```
+
+`docs/adr/` es el registro canónico: las copias de `decisions/` no se editan a mano.
+Si un ADR cambia, se vuelve a ejecutar `generar`. Las pruebas del script están en
+`scripts/tests/test_verificar_entrega.py` y se ejecutan con el mismo comando de arriba.

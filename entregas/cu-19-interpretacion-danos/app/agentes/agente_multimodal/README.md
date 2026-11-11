@@ -15,7 +15,7 @@ en la web: el Agente 2 sigue recibiendo el `vehiculo_id` como dato de entrada de
 siniestro. Ver «Categoría del vehículo».
 
 Contrato de entrada/salida completo:
-[`../../../specs/piia2-arquitectura-multiagente.md`](../../../specs/piia2-arquitectura-multiagente.md).
+[`../../../specs/piia2-arquitectura-multiagente.md`](../../../docs/piia2-arquitectura-multiagente.md).
 Diseño del filtro de confianza:
 [`../../../specs/agente-confianza-hallazgos.md`](../../../specs/agente-confianza-hallazgos.md).
 
@@ -55,7 +55,7 @@ PIIA-1. Necesita el paquete de datos de la empresa extraído en
 
 `analizar_imagen` añade a la salida un objeto `vehiculo` con `categoria`,
 `vehiculo_id_referencia`, `confianza`, `descripcion` y `modelo` (Issue #28,
-[ADR 0001](../../../../../docs/adr/0001-categoria-vehiculo-contrato-agente1.md)).
+[ADR 0001](../../../docs/adr/0001-categoria-vehiculo-contrato-agente1.md)).
 La herramienta de costes de la empresa necesita un coche de su catálogo y las
 fotos de CarDD no lo traen: el modelo de visión estima la categoría y el sistema
 propone el coche que la representa.

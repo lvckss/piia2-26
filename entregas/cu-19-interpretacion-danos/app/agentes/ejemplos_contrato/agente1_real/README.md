@@ -15,7 +15,7 @@ Un fichero por imagen, con el `image_id` de seis cifras (`001236.json`). Seis pa
 
 Qué hay y qué no:
 
-- Tienen el formato del contrato Agente 1 → Agente 2 y 3 ([`piia2-arquitectura-multiagente.md`](../../../../specs/piia2-arquitectura-multiagente.md)) y pasan `validar_salida_agente1`.
+- Tienen el formato del contrato Agente 1 → Agente 2 y 3 ([`piia2-arquitectura-multiagente.md`](../../../../docs/piia2-arquitectura-multiagente.md)) y pasan `validar_salida_agente1`.
 - **`vehiculo`** (Issue #28) se añadió el 2026-10-29 con una consulta de categoría por imagen (`gpt-6-luna`) y es lo único que cambió en estos JSON desde el 2026-10-17: los hallazgos son los del lote original. Hoy la caché no los reproduce (los recortes se guardan con otra codificación JPEG y las respuestas del modelo varían), así que volver a ejecutar el Agente 1 sobre estas fotos daría otros hallazgos. Reparto de categorías: 11 `desconocido` (9 primeros planos o vistas parciales en los que no se distingue el tipo, un camión y una camioneta pickup, que el catálogo no incluye), 10 `C`, 3 `B`, 3 `SUV-C` y 3 `FURG`. Confianza declarada: 13 `baja`, 15 `media` y 2 `alta`. Una persona no las ha revisado una a una.
 - **No hay fotos ni recortes.** `crop_image_path` es relativo a la carpeta del lote (`crops/...`) y esos recortes no están en el repositorio; el Agente 2 y el Agente 3 no los necesitan.
 - **No traen datos del siniestro** (vehículo, taller, póliza): para probar el Agente 2 hay que combinarlas con un contexto de prueba, por ejemplo `../contexto_siniestro.json`.
