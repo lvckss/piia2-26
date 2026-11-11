@@ -13,8 +13,10 @@ alguna falla.
 from __future__ import annotations
 
 import json
+import os
 import random
 import shutil
+import socket
 import subprocess
 import sys
 import tempfile
@@ -147,11 +149,49 @@ def probar_ac004_paquete_ausente():
         assert "ImportError" in r.stderr and "piia2_paquete_datos" in r.stderr, r.stderr[-400:]
 
 
+def probar_ac001_comando():
+    """AC-001: el comando documentado genera los 30 informes y el resumen en la
+    carpeta indicada y termina con codigo 0."""
+    with tempfile.TemporaryDirectory() as tmp:
+        r = subprocess.run([sys.executable, "generar_informes_reales.py", "--destino", tmp, "--hoy", HOY],
+                           cwd=Path(__file__).resolve().parent, capture_output=True, text=True)
+        assert r.returncode == 0, r.stdout[-400:] + r.stderr[-400:]
+        assert len([p for p in Path(tmp).glob("*.md") if p.name != "resumen.md"]) == 30
+        assert (Path(tmp) / "resumen.md").is_file()
+
+
+# --- plan #84, AC-005 --------------------------------------------------------
+def probar_ac005_reproducible_sin_clave_ni_red():
+    """AC-005: dos ejecuciones con la misma fecha, sin OPENAI_API_KEY y sin red,
+    dan informes y resumen identicos byte a byte."""
+    clave = os.environ.pop("OPENAI_API_KEY", None)
+    socket_original = socket.socket
+
+    def _sin_red(*args, **kwargs):
+        raise AssertionError("intento de conexion de red")
+
+    socket.socket = _sin_red
+    try:
+        with tempfile.TemporaryDirectory() as a, tempfile.TemporaryDirectory() as b:
+            generar_informes_reales.generar(REALES, a, hoy=HOY)
+            generar_informes_reales.generar(REALES, b, hoy=HOY)
+            nombres = sorted(p.name for p in Path(a).iterdir())
+            assert nombres == sorted(p.name for p in Path(b).iterdir()) and len(nombres) == 31, nombres
+            for n in nombres:
+                assert (Path(a) / n).read_bytes() == (Path(b) / n).read_bytes(), n
+    finally:
+        socket.socket = socket_original
+        if clave is not None:
+            os.environ["OPENAI_API_KEY"] = clave
+
+
 PRUEBAS = [
     probar_ac003_contexto_y_coche_de_cada_caso,
     probar_ac001_ac002_treinta_informes_y_resumen,
+    probar_ac001_comando,
     probar_ac004_error_en_una_salida,
     probar_ac004_paquete_ausente,
+    probar_ac005_reproducible_sin_clave_ni_red,
 ]
 
 

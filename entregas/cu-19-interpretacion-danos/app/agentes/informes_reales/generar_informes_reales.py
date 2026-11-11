@@ -113,3 +113,21 @@ def generar(salidas_dir, destino, hoy: str = FECHA_POR_DEFECTO, semilla: int = 8
     ]
     (destino / "resumen.md").write_text("\n".join(md) + "\n", encoding="utf-8")
     return 1 if errores or inventadas else 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    import argparse
+
+    ap = argparse.ArgumentParser(description="Genera los informes de las salidas reales del Agente 1 (Issue #84).")
+    ap.add_argument("--salidas", type=Path, default=SALIDAS_REALES, help="carpeta con las salidas del Agente 1 (*.json)")
+    ap.add_argument("--destino", type=Path, default=DESTINO_POR_DEFECTO, help="carpeta de los informes (fuera de git)")
+    ap.add_argument("--hoy", default=FECHA_POR_DEFECTO, help="fecha de los informes, AAAA-MM-DD")
+    ap.add_argument("--semilla", type=int, default=84, help="semilla para elegir los siniestros sintéticos")
+    args = ap.parse_args(argv)
+    codigo = generar(args.salidas, args.destino, hoy=args.hoy, semilla=args.semilla)
+    print(f"Informes y resumen en {args.destino} (código {codigo})")
+    return codigo
+
+
+if __name__ == "__main__":
+    sys.exit(main())
