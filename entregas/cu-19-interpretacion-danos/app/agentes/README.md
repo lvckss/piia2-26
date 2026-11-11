@@ -12,6 +12,7 @@ agentes/
   agente_multimodal/     # Agente 1 — visión: ¿hay daño?, ¿qué pieza?, ¿qué severidad? (Lucía)
   agente_recuperacion/   # Agente 2 — costes y cobertura (Víctor) + RAG de normativa (Lucas)
   agente_redactor/       # Agente 3 — informe de peritaje en markdown (Víctor)
+  informes_reales/       # 30 informes de las salidas reales del Agente 1 en línea de comandos (#84, Víctor)
   orquestador/           # (por crear) integración de los tres agentes con Google ADK (Lucas)
   ejemplos_contrato/     # JSON de ejemplo del contrato entre agentes, con cifras reales
 ```

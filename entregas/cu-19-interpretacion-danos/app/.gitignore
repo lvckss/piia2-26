@@ -54,3 +54,6 @@ __pycache__/
 *.py[cod]
 .ipynb_checkpoints/
 **/.ipynb_checkpoints/
+
+# informes generados con datos del paquete de la empresa (Issue #84)
+agentes/informes_reales/salida/
