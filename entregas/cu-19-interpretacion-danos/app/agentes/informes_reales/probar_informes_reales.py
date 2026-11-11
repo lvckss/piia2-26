@@ -12,8 +12,12 @@ alguna falla.
 
 from __future__ import annotations
 
+import json
 import random
+import shutil
+import subprocess
 import sys
+import tempfile
 import traceback
 from pathlib import Path
 
@@ -64,8 +68,90 @@ def probar_ac003_contexto_y_coche_de_cada_caso():
         assert set(ctx) <= set(CAMPOS_CONTEXTO) | {"vehiculo_id", "poliza_id"}, ctx
 
 
+AGENTES = Path(__file__).resolve().parent.parent
+REALES = AGENTES / "ejemplos_contrato" / "agente1_real"
+HOY = "2026-11-12"
+
+
+def _filas_resumen(destino: Path) -> list[str]:
+    return [l for l in (destino / "resumen.md").read_text(encoding="utf-8").splitlines()
+            if l.startswith("| ") and not l.startswith("| image_id") and not l.startswith("|---")]
+
+
+# --- plan #84, AC-001 y AC-002 -----------------------------------------------
+def probar_ac001_ac002_treinta_informes_y_resumen():
+    """AC-001 y AC-002: con las 30 salidas reales salen 30 informes y un
+    resumen con una fila por imagen y el reparto propio/tercero; ningun informe
+    tiene cifras que no salgan de su salida del Agente 2."""
+    sys.path[:0] = [str(AGENTES / "agente_recuperacion"), str(AGENTES / "agente_redactor")]
+    from costes_y_cobertura import estimar_siniestro
+    from informe import comprobar_cifras
+
+    with tempfile.TemporaryDirectory() as tmp:
+        destino = Path(tmp)
+        codigo = generar_informes_reales.generar(REALES, destino, hoy=HOY)
+        informes = sorted(p.name for p in destino.glob("*.md") if p.name != "resumen.md")
+        esperados = sorted(p.stem + ".md" for p in REALES.glob("*.json"))
+        assert len(esperados) == 30 and informes == esperados, informes
+        filas = _filas_resumen(destino)
+        assert len(filas) == 30, filas
+        resumen = (destino / "resumen.md").read_text(encoding="utf-8")
+        casos = generar_informes_reales.preparar_casos(
+            [json.loads(p.read_text(encoding="utf-8")) for p in REALES.glob("*.json")],
+            generar_informes_reales.leer_siniestros())
+        propios = sum(c["contexto"]["rol"] == "propio" for c in casos)
+        assert f"{propios} propios y {30 - propios} de tercero" in resumen, resumen.splitlines()[:8]
+        for caso in casos:
+            fila = next(f for f in filas if f.startswith(f"| {caso['image_id']:06d} "))
+            for dato in (caso["siniestro_id"], caso["categoria"], caso["contexto"]["vehiculo_id"]):
+                assert f"| {dato} |" in fila, (dato, fila)
+            salida2 = estimar_siniestro(caso["salida_agente1"], caso["contexto"])
+            md = (destino / f"{caso['image_id']:06d}.md").read_text(encoding="utf-8")
+            assert comprobar_cifras(md, salida2) == [], caso["image_id"]
+            columnas = [c.strip() for c in fila.strip().strip("|").split("|")]
+            assert columnas[-2:] == ["ninguna", ""], fila
+        assert codigo == 0, codigo
+
+
+# --- plan #84, AC-004 --------------------------------------------------------
+def probar_ac004_error_en_una_salida():
+    """AC-004: una salida que no pasa la validacion queda en el resumen con su
+    image_id, las demas se generan y el codigo de salida es distinto de 0."""
+    with tempfile.TemporaryDirectory() as tmp:
+        salidas, destino = Path(tmp) / "salidas", Path(tmp) / "destino"
+        salidas.mkdir()
+        shutil.copy(REALES / "000082.json", salidas / "000082.json")
+        rota = json.loads((REALES / "000341.json").read_text(encoding="utf-8"))
+        rota["vehiculo"]["vehiculo_id_referencia"] = "V999"
+        (salidas / "000341.json").write_text(json.dumps(rota), encoding="utf-8")
+        codigo = generar_informes_reales.generar(salidas, destino, hoy=HOY)
+        assert codigo != 0, codigo
+        assert (destino / "000082.md").is_file() and not (destino / "000341.md").exists()
+        fila = next(f for f in _filas_resumen(destino) if f.startswith("| 000341 "))
+        assert "V999" in fila, fila
+
+
+def probar_ac004_paquete_ausente():
+    """AC-004: sin piia2_paquete_datos/ el generador falla al importar con un
+    error que indica la ruta esperada."""
+    with tempfile.TemporaryDirectory() as tmp:
+        raiz = Path(tmp)
+        (raiz / ".git").mkdir()
+        for carpeta, archivo in (("agente_recuperacion", "costes_y_cobertura.py"), ("agente_redactor", "informe.py"),
+                                 ("informes_reales", "generar_informes_reales.py")):
+            (raiz / "agentes" / carpeta).mkdir(parents=True)
+            shutil.copy(AGENTES / carpeta / archivo, raiz / "agentes" / carpeta / archivo)
+        r = subprocess.run([sys.executable, "-c", "import generar_informes_reales"],
+                           cwd=raiz / "agentes" / "informes_reales", capture_output=True, text=True)
+        assert r.returncode != 0, "el modulo importo sin el paquete"
+        assert "ImportError" in r.stderr and "piia2_paquete_datos" in r.stderr, r.stderr[-400:]
+
+
 PRUEBAS = [
     probar_ac003_contexto_y_coche_de_cada_caso,
+    probar_ac001_ac002_treinta_informes_y_resumen,
+    probar_ac004_error_en_una_salida,
+    probar_ac004_paquete_ausente,
 ]
 
 
