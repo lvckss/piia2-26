@@ -13,6 +13,10 @@
 > [!IMPORTANT]
 > Este documento describe un **snapshot**, no acredita que el flujo completo esté implementado. Agente 1, categoría y costes tienen código integrado. El RAG tiene el plan y ADR 0006 aceptados; su implementación está en la PR #72. El informe tiene el plan v2.1 integrado y su implementación está en la PR #75. La orquestación web sigue en la propuesta [#60][pr60]. Las PR abiertas no forman parte del código integrado; documentarlas no acepta el ADR 0007 ni acredita el recorrido completo.
 
+La regla de vehículo y el mapa de carpetas se actualizan el 12 de noviembre de
+2026, conforme al [plan v1.5 de #34][orq-spec] y a la estructura de Entrega 2.
+El inventario de código y los diagramas conservan el corte indicado arriba.
+
 <p align="center">
   <a href="#01--el-sistema-en-un-vistazo">Mapa del sistema</a> ·
   <a href="#02--qué-existe-hoy">Estado real</a> ·
@@ -79,7 +83,7 @@ no cambie de significado cuando se actualice una rama.
 | RAG + `agente2()` | **Plan v1.6 integrado; implementación abierta #72** | [Spec v1.6][rag-spec] y [ADR 0006 Aceptado][adr6], #56/#67 integradas. El indexado y PostgreSQL de #72 no están en main; búsqueda y composición siguen pendientes. |
 | Agente 3 | **Plan v2.1 integrado; implementación abierta #75** | [Spec #31](specs/31-informe-peritaje.md); [`agente_redactor/`](app/agentes/agente_redactor/) solo contiene README en main. El contrato RAG ya está aceptado. #75 implementa el informe, sin procedencia de vehículo; ese AC nuevo se acuerda en #31 al fijar #34 su contrato. |
 | ADK + OpenAI | **Experimento integrado por [#52][pr52]** | [`orquestador/README.md`](app/agentes/orquestador/README.md). Acredita una tool y su cifra, no la coordinación del producto. |
-| Orquestación y web de peritaje | **Borrador abierto [#60][pr60]** | [Spec v1.3][orq-spec] y [ADR 0007 Propuesto][adr7]. Las rutas, estados y servicios nuevos no existen todavía. |
+| Orquestación y web de peritaje | **Borrador abierto [#60][pr60]** | [Spec v1.5][orq-spec] y [ADR 0007 Propuesto][adr7]. Las rutas, estados y servicios nuevos no existen todavía. |
 | Docker Compose | **Integrado para ML** | [`docker-compose.yml`](app/docker/ml-api/docker-compose.yml) levanta el servicio ML. El Compose del conjunto es parte de #34. |
 
 ### Conexiones disponibles y conexiones pendientes
@@ -191,16 +195,33 @@ sirve para estimar; no demuestra que sea el modelo fotografiado.
 Agente 1 ya devuelve la categoría y su representante; con `desconocido`, la
 referencia es `null`, sin fallback a C. Los AC-009/010 de #28 se transfirieron
 a #34/#31: la resolución y procedencia son de #34, y el aviso del informe, de #31.
-La v1.3 de [#60][orq-spec] recoge V25 fijo (BMW Serie 3) si la categoría
-válida es `desconocido` y la persona no elige coche, según decisión de Lucas
-el 2026-11-10. La selección manual sigue disponible. Propone
+La v1.5 de [#60][orq-spec] recoge **V14 fijo (Dacia Sandero)** si la categoría
+válida es `desconocido` y la persona no elige coche, conforme a la
+[corrección de Lucía tras la reunión del 2026-11-10][regla-vehiculo] y la
+[confirmación de Víctor][confirmacion-vehiculo]. La selección manual sigue
+disponible. El contrato propuesto usa
 `contexto.vehiculo_origen` con `referencia_confirmada`, `seleccion_usuario` o
-`maximo_por_defecto`, pendiente de aceptación por Víctor y adaptación de #31.
-Valor venal, pérdida total e indemnización se calculan también con V25; el
-informe debe avisar de que esa pérdida total no es fiable para el coche real.
-El plan conserva la frase de Lucía sobre el techo prudente y aclara que V25
-no garantiza ser el máximo exacto para cualquier siniestro. No modifica el
-`null` de #28 ni aplica el valor por defecto ante fallos técnicos.
+`minimo_por_defecto`; quedan pendientes la aceptación formal de Víctor sobre
+la #60 actualizada y el AC nuevo consumidor de #31.
+
+El campo es opcional para entradas anteriores: si falta, el informe trata
+`vehiculo_id` como dato de entrada y no muestra aviso de procedencia. El flujo
+nuevo CLI/web siempre lo construye y conserva. Si aparece, se valida el valor
+y su coherencia: `minimo_por_defecto` exige V14 y `referencia_confirmada` exige
+coincidir con la referencia no nula del Agente 1. Una incoherencia produce error
+explícito y evita publicar el informe final. Elegir V14 manualmente se distingue
+del valor por defecto mediante `seleccion_usuario`.
+
+Pantalla y contrato del informe usan la frase de la corrección:
+
+> Vehículo no identificado en la imagen: el presupuesto usa el vehículo de menor coste del catálogo. Es una estimación a la baja: si el taller encuentra un importe mayor, avisará a la aseguradora para revisarlo.
+
+V14 es una referencia fija a la baja; no garantiza el mínimo exacto para todos
+los siniestros ni se comparan los 27 coches en cada ejecución. Valor venal,
+pérdida total e indemnización se calculan también con V14: el informe debe avisar
+de que ese valor venal no corresponde al coche real y la pérdida total no es
+fiable. No se modifica el `null` de #28 ni se aplica el valor por defecto ante
+fallos técnicos. La propuesta sigue en revisión junto al ADR 0007.
 
 La póliza, rol, taller, región, acabado, tipo de pieza, antigüedad y kilómetros
 se recogen del contexto. Una imagen de un golpe no permite deducir esas condiciones.
@@ -755,9 +776,7 @@ Su código ilustrativo no equivale a implementación integrada.
 
 El [README del caso](README.md) describe la categoría retomada y el estado del
 hito, sin presentar la nueva UI como entregada. La ampliación desde una foto subida
-está registrada en [#34][scope34] y descrita en [#60][orq-spec]. La #79 prepara
-el README y la estructura de Entrega 2 después de integrar esta arquitectura.
-El corte de Entrega 1 ya está separado en `entrega-1`; esta PR corresponde a Entrega 2.
+está registrada en [#34][scope34] y descrita en [#60][orq-spec].
 
 ## 12 · Evolución pendiente y mapa del repositorio
 
@@ -779,6 +798,8 @@ sus diagramas contrastándolo con código y ADRs.
 cu-19-interpretacion-danos/
 ├── ARCHITECTURE.md                  ← este mapa y sus contratos
 ├── README.md                        ← problema, equipo y alcance del hito
+├── decisions/                       ← ADRs 0001–0006 en formato de la asignatura
+├── docs/adr/                        ← registro canónico e historial de ADRs
 ├── docs/architecture/                ← ilustraciones SVG editables
 ├── specs/
 │   ├── 30-costes-cobertura.md         ← plan de costes
@@ -825,8 +846,10 @@ cu-19-interpretacion-danos/
 [pr59]: https://github.com/lvckss/piia2-26/pull/59
 [pr60]: https://github.com/lvckss/piia2-26/pull/60
 [rag-spec]: https://github.com/lvckss/piia2-26/blob/8a38e02310f8cb3b5e2994684715fe34dfee4613/entregas/cu-19-interpretacion-danos/specs/32-rag-normativa.md
-[orq-spec]: https://github.com/lvckss/piia2-26/blob/d950fb6/entregas/cu-19-interpretacion-danos/specs/34-orquestacion-web.md
+[orq-spec]: https://github.com/lvckss/piia2-26/blob/c52217dbb9453190e187e390428a2f1c75fe2ee2/entregas/cu-19-interpretacion-danos/specs/34-orquestacion-web.md
 [adr1]: https://github.com/lvckss/piia2-26/blob/8a38e02310f8cb3b5e2994684715fe34dfee4613/entregas/cu-19-interpretacion-danos/docs/adr/0001-categoria-vehiculo-contrato-agente1.md
 [adr6]: https://github.com/lvckss/piia2-26/blob/8a38e02310f8cb3b5e2994684715fe34dfee4613/entregas/cu-19-interpretacion-danos/docs/adr/0006-rag-postgresql-estado-recuperacion.md
-[adr7]: https://github.com/lvckss/piia2-26/blob/d950fb6/entregas/cu-19-interpretacion-danos/docs/adr/0007-orquestacion-adk-web-efimera.md
+[adr7]: https://github.com/lvckss/piia2-26/blob/c52217dbb9453190e187e390428a2f1c75fe2ee2/entregas/cu-19-interpretacion-danos/docs/adr/0007-orquestacion-adk-web-efimera.md
 [scope34]: https://github.com/lvckss/piia2-26/issues/34#issuecomment-6426795027
+[regla-vehiculo]: https://github.com/lvckss/piia2-26/issues/34#issuecomment-6774799685
+[confirmacion-vehiculo]: https://github.com/lvckss/piia2-26/issues/34#issuecomment-6802366608
