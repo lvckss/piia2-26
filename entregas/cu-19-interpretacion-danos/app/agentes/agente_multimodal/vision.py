@@ -6,7 +6,7 @@ import io
 import json
 import re
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from PIL import Image
 
@@ -49,14 +49,60 @@ def _extraer_json(texto: str) -> dict[str, Any]:
     return {}
 
 
+# Issue #54, slice 3 (plan v1.1: https://github.com/lvckss/piia2-26/issues/54#issuecomment-6806386857).
+# AC-005: a veces el modelo devuelve un JSON valido cuya descripcion lleva alfabetos ajenos (CJK, indios, cirilico...)
+# o restos de su razonamiento en ingles; una descripcion asi no se acepta tal cual.
+_ALFABETOS_AJENOS = re.compile(
+    r"[Ѐ-ԯ֐-႟Ⴀ-ᇿ⺀-꓏가-힯豈-﫿︰-﹏＀-￯�]"
+)
+_RESTOS_DE_RAZONAMIENTO = re.compile(r"\b(Wait|Actually|Let me|Need ensure|Need to|malformed)\b")
+DESCRIPCION_DESCARTADA = "Descripcion descartada: la respuesta del modelo no era valida."
+
+# AC-013: una descripcion que situa el dano en otro vehiculo o en el fondo no puede quedar `confirmado`.
+_OTRO_VEHICULO = re.compile(
+    r"\b(otro|segundo)\s+(veh[ií]culo|coche|autom[oó]vil)\b"
+    r"|\b(veh[ií]culo|coche|autom[oó]vil)(\s+\w+){0,2}\s+(del|al|de)\s+fondo\b",
+    re.IGNORECASE,
+)
+
+
+def descripcion_corrupta(texto: str) -> bool:
+    """True si la descripcion lleva alfabetos ajenos al español o restos de razonamiento del modelo."""
+    return bool(_ALFABETOS_AJENOS.search(texto) or _RESTOS_DE_RAZONAMIENTO.search(texto))
+
+
+def descripcion_de_otro_vehiculo(texto: str) -> bool:
+    """True si la descripcion dice que la zona es de otro vehiculo o del vehiculo del fondo."""
+    return bool(_OTRO_VEHICULO.search(texto))
+
+
+def respuesta_sin_basura(texto: str) -> bool:
+    """False si la respuesta es un JSON valido con una descripcion corrupta (AC-005); el resto, incluido lo que
+    no es JSON (que ya queda `incierto`), se considera una respuesta utilizable."""
+    datos = _extraer_json(texto)
+    return not descripcion_corrupta(str(datos.get("descripcion") or ""))
+
+
 def parsear_respuesta(texto: str, catalogo: Catalogo, clase_tool: str) -> dict[str, Any]:
     """Convierte la respuesta del modelo en los campos del hallazgo,
     validandola: un veredicto, pieza o severidad fuera de lo permitido no se
     acepta (el modelo puede inventarse un `pieza_id`)."""
     datos = _extraer_json(texto)
 
+    descripcion = str(datos.get("descripcion") or "").strip()
+    if descripcion_corrupta(descripcion):
+        return {
+            "vision_verdict": "incierto",
+            "pieza_id": None,
+            "severidad": None,
+            "regla_coste_aplicable": None,
+            "vision_description": DESCRIPCION_DESCARTADA,
+        }
+
     veredicto = datos.get("veredicto")
     if veredicto not in VEREDICTOS:
+        veredicto = "incierto"
+    if veredicto == "confirmado" and descripcion_de_otro_vehiculo(descripcion):
         veredicto = "incierto"
 
     pieza_id = datos.get("pieza_id")
@@ -92,18 +138,23 @@ def consultar_modelo(
     imagenes_b64: tuple[str, ...],
     cache_dir: str | Path | None = None,
     uso: dict[str, int] | None = None,
+    valida: Callable[[str], bool] | None = None,
 ) -> str:
     """Una consulta al modelo de vision con `prompt` e `imagenes_b64` (JPEG en base64) y devuelve el texto de
     la respuesta. Con `cache_dir`, la respuesta se guarda por (modelo, prompt, imagenes) en
     `<sha256>.json` y no se vuelve a pagar la misma consulta; la clave es `sha256("|".join((modelo, prompt,
     *imagenes)))`. Si se pasa `uso`, se le suman las llamadas y los tokens realmente facturados (lo que sale
-    de la cache no cuenta): claves `llamadas`, `prompt_tokens` y `completion_tokens`."""
+    de la cache no cuenta): claves `llamadas`, `prompt_tokens` y `completion_tokens`. Si se pasa `valida`, una
+    respuesta guardada que no la cumpla se descarta y se vuelve a consultar, y una respuesta nueva que no la
+    cumpla no se guarda (Issue #54, AC-006)."""
     ruta_cache = None
     if cache_dir is not None:
         clave = hashlib.sha256("|".join((modelo, prompt, *imagenes_b64)).encode("utf-8")).hexdigest()
         ruta_cache = Path(cache_dir) / f"{clave}.json"
         if ruta_cache.exists():
-            return json.loads(ruta_cache.read_text(encoding="utf-8"))["respuesta"]
+            guardada = json.loads(ruta_cache.read_text(encoding="utf-8"))["respuesta"]
+            if valida is None or valida(guardada):
+                return guardada
 
     respuesta = client.chat.completions.create(
         model=modelo,
@@ -126,7 +177,7 @@ def consultar_modelo(
         uso["prompt_tokens"] = uso.get("prompt_tokens", 0) + int(getattr(tokens, "prompt_tokens", 0) or 0)
         uso["completion_tokens"] = uso.get("completion_tokens", 0) + int(getattr(tokens, "completion_tokens", 0) or 0)
 
-    if ruta_cache is not None:
+    if ruta_cache is not None and (valida is None or valida(texto)):
         ruta_cache.parent.mkdir(parents=True, exist_ok=True)
         ruta_cache.write_text(
             json.dumps({"modelo": modelo, "respuesta": texto}, ensure_ascii=False),
@@ -159,7 +210,10 @@ def analizar_hallazgo(
     with Image.open(finding["crop_image_path"]) as recorte:
         recorte_b64 = _jpeg_base64(recorte)
 
-    texto = consultar_modelo(client, modelo, prompt, (contexto_b64, recorte_b64), cache_dir, uso)
+    texto = consultar_modelo(client, modelo, prompt, (contexto_b64, recorte_b64), cache_dir, uso, respuesta_sin_basura)
+    if not respuesta_sin_basura(texto):
+        # descripcion corrupta: una sola repeticion (la corrupta no se guarda en la cache); si persiste, queda `incierto`
+        texto = consultar_modelo(client, modelo, prompt, (contexto_b64, recorte_b64), cache_dir, uso, respuesta_sin_basura)
     return parsear_respuesta(texto, catalogo, clase_a_tool(finding["category"]))
 
 
