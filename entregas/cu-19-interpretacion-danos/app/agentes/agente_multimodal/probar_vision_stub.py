@@ -18,7 +18,7 @@ from catalogo import Catalogo, cargar_catalogo
 from confianza import decidir_tier
 from hallazgos import cargar_detecciones, construir_hallazgos
 from recorte import generar_recortes
-from vision import analizar_hallazgo, enriquecer_con_vision, parsear_respuesta
+from vision import PROMPT_VARIANTE_ORIENTACION, analizar_hallazgo, enriquecer_con_vision, parsear_respuesta
 
 # catalogo minimo para las pruebas: no depende de tener el paquete de la empresa
 MINI_CATALOGO = Catalogo(
@@ -345,6 +345,26 @@ def probar_ac013_confirmado_en_otro_vehiculo_queda_incierto() -> None:
     assert rechazo["vision_verdict"] == "rechazado", rechazo
 
 
+def probar_ac012_analizar_con_el_prompt_de_la_variante() -> None:
+    """AC-012 (plan v1.1): `analizar_hallazgo` acepta otro prompt; por defecto el prompt no cambia, y una respuesta
+    con las dos claves nuevas (`vista` y `lado_del_coche`) se lee igual que una normal."""
+    with tempfile.TemporaryDirectory() as tmp:
+        imagen, finding = _hallazgo_de_prueba(tmp)
+        cliente = ClienteFalso()
+        analizar_hallazgo(cliente, "modelo-falso", imagen, finding, MINI_CATALOGO, prompt_template=PROMPT_VARIANTE_ORIENTACION)
+        enviado = cliente.llamadas[0]["messages"][0]["content"][0]["text"]
+        assert "lado_del_coche" in enviado and "tipo 'dent'" in enviado and "PARAG_DEL" in enviado, enviado[:200]
+
+        por_defecto = ClienteFalso()
+        analizar_hallazgo(por_defecto, "modelo-falso", imagen, finding, MINI_CATALOGO)
+        assert "lado_del_coche" not in por_defecto.llamadas[0]["messages"][0]["content"][0]["text"]
+
+    con_claves_nuevas = json.dumps({"vista": "trasera", "lado_del_coche": "derecho", "veredicto": "confirmado",
+                                    "pieza_id": "FARO_DEL_D", "severidad": "grave", "descripcion": "Faro roto."})
+    r = parsear_respuesta(con_claves_nuevas, MINI_CATALOGO, "lamp_broken")
+    assert r["vision_verdict"] == "confirmado" and r["pieza_id"] == "FARO_DEL_D" and "vista" not in r, r
+
+
 def main() -> None:
     probar_decidir_tier()
     probar_parseo()
@@ -355,6 +375,7 @@ def main() -> None:
     probar_ac006_cache_con_respuesta_corrupta()
     probar_ac006_una_respuesta_corrupta_no_se_guarda()
     probar_ac013_confirmado_en_otro_vehiculo_queda_incierto()
+    probar_ac012_analizar_con_el_prompt_de_la_variante()
     print("\nTodo ok: peticion bien formada, respuesta validada, cache y tier combinado.")
 
 
