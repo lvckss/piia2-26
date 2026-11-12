@@ -2,11 +2,11 @@
 
 - Estado: Propuesto
 - Fecha: 2026-10-27
-- Versión: propuesta v1.4 (2026-11-10); conserva v1 `733c5d0`, v1.1 `9a65c26`, v1.2 `5ed9ca6` y v1.3 `06f4c08`. Recoge las precisiones de Víctor sobre compatibilidad y validación de procedencia; mantiene V25 fijo, límites propuestos, orden CLI primero y disparador ADK.
+- Versión: propuesta v1.5 (2026-11-12); conserva v1 `733c5d0`, v1.1 `9a65c26`, v1.2 `5ed9ca6`, v1.3 `06f4c08` y v1.4 `6a6666e`. Incorpora V14 fijo/`minimo_por_defecto` y la frase de estimación a la baja; conserva compatibilidad/validación de v1.4, límites propuestos, orden CLI primero y disparador ADK.
 - GitHub Issue: https://github.com/lvckss/piia2-26/issues/34
 - Planes cubiertos: [34-orquestacion-web.md](../../specs/34-orquestacion-web.md), coordinación, frontera web/Python, estado temporal y Compose.
 - Planning PR: https://github.com/lvckss/piia2-26/pull/60 — draft.
-- Aceptación: pendiente de revisión humana del documento completo y sus alternativas. Víctor acepta el formato de procedencia v1.3 y fija dos precisiones en [su comentario](https://github.com/lvckss/piia2-26/pull/60#issuecomment-6773699753), recogidas en v1.4; esa aceptación de consumidor no acepta el conjunto del ADR. Las decisiones de producto de Lucas tampoco equivalen a aceptarlo.
+- Aceptación: pendiente de revisión humana del documento completo y sus alternativas. Las [precisiones de Víctor](https://github.com/lvckss/piia2-26/pull/60#issuecomment-6773699753) sobre compatibilidad y validación de v1.4 se conservan. Víctor [confirma V14/`minimo_por_defecto`](https://github.com/lvckss/piia2-26/issues/34#issuecomment-6802366608), pero reserva su aceptación formal para la #60 actualizada. Ninguna de esas confirmaciones acepta el conjunto del ADR.
 - Sustituye / sustituido por: no sustituye un ADR aceptado. Reutiliza las responsabilidades base de los ADRs 0002–0005; se apoya en #28/ADR 0001 y #32/ADR 0006 ya aceptados en main. El contrato nuevo de procedencia requiere revisión propia.
 
 ## Contexto y motivación
@@ -20,13 +20,16 @@ Lucas ha elegido ADK y un recorrido desde una pestaña de la web: subir una
 imagen, ver los daños sin editarlos, confirmar/corregir el vehículo, completar
 datos y mostrar/descargar Markdown. Ha elegido no tener historial. #28/#69 y
 ADR 0001 ya están integrados: `desconocido` entrega referencia nula y los
-AC-009/010 se transfirieron a #34/#31. Lucas decide el 2026-11-10 usar V25 fijo
-si el vehículo es `desconocido` y la persona no elige, sobre las propuestas de
-Lucía y Víctor registradas en #34. Los fallos técnicos detienen el flujo.
+AC-009/010 se transfirieron a #34/#31. La corrección comunicada por Lucía tras
+la reunión con el profesorado del 2026-11-10 sustituye V25/máximo por V14 fijo
+(Dacia Sandero) si la categoría es `desconocido` y la persona no elige. Víctor
+confirma `minimo_por_defecto` con las precisiones de v1.4. Las referencias al
+cambio y a la regla anterior se conservan en la Spec y su historial.
+Los fallos técnicos detienen el flujo.
 La regla vive en una sola función del orquestador para CLI y web; #30 recibe
-siempre vehículo válido. Víctor acepta el formato de procedencia con
-compatibilidad para entradas anteriores y validaciones explícitas, como se
-recoge abajo; el plan completo y este ADR siguen Propuestos.
+siempre vehículo válido. Se conservan compatibilidad para entradas anteriores
+y validaciones explícitas; falta la aceptación formal de Víctor sobre el
+contrato actualizado. El plan completo sigue Borrador y este ADR Propuesto.
 
 La web y backend son React/Bun/Hono; los agentes son Python. PIIA 1 ya ofrece
 `POST /v1/damage-assessment` con archivo, pero su JSON necesita adaptación al
@@ -62,27 +65,30 @@ previos no cubren esa frontera ni este recorrido.
 4. **Cálculos y procedencia preservados.** Resolver `vehiculo_id` antes de #30,
    conservar findings y cifras y comprobar el informe antes de publicarlo.
    #34 propone `contexto.vehiculo_origen`: `referencia_confirmada`,
-   `seleccion_usuario` o `maximo_por_defecto`; no un objeto separado. Para
+   `seleccion_usuario` o `minimo_por_defecto`; no un objeto separado. Para
    categoría válida `desconocido` sin elección, una función común CLI/web
-   resuelve V25 fijo y construye el origen en servidor. V25 calcula también
+   resuelve V14 fijo y construye el origen en servidor. V14 calcula también
    valor venal, pérdida total e indemnización; la pérdida total no es fiable
-   para el coche real. No se calcula el máximo exacto entre los 27 modelos.
+   para el coche real. No se calcula el mínimo exacto entre los 27 modelos;
+   V14 es una referencia fija y no garantiza ese mínimo para cada siniestro.
    La predicción `vehiculo` queda intacta, incluida su referencia nula.
    Para compatibilidad, `vehiculo_origen` es opcional en entradas anteriores
    al consumidor: si falta, #31 trata `vehiculo_id` como dato de entrada y no
    muestra aviso de procedencia. El flujo nuevo CLI/web siempre lo construye
    y transporta; no se infiere el origen por el ID del coche a solas.
-   Si viene, solo admite los tres valores: `maximo_por_defecto` exige V25 y
+   El valor anterior `maximo_por_defecto` queda fuera del enum y se rechaza.
+   Si viene, solo admite los tres valores: `minimo_por_defecto` exige V14 y
    `referencia_confirmada` exige coincidencia con
    `agente1.vehiculo.vehiculo_id_referencia`, no nula. Valor fuera del enum o
    incoherencia → excepción explícita de #31 que nombra el campo/ID; #34
    comunica `CONTRATO_INVALIDO` en informe, sin publicación/descarga final.
-   Una selección expresa de V25 sigue siendo `seleccion_usuario`, válida y
+   Una selección expresa de V14 sigue siendo `seleccion_usuario`, válida y
    distinta del valor por defecto. #31 debe añadir su AC nuevo con aviso,
    compatibilidad y validación, sin reutilizar el retirado.
    Pantalla e informe conservan la frase literal y el aviso adicional de la
-   Spec. Víctor acepta el formato y fija estas dos precisiones en el comentario
-   enlazado; no se presenta esa aceptación como aprobación global de este ADR. Conservar el
+   Spec, incluida la limitación del mínimo fijo. La regla V14/`minimo_por_defecto`
+   está confirmada por Víctor con las dos precisiones; falta su aceptación formal
+   sobre la actualización y no equivale a aprobar este ADR. Conservar el
    `diagnostico_rag` acordado con #32/#31 y sus avisos preliminares.
 5. **Estado efímero, sin historial de casos.** Mantener estado y artefactos
    temporales hasta descarga/descartado/caducidad, sin tablas de casos ni su
@@ -131,14 +137,17 @@ previos no cubren esa frontera ni este recorrido.
 
 - La integración pasa a tener dos fronteras explícitas: HTTP web/Python y los
   JSON entre agentes. Cada una se prueba sin utilizar mocks de funciones privadas.
-- Categoría #28/ADR 0001 y RAG #32/ADR 0006 están aceptados e integrados;
-  #72/#75 siguen abiertos. No se presenta el índice, `agente2()` ni el informe
-  como entregados en main por el hecho de tener planes aceptados.
-- El formato de procedencia tiene la aceptación de Víctor con las dos
-  precisiones recogidas aquí; su AC nuevo consumidor de #31 y la revisión
-  global del plan/ADR siguen pendientes. La política fija V25 fue elegida por Lucas; la frase «vehículo de
-  mayor coste» de Lucía se conserva por instrucción, con la limitación explícita
-  de que V25 no es necesariamente el máximo exacto para cualquier siniestro.
+- Categoría #28/ADR 0001 y RAG #32/ADR 0006 están aceptados e integrados.
+  En `main` `3c73e83`, el informe #75 y el plan RAG v1.7 de #80 ya están
+  integrados; #72 sigue abierta. Esto no acredita el recorrido ADK completo
+  ni la adaptación del informe al contrato de procedencia de v1.5.
+- La regla V14/`minimo_por_defecto` confirmada por Víctor conserva las dos
+  precisiones de v1.4. Su aceptación formal, el AC nuevo consumidor de #31 y
+  la revisión global del plan/ADR siguen pendientes. La frase de estimación a
+  la baja sustituye el «techo prudente». Según la medición publicada por Lucía,
+  V14 es el mínimo en 209 de 249 casos y V24 en 40; V14 queda hasta un 2,6 %
+  por encima del mínimo exacto. Es evidencia publicada, no reevaluada aquí;
+  no convierte V14 en el mínimo exacto universal ni su valor venal en el real.
 - Los temporales necesitan limpieza y límites documentados; la base del
   explorador y el índice RAG conservan su persistencia. Sin historial no implica
   borrar esos datos ni eliminar el resultado antes de poder descargarlo.
@@ -164,10 +173,10 @@ previos no cubren esa frontera ni este recorrido.
 - [RAG v1.6](https://github.com/lvckss/piia2-26/blob/8a38e02310f8cb3b5e2994684715fe34dfee4613/entregas/cu-19-interpretacion-danos/specs/32-rag-normativa.md), ADR 0006 Aceptado;
   [categoría v1.3.2](https://github.com/lvckss/piia2-26/blob/8a38e02310f8cb3b5e2994684715fe34dfee4613/entregas/cu-19-interpretacion-danos/specs/28-categoria-vehiculo.md), ADR 0001 Aceptado;
   [informe v2.1](https://github.com/lvckss/piia2-26/blob/8a38e02310f8cb3b5e2994684715fe34dfee4613/entregas/cu-19-interpretacion-danos/specs/31-informe-peritaje.md).
-- Decisiones de [Lucía](https://github.com/lvckss/piia2-26/issues/34#issuecomment-6611207541),
-  [Víctor](https://github.com/lvckss/piia2-26/issues/34#issuecomment-6657185939) y
-  [frase literal](https://github.com/lvckss/piia2-26/issues/34#issuecomment-6736461374).
-  La v1.3 recoge además la elección de Lucas de V25 fijo en sesión del 2026-11-10.
+- [Corrección de Lucía y frase de estimación a la baja](https://github.com/lvckss/piia2-26/issues/34#issuecomment-6774799685)
+  y [confirmación de Víctor de V14/`minimo_por_defecto`](https://github.com/lvckss/piia2-26/issues/34#issuecomment-6802366608).
+  La política anterior V25/`maximo_por_defecto` y el «techo prudente» quedan
+  conservados como historial en v1.3 `06f4c08` y v1.4 `6a6666e`, sustituidos por v1.5.
 - [ADK: secuencia nativa](https://adk.dev/agents/workflow-agents/sequential-agents/)
   y [agentes personalizados](https://adk.dev/agents/custom-agents/), consultadas
   el 2026-10-26. La compatibilidad de las versiones de producto se comprobará
