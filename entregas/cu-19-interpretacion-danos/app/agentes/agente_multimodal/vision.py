@@ -30,6 +30,29 @@ Responde SOLO con un objeto JSON con estas claves:
 Para el lado (izquierdo/derecho) y delantero/trasero fijate en la imagen completa; izquierdo y derecho son los del vehiculo, no los de la foto. Si no puedes distinguir la pieza con seguridad, responde "incierto" en vez de adivinar."""
 
 
+# Issue #54, slice 5 (AC-012, plan v1.1): variante del prompt que pide la orientacion del vehiculo antes de elegir la
+# pieza. Es un experimento: solo se adopta si cumple el criterio fijado en
+# https://github.com/lvckss/piia2-26/issues/54#issuecomment-6820567012 (se evalua con `evaluar_lado.py`).
+PROMPT_VARIANTE_ORIENTACION = """\
+Eres un perito de danos de vehiculos. Un sistema automatico de deteccion ha marcado, con el rectangulo rojo de la primera imagen, un posible dano de tipo '{categoria}'. La segunda imagen es un recorte ampliado de esa zona.
+
+Antes de elegir la pieza, fijate en la imagen completa y determina desde donde esta hecha la foto y a que lado del coche pertenece la zona marcada. Izquierdo y derecho son los del vehiculo (el lado izquierdo es el de la mano izquierda del conductor sentado al volante mirando hacia delante), no los de la foto:
+- En una vista trasera (se ve el maletero o los pilotos), el lado izquierdo del coche queda a la izquierda de la foto.
+- En una vista delantera (se ven los faros, el capo o la parrilla), el lado izquierdo del coche queda a la derecha de la foto.
+- En una vista lateral, si el morro del coche apunta hacia la izquierda de la foto se ve su lado izquierdo, y si apunta hacia la derecha se ve su lado derecho.
+
+Responde SOLO con un objeto JSON con estas claves, en este orden:
+- "vista": "delantera", "trasera", "lateral" o "sin_referencias" (primer plano en el que no se distingue).
+- "lado_del_coche": "izquierdo", "derecho" o "no_se_sabe".
+- "veredicto": "confirmado" si en la zona marcada hay de verdad un dano de ese tipo, "rechazado" si no lo hay (falso positivo), "incierto" si no se puede asegurar.
+- "pieza_id": la pieza danada, elegida EXACTAMENTE de esta lista (null si el veredicto es "rechazado"); su lado debe ser coherente con "lado_del_coche":
+{piezas}
+- "severidad": "leve", "moderado" o "grave" (null si el veredicto es "rechazado").
+- "descripcion": 1-2 frases en espanol sobre lo que ves.
+
+Si no puedes distinguir la pieza o su lado con seguridad, responde "incierto" en vez de adivinar."""
+
+
 def _jpeg_base64(imagen: Image.Image) -> str:
     buffer = io.BytesIO()
     imagen.convert("RGB").save(buffer, format="JPEG", quality=90)
@@ -194,6 +217,7 @@ def analizar_hallazgo(
     catalogo: Catalogo,
     cache_dir: str | Path | None = None,
     uso: dict[str, int] | None = None,
+    prompt_template: str = PROMPT_TEMPLATE,
 ) -> dict[str, Any]:
     """Segunda opinion de un modelo con vision sobre un hallazgo de PIIA-1.
 
@@ -202,8 +226,9 @@ def analizar_hallazgo(
     vuelve a pagar la misma consulta. Si se pasa `uso`, se le suman las
     llamadas y los tokens realmente facturados (lo que sale de la cache no
     cuenta): claves `llamadas`, `prompt_tokens` y `completion_tokens`.
+    `prompt_template` permite probar otro prompt (Issue #54, AC-012); por defecto es el de siempre.
     """
-    prompt = PROMPT_TEMPLATE.format(
+    prompt = prompt_template.format(
         categoria=finding["category"], piezas=lista_piezas_para_prompt(catalogo)
     )
     contexto_b64 = _jpeg_base64(imagen_con_caja(imagen, finding["bbox_xywh"]))
