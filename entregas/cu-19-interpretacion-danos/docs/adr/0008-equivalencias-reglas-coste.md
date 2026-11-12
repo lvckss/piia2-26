@@ -4,7 +4,7 @@
 - Fecha: 2026-11-12
 - GitHub Issue: https://github.com/lvckss/piia2-26/issues/88
 - Planes cubiertos (Issue/mini-spec/Spec): [entregas/cu-19-interpretacion-danos/specs/88-equivalencias-reglas-coste.md](../../specs/88-equivalencias-reglas-coste.md) — el comportamiento de los Agentes 1, 2 y 3 ante un hallazgo cuya combinación de clase, zona y severidad no tiene regla en `reglas_dano.csv`.
-- Planning PR: <completar al abrirla>
+- Planning PR: [#89](https://github.com/lvckss/piia2-26/pull/89)
 - Aceptación: <revisor y referencia de revisión; completar al aceptar>
 - Sustituye / sustituido por: amplía el [ADR 0004](0004-herramienta-costes-datos-empresa.md) (punto 3 y primer coste de sus consecuencias) sin sustituirlo; el resto del 0004 sigue vigente.
 
