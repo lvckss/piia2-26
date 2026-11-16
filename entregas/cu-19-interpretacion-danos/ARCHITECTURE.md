@@ -11,11 +11,14 @@
 | CU-19 · PIIA2 · Plexus | [`main` · `8a38e02`](https://github.com/lvckss/piia2-26/tree/8a38e02310f8cb3b5e2994684715fe34dfee4613) · 10 de noviembre de 2026 | Componentes existentes y evolución propuesta, identificados por separado. |
 
 > [!IMPORTANT]
-> Este documento describe un **snapshot**, no acredita que el flujo completo esté implementado. Agente 1, categoría y costes tienen código integrado. El RAG tiene el plan y ADR 0006 aceptados; su implementación está en la PR #72. El informe tiene el plan v2.1 integrado y su implementación está en la PR #75. La orquestación web sigue en la propuesta [#60][pr60]. Las PR abiertas no forman parte del código integrado; documentarlas no acepta el ADR 0007 ni acredita el recorrido completo.
+> Este documento describe un **snapshot**, no acredita que el flujo completo esté implementado. Agente 1, categoría y costes tienen código integrado. El RAG tiene el plan y ADR 0006 aceptados; su implementación está en la PR #72. El informe tiene el plan v2.1 y su implementación integrados por [#75][pr75] el 10 de noviembre (`4260b2c`). La orquestación web sigue en la propuesta [#60][pr60]. Las PR abiertas no forman parte del código integrado; documentarlas no acepta el ADR 0007 ni acredita el recorrido completo.
 
 La regla de vehículo y el mapa de carpetas se actualizan el 12 de noviembre de
 2026, conforme al [plan v1.5 de #34][orq-spec] y a la estructura de Entrega 2.
 El inventario de código y los diagramas conservan el corte indicado arriba.
+**Actualización del Agente 3, 16 de noviembre:** su fila, dependencia de
+integración y mapa de carpetas reflejan la implementación incorporada por #75,
+posterior a ese corte. Los diagramas conservan el snapshot histórico.
 
 <p align="center">
   <a href="#01--el-sistema-en-un-vistazo">Mapa del sistema</a> ·
@@ -81,7 +84,7 @@ no cambie de significado cuando se actualice una rama.
 | Categoría de vehículo | **Código integrado por #69; plan v1.3.2 en main** | [#28][i28] / [#29][pr29] y [ADR 0001 Aceptado][adr1]. Agente 1 entrega `vehiculo`; `desconocido` lleva `vehiculo_id_referencia: null`. La resolución del vehículo y procedencia corresponden a #34; el aviso del informe, a #31. |
 | Costes y cobertura | **Código integrado por [#59][pr59]** | [`estimar_siniestro`](app/agentes/agente_recuperacion/costes_y_cobertura.py) produce ambos escenarios. Devuelve `normativa: []`. |
 | RAG + `agente2()` | **Plan v1.6 integrado; implementación abierta #72** | [Spec v1.6][rag-spec] y [ADR 0006 Aceptado][adr6], #56/#67 integradas. El indexado y PostgreSQL de #72 no están en main; búsqueda y composición siguen pendientes. |
-| Agente 3 | **Plan v2.1 integrado; implementación abierta #75** | [Spec #31](specs/31-informe-peritaje.md); [`agente_redactor/`](app/agentes/agente_redactor/) solo contiene README en main. El contrato RAG ya está aceptado. #75 implementa el informe, sin procedencia de vehículo; ese AC nuevo se acuerda en #31 al fijar #34 su contrato. |
+| Agente 3 | **Plan v2.1 e implementación integrados por [#75][pr75] el 10 de noviembre** | [Spec #31](specs/31-informe-peritaje.md); [`informe.py`](app/agentes/agente_redactor/informe.py) implementa `generar_informe` y `comprobar_cifras`, con [`probar_informe.py`](app/agentes/agente_redactor/probar_informe.py). La procedencia de vehículo sigue pendiente del AC nuevo de #31 al fijar #34 su contrato. |
 | ADK + OpenAI | **Experimento integrado por [#52][pr52]** | [`orquestador/README.md`](app/agentes/orquestador/README.md). Acredita una tool y su cifra, no la coordinación del producto. |
 | Orquestación y web de peritaje | **Borrador abierto [#60][pr60]** | [Spec v1.5][orq-spec] y [ADR 0007 Propuesto][adr7]. Las rutas, estados y servicios nuevos no existen todavía. |
 | Docker Compose | **Integrado para ML** | [`docker-compose.yml`](app/docker/ml-api/docker-compose.yml) levanta el servicio ML. El Compose del conjunto es parte de #34. |
@@ -783,7 +786,7 @@ está registrada en [#34][scope34] y descrita en [#60][orq-spec].
 | Siguiente integración | Dependencia verificable |
 |---|---|
 | Completar RAG y `agente2()` | Plan/ADR ya aceptados; completar búsqueda, composición y evaluación en #72, y verificar DoD de #32. |
-| Implementar el informe | DoR y contrato RAG ya acreditados; revisar #75, lectura humana del informe e integración. |
+| Conectar el informe al recorrido web | Generador y comprobador ya integrados por [#75][pr75] (`4260b2c`, 10 de noviembre); quedan el contrato de procedencia y su AC nuevo de #31, el cableado de #34 y la lectura humana de los informes del recorrido integrado. |
 | Conectar categoría y confirmación | Categoría ya integrada en #69; revisar contrato de procedencia de #34 y adaptación de #31 con su AC nuevo. |
 | Conectar la pestaña de peritaje | Revisión/aceptación de #60 y ADR 0007; contratos acordados y componentes disponibles para integración final. |
 | Levantar el conjunto con Compose | Rutas de datos configurables, servicios conectados, preparación explícita e instrucciones verificadas. |
@@ -808,7 +811,7 @@ cu-19-interpretacion-danos/
     ├── agentes/
     │   ├── agente_multimodal/        ← Agente 1 integrado
     │   ├── agente_recuperacion/      ← costes integrados; RAG pendiente
-    │   ├── agente_redactor/          ← README; implementación pendiente
+    │   ├── agente_redactor/          ← informe.py y probar_informe.py integrados por #75
     │   ├── ejemplos_contrato/        ← fronteras JSON y lote real
     │   └── orquestador/              ← experimento ADK, no flujo productivo
     ├── frontend/                    ← explorador React
@@ -845,6 +848,7 @@ cu-19-interpretacion-danos/
 [pr58]: https://github.com/lvckss/piia2-26/pull/58
 [pr59]: https://github.com/lvckss/piia2-26/pull/59
 [pr60]: https://github.com/lvckss/piia2-26/pull/60
+[pr75]: https://github.com/lvckss/piia2-26/pull/75
 [rag-spec]: https://github.com/lvckss/piia2-26/blob/8a38e02310f8cb3b5e2994684715fe34dfee4613/entregas/cu-19-interpretacion-danos/specs/32-rag-normativa.md
 [orq-spec]: https://github.com/lvckss/piia2-26/blob/c52217dbb9453190e187e390428a2f1c75fe2ee2/entregas/cu-19-interpretacion-danos/specs/34-orquestacion-web.md
 [adr1]: https://github.com/lvckss/piia2-26/blob/8a38e02310f8cb3b5e2994684715fe34dfee4613/entregas/cu-19-interpretacion-danos/docs/adr/0001-categoria-vehiculo-contrato-agente1.md
