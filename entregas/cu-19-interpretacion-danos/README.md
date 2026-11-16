@@ -21,7 +21,7 @@
   <a href="#equipo">Equipo</a>
 </p>
 
-<p>Proyecto Integrador de IA II · Universidade de Santiago de Compostela · Plexus</p>
+<p>Proyecto Integrador de IA II · <a href="https://www.usc.gal/es">Universidad de Santiago de Compostela</a> · <a href="https://www.plexus.es/">Plexus Tech</a></p>
 
 </div>
 
@@ -30,7 +30,7 @@
 Estamos construyendo un prototipo para ayudar a un perito o tramitador a revisar
 los daños de un vehículo. Partimos de una foto, contrastamos las detecciones con
 un modelo de visión y calculamos el coste de reparación y la cobertura con las
-reglas de Plexus. El informe reúne los hallazgos, las dudas y las fuentes
+reglas de Plexus Tech. El informe reúne los hallazgos, las dudas y las fuentes
 consultadas para que una persona pueda revisarlos.
 
 La idea es separar lo que vemos de lo que podemos presupuestar: un daño dudoso
@@ -46,7 +46,7 @@ sigue siendo dudoso, y cada importe sale de la herramienta de costes.
 
 La inspección manual de daños requiere tiempo. Además, una detección automática puede ser un falso positivo: en las 500 imágenes analizadas de CarDD, las predicciones iniciales con score ≥ 0,3 presentan una precisión inferior al 15 % por clase (medición y límites en [confianza de los hallazgos](specs/agente-confianza-hallazgos.md)). Convertirlas directamente en afirmaciones económicas produciría presupuestos con daños no confirmados.
 
-Queremos estudiar si una segunda opinión de visión y una separación explícita entre hallazgos confirmados, pendientes y rechazados permiten elaborar un informe más claro y trazable. Las cifras se calculan mediante la herramienta de Plexus, no las inventa un modelo de lenguaje. El RAG aporta los textos que respaldan las conclusiones y el informe declara cuándo faltan fuentes.
+Queremos estudiar si una segunda opinión de visión y una separación explícita entre hallazgos confirmados, pendientes y rechazados permiten elaborar un informe más claro y trazable. Las cifras se calculan mediante la herramienta de Plexus Tech, no las inventa un modelo de lenguaje. El RAG aporta los textos que respaldan las conclusiones y el informe declara cuándo faltan fuentes.
 
 El destinatario es una persona que revisa el siniestro. El prototipo no sustituye su criterio ni toma decisiones vinculantes.
 
@@ -69,7 +69,7 @@ El recorrido objetivo es:
 2. **Interpretar los daños:** pieza, severidad, veredicto de visión, caja y nivel de confianza. Los hallazgos se muestran sin edición; los dudosos no se presentan como confirmados.
 3. **Proponer una categoría de vehículo y un coche de referencia.** La persona confirma o corrige la elección. Si el vehículo es `desconocido`, el presupuesto usa el vehículo de menor coste del catálogo, como hacen las aseguradoras y los peritos; si en el taller el importe resulta mayor, se avisa a la aseguradora (decisión con el profesorado del 10 de noviembre). En un parte real la categoría es un dato obligatorio, así que este caso solo aparece en el prototipo con foto; cómo puede la persona elegir otro coche se fija en la spec de orquestación. Un fallo técnico de la consulta detiene el flujo. No se identifica la marca y el modelo reales por la foto.
 4. **Completar el contexto del siniestro:** vehículo elegido, taller, región, rol y demás datos necesarios; póliza cuando corresponda. El cálculo exige un `vehiculo_id` válido antes de empezar.
-5. **Calcular dos escenarios de reparación, cobertura e indemnización:** solo daños confirmados y confirmados más pendientes presupuestables. Las reglas y los importes proceden del cálculo determinista con el paquete sintético de Plexus.
+5. **Calcular dos escenarios de reparación, cobertura e indemnización:** solo daños confirmados y confirmados más pendientes presupuestables. Las reglas y los importes proceden del cálculo determinista con el paquete sintético de Plexus Tech.
 6. **Recuperar pólizas y legislación con fuentes**, filtrando por póliza cuando proceda. Se compararán embeddings small y large; la planificación del RAG fija PostgreSQL/pgvector local y su evaluación con 25 preguntas.
 7. **Generar, comprobar, mostrar y descargar el informe Markdown.** Se distinguen los dos escenarios, las dudas y los límites de las fuentes; un importe inconsistente impide publicarlo.
 
@@ -87,12 +87,12 @@ Queda fuera del alcance:
 - ampliar en esta versión el RAG a un motor completo de exclusiones y plazos: queda como evolución requerida, separada del respaldo documental inicial;
 - garantizar fiabilidad en daños que el detector no proponga o en condiciones no cubiertas por la evaluación.
 
-Los vehículos, precios, tiempos de reparación y pólizas de Plexus son **sintéticos**; la legislación es real. Las cifras de reparación y cobertura son orientativas y no vinculantes. Recuperar una cita no equivale a verificar una conclusión. Si faltan fuentes suficientes, el informe lo advierte expresamente y requiere revisión.
+Los vehículos, precios, tiempos de reparación y pólizas de Plexus Tech son **sintéticos**; la legislación es real. Las cifras de reparación y cobertura son orientativas y no vinculantes. Recuperar una cita no equivale a verificar una conclusión. Si faltan fuentes suficientes, el informe lo advierte expresamente y requiere revisión.
 
 </details>
 
 > [!IMPORTANT]
-> Trabajamos con vehículos, precios y pólizas sintéticos de Plexus; la legislación es real. Las estimaciones son orientativas y requieren revisión humana. Una cita recuperada tampoco garantiza que una conclusión sea correcta.
+> Trabajamos con vehículos, precios y pólizas sintéticos de Plexus Tech; la legislación es real. Las estimaciones son orientativas y requieren revisión humana. Una cita recuperada tampoco garantiza que una conclusión sea correcta.
 
 ## Primeros pasos
 
