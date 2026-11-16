@@ -54,7 +54,7 @@
       "finding_id": "160-3",
       "category": "dent",
       "clase_tool": "dent",
-      "score": 0.68,
+      "score": 0.28,
       "score_tier": "needs_review",
       "confidence_tier": "needs_review",
       "bbox_xywh": [
@@ -94,7 +94,7 @@
       "finding_id": "160-5",
       "category": "scratch",
       "clase_tool": "scratch",
-      "score": 0.55,
+      "score": 0.29,
       "score_tier": "needs_review",
       "confidence_tier": "needs_review",
       "bbox_xywh": [

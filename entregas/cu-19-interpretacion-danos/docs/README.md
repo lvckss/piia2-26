@@ -1,43 +1,47 @@
-# Documentación de CU-19
+# Documentación de apoyo de CU-19
 
-La documentación del equipo se entrega dentro de la carpeta del caso:
+La puerta de entrada es el [README del proyecto](../README.md). Las
+[specs funcionales](../specs/) contienen la definición presentada en la Entrega 1; la
+[arquitectura](../ARCHITECTURE.md) y los [ADRs](../decisions/) son la Entrega 2. Este
+directorio reúne sus decisiones y antecedentes.
 
-- [Workflow de planificación, desarrollo y revisión](workflow.md).
-- [Registro de decisiones arquitectónicas](adr/README.md), con los ADRs aceptados y su evidencia.
-- [Template de ADR](adr/template.md) y [template de Spec](templates/spec-template.md).
-- [Specs del proyecto](../specs/) y [documentación de la aplicación](../app/docs/README.md).
+- [Registro de ADRs](adr/README.md): 0001–0006 aceptados con sus revisiones;
+  [0007 de orquestación](https://github.com/lvckss/piia2-26/pull/60), Propuesto (PR #60). [`decisions/`](../decisions/) es la
+  copia de 0001–0006 en el formato de la asignatura.
+- [Workflow](workflow.md), [template de Spec](templates/spec-template.md) y
+  [template de ADR](adr/template.md): procedimientos del equipo.
+- [Diseño previo multiagente](piia2-arquitectura-multiagente.md): contexto del
+  reparto y de los contratos anteriores.
+- Guías anteriores: [costes](guias/agente2-costes-cobertura-guia.md),
+  [RAG](guias/agente2-rag-normativa-guia.md),
+  [informe](guias/agente3-informe-guia.md) y
+  [ADK](guias/integracion-adk-guia.md). Conservan ejemplos de versiones previas;
+  la guía antigua del RAG usa ChromaDB, mientras la spec vigente usa PostgreSQL.
+- Antecedentes: [validación de scores](historico/14-validar-scores-confianza.md),
+  [registro de decisiones previas](historico/37-adrs-decisiones-previas.md) y
+  [robustez de PIIA1](historico/mejora-robustez-tipos-vehiculo.md).
 
-## Ubicaciones vigentes y referencias históricas
+## Mapa de rutas de esta edición
 
-Lucas solicitó el 2026-11-02 que la documentación añadida por el equipo forme
-parte de `entregas/cu-19-interpretacion-danos/`, porque la raíz corresponde al
-repositorio de la asignatura. El [registro de esta reorganización](https://github.com/lvckss/piia2-26/issues/64#issuecomment-6576805544)
-conserva sus antecedentes y el alcance documental.
-
-| Ubicación anterior, desde la raíz del repo | Ubicación vigente, desde la raíz del repo |
+| Ubicación anterior | Ubicación en la entrega |
 |---|---|
-| `docs/workflow.md` | `entregas/cu-19-interpretacion-danos/docs/workflow.md` |
-| `docs/adr/` | `entregas/cu-19-interpretacion-danos/docs/adr/` |
-| `docs/templates/` | `entregas/cu-19-interpretacion-danos/docs/templates/` |
+| `docs/` en la raíz del fork | `docs/` dentro de la carpeta del caso |
+| `specs/*-guia.md` | `docs/guias/` |
+| `specs/piia2-arquitectura-multiagente.md` | `docs/piia2-arquitectura-multiagente.md` |
+| Planes 14/37 y mejora histórica de PIIA1 en `specs/` | `docs/historico/` |
 
-Este es el único registro documental vigente del caso. Se trasladan los diez
-documentos existentes y se añade este índice. Los nuevos ADRs se crean en
-`docs/adr/` dentro del caso, con sus números y referencias de planificación.
+Se conservan numeración, IDs de AC, autores y revisiones de las versiones fuente.
+Los enlaces fijados a commits históricos mantienen sus rutas de entonces. La
+reorganización no acepta diseños nuevos ni elimina gates de implementación; los
+metadatos de aceptación se refieren a las versiones citadas, no atribuyen una
+aprobación nueva a esta edición documental de la entrega.
 
-Las decisiones, estados de aceptación, autores, revisiones e IDs de AC existentes
-se conservan. Los enlaces fijados a commits históricos mantienen las rutas de
-esos commits: acreditan lo revisado entonces. Las menciones a la ubicación
-anterior en planes históricos, en particular la #37, se interpretan con este
-mapa; la solicitud de Lucas actualiza la ubicación del registro, no las
-decisiones técnicas ni sus requisitos de revisión. Los compromisos de entrega
-de la #49 se mantienen y no se presentan como completados por el traslado.
+La definición funcional de la web está incluida como propuesta. Siguen pendientes
+la revisión de #34/ADR 0007, el formato compartido de procedencia del vehículo y
+su adaptación al informe. El proyecto no se declara listo para implementar esos
+contratos por haberlos presentado en la asignatura.
 
-Las rutas `docs/polizas_sinteticas/` y `docs/legal/` pertenecen al paquete de
-datos de Plexus. Sus referencias y las fuentes de los informes se conservan;
-no describen esta carpeta de documentación del equipo.
-
-`AGENTS.md` y las skills siguen siendo puntos de entrada del repositorio y
-enlazan estos documentos. El workflow enlaza una versión fijada de esas
-herramientas y de las plantillas de GitHub en el fork del equipo, para que
-sus referencias sigan disponibles al entregar solo la carpeta del caso.
-Las reglas y sus requisitos no cambian por la reubicación.
+Las rutas `docs/polizas_sinteticas/` y `docs/legal/` del paquete de Plexus no
+pertenecen a esta carpeta y se mantienen sin cambios. Los documentos de workflow
+que enlazan herramientas del fork usan versiones fijadas para que sigan siendo
+consultables fuera de ese repositorio.

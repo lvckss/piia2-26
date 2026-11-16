@@ -91,8 +91,8 @@
       "category": "crack",
       "clase_tool": "crack",
       "score": 0.332275390625,
-      "score_tier": "needs_review",
-      "confidence_tier": "needs_review",
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
       "bbox_xywh": [
         563.0,
         435.0,
@@ -111,7 +111,7 @@
       "category": "scratch",
       "clase_tool": "scratch",
       "score": 0.3125,
-      "score_tier": "needs_review",
+      "score_tier": "confirmed",
       "confidence_tier": "needs_review",
       "bbox_xywh": [
         469.0,

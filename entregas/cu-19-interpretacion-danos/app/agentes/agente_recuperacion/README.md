@@ -4,7 +4,7 @@ Dos piezas en esta carpeta, con dos responsables y un único punto de contacto.
 
 | Pieza | Responsable | Guía |
 |---|---|---|
-| **Costes y cobertura**: convierte los hallazgos del Agente 1 en dos presupuestos con la tool de la empresa (`piia2_paquete_datos/scripts/estimar_coste.py`) y calcula pérdida total, cobertura e indemnización. Fichero: `costes_y_cobertura.py`. | Víctor | [`agente2-costes-cobertura-guia.md`](../../../specs/agente2-costes-cobertura-guia.md) |
+| **Costes y cobertura**: convierte los hallazgos del Agente 1 en dos presupuestos con la tool de la empresa (`piia2_paquete_datos/scripts/estimar_coste.py`) y calcula pérdida total, cobertura e indemnización. Fichero: `costes_y_cobertura.py`. | Víctor | [`agente2-costes-cobertura-guia.md`](../../../docs/guias/agente2-costes-cobertura-guia.md) |
 | **Normativa (RAG)**: PostgreSQL/pgvector compartida con el explorador. Indexado y búsqueda de pólizas y legislación; evaluación de 25 preguntas pendiente. | Lucas | [Spec 32](../../../specs/32-rag-normativa.md) |
 
 **Punto de contacto:** `buscar_normativa(pregunta, k=4, poliza_id="") -> [{"tema", "extracto", "fuente"}]`
@@ -15,8 +15,9 @@ Datos de entrada y salida de ejemplo: `../ejemplos_contrato/`.
 Los documentos, fragmentos, vectores y generaciones se guardan en el esquema
 `rag` de la misma PostgreSQL Docker del explorador. No se utiliza ChromaDB.
 Ya están implementados el indexado y `buscar_normativa()`; `agente2()` y la
-evaluación de calidad siguen pendientes. Antes de componer `agente2()` debe
-revisarse e integrarse la v1.7 acordada para AC-007.
+evaluación de calidad siguen pendientes. La spec v1.7 para AC-007 ya está
+revisada e integrada en `main` mediante [#80](https://github.com/lvckss/piia2-26/pull/80);
+la composición seguirá sus reglas y las dependencias de la slice 3.
 
 Las recetas `just` usan un shell POSIX y las rutas de entorno virtual de Linux,
 macOS o WSL. Para Windows nativo se ofrecen [comandos de PowerShell](#windows-nativo-powershell);

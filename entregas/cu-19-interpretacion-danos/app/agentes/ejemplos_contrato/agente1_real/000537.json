@@ -75,8 +75,8 @@
       "category": "dent",
       "clase_tool": "dent",
       "score": 0.60693359375,
-      "score_tier": "needs_review",
-      "confidence_tier": "needs_review",
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
       "bbox_xywh": [
         538.0,
         318.0,
@@ -95,7 +95,7 @@
       "category": "crack",
       "clase_tool": "crack",
       "score": 0.537109375,
-      "score_tier": "needs_review",
+      "score_tier": "confirmed",
       "confidence_tier": "needs_review",
       "bbox_xywh": [
         602.0,
@@ -115,8 +115,8 @@
       "category": "scratch",
       "clase_tool": "scratch",
       "score": 0.47509765625,
-      "score_tier": "needs_review",
-      "confidence_tier": "needs_review",
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
       "bbox_xywh": [
         547.0,
         323.0,
@@ -135,8 +135,8 @@
       "category": "scratch",
       "clase_tool": "scratch",
       "score": 0.427001953125,
-      "score_tier": "needs_review",
-      "confidence_tier": "needs_review",
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
       "bbox_xywh": [
         603.0,
         328.0,
@@ -155,8 +155,8 @@
       "category": "dent",
       "clase_tool": "dent",
       "score": 0.365234375,
-      "score_tier": "needs_review",
-      "confidence_tier": "needs_review",
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
       "bbox_xywh": [
         529.0,
         311.0,

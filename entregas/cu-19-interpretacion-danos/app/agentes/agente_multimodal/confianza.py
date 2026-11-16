@@ -4,13 +4,17 @@ from typing import Literal
 
 ConfidenceTier = Literal["confirmed", "needs_review"]
 
-# PENDIENTE de calibrar con el barrido de thresholds extendido a las 6 clases
-# (ver entregas/cu-19-interpretacion-danos/specs/agente-confianza-hallazgos.md).
-# Estos valores son un punto de partida razonable, no un resultado medido.
+# Umbrales calibrados en la Issue #44 (plan v1.4, D-6; ver specs/agente-confianza-hallazgos.md). Para cada
+# clase, el valor mas bajo de la rejilla (0,3 a 0,9) para el que, entre los hallazgos que la vision confirma
+# con pieza y regla de coste, el limite inferior del intervalo de Wilson al 95 % de la proporcion de dano real
+# es al menos el 95 %; si ningun valor lo alcanza, se mantiene el de partida. El dano real lo establece un
+# modelo juez: son etiquetas de un modelo, no verdad humana. Salen dent, scratch y crack a 0,3 (antes 0,7) y
+# las otras tres clases se quedan en 0,6. `python tabla_umbrales.py --criterio ...` lo reproduce. Se
+# recalibran si cambian la estrategia, el prompt, el juez o el dataset.
 CATEGORY_REVIEW_THRESHOLD: dict[str, float] = {
-    "dent": 0.7,
-    "scratch": 0.7,
-    "crack": 0.7,
+    "dent": 0.3,
+    "scratch": 0.3,
+    "crack": 0.3,
     "lamp broken": 0.6,
     "glass shatter": 0.6,
     "tire flat": 0.6,

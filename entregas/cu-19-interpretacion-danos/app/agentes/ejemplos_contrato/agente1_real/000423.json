@@ -216,8 +216,8 @@
       "category": "dent",
       "clase_tool": "dent",
       "score": 0.54052734375,
-      "score_tier": "needs_review",
-      "confidence_tier": "needs_review",
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
       "bbox_xywh": [
         150.0,
         383.0,
@@ -256,8 +256,8 @@
       "category": "dent",
       "clase_tool": "dent",
       "score": 0.52392578125,
-      "score_tier": "needs_review",
-      "confidence_tier": "needs_review",
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
       "bbox_xywh": [
         306.0,
         164.0,

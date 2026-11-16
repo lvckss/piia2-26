@@ -24,6 +24,7 @@ from PIL import Image
 from agente1 import analizar_imagen
 from analizar_detecciones import CLASES, cargar
 from catalogo import cargar_catalogo
+from confianza import classify_confidence, decidir_tier
 from evaluar_vision import ruta_foto
 from generar_lote import (
     elegir_lote, fotos_que_faltan, generar_lote, llamadas_previstas, main, rutas_por_defecto, validar_salida_agente1,
@@ -420,7 +421,8 @@ def probar_ac006_repartos() -> None:
 
     Con ClienteFalso y las 18 imagenes del mini-export (cada una con un acierto de
     score 0,9 y un falso positivo de score 0,4 de otra clase), el recuento a mano es:
-    dent y lamp broken: 6 hallazgos, todos `confirmado`, 3 `confirmed` (los de 0,9);
+    dent y lamp broken: 6 hallazgos, todos `confirmado`; lamp broken 3 `confirmed` (los de 0,9) y dent 6 (los de 0,9 y los falsos
+    positivos de 0,4, que pasan el umbral 0,3 de dent desde la #44);
     tire flat: 6 `rechazado`, 0 `confirmed`; scratch y crack: 6 `incierto` cada una;
     glass shatter: 3 `incierto` (el falso positivo de 0,4 lo descarta el filtro previo: 3 descartados)."""
     with tempfile.TemporaryDirectory() as tmp:
@@ -429,11 +431,11 @@ def probar_ac006_repartos() -> None:
         lote = elegir_lote(imagenes, n=N_IMAGENES, min_aciertos=1, seed=42)
         resumen = generar_lote(lote, export, cardd, tmp_dir / "salida", ClienteFalso(), "modelo-falso", MINI_CATALOGO, tmp_dir / "cache")
         assert resumen["hallazgos"] == 33, resumen["hallazgos"]
-        assert resumen["reparto_tier"] == {"confirmed": 6, "needs_review": 27}, resumen["reparto_tier"]
+        assert resumen["reparto_tier"] == {"confirmed": 9, "needs_review": 24}, resumen["reparto_tier"]
         assert resumen["reparto_veredicto"] == {"confirmado": 12, "incierto": 15, "rechazado": 6}, resumen["reparto_veredicto"]
         assert resumen["descartados_por_filtro_previo"] == 3
         esperado = {
-            "dent": (6, 3, 3, 6, 0, 0), "lamp broken": (6, 3, 3, 6, 0, 0), "tire flat": (6, 0, 6, 0, 6, 0),
+            "dent": (6, 6, 0, 6, 0, 0), "lamp broken": (6, 3, 3, 6, 0, 0), "tire flat": (6, 0, 6, 0, 6, 0),
             "scratch": (6, 0, 6, 0, 0, 6), "crack": (6, 0, 6, 0, 0, 6), "glass shatter": (3, 0, 3, 0, 0, 3),
         }
         claves = ("hallazgos", "confirmed", "needs_review", "confirmado", "rechazado", "incierto")
@@ -449,7 +451,7 @@ def probar_ac006_repartos() -> None:
         codigo, texto, _ = _ejecutar_main(argv, clave="clave-de-prueba")
         assert codigo == 0, texto
         assert "no es representativo" in texto.lower(), texto
-        assert "confirmed: 6" in texto and "needs_review: 27" in texto, texto
+        assert "confirmed: 9" in texto and "needs_review: 24" in texto, texto
         assert "descartados por el filtro previo: 3" in texto.lower(), texto
 
 
@@ -653,9 +655,41 @@ def probar_ac001_ac002_con_datos_reales() -> None:
     print(f"datos reales ok: 30 imagenes, {llamadas} llamadas previstas, aciertos por clase {dict(cuenta)}")
 
 
+def _errores_de_niveles(ruta: Path) -> list[str]:
+    """Hallazgos de un JSON del contrato cuyo `score_tier` o `confidence_tier` no son los que calcula el codigo con los umbrales vigentes."""
+    errores = []
+    for h in json.loads(ruta.read_text(encoding="utf-8"))["findings"]:
+        por_score = classify_confidence(h["category"], h["score"])
+        final = decidir_tier(h["category"], h["score"], h["vision_verdict"], h["pieza_id"], h["regla_coste_aplicable"])
+        if h["score_tier"] != por_score:
+            errores.append(f"{ruta.name} {h['finding_id']}: score_tier={h['score_tier']!r}, el codigo da {por_score!r}")
+        if h["confidence_tier"] != final:
+            errores.append(f"{ruta.name} {h['finding_id']}: confidence_tier={h['confidence_tier']!r}, el codigo da {final!r}")
+    return errores
+
+
+def probar_ac006_niveles_de_los_ejemplos_coherentes_con_los_umbrales() -> None:
+    """Plan v1 de #44 + AC-006: los niveles guardados en el ejemplo del contrato y en las 30 salidas reales (`score_tier` y
+    `confidence_tier`) son los que calcula el codigo con los umbrales vigentes de `confianza.py`; si se recalibran, estos ejemplos
+    hay que recalcularlos (y el ejemplo a mano, decidirlo). El ejemplo tambien valida con `validar_salida_agente1`."""
+    ejemplos = MUESTRA.parent
+    ficheros = [ejemplos / "agente1_salida.json", *sorted(MUESTRA.glob("[0-9]*.json"))]
+    assert len(ficheros) == 31
+    errores = [e for ruta in ficheros for e in _errores_de_niveles(ruta)]
+    assert not errores, "\n".join(errores[:5])
+    try:
+        catalogo = cargar_catalogo()
+    except FileNotFoundError:
+        print("(catalogo real no encontrado: se salta la validacion del ejemplo contra el catalogo)")
+        return
+    ejemplo = json.loads(ficheros[0].read_text(encoding="utf-8"))
+    assert validar_salida_agente1(ejemplo, catalogo, "000160.json") == []
+
+
 def main_pruebas() -> None:
     probar_ac001_ac002_con_datos_reales()
     probar_ac010_muestra_versionada()
+    probar_ac006_niveles_de_los_ejemplos_coherentes_con_los_umbrales()
     probar_ac001_seleccion_reproducible()
     probar_ac002_plan_sin_gastar_y_tope()
     probar_ac003_un_json_por_imagen_con_cache()

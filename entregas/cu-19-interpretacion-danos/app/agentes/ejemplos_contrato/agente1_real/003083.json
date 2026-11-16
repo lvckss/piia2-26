@@ -51,8 +51,8 @@
       "category": "crack",
       "clase_tool": "crack",
       "score": 0.48193359375,
-      "score_tier": "needs_review",
-      "confidence_tier": "needs_review",
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
       "bbox_xywh": [
         0.0,
         0.0,

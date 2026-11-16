@@ -38,24 +38,24 @@ mediante un fallo explícito antes de usarlo en la clasificación.
 Inspección de `origin/main` en el snapshot
 `0717664d7e83622662b78c9b021564c8ad9a3ef5`, sin ejecutar producto ni tests:
 
-- [confianza.py](../app/agentes/agente_multimodal/confianza.py): `classify_confidence`
+- [confianza.py](../../app/agentes/agente_multimodal/confianza.py): `classify_confidence`
   compara `score >= threshold` sin validar finitud/rango. Los umbrales son
   `0.7` para `dent`, `scratch`, `crack`; `0.6` para `lamp broken`,
   `glass shatter`, `tire flat`; y `0.8` para categorías desconocidas.
   `decidir_tier` llama primero a `classify_confidence`, después comprueba visión,
   pieza y regla de coste.
-- [hallazgos.py](../app/agentes/agente_multimodal/hallazgos.py):
+- [hallazgos.py](../../app/agentes/agente_multimodal/hallazgos.py):
   `construir_hallazgos` clasifica las candidatas y copia el score recibido al
   finding, con `score_tier` y `confidence_tier` iniciales iguales.
-- [seleccion.py](../app/agentes/agente_multimodal/seleccion.py): el filtro se
+- [seleccion.py](../../app/agentes/agente_multimodal/seleccion.py): el filtro se
   ejecuta antes de clasificar; `filtrar=False` permite comprobar la frontera
   de construcción sin descartar candidatos. Esta tarea no valida toda la
   entrada cruda antes del filtro.
-- [vision.py](../app/agentes/agente_multimodal/vision.py):
+- [vision.py](../../app/agentes/agente_multimodal/vision.py):
   `enriquecer_con_vision` utiliza `decidir_tier`. No captura su error y consulta
   visión antes de recalcular el tier: no se promete evitar toda llamada de
   visión para hallazgos manipulados externamente.
-- [agente-confianza-hallazgos.md](agente-confianza-hallazgos.md) describe el
+- [agente-confianza-hallazgos.md](../../specs/agente-confianza-hallazgos.md) describe el
   consenso existente y advierte que los umbrales siguen pendientes de calibrar.
   Es contexto histórico, no un ADR aceptado ni evidencia de tests ejecutados.
 - Los scripts existentes `probar_vision_stub.py`, `probar_seleccion_stub.py`
