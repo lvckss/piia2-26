@@ -53,9 +53,16 @@ def preparar_casos(salidas: list[dict], siniestros: list[dict], semilla: int = 8
     for salida, siniestro in zip(ordenadas, elegidos):
         vehiculo = salida["vehiculo"]
         vehiculo_id = vehiculo["vehiculo_id_referencia"] or VEHICULO_DESCONOCIDO
-        casos.append({"image_id": salida["image_id"], "siniestro_id": siniestro["siniestro_id"],
-                      "categoria": vehiculo["categoria"], "salida_agente1": salida,
-                      "contexto": _contexto(siniestro, vehiculo_id)})
+        caso = {"image_id": salida["image_id"], "siniestro_id": siniestro["siniestro_id"],
+                "categoria": vehiculo["categoria"], "salida_agente1": salida,
+                "vehiculo_id": vehiculo_id, "rol": siniestro.get("rol", "")}
+        try:
+            caso["contexto"] = _contexto(siniestro, vehiculo_id)
+        except (KeyError, ValueError) as e:
+            # Un siniestro con un dato que falta o no es numerico se registra en
+            # su caso y no impide preparar los demas (plan #84, AC-004).
+            caso["error"] = f"contexto del siniestro {siniestro['siniestro_id']} no valido: {e!r}"
+        casos.append(caso)
     return casos
 
 
@@ -73,23 +80,30 @@ def generar(salidas_dir, destino, hoy: str = FECHA_POR_DEFECTO, semilla: int = 8
     Una salida que no pasa la validacion de los Agentes 2 o 3 queda en el
     resumen con su error y no detiene las demas. Devuelve 1 si hubo errores o
     cifras que no salen del Agente 2, y 0 si no (plan #84, AC-001, AC-002 y AC-004)."""
+    archivos = sorted(Path(salidas_dir).glob("*.json"))
+    if not archivos:
+        raise ValueError(f"no hay salidas del Agente 1 (*.json) en {salidas_dir}: la carpeta no existe o esta vacia")
     destino = Path(destino)
     destino.mkdir(parents=True, exist_ok=True)
-    salidas = [json.loads(p.read_text(encoding="utf-8")) for p in sorted(Path(salidas_dir).glob("*.json"))]
+    salidas = [json.loads(p.read_text(encoding="utf-8")) for p in archivos]
     casos = preparar_casos(salidas, leer_siniestros(), semilla)
     filas, errores, inventadas = [], 0, 0
     for caso in casos:
-        ctx = caso["contexto"]
+        informe = destino / f"{caso['image_id']:06d}.md"
         coche = "referencia de la categoría" if caso["categoria"] != "desconocido" else "menor coste (desconocido)"
-        fila = [f"{caso['image_id']:06d}", caso["siniestro_id"], caso["categoria"], ctx["vehiculo_id"], coche, ctx["rol"]]
+        fila = [f"{caso['image_id']:06d}", caso["siniestro_id"], caso["categoria"], caso["vehiculo_id"], coche, caso["rol"]]
         try:
-            salida2 = estimar_siniestro(caso["salida_agente1"], ctx)
+            if "error" in caso:
+                raise ValueError(caso["error"])
+            salida2 = estimar_siniestro(caso["salida_agente1"], caso["contexto"])
             md = generar_informe(caso["salida_agente1"], salida2, hoy=hoy)
         except ValueError as e:
             errores += 1
+            # Un informe de una ejecucion anterior no debe parecer valido (AC-004).
+            informe.unlink(missing_ok=True)
             filas.append(fila + ["", "", "", "", "", "", str(e)])
             continue
-        (destino / f"{caso['image_id']:06d}.md").write_text(md, encoding="utf-8")
+        informe.write_text(md, encoding="utf-8")
         cifras = comprobar_cifras(md, salida2)
         inventadas += bool(cifras)
         conf = salida2["escenarios"]["confirmados"]["hallazgos_incluidos"]
@@ -97,7 +111,7 @@ def generar(salidas_dir, destino, hoy: str = FECHA_POR_DEFECTO, semilla: int = 8
         filas.append(fila + [str(len(conf)), str(len(pend) - len(conf)), str(len(salida2["hallazgos_fuera_del_coste"])),
                              _total(salida2, "confirmados"), _total(salida2, "con_pendientes"),
                              ", ".join(f"{x:.2f}" for x in cifras) or "ninguna", ""])
-    propios = sum(c["contexto"]["rol"] == "propio" for c in casos)
+    propios = sum(c["rol"] == "propio" for c in casos)
     md = [
         "# Resumen de los informes reales (Issue #84)",
         "",
@@ -124,7 +138,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--hoy", default=FECHA_POR_DEFECTO, help="fecha de los informes, AAAA-MM-DD")
     ap.add_argument("--semilla", type=int, default=84, help="semilla para elegir los siniestros sintéticos")
     args = ap.parse_args(argv)
-    codigo = generar(args.salidas, args.destino, hoy=args.hoy, semilla=args.semilla)
+    try:
+        codigo = generar(args.salidas, args.destino, hoy=args.hoy, semilla=args.semilla)
+    except ValueError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 2
     print(f"Informes y resumen en {args.destino} (código {codigo})")
     return codigo
 

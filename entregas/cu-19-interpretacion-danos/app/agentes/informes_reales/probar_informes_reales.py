@@ -133,6 +133,60 @@ def probar_ac004_error_en_una_salida():
         assert "V999" in fila, fila
 
 
+def probar_ac004_contexto_invalido_no_detiene_los_demas():
+    """AC-004: un siniestro asignado con un dato no numerico queda en el resumen
+    con su image_id y los otros 29 informes se generan."""
+    salidas = [json.loads(p.read_text(encoding="utf-8")) for p in REALES.glob("*.json")]
+    siniestros = generar_informes_reales.leer_siniestros()
+    afectado = generar_informes_reales.preparar_casos(salidas, siniestros)[1]
+    malos = [dict(s, edad_anios="no_numerico") if s["siniestro_id"] == afectado["siniestro_id"] else s for s in siniestros]
+    original = generar_informes_reales.leer_siniestros
+    generar_informes_reales.leer_siniestros = lambda: malos
+    try:
+        with tempfile.TemporaryDirectory() as tmp:
+            codigo = generar_informes_reales.generar(REALES, tmp, hoy=HOY)
+            assert codigo != 0, codigo
+            informes = [p for p in Path(tmp).glob("*.md") if p.name != "resumen.md"]
+            assert len(informes) == 29, len(informes)
+            fila = next(f for f in _filas_resumen(Path(tmp)) if f.startswith(f"| {afectado['image_id']:06d} "))
+            assert "edad_anios" in fila or "no_numerico" in fila, fila
+    finally:
+        generar_informes_reales.leer_siniestros = original
+
+
+def probar_ac004_entrada_inexistente_o_vacia():
+    """AC-004: una carpeta de salidas inexistente o sin JSON no se da por buena:
+    error que nombra la ruta, tambien desde el comando."""
+    with tempfile.TemporaryDirectory() as tmp:
+        for salidas in (Path(tmp) / "no_existe", Path(tmp)):
+            try:
+                generar_informes_reales.generar(salidas, Path(tmp) / "destino", hoy=HOY)
+            except ValueError as e:
+                assert str(salidas) in str(e), e
+            else:
+                raise AssertionError(f"no se lanzo ValueError con {salidas}")
+        r = subprocess.run([sys.executable, "generar_informes_reales.py", "--salidas", str(Path(tmp) / "no_existe"),
+                            "--destino", str(Path(tmp) / "destino")],
+                           cwd=Path(__file__).resolve().parent, capture_output=True, text=True)
+        assert r.returncode != 0 and "no_existe" in r.stderr, (r.returncode, r.stderr[-300:])
+
+
+def probar_ac004_regenerar_retira_el_informe_que_ahora_falla():
+    """AC-004: si un caso tenia informe y al regenerar en la misma carpeta falla,
+    su informe anterior se retira para que no parezca un resultado valido."""
+    with tempfile.TemporaryDirectory() as tmp:
+        salidas, destino = Path(tmp) / "salidas", Path(tmp) / "destino"
+        salidas.mkdir()
+        shutil.copy(REALES / "000082.json", salidas / "000082.json")
+        assert generar_informes_reales.generar(salidas, destino, hoy=HOY) == 0
+        assert (destino / "000082.md").is_file()
+        rota = json.loads((salidas / "000082.json").read_text(encoding="utf-8"))
+        rota["vehiculo"]["vehiculo_id_referencia"] = "V999"
+        (salidas / "000082.json").write_text(json.dumps(rota), encoding="utf-8")
+        assert generar_informes_reales.generar(salidas, destino, hoy=HOY) != 0
+        assert not (destino / "000082.md").exists(), "queda el informe anterior"
+
+
 def probar_ac004_paquete_ausente():
     """AC-004: sin piia2_paquete_datos/ el generador falla al importar con un
     error que indica la ruta esperada."""
@@ -190,6 +244,9 @@ PRUEBAS = [
     probar_ac001_ac002_treinta_informes_y_resumen,
     probar_ac001_comando,
     probar_ac004_error_en_una_salida,
+    probar_ac004_contexto_invalido_no_detiene_los_demas,
+    probar_ac004_entrada_inexistente_o_vacia,
+    probar_ac004_regenerar_retira_el_informe_que_ahora_falla,
     probar_ac004_paquete_ausente,
     probar_ac005_reproducible_sin_clave_ni_red,
 ]

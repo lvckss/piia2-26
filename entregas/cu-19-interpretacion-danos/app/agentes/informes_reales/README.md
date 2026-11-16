@@ -23,7 +23,9 @@ El resultado es `<image_id>.md` por imagen y `resumen.md`, con una fila por
 imagen: siniestro de origen, categoría, coche usado, rol, hallazgos por grupo,
 totales con IVA de los dos escenarios, cifras que no salen del Agente 2 y
 errores. El comando termina con código 1 si alguna imagen falla o tiene cifras
-inventadas.
+inventadas; en ese caso el informe de esa imagen no se deja en la carpeta,
+aunque existiera de una ejecución anterior. Si la carpeta de salidas no existe
+o no tiene ningún `*.json`, termina con código 2 e indica la ruta.
 
 ## Cómo se completan los datos que faltan
 
