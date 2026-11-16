@@ -588,6 +588,57 @@ def probar_54_ac011_aviso_de_lo_que_detecta_piia1():
         assert comprobar_cifras(md, salida2) == [], comprobar_cifras(md, salida2)
 
 
+# --- plan v1 de la #54, AC-001, AC-002 y AC-004 ------------------------------
+# https://github.com/lvckss/piia2-26/issues/54#issuecomment-6805208293
+def probar_54_ac001_taller_legible():
+    """#54 AC-001: con `concertado_aseguradora` la cabecera muestra un nombre legible y ningun valor con guion
+    bajo; con `multimarca`, `oficial` y `concesionario` la cabecera es identica a la actual."""
+    a1, a2 = _ejemplos()
+    for taller in ("multimarca", "oficial", "concesionario"):
+        x = copy.deepcopy(a2)
+        x["contexto"]["tipo_taller"] = taller
+        cabecera = _secciones(generar_informe(a1, x, hoy=HOY))[ENCABEZADOS[0]]
+        assert f"- **Taller:** {taller} (Madrid)" in cabecera, cabecera
+    x = copy.deepcopy(a2)
+    x["contexto"]["tipo_taller"] = "concertado_aseguradora"
+    cabecera = _secciones(generar_informe(a1, x, hoy=HOY))[ENCABEZADOS[0]]
+    linea = next(l for l in cabecera.splitlines() if l.startswith("- **Taller:**"))
+    assert "_" not in cabecera and "concertado con la aseguradora" in linea, cabecera
+
+
+def probar_54_ac002_umbral_cero_no_aplica():
+    """#54 AC-002: con `umbral_perdida_total = 0.0` (polizas P-TERC-*) el «Resumen» no dice «umbral 0 %» e
+    indica que no aplica; con 0.75 el texto es el de siempre."""
+    a1, a2 = _ejemplos()
+    resumen = _secciones(generar_informe(a1, a2, hoy=HOY))["## Resumen"]
+    assert "umbral 75 %" in resumen, resumen
+    x = copy.deepcopy(a2)
+    x["umbral_perdida_total"] = 0.0
+    md = generar_informe(a1, x, hoy=HOY)
+    resumen = _secciones(md)["## Resumen"]
+    linea = next(l for l in resumen.splitlines() if "Pérdida total" in l)
+    assert "umbral 0 %" not in resumen and "no aplica" in linea, linea
+    assert comprobar_cifras(md, x) == [], comprobar_cifras(md, x)
+
+
+def probar_54_ac004_hallazgos_iguales_en_una_fila_000341():
+    """#54 AC-004: en el 000341 real, los confirmados con la misma pieza, dano, severidad y reparacion
+    (`341-1` y `341-2`, cristal roto grave del parabrisas) van en una sola fila con sus finding_id y scores;
+    cada finding_id aparece y los importes no cambian."""
+    a1 = json.loads((REAL / "000341.json").read_text(encoding="utf-8"))
+    a2 = _agente2_real(a1)
+    md = generar_informe(a1, a2, hoy=HOY)
+    tabla = [l for l in _secciones(md)["## Daños confirmados"].splitlines() if l.startswith("| 341-")]
+    fila = next(l for l in tabla if "341-1" in l)
+    assert "341-2" in fila and "0,96" in fila and "0,95" in fila, fila
+    assert len(tabla) == 3, tabla
+    for fid in ("341-1", "341-2", "341-3", "341-4"):
+        assert any(fid in l for l in tabla), fid
+    for esc in ("confirmados", "con_pendientes"):
+        assert informe.eur(a2["escenarios"][esc]["estimacion"]["total_con_iva_eur"]) in md, esc
+    assert comprobar_cifras(md, a2) == [], comprobar_cifras(md, a2)
+
+
 PRUEBAS = [
     probar_ac001_encabezados_cabecera_y_resumen,
     probar_ac002_confirmados_pendientes_y_no_incluidos,
@@ -609,6 +660,9 @@ PRUEBAS = [
     probar_54_ac003_requieren_revision_humana,
     probar_54_ac003_sin_nada_presupuestable_003478,
     probar_54_ac011_aviso_de_lo_que_detecta_piia1,
+    probar_54_ac001_taller_legible,
+    probar_54_ac002_umbral_cero_no_aplica,
+    probar_54_ac004_hallazgos_iguales_en_una_fila_000341,
 ]
 
 
