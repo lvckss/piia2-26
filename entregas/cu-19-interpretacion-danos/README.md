@@ -1,12 +1,48 @@
-# CU-19 — Interpretación de daños en vehículos
+<div align="center">
+
+<h1>CU-19 · Interpretación de daños en vehículos</h1>
+
+<p>De una foto de daños a un informe de peritaje que se pueda revisar.</p>
+
+<p>
+  <img alt="Estado: en desarrollo" src="https://img.shields.io/badge/estado-en_desarrollo-orange?style=flat-square">
+  <img alt="Python" src="https://img.shields.io/badge/Python-3776AB?style=flat-square&amp;logo=python&amp;logoColor=white">
+  <img alt="React y TypeScript" src="https://img.shields.io/badge/React_%2B_TypeScript-20232A?style=flat-square&amp;logo=react&amp;logoColor=61DAFB">
+  <img alt="Bun y Hono" src="https://img.shields.io/badge/Bun_%2B_Hono-171717?style=flat-square&amp;logo=bun&amp;logoColor=white">
+  <img alt="PostgreSQL" src="https://img.shields.io/badge/PostgreSQL-4169E1?style=flat-square&amp;logo=postgresql&amp;logoColor=white">
+</p>
+
+<p>
+  <a href="#qué-es-el-proyecto">El proyecto</a> ·
+  <a href="#primeros-pasos">Primeros pasos</a> ·
+  <a href="ARCHITECTURE.md">Arquitectura</a> ·
+  <a href="specs/">Specs</a> ·
+  <a href="decisions/">ADRs</a> ·
+  <a href="#equipo">Equipo</a>
+</p>
+
+<p>Proyecto Integrador de IA II · Universidade de Santiago de Compostela · Plexus</p>
+
+</div>
 
 ## Qué es el proyecto
 
-Un prototipo que ayuda a un perito o tramitador de seguros a convertir la foto de un vehículo dañado y los datos del siniestro en un **informe de peritaje orientativo**. Combina la detección de daños heredada de PIIA1, una segunda opinión con visión, el cálculo determinista de reparación y cobertura y la recuperación de pólizas y legislación con fuentes.
+Estamos construyendo un prototipo para ayudar a un perito o tramitador a revisar
+los daños de un vehículo. Partimos de una foto, contrastamos las detecciones con
+un modelo de visión y calculamos el coste de reparación y la cobertura con las
+reglas de Plexus. El informe reúne los hallazgos, las dudas y las fuentes
+consultadas para que una persona pueda revisarlos.
 
-**Este README presenta el proyecto completo; la Entrega 2 añade su arquitectura y sus decisiones de implementación.** Las funcionalidades tienen distintos estados de desarrollo; describir el flujo objetivo no significa que la integración completa ya esté implementada o evaluada. La [arquitectura](ARCHITECTURE.md) explica cómo se conectan las piezas y los [ADRs](decisions/) recogen las decisiones de implementación. El código adjunto sirve como contexto de esa arquitectura.
+La idea es separar lo que vemos de lo que podemos presupuestar: un daño dudoso
+sigue siendo dudoso, y cada importe sale de la herramienta de costes.
 
-## Motivación
+> [!NOTE]
+> El proyecto está en desarrollo. La [pestaña web y la orquestación](https://github.com/lvckss/piia2-26/pull/60) siguen en revisión. Puedes consultar el estado de las piezas en la [arquitectura](ARCHITECTURE.md) y sus instrucciones en [la aplicación](app/README.md).
+
+<details>
+<summary>Por qué estamos trabajando en esto</summary>
+
+### Motivación
 
 La inspección manual de daños requiere tiempo. Además, una detección automática puede ser un falso positivo: en las 500 imágenes analizadas de CarDD, las predicciones iniciales con score ≥ 0,3 presentan una precisión inferior al 15 % por clase (medición y límites en [confianza de los hallazgos](specs/agente-confianza-hallazgos.md)). Convertirlas directamente en afirmaciones económicas produciría presupuestos con daños no confirmados.
 
@@ -14,7 +50,18 @@ Queremos estudiar si una segunda opinión de visión y una separación explícit
 
 El destinatario es una persona que revisa el siniestro. El prototipo no sustituye su criterio ni toma decisiones vinculantes.
 
+</details>
+
 ## Alcance
+
+**Foto → detecciones → hallazgos → presupuestos y fuentes → informe Markdown.**
+
+El recorrido que estamos preparando combina la detección de PIIA1, los tres
+agentes y la herramienta de la empresa. El informe separa dos escenarios: solo
+daños confirmados y confirmados más pendientes presupuestables.
+
+<details>
+<summary>Ver el recorrido completo, las decisiones de alcance y los límites</summary>
 
 El recorrido objetivo es:
 
@@ -42,6 +89,26 @@ Queda fuera del alcance:
 
 Los vehículos, precios, tiempos de reparación y pólizas de Plexus son **sintéticos**; la legislación es real. Las cifras de reparación y cobertura son orientativas y no vinculantes. Recuperar una cita no equivale a verificar una conclusión. Si faltan fuentes suficientes, el informe lo advierte expresamente y requiere revisión.
 
+</details>
+
+> [!IMPORTANT]
+> Trabajamos con vehículos, precios y pólizas sintéticos de Plexus; la legislación es real. Las estimaciones son orientativas y requieren revisión humana. Una cita recuperada tampoco garantiza que una conclusión sea correcta.
+
+## Primeros pasos
+
+Desde la raíz del repositorio de la asignatura:
+
+```bash
+cd entregas/cu-19-interpretacion-danos
+just  # muestra los comandos disponibles
+```
+
+Para ejecutar los componentes, consulta [la guía de la aplicación](app/README.md#comandos-con-just).
+La preparación del dataset está en [la guía de CARDD](scripts/README.md).
+
+> [!TIP]
+> Si vienes a leer la Entrega 2, empieza por [ARCHITECTURE.md](ARCHITECTURE.md) y [las decisiones](decisions/). Las specs de abajo describen las funcionalidades; [docs/README.md](docs/README.md) reúne el material de apoyo.
+
 ## Equipo
 
 | Integrante | Responsabilidad | Contacto |
@@ -51,6 +118,9 @@ Los vehículos, precios, tiempos de reparación y pólizas de Plexus son **sint�
 | Lucas García Ruiz | RAG, orquestación e integración | lucas.garcia0@rai.usc.es |
 
 ## Estructura y guía de lectura
+
+<details>
+<summary>Ver el mapa de carpetas</summary>
 
 ```text
 cu-19-interpretacion-danos/
@@ -66,7 +136,12 @@ cu-19-interpretacion-danos/
 └── app/             # código y documentación adjuntos como contexto
 ```
 
+</details>
+
 ### Specs funcionales que se evalúan
+
+<details>
+<summary>Ver las funcionalidades y sus criterios de aceptación</summary>
 
 Cada fichero explica qué construir, por qué, sus restricciones y los criterios verificables. Los estados de verificación se incluyen como información de desarrollo: un criterio pendiente no es una afirmación de que la funcionalidad ya esté implementada. Los IDs se mantienen para conservar la trazabilidad.
 
@@ -83,7 +158,15 @@ Cada fichero explica qué construir, por qué, sus restricciones y los criterios
 
 Para seguir la cadena principal, leer visión → categoría → costes → RAG → informe → orquestación. Confianza y evaluación describen cómo se controlan las dudas y cómo se comprobarán los resultados.
 
+</details>
+
 ### Arquitectura y decisiones (Entrega 2)
+
+La [arquitectura](ARCHITECTURE.md) explica los componentes y el flujo de datos.
+Las decisiones de implementación están en [decisions/](decisions/).
+
+<details>
+<summary>Ver los seis ADR y su registro de aceptación</summary>
 
 - [ARCHITECTURE.md](ARCHITECTURE.md): diagrama, componentes y flujo de punta a punta de la solución.
 - [decisions/](decisions/): decisiones de implementación en el formato de la asignatura (copia de [docs/adr/](docs/adr/README.md), que conserva su historial de aceptación). Cada una recoge decisión, motivación, alternativas y referencias:
@@ -93,6 +176,8 @@ Para seguir la cadena principal, leer visión → categoría → costes → RAG 
   - [ADR 0004: Costes con la herramienta y los datos de la empresa, no con precios propios](decisions/0004-herramienta-costes-datos-empresa.md)
   - [ADR 0005: Filtro previo por clase de las detecciones que se envían al modelo de visión](decisions/0005-filtro-previo-detecciones-por-clase.md)
   - [ADR 0006: RAG con PostgreSQL, comparación de embeddings y estado de recuperación](decisions/0006-rag-postgresql-estado-recuperacion.md)
+
+</details>
 
 ### Material de apoyo
 
