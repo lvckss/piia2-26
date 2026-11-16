@@ -2,7 +2,7 @@
 
 - Estado: Propuesto
 - Fecha: 2026-10-27
-- Versión: propuesta v1.5 (2026-11-12); conserva v1 `733c5d0`, v1.1 `9a65c26`, v1.2 `5ed9ca6`, v1.3 `06f4c08` y v1.4 `6a6666e`. Incorpora V14 fijo/`minimo_por_defecto` y la frase de estimación a la baja; conserva compatibilidad/validación de v1.4, límites propuestos, orden CLI primero y disparador ADK.
+- Versión: propuesta v1.6 (2026-11-16); continúa v1.5 `c52217d` y conserva v1 `733c5d0`, v1.1 `9a65c26`, v1.2 `5ed9ca6`, v1.3 `06f4c08` y v1.4 `6a6666e`. Registra el hito del 10 no cumplido y el smoke sin ejecución acreditada; reajusta el corte al 17 de noviembre, 18:00 Europe/Madrid. Conserva las decisiones, contratos y alternativas de v1.5; no acepta el ADR ni cambia el framework.
 - GitHub Issue: https://github.com/lvckss/piia2-26/issues/34
 - Planes cubiertos: [34-orquestacion-web.md](../../specs/34-orquestacion-web.md), coordinación, frontera web/Python, estado temporal y Compose.
 - Planning PR: https://github.com/lvckss/piia2-26/pull/60 — draft.
@@ -46,10 +46,17 @@ previos no cubren esa frontera ni este recorrido.
    mínimos para llamar a las funciones existentes, con estado independiente por
    ejecución. Se reutilizan sesiones/eventos y workflows de ADK; el precio lo
    calcula código y no mejora por adoptar el framework. #52 probó ADK 2.12.0 y
-   LiteLLM 1.106.0, no las APIs nativas de esta integración. El smoke CLI del hito
-   del 10 de noviembre valida fases, aislamiento, orden y detención. Si falla,
-   se registra y se propone Python directo al equipo; cambiar requiere revisar
-   este ADR y AC-005, sin aplicar la alternativa automáticamente. No añadir un modelo que elija el orden o reescriba cifras. La
+   LiteLLM 1.106.0, no las APIs nativas de esta integración. El hito del 10 de
+   noviembre **no se cumplió** y el smoke de #34 no tiene ejecución acreditada;
+   la planificación registrada no lo ejecutó. El [registro del hito](../../specs/34-orquestacion-web.md#registro-del-hito-del-10-de-noviembre)
+   fija impedimento, evidencia y siguiente acción. Se propone Python directo
+   al equipo el 16 de noviembre sin adoptarlo; el nuevo corte propuesto es el
+   **17 de noviembre de 2026 a las 18:00 Europe/Madrid**. Tras DoR se prueba el
+   smoke con proveedores falsos: fases, aislamiento, orden y detención. Si falla,
+   se registra causa/comando/resultado y el equipo decide sobre la alternativa;
+   si no se ejecuta por gate pendiente, se registra como tal. Cambiar requiere
+   decisión humana y revisar este ADR y AC-005 antes de implementar Python
+   directo; no se aplica automáticamente. No añadir un modelo que elija el orden o reescriba cifras. La
    documentación de ADK describe `SequentialAgent` como secuencia determinista
    y `BaseAgent` como extensión para lógica propia; las APIs y dependencias se
    fijan y comprueban al implementar. No se construye otro framework de agentes.
@@ -125,7 +132,7 @@ previos no cubren esa frontera ni este recorrido.
 | Alternativa | Ventajas | Costes / motivo de la propuesta |
 |---|---|---|
 | ADK nativo con secuencia fija, propuesta | Respeta la elección de Lucas y reutiliza el framework probado; orden y cifras controlados por código. | Añade dependencia/entorno ADK y adaptadores que hay que probar de extremo a extremo. |
-| Python directo | Cableado pequeño y sencillo; mismas funciones deterministas. | Menos dependencias para el orden fijo; alternativa si falla el smoke CLI de ADK del 10 de noviembre. Requiere decisión humana, revisión de ADR/AC-005 y registro antes de cambiar, sin recortar web. |
+| Python directo | Cableado pequeño y sencillo; mismas funciones deterministas. | Menos dependencias para el orden fijo; alternativa presentada al equipo el 16 al no acreditarse el corte del 10. Nuevo corte propuesto: 17 de noviembre, 18:00 Europe/Madrid, con ejecución tras DoR. Requiere decisión humana, revisión de ADR/AC-005 y registro antes de cambiar, sin recortar web. |
 | Coordinador LLM que decide qué tools llamar | Flexible para recorridos variables. | El recorrido está fijado; introduce llamadas y riesgo de saltarse pasos o reformular cifras sin una necesidad identificada. |
 | Mantener únicamente un comando con archivos de CarDD | Reduce trabajo de interfaz y subida. | No cumple la entrada web con una imagen nueva elegida por Lucas. |
 | Una petición HTTP larga hasta el informe | Menos estados y operaciones. | No encaja con la confirmación/corrección del vehículo entre las fases ni con consultar progreso sin repetir trabajo. |
@@ -181,6 +188,11 @@ previos no cubren esa frontera ni este recorrido.
   y [agentes personalizados](https://adk.dev/agents/custom-agents/), consultadas
   el 2026-10-26. La compatibilidad de las versiones de producto se comprobará
   durante implementación, sin dar por hecho que el experimento cubra estas APIs.
+- [Revisión de Lucía sobre v1.5](https://github.com/lvckss/piia2-26/pull/60#issuecomment-6911760739)
+  y [registro del hito y avance](../../specs/34-orquestacion-web.md#registro-del-hito-del-10-de-noviembre):
+  el código de `orquestador/` en `main` `3c73e83` sigue siendo el experimento de
+  #33; la captura de una tool del 20 de octubre y la #85 no acreditan el smoke
+  de #34. No hay PR de implementación de #34 al comprobarlo el 16 de noviembre.
 - Código y despliegue inspeccionados en `main` `8a38e02`: referencias concretas
   en «Estado actual y evidencia» de la Spec. No se han ejecutado modelos,
   instalado dependencias ni realizado pruebas funcionales para este borrador.

@@ -1,11 +1,11 @@
 # Spec: Orquestación desde la web, de una imagen subida al informe
 
 - GitHub Issue: https://github.com/lvckss/piia2-26/issues/34
-- Estado: Borrador v1.5, 2026-11-12.
+- Estado: Borrador v1.6, 2026-11-16.
 - ADR decision: NEW_ADR.
 - ADR: [0007 — Orquestación ADK y ejecución web efímera](../docs/adr/0007-orquestacion-adk-web-efimera.md), Propuesto.
 - Justificación: adopta ADK como dependencia del producto, define una frontera HTTP entre web y servicio Python y el ciclo de vida de las ejecuciones. Los ADRs 0002–0005 aceptados cubren contratos, proveedor, costes y filtro previo; no cubren estas decisiones.
-- Plan vigente / versión: v1.5 en la misma PR #60; el registro de #34 fija el commit publicado. Versiones conservadas: v1 `733c5d0`, v1.1 `9a65c26`, v1.2 `5ed9ca6`, v1.3 `06f4c08` y v1.4 `6a6666e`. La v1.5 incorpora la [corrección de Lucía del 2026-11-10](https://github.com/lvckss/piia2-26/issues/34#issuecomment-6774799685) y la [confirmación de Víctor](https://github.com/lvckss/piia2-26/issues/34#issuecomment-6802366608): V14 fijo y `minimo_por_defecto` sustituyen la política anterior; se actualizan AC-003/008, sus verificaciones, la frase y el ADR 0007. Conserva las precisiones de compatibilidad/validación de v1.4, los 14 IDs, los otros 12 AC y verificaciones, las slices y la DoD. No acredita aceptación del documento completo ni del ADR. Continúa el [registro de alcance](https://github.com/lvckss/piia2-26/issues/34#issuecomment-6426795027).
+- Plan vigente / versión: v1.6 en la misma PR #60; el registro de #34 fija el commit publicado. Continúa v1.5 `c52217d` y conserva v1 `733c5d0`, v1.1 `9a65c26`, v1.2 `5ed9ca6`, v1.3 `06f4c08` y v1.4 `6a6666e`. Atiende la [revisión de Lucía sobre v1.5](https://github.com/lvckss/piia2-26/pull/60#issuecomment-6911760739): registra el hito del 10 de noviembre como no cumplido, el smoke de #34 sin ejecución acreditada, el impedimento y siguiente acción, y reajusta el hito/corte del 17 de noviembre. Los 14 AC y sus filas del Test/Eval Plan, las cuatro slices, la política V14/`minimo_por_defecto`, las precisiones de compatibilidad/validación y la DoD permanecen idénticos a v1.5. No acredita aprobación del documento completo ni del ADR. Continúa el [registro de alcance](https://github.com/lvckss/piia2-26/issues/34#issuecomment-6426795027).
 - Riesgo y revisión previa: sí, por NEW_ADR y por el acuerdo del equipo. Impacto en cifras y fuentes del informe, frontera entre servicios, subida de archivos y nuevas dependencias de #28/#31/#32. La implementación y sus planes deben revisarse por los responsables afectados; el documento completo todavía no tiene aceptación humana.
 - Planning PR: https://github.com/lvckss/piia2-26/pull/60 — draft mientras se acuerdan las dependencias indicadas al final.
 
@@ -408,7 +408,7 @@ pertenece al AC-013 de #32; el arranque y recorrido del conjunto, al AC-013 de
 | RAG | Contrato aceptado; implementación pendiente | #56/#67 y ADR 0006 Aceptado; #34 consume `agente2()` y `diagnostico_rag` conservando sus estados. #72 aporta PostgreSQL y RAG al Compose común. Código real requerido para integración final. |
 | Contrato web/Python y límites configurados | Propuestos para revisión | HTTP, idempotencia, estado efímero y límites iniciales 10 MiB / 20 millones de píxeles / 60 min / 2 casos. Son valores de partida, sin benchmark ni aceptación atribuida. |
 | Modelo concreto y dependencias | Comprobación de entorno | Visión por configuración y embeddings según #32; no elegir aquí otro modelo de chat ni copiar automáticamente las dependencias del experimento. Registrar versiones/acceso al preparar la implementación. |
-| Plazo y reparto de trabajo | Propuesta actualizada por hitos | Primero CLI y después web/HTTP, sin recortar AC. El hito del martes 10 no se acredita sin plan/ADR integrados y componentes reales; registrar motivo si no se llega. Calendario propuesto abajo. |
+| Plazo y reparto de trabajo | Incumplimiento registrado y nuevo corte propuesto | El hito del 10 no se cumplió; no hay ejecución acreditada del smoke de #34 ni PR de código. El 17 pasa a cierre de planificación y corte del smoke a las 18:00 Europe/Madrid, condicionado a DoR para ejecutar. Primero CLI; web/HTTP después. Ver registro, impedimento y siguiente acción debajo. |
 
 ## Comportamiento que debe preservarse
 
@@ -519,19 +519,45 @@ repetir conservando resultados. No se crea un umbral nuevo de precisión para
 | 3 — Estado y entrega | Dos fases asíncronas, idempotencia, límites, errores, descarga y limpieza. | AC-005, AC-009 a AC-012 | Slices 1–2; pruebas de capacidad, TTL con reloj controlado, reenvíos, fallos y bytes. |
 | 4 — Compose e integración real | Compose único y preparación reproducible; 3–5 imágenes con lectura humana. | AC-006, AC-007, AC-013, AC-014 | Componentes reales integrados y configuración/modelos/paquete identificados. Filas de integración y regresiones del Test Plan. |
 
+### Registro del hito del 10 de noviembre
+
+Registro del 2026-11-16, a petición de Lucas para atender la revisión de Lucía.
+**Hito del 10 de noviembre: NO CUMPLIDO. Smoke de la slice 1 de #34: SIN
+EJECUCIÓN ACREDITADA; no se puede dar por pasado.** La ejecución de planificación
+registrada no ejecutó ese smoke ni produjo el CLI de una imagen nueva.
+
+| Punto | Estado y evidencia |
+|---|---|
+| Primer Markdown CLI de la slice 1 al 10 de noviembre | No cumplido: no consta una ejecución foto nueva → PIIA 1 → Agente 1 → resolución de vehículo/contexto → Agente 2 → Agente 3 → verificación. La [Planning PR #60](https://github.com/lvckss/piia2-26/pull/60) contiene solo Spec y ADR. |
+| Smoke nativo ADK de #34 | No ejecutado en la planificación registrada; no hay comando, log ni commit de ejecución de ese smoke que permita acreditarlo. Esto no demuestra un fallo técnico o incompatibilidad de ADK. |
+| Evidencia que sí existe | El [experimento #33/#52](../app/agentes/orquestador/README.md) y su [captura del 20 de octubre](../app/agentes/orquestador/evidencia-33-intento-2.json) acreditan una tool, no las dos fases nativas ni el recorrido de #34. La [#84/#85](https://github.com/lvckss/piia2-26/pull/85) parte de salidas guardadas del Agente 1; tampoco acredita ese recorrido. |
+| Impedimento | La #60 sigue abierta en borrador, el ADR 0007 Propuesto y #34 en Especificando: faltan aceptación/revisión e integración previas y DoR antes de implementar. La aceptación formal consumidora de Víctor y el AC nuevo de #31 siguen pendientes. #72 sigue siendo una dependencia de la integración RAG real; #75 ya está integrada. |
+| Siguiente acción de Lucas | Publicar este registro y someter el head final a revisión de Lucía; registrar aceptación consumidora y AC de #31 con Víctor. Tras integración humana y DoR, abrir la Implementation PR de la slice 1 con TDD y smoke nativo ADK con proveedores falsos; el recorrido real se acredita cuando sus componentes estén disponibles. |
+| Avance comprobado al 16 de noviembre | No hay PR de implementación de #34 ni CLI de producto entregado. En `main` `3c73e83` la carpeta `app/agentes/orquestador/` conserva únicamente el experimento de #33, sus pruebas y evidencias. Se comunica este estado en la Issue; no se presenta planificación como implementación. |
+
+El registro pendiente desde el día 10 se publica ahora, sin fecharlo
+retroactivamente. Como el primer corte venció sin smoke satisfactorio acreditado,
+**se propone hoy al equipo Python directo como alternativa a valorar**. No es una
+decisión de adoptarlo: ADK sigue siendo la propuesta de AC-005 y del ADR 0007.
+El nuevo corte operativo propuesto para decidir con la evidencia disponible es
+el **17 de noviembre de 2026 a las 18:00, Europe/Madrid**. Si para entonces no
+hay DoR, se registra «no ejecutado por gate pendiente» y el equipo decide la
+siguiente acción; no se salta la revisión previa para ejecutar producto.
+
 ### Calendario por martes (propuesto; sin recorte de alcance)
 
 | Hito | Resultado y condición |
 |---|---|
-| Martes 10 de noviembre | Cerrar revisión del plan/ADR y primer Markdown CLI si los gates y agentes reales lo permiten. Si no, registrar exactamente dependencia y siguiente acción; no presentarlo como hecho. |
-| Martes 17 de noviembre | CLI real verificable y conexión web/HTTP; ensayo de la rama limpia de Entrega 2 por Lucía. La documentación puede entregarse sin declarar implementadas piezas pendientes. |
+| Martes 10 de noviembre | **No cumplido.** Primer Markdown CLI de #34 y smoke nativo sin ejecución acreditada. Impedimento, evidencia disponible y siguiente acción en el registro anterior, publicado el 16. |
+| Martes 17 de noviembre | **Hito reajustado:** revisión/cierre de planificación y corte del smoke a las 18:00 Europe/Madrid. Con DoR, ejecutar el smoke nativo con proveedores falsos; sin DoR, registrar el impedimento y decidir alternativa/siguiente acción con el equipo. CLI real y web/HTTP quedan después de la slice 1 y de las dependencias reales, sin declararlos ya conseguidos ni prometerlos para el 17. El ensayo documental de Entrega 2 permanece separado. |
 | Martes 24 de noviembre | Completar ciclo de vida, Compose y 3–5 casos reales para congelación del proyecto el 27, si los componentes están disponibles. Retrasos se registran; ningún AC se rebaja sin decisión humana. |
 
-Coordinación de entrega comunicada por Lucía el 2026-11-10: pendientes resueltos
-o motivados por escrito el viernes 13, ensayo el martes 17 y PR al curso a más
-tardar el viernes 20 para el plazo comunicado del lunes 23. `evaluacion/entrega-2.md`
-aún dice lunes 16: esa discrepancia se comunica, no se modifica aquí el enunciado.
-Estos hitos son objetivos de coordinación, no evidencia de implementación.
+Coordinación reiterada por Lucía en el mensaje del 2026-11-16 que Lucas aporta
+a esta actualización: registrar estos pendientes antes de la reunión del martes
+17, abrir la PR de Entrega 2 el viernes 20 y usar el lunes 23 como límite
+comunicado por el equipo. Se conserva como atribución de esa coordinación; no
+se modifica el enunciado de la asignatura desde esta PR. La entrega documental
+no acredita producto implementado ni sustituye los gates de revisión y DoR.
 
 ### ADK: razón y disparador de revisión
 
@@ -542,15 +568,24 @@ coste frente a Python directo son adaptadores y entorno adicionales. Punto de
 partida reproducible: ADK 2.12.0 y LiteLLM 1.106.0 del experimento; las APIs
 nativas propuestas necesitan su propia prueba.
 
-Disparador técnico propuesto: si el smoke de la slice 1 (ambas fases nativas,
-estado aislado, orden y detención en errores, sin modelo coordinador) no pasa
-al cerrar el hito del 10 de noviembre, registrar el fallo y proponer Python
-directo al equipo ese mismo día. Cambiar requiere revisar ADR 0007 y AC-005
-antes de implementar esa alternativa; no hay cambio automático ni recorte de web.
+El disparador original del 10 de noviembre venció sin un resultado satisfactorio
+acreditado; el registro anterior consigna el incumplimiento, la falta de ejecución
+del smoke y la alternativa Python directo propuesta ahora al equipo. El nuevo
+corte propuesto es el **17 de noviembre de 2026 a las 18:00 Europe/Madrid**.
+
+El smoke de la slice 1 comprueba ambas fases nativas, estado aislado, orden y
+detención en errores, sin modelo coordinador, con ADK 2.12.0 y LiteLLM 1.106.0
+como punto de partida y proveedores falsos. Se ejecuta tras DoR; no necesita
+inferencias de pago. Si no pasa, se registra comando, resultado y causa y se
+somete Python directo al equipo ese mismo día. Si no puede ejecutarse por gate
+pendiente, se registra ese impedimento y siguiente acción en el mismo corte,
+sin llamarlo incompatibilidad técnica. Cambiar de framework requiere decisión
+humana y revisión de ADR 0007 y AC-005 antes de implementar la alternativa;
+no hay cambio automático ni recorte de web.
 
 ## Pendientes para Ready
 
-1. Revisión humana del documento v1.5 completo y aceptación/integración de
+1. Revisión humana del documento v1.6 completo y aceptación/integración de
    Planning PR #60 y ADR 0007 sobre el head final. Lucía es la revisora prevista.
 2. Víctor confirma V14/`minimo_por_defecto` con las dos precisiones de v1.4;
    falta su aceptación formal del contrato actualizado y debe incorporar aviso,
@@ -571,9 +606,10 @@ antes de implementar esa alternativa; no hay cambio automático ni recorte de we
 | Trazabilidad | 14 IDs conservados; cada AC tiene fila Test Plan y slice. AC-003/008 adaptados a la corrección de Lucía y confirmación de Víctor: V14/`minimo_por_defecto`; AC-010 de #31 sigue retirado. |
 | Preservación | Predicción #28 intacta; costes y dos escenarios #30 sin cambios; contrato RAG aceptado consumido sin reescribir cifras. Procedencia es ampliación propuesta a revisar con #31. |
 | Decisión arquitectónica | NEW_ADR: 0007 sigue Propuesto; incorpora la política del orquestador y campo aditivo, sin modificar la salida de #28 ni las fórmulas de #30. No se crea otro ADR por la misma decisión. |
-| Estado | Borrador v1.5, no Ready. Víctor confirma V14/`minimo_por_defecto` con las precisiones de v1.4, pero reserva su aceptación formal; siguen pendientes el AC nuevo consumidor y la revisión del plan/ADR completos. Los parámetros y calendario mantienen su revisión pendiente. |
+| Estado | Borrador v1.6, no Ready. Víctor confirma V14/`minimo_por_defecto` con las precisiones de v1.4, pero reserva su aceptación formal; siguen pendientes el AC nuevo consumidor y la revisión del plan/ADR completos. Los parámetros y calendario mantienen su revisión pendiente. |
 | Historial v1.4 (`6a6666e`) | Campo opcional y validación de valores/coherencia a petición de Lucas, sobre las precisiones de Víctor. Se conservan estas garantías; la política anterior V25/`maximo_por_defecto` y su frase quedan sustituidas por v1.5. |
 | Actualización v1.5 | V14/`minimo_por_defecto`, frase de estimación a la baja y límites del mínimo fijo trazados a la corrección de Lucía y confirmación de Víctor. Cambian AC-003/008 y sus verificaciones; los otros 12 AC, sus verificaciones, slices, contratos base, disparador ADK y DoD se conservan. |
+| Actualización v1.6 | Hito del 10 no cumplido y smoke sin ejecución acreditada; impedimento, avance y siguiente acción registrados. Nuevo corte propuesto el 17 a las 18:00 Europe/Madrid; se presenta Python directo al equipo sin adoptarlo. AC, Test Plan, cuatro slices y DoD idénticos a v1.5. |
 | Verificación | Revisión documental de AC, enlaces, tablas y diff. No se ha ejecutado el flujo ni una inferencia de pago durante esta planificación. |
 
 ## Definition of Done
