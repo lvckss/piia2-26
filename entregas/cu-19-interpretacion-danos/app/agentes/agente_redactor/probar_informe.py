@@ -509,6 +509,85 @@ def probar_ac015_sin_diagnostico_y_diagnostico_malformado():
     _espera_error_diagnostico(a1, x, "tema")
 
 
+# --- plan v1.1 de la #54, AC-003 y AC-011 -----------------------------------
+# https://github.com/lvckss/piia2-26/issues/54#issuecomment-6806386857 (AC-003, modificado)
+# https://github.com/lvckss/piia2-26/issues/54#issuecomment-6805208293 (AC-011)
+REAL = AQUI.parent / "ejemplos_contrato" / "agente1_real"
+
+
+def _agente2_real(salida_agente1: dict) -> dict:
+    """Salida real del Agente 2 para una salida del Agente 1, con el contexto del ejemplo y el coche de
+    referencia (o V14 con `desconocido`)."""
+    sys.path.insert(0, str(AQUI.parent / "agente_recuperacion"))
+    from costes_y_cobertura import estimar_siniestro
+
+    ctx = _cargar("contexto_siniestro.json")
+    ctx["vehiculo_id"] = salida_agente1["vehiculo"]["vehiculo_id_referencia"] or "V14"
+    return estimar_siniestro(salida_agente1, ctx)
+
+
+def probar_54_ac003_requieren_revision_humana():
+    """#54 AC-003: los hallazgos fuera del coste por `sin_pieza_o_severidad` o `sin_regla_de_coste` se listan
+    aparte bajo «Requieren revisión humana» con su finding_id y clase, y el «Resumen» dice cuántos son; los
+    rechazados conservan su texto; sin ninguno, el «Resumen» no cambia."""
+    a1, a2 = _ejemplos()
+    resumen_actual = _secciones(generar_informe(a1, a2, hoy=HOY))["## Resumen"]
+    assert "revisión humana" not in resumen_actual, resumen_actual
+    assert sum(l.startswith("- ") for l in resumen_actual.splitlines()) == 5, resumen_actual
+
+    x = copy.deepcopy(a2)
+    x["escenarios"]["con_pendientes"]["hallazgos_incluidos"] = ["160-1", "160-4"]
+    x["hallazgos_fuera_del_coste"] += [{"finding_id": "160-3", "motivo": "sin_pieza_o_severidad"},
+                                       {"finding_id": "160-5", "motivo": "sin_regla_de_coste"}]
+    md = generar_informe(a1, x, hoy=HOY)
+    s = _secciones(md)
+    fuera = s["## Detecciones no incluidas en el coste"]
+    lineas = fuera.splitlines()
+    i = next(n for n, l in enumerate(lineas) if "Requieren revisión humana" in l)
+    bloque = "\n".join(lineas[i:])
+    for fid, clase in (("160-3", "abolladura"), ("160-5", "arañazo")):
+        linea = next(l for l in bloque.splitlines() if fid in l)
+        assert clase in linea, linea
+    linea_2 = next(l for l in lineas if "160-2" in l)
+    assert lineas.index(linea_2) < i and "rechazado por la visión" in linea_2, fuera
+    assert "2 detecciones requieren revisión humana" in s["## Resumen"], s["## Resumen"]
+    encontrados = [l for l in md.splitlines() if l.startswith("# ") or l.startswith("## ")]
+    assert encontrados == ENCABEZADOS, encontrados
+    assert comprobar_cifras(md, x) == [], comprobar_cifras(md, x)
+
+
+def probar_54_ac003_sin_nada_presupuestable_003478():
+    """#54 AC-003: con todos los hallazgos fuera del coste y 0 € (el 003478 real), el «Resumen» dice que ningún
+    hallazgo es presupuestable y cuántas detecciones requieren revisión humana."""
+    a1 = json.loads((REAL / "003478.json").read_text(encoding="utf-8"))
+    a2 = _agente2_real(a1)
+    assert a2["escenarios"]["con_pendientes"]["hallazgos_incluidos"] == []
+    md = generar_informe(a1, a2, hoy=HOY)
+    resumen = _secciones(md)["## Resumen"]
+    assert "Ningún hallazgo es presupuestable" in resumen, resumen
+    assert "1 detección requiere revisión humana" in resumen, resumen
+    assert "3478-4" in _secciones(md)["## Detecciones no incluidas en el coste"]
+    encontrados = [l for l in md.splitlines() if l.startswith("# ") or l.startswith("## ")]
+    assert encontrados == [ENCABEZADOS[0].replace("160", "3478")] + ENCABEZADOS[1:], encontrados
+    assert comprobar_cifras(md, a2) == [], comprobar_cifras(md, a2)
+
+
+def probar_54_ac011_aviso_de_lo_que_detecta_piia1():
+    """#54 AC-011: el informe incluye, aparte del aviso literal de la cabecera, una línea que dice que solo se
+    analizan los daños detectados por PIIA 1 y que puede haber otros (el ejemplo y el 000423 real)."""
+    a1, a2 = _ejemplos()
+    real = json.loads((REAL / "000423.json").read_text(encoding="utf-8"))
+    for salida1, salida2 in ((a1, a2), (real, _agente2_real(real))):
+        md = generar_informe(salida1, salida2, hoy=HOY)
+        cabecera = _secciones(md)[next(l for l in md.splitlines() if l.startswith("# "))]
+        assert AVISO_LEGAL in cabecera, cabecera
+        linea = next((l for l in cabecera.splitlines() if "PIIA 1" in l), "")
+        assert linea and AVISO_LEGAL not in linea and "puede haber otros" in linea, cabecera
+        encontrados = [l for l in md.splitlines() if l.startswith("# ") or l.startswith("## ")]
+        assert encontrados[1:] == ENCABEZADOS[1:], encontrados
+        assert comprobar_cifras(md, salida2) == [], comprobar_cifras(md, salida2)
+
+
 PRUEBAS = [
     probar_ac001_encabezados_cabecera_y_resumen,
     probar_ac002_confirmados_pendientes_y_no_incluidos,
@@ -527,6 +606,9 @@ PRUEBAS = [
     probar_ac012_determinista_sin_clave_ni_red,
     probar_ac014_diagnostico_en_sus_cinco_estados,
     probar_ac015_sin_diagnostico_y_diagnostico_malformado,
+    probar_54_ac003_requieren_revision_humana,
+    probar_54_ac003_sin_nada_presupuestable_003478,
+    probar_54_ac011_aviso_de_lo_que_detecta_piia1,
 ]
 
 

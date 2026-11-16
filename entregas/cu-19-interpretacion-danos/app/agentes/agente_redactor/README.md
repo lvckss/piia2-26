@@ -31,6 +31,10 @@ assert comprobar_cifras(md, salida_agente2) == []  # ningún importe inventado
   líneas y `desglose`).
 - `diagnostico_rag` (#32) es opcional: con `parcial`, `sin_resultados` o
   `error` el informe se marca como preliminar y lista los temas sin fuentes.
+- Los hallazgos fuera del coste sin pieza, sin severidad o sin regla de coste
+  se listan aparte, bajo «Requieren revisión humana», y el «Resumen» dice
+  cuántos son y si ningún hallazgo es presupuestable (#54, AC-003). La
+  cabecera avisa de que solo se analizan los daños que detecta PIIA 1 (#54, AC-011).
 
 ## Pruebas y ejemplo
 
