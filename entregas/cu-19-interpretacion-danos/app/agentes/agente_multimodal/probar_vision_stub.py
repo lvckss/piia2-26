@@ -18,7 +18,13 @@ from catalogo import Catalogo, cargar_catalogo
 from confianza import decidir_tier
 from hallazgos import cargar_detecciones, construir_hallazgos
 from recorte import generar_recortes
-from vision import PROMPT_VARIANTE_ORIENTACION, analizar_hallazgo, enriquecer_con_vision, parsear_respuesta
+from vision import (
+    PROMPT_VARIANTE_ORIENTACION,
+    analizar_hallazgo,
+    descripcion_de_otro_vehiculo,
+    enriquecer_con_vision,
+    parsear_respuesta,
+)
 
 # catalogo minimo para las pruebas: no depende de tener el paquete de la empresa
 MINI_CATALOGO = Catalogo(
@@ -345,6 +351,36 @@ def probar_ac013_confirmado_en_otro_vehiculo_queda_incierto() -> None:
     assert rechazo["vision_verdict"] == "rechazado", rechazo
 
 
+# Revision de la #86 (c2ff138): «otro vehiculo» como causa del daño no lo sitúa en otro vehiculo.
+CAUSA_OTRO_VEHICULO = (
+    "Rayón en la puerta trasera causado por el roce con otro vehículo.",
+    "Abolladura por el impacto de otro coche contra el paragolpes.",
+    "Daño en el paragolpes tras la colisión con un segundo vehículo.",
+    "El guardabarros fue golpeado por otro automóvil al maniobrar.",
+)
+DANO_EN_OTRO_VEHICULO = (
+    "La zona marcada pertenece al vehículo oscuro del fondo.",
+    "El faro roto pertenece a otro vehículo.",
+    "La zona marcada corresponde a un segundo coche.",
+    "Abolladura visible en otro vehículo, no en el coche fotografiado.",
+    "Parachoques roto del vehículo del fondo.",
+)
+
+
+def probar_ac013_otro_vehiculo_como_causa_no_cambia_el_veredicto() -> None:
+    """AC-013: solo pasa a `incierto` la descripcion que situa el daño en otro vehiculo o en el del fondo
+    («pertenece a otro vehiculo», «en otro vehiculo», «del vehiculo del fondo»); si otro vehiculo es la causa
+    del daño («por», «con», «contra», «causado por») el `confirmado` se conserva."""
+    for causa in CAUSA_OTRO_VEHICULO:
+        assert not descripcion_de_otro_vehiculo(causa), causa
+        r = parsear_respuesta(_respuesta_json(causa), MINI_CATALOGO, "dent")
+        assert r["vision_verdict"] == "confirmado" and r["pieza_id"] == "PARAG_DEL", (causa, r)
+    for lugar in DANO_EN_OTRO_VEHICULO:
+        assert descripcion_de_otro_vehiculo(lugar), lugar
+        r = parsear_respuesta(_respuesta_json(lugar), MINI_CATALOGO, "dent")
+        assert r["vision_verdict"] == "incierto" and r["vision_description"] == lugar, (lugar, r)
+
+
 def probar_ac012_analizar_con_el_prompt_de_la_variante() -> None:
     """AC-012 (plan v1.1): `analizar_hallazgo` acepta otro prompt; por defecto el prompt no cambia, y una respuesta
     con las dos claves nuevas (`vista` y `lado_del_coche`) se lee igual que una normal."""
@@ -375,6 +411,7 @@ def main() -> None:
     probar_ac006_cache_con_respuesta_corrupta()
     probar_ac006_una_respuesta_corrupta_no_se_guarda()
     probar_ac013_confirmado_en_otro_vehiculo_queda_incierto()
+    probar_ac013_otro_vehiculo_como_causa_no_cambia_el_veredicto()
     probar_ac012_analizar_con_el_prompt_de_la_variante()
     print("\nTodo ok: peticion bien formada, respuesta validada, cache y tier combinado.")
 

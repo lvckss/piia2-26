@@ -82,9 +82,15 @@ _RESTOS_DE_RAZONAMIENTO = re.compile(r"\b(Wait|Actually|Let me|Need ensure|Need 
 DESCRIPCION_DESCARTADA = "Descripcion descartada: la respuesta del modelo no era valida."
 
 # AC-013: una descripcion que situa el dano en otro vehiculo o en el fondo no puede quedar `confirmado`.
+# Solo cuenta cuando el dano ESTA en otro vehiculo («pertenece a otro vehiculo», «en otro vehiculo», «del vehiculo
+# del fondo»); si otro vehiculo es la CAUSA («causado por», «con», «contra», «impacto de») no se activa, porque en un
+# siniestro real es lo habitual y dejaria un `confirmado` legitimo fuera de los confirmados.
+_VEHICULO = r"(?:veh[ií]culo|coche|autom[oó]vil)"
+_OTRO = r"(?:otro|segundo)"
 _OTRO_VEHICULO = re.compile(
-    r"\b(otro|segundo)\s+(veh[ií]culo|coche|autom[oó]vil)\b"
-    r"|\b(veh[ií]culo|coche|autom[oó]vil)(\s+\w+){0,2}\s+(del|al|de)\s+fondo\b",
+    rf"\b(?:pertenec\w+|correspond\w+)\s+a\s+(?:un\s+|el\s+)?{_OTRO}\s+{_VEHICULO}\b"
+    rf"|\ben\s+(?:un\s+|el\s+)?{_OTRO}\s+{_VEHICULO}\b"
+    rf"|\b{_VEHICULO}(?:\s+\w+){{0,2}}\s+(?:del|al|de)\s+fondo\b",
     re.IGNORECASE,
 )
 
@@ -95,7 +101,8 @@ def descripcion_corrupta(texto: str) -> bool:
 
 
 def descripcion_de_otro_vehiculo(texto: str) -> bool:
-    """True si la descripcion dice que la zona es de otro vehiculo o del vehiculo del fondo."""
+    """True si la descripcion situa el daño en otro vehiculo o en el vehiculo del fondo; False si otro vehiculo
+    es solo la causa del daño."""
     return bool(_OTRO_VEHICULO.search(texto))
 
 
