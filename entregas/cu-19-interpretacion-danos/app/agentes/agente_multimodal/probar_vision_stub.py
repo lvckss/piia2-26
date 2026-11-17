@@ -9,13 +9,14 @@ from __future__ import annotations
 
 import json
 import tempfile
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 from PIL import Image
 
 from catalogo import Catalogo, cargar_catalogo
 from confianza import decidir_tier
+from equivalencias import cargar_equivalencias  # catalogo.py anade app/agentes/comun a sys.path
 from hallazgos import cargar_detecciones, construir_hallazgos
 from recorte import generar_recortes
 from vision import (
@@ -401,6 +402,101 @@ def probar_ac012_analizar_con_el_prompt_de_la_variante() -> None:
     assert r["vision_verdict"] == "confirmado" and r["pieza_id"] == "FARO_DEL_D" and "vista" not in r, r
 
 
+# --- Issue #88, slice 2 (Agente 1): equivalencias de reglas de coste ------------------------------------------
+# Plan v1: specs/88-equivalencias-reglas-coste.md#AC-003 (la tabla y el modulo comun son de la slice 1)
+
+CAMPOS_FINDING = {
+    "finding_id", "category", "clase_tool", "score", "score_tier", "confidence_tier", "bbox_xywh",
+    "vision_verdict", "pieza_id", "severidad", "regla_coste_aplicable", "vision_description", "crop_image_path",
+}
+
+# MINI_CATALOGO ampliado: un piloto (optica) y un parabrisas (cristal), la regla destino de la equivalencia
+# `glass_shatter` en optica -> `lamp_broken`, y la tabla de equivalencias real de comun/
+CATALOGO_EQUIVALENCIAS = replace(
+    MINI_CATALOGO,
+    piezas={
+        **MINI_CATALOGO.piezas,
+        "PILOTO_TRAS_I": {"nombre": "Piloto trasero izquierdo", "zona_tipo": "optica", "lado": "I"},
+        "PARABRISAS": {"nombre": "Parabrisas", "zona_tipo": "cristal", "lado": "C"},
+    },
+    reglas=MINI_CATALOGO.reglas | {("lamp_broken", "optica", "moderado")},
+    equivalencias=cargar_equivalencias(),
+)
+
+
+class ClientePorClase(ClienteFalso):
+    """Como `ClienteFalso`, pero responde con las respuestas dadas, segun la clase del prompt."""
+
+    def __init__(self, respuestas: dict[str, dict]) -> None:
+        super().__init__()
+        self.respuestas = respuestas
+
+    def create(self, model: str, messages: list[dict], response_format: dict) -> _Respuesta:
+        self.llamadas.append({"model": model, "messages": messages, "response_format": response_format})
+        categoria = messages[0]["content"][0]["text"].split("tipo '")[1].split("'")[0]
+        return _Respuesta([_Eleccion(_Mensaje(json.dumps(self.respuestas[categoria])))], _Uso(1500, 40))
+
+
+def probar_ac003_equivalencia_marca_la_regla_sin_cambiar_el_hallazgo() -> None:
+    """AC-003 (plan v1 de la #88): una combinacion sin regla propia pero con equivalencia sale con
+    `regla_coste_aplicable = true`; una sin equivalencia, con `false`; y el hallazgo no cambia en nada mas."""
+    # 1) `parsear_respuesta`: cristal roto en un piloto (equivalencia), arañazo en el parabrisas (sin ella)
+    # y grieta de neumatico `leve` (equivalencia con severidad minima: la severidad del hallazgo no se toca)
+    cristal = parsear_respuesta(_respuesta_json("Cristal del piloto roto.", pieza="PILOTO_TRAS_I", severidad="moderado"),
+                                CATALOGO_EQUIVALENCIAS, "glass_shatter")
+    rayon = parsear_respuesta(_respuesta_json("Arañazo en el parabrisas.", pieza="PARABRISAS", severidad="moderado"),
+                              CATALOGO_EQUIVALENCIAS, "scratch")
+    grieta = parsear_respuesta(_respuesta_json("Grieta en el neumático.", pieza="NEUMATICO", severidad="leve"),
+                               CATALOGO_EQUIVALENCIAS, "crack")
+    assert cristal["regla_coste_aplicable"] is True, cristal
+    assert rayon["regla_coste_aplicable"] is False, rayon
+    assert grieta["regla_coste_aplicable"] is True, grieta
+    assert (cristal["pieza_id"], cristal["severidad"]) == ("PILOTO_TRAS_I", "moderado")
+    assert (rayon["pieza_id"], rayon["severidad"]) == ("PARABRISAS", "moderado")
+    assert (grieta["pieza_id"], grieta["severidad"]) == ("NEUMATICO", "leve"), "la severidad minima no cambia la del hallazgo"
+
+    # sin la tabla (catalogo sin equivalencias) la misma respuesta sigue sin regla: lo que cambia es la equivalencia
+    sin_tabla = replace(CATALOGO_EQUIVALENCIAS, equivalencias={})
+    r = parsear_respuesta(_respuesta_json("Cristal del piloto roto.", pieza="PILOTO_TRAS_I", severidad="moderado"),
+                          sin_tabla, "glass_shatter")
+    assert r["regla_coste_aplicable"] is False, r
+
+    # 2) hallazgos completos: category, clase_tool y severidad no cambian, 13 campos y tier de `decidir_tier`
+    deteccion = {
+        "image_id": 1248, "image_width": 1400, "image_height": 933,
+        "predictions": [
+            {"instance_index": 1, "damage_class": "glass shatter", "category_id": 4, "score": 0.9,
+             "bbox_xywh": [700.0, 40.0, 250.0, 200.0], "area": 50000.0},
+            {"instance_index": 2, "damage_class": "scratch", "category_id": 2, "score": 0.9,
+             "bbox_xywh": [420.0, 260.0, 260.0, 180.0], "area": 46800.0},
+        ],
+    }
+    respuestas = {
+        "glass shatter": {"veredicto": "confirmado", "pieza_id": "PILOTO_TRAS_I", "severidad": "moderado",
+                          "descripcion": "Cristal del piloto roto."},
+        "scratch": {"veredicto": "confirmado", "pieza_id": "PARABRISAS", "severidad": "moderado",
+                    "descripcion": "Arañazo en el parabrisas."},
+    }
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp_dir = Path(tmp)
+        foto = tmp_dir / "foto.jpg"
+        Image.new("RGB", (deteccion["image_width"], deteccion["image_height"]), "gray").save(foto)
+        deteccion["image_path"] = str(foto)
+        hallazgos = construir_hallazgos(deteccion)
+        assert len(hallazgos["findings"]) == 2, hallazgos["findings"]
+        generar_recortes(deteccion, hallazgos, tmp_dir / "crops")
+        enriquecer_con_vision(hallazgos, ClientePorClase(respuestas), "modelo-falso", foto, CATALOGO_EQUIVALENCIAS)
+
+    por_clase = {f["category"]: f for f in hallazgos["findings"]}
+    cristal, rayon = por_clase["glass shatter"], por_clase["scratch"]
+    assert cristal["regla_coste_aplicable"] is True and cristal["confidence_tier"] == "confirmed", cristal
+    assert rayon["regla_coste_aplicable"] is False and rayon["confidence_tier"] == "needs_review", rayon
+    for finding, clase_tool, pieza in ((cristal, "glass_shatter", "PILOTO_TRAS_I"), (rayon, "scratch", "PARABRISAS")):
+        assert set(finding) == CAMPOS_FINDING, set(finding) ^ CAMPOS_FINDING
+        assert finding["clase_tool"] == clase_tool and finding["pieza_id"] == pieza and finding["severidad"] == "moderado"
+        assert finding["vision_verdict"] == "confirmado" and finding["score_tier"] == "confirmed"
+
+
 def main() -> None:
     probar_decidir_tier()
     probar_parseo()
@@ -413,6 +509,7 @@ def main() -> None:
     probar_ac013_confirmado_en_otro_vehiculo_queda_incierto()
     probar_ac013_otro_vehiculo_como_causa_no_cambia_el_veredicto()
     probar_ac012_analizar_con_el_prompt_de_la_variante()
+    probar_ac003_equivalencia_marca_la_regla_sin_cambiar_el_hallazgo()
     print("\nTodo ok: peticion bien formada, respuesta validada, cache y tier combinado.")
 
 
