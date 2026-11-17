@@ -1,9 +1,9 @@
 # Spec: Justificación con un LLM de la normativa recuperada por el RAG
 
 - GitHub Issue: https://github.com/lvckss/piia2-26/issues/97
-- Estado: Borrador
+- Estado: Revisada — por Lucas García (`lvckss`), [revisión APPROVED del 2026-11-17](https://github.com/lvckss/piia2-26/pull/98#pullrequestreview-5944306302) sobre `940119f`, que acepta la Spec 97 v1.1 (AC, Test/Eval Plan e Implementation Plan) y el ADR 0009 (NEW_ADR).
 - ADR decision: NEW_ADR
-- ADR: [docs/adr/0009-justificacion-llm-normativa.md](../docs/adr/0009-justificacion-llm-normativa.md) — Propuesto
+- ADR: [docs/adr/0009-justificacion-llm-normativa.md](../docs/adr/0009-justificacion-llm-normativa.md) — Aceptado
 - Justificación: añade un modelo de lenguaje al Agente 2 y un campo nuevo a su salida, que consumen el Agente 3 y la orquestación de la #34 (frontera entre agentes del [ADR 0002](../docs/adr/0002-contrato-json-entre-agentes.md)). Además cambia el alcance aceptado: la [spec 32](32-rag-normativa.md) deja fuera «generar respuestas o conclusiones con otro LLM» y la [spec 31](31-informe-peritaje.md) no usa ningún LLM. Amplía los ADR 0002 y [0006](../docs/adr/0006-rag-postgresql-estado-recuperacion.md) sin sustituirlos y reutiliza el [ADR 0003](../docs/adr/0003-proveedor-openai-clave-empresa.md) para el proveedor y la clave.
 - Plan vigente / versión: **v1.1** (2026-11-17), este archivo en la rama `plan/97-justificacion-llm`; el commit exacto se registra en un comentario de la Issue. La v1.1 atiende la [revisión de Lucas sobre `076440f`](https://github.com/lvckss/piia2-26/pull/98#pullrequestreview-5944085838): el texto del LLM no lleva importes (AC-003, AC-009) y la evaluación exige justificaciones generadas (AC-011). Conserva los 11 IDs de AC y el resto del plan. Antecedente: v1 `b997613` (`076440f` solo añadió el enlace a la Planning PR).
 - Riesgo y revisión previa: **sí requiere revisión previa** (disparador: NEW_ADR). Impacto medio: el texto nuevo llega al informe que lee el perito y un LLM puede afirmar algo que sus fuentes no dicen. Reversibilidad alta: el campo nuevo es opcional y, sin él, el sistema vuelve al comportamiento actual. Incertidumbre media: la calidad de las justificaciones solo se conoce evaluándolas.
@@ -198,7 +198,7 @@ Orden: las slices 1 y 3 pueden ir en paralelo; la 2 espera a `agente2()`. Objeti
 
 ## Pendientes para Ready
 
-- Revisión humana de esta Spec y aceptación del ADR 0009 en la Planning PR, y su integración en `main`.
+- Revisión humana de esta Spec y aceptación del ADR 0009: hechas por Lucas, [revisión APPROVED del 2026-11-17](https://github.com/lvckss/piia2-26/pull/98#pullrequestreview-5944306302) sobre `940119f`. Pendientes: la aprobación final del head con este registro y su integración en `main`.
 - El texto del aviso preliminar y la lista de 10 informes ya los confirmó Lucas en su [revisión sobre `076440f`](https://github.com/lvckss/piia2-26/pull/98#pullrequestreview-5944085838); falta su aceptación de la v1.1 y del ADR 0009.
 - Analyze v1.1 (2026-11-17, tras la revisión de Lucas): resueltos los dos puntos (texto sin importes, compatible con `comprobar_cifras` sin cambiarlo; cobertura mínima de justificaciones generadas en AC-011). Analyze (2026-11-17): requisitos de la Issue cubiertos por AC-001 a AC-011; cada AC con verificación y slice; comportamiento preservado protegido por AC-006, AC-009 y AC-010; sin contradicciones con los ADR 0002, 0003, 0004 y 0006 (este ADR los amplía sin cambiar sus decisiones). Gaps: ninguno bloqueante. Dependencia: `agente2()` de la #32.
 
