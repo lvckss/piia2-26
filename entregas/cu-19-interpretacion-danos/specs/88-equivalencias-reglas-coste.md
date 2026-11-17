@@ -1,9 +1,9 @@
 # Spec: Equivalencias de reglas de coste para las combinaciones sin regla
 
 - GitHub Issue: https://github.com/lvckss/piia2-26/issues/88
-- Estado: Borrador
+- Estado: Revisada — por Víctor (`Vija97`), [revisión APPROVED del 2026-11-16](https://github.com/lvckss/piia2-26/pull/89#pullrequestreview-5924298505) sobre `7bc11e6`, que cubre la spec 88 v1 y el ADR 0008.
 - ADR decision: NEW_ADR
-- ADR: [docs/adr/0008-equivalencias-reglas-coste.md](../docs/adr/0008-equivalencias-reglas-coste.md) — Propuesto
+- ADR: [docs/adr/0008-equivalencias-reglas-coste.md](../docs/adr/0008-equivalencias-reglas-coste.md) — Aceptado
 - Justificación: el cambio modifica una decisión aceptada, el punto 3 del [ADR 0004](../docs/adr/0004-herramienta-costes-datos-empresa.md) («el equipo no inventa procedimientos de reparación»), y su consecuencia «una combinación sin regla se deja fuera del coste». Afecta a la frontera entre agentes (qué hallazgos entran en el presupuesto) y a una tabla compartida por los Agentes 1, 2 y 3, con consumidores independientes. No cambia el contrato del [ADR 0002](../docs/adr/0002-contrato-json-entre-agentes.md).
 - Plan vigente / versión: **v1** (2026-11-12), este archivo en la rama `plan/88-equivalencias-reglas-coste`; el commit exacto se registra en un comentario de la Issue.
 - Riesgo y revisión previa: **sí requiere revisión previa** (disparador: NEW_ADR). Impacto medio: cambia importes de los informes de los hallazgos afectados (24 de 1.746 en las 500 imágenes). Reversibilidad alta: la tabla es un archivo versionado y borrar una fila restablece el comportamiento anterior. Incertidumbre media: la elección de cada equivalencia es criterio de dominio, con la regla de la empresa siempre por delante.
