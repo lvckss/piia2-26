@@ -38,7 +38,7 @@ def write_corpus(root):
     ]:
         path = root / name
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(text)
+        path.write_text(text, encoding="utf-8")
     (root / "preguntas_evaluacion.csv").write_text("respuesta_esperada\nGOLD_NO_INDEXABLE\n")
 
 
@@ -250,7 +250,7 @@ class IndexTests(unittest.TestCase):
     def test_ac002_failed_batch_keeps_previous_active_and_reuses_saved_embeddings(self):
         initial = self.store.index(self.corpus, MODELS["small"], FakeEmbedder(), execute=True)
         extra = self.root / "docs/legal/segunda.txt"
-        extra.write_text("Artículo 1.\nCambio primero.\nArtículo 2.\nCambio segundo.\nArtículo 3.\nCambio tercero.")
+        extra.write_text("Artículo 1.\nCambio primero.\nArtículo 2.\nCambio segundo.\nArtículo 3.\nCambio tercero.", encoding="utf-8")
         changed = load_corpus(self.root)
         failing = FakeEmbedder(fail_after=1)
         with self.assertRaises(RagError):

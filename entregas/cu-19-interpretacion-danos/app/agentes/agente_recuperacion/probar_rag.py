@@ -243,7 +243,7 @@ class SearchTests(unittest.TestCase):
         old_sources = {f.source for f in self.corpus.fragments if f.document.kind == "legal"}
         for path in (self.root / "docs/legal").glob("*.txt"):
             path.unlink()
-        (self.root / "docs/legal/nueva.txt").write_text("Artículo 1.\nLegislación nueva.")
+        (self.root / "docs/legal/nueva.txt").write_text("Artículo 1.\nLegislación nueva.", encoding="utf-8")
         changed = load_corpus(self.root)
         provider = SearchEmbedder(callback=lambda: self.store.index(changed, rag.MODELS["small"], FakeEmbedder(), execute=True))
         result = self.search(provider).search("x", 100)
