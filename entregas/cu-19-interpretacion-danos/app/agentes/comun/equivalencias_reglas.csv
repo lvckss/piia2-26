@@ -1,0 +1,5 @@
+clase_origen,zona_tipo,clase_destino,severidad_minima,motivo
+glass_shatter,optica,lamp_broken,,Todas las reglas de óptica son «sustituir»: un cristal roto de faro o piloto se sustituye como una óptica rota
+lamp_broken,cristal,glass_shatter,,Un cristal roto etiquetado como óptica rota se trata como cristal roto
+crack,neumatico,tire_flat,moderado,"Una grieta de neumático no se repara: la severidad leve de tire_flat es «reparar pinchazo», así que se parte de moderado («sustituir neumático»)"
+lamp_broken,retrovisor,crack,,Un retrovisor roto etiquetado como óptica rota se trata como grieta de retrovisor («sustituir y pintar»)
