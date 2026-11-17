@@ -5,7 +5,7 @@
 - ADR decision: NEW_ADR
 - ADR: [docs/adr/0009-justificacion-llm-normativa.md](../docs/adr/0009-justificacion-llm-normativa.md) — Propuesto
 - Justificación: añade un modelo de lenguaje al Agente 2 y un campo nuevo a su salida, que consumen el Agente 3 y la orquestación de la #34 (frontera entre agentes del [ADR 0002](../docs/adr/0002-contrato-json-entre-agentes.md)). Además cambia el alcance aceptado: la [spec 32](32-rag-normativa.md) deja fuera «generar respuestas o conclusiones con otro LLM» y la [spec 31](31-informe-peritaje.md) no usa ningún LLM. Amplía los ADR 0002 y [0006](../docs/adr/0006-rag-postgresql-estado-recuperacion.md) sin sustituirlos y reutiliza el [ADR 0003](../docs/adr/0003-proveedor-openai-clave-empresa.md) para el proveedor y la clave.
-- Plan vigente / versión: **v1** (2026-11-17), este archivo en la rama `plan/97-justificacion-llm`; el commit exacto se registra en un comentario de la Issue.
+- Plan vigente / versión: **v1.1** (2026-11-17), este archivo en la rama `plan/97-justificacion-llm`; el commit exacto se registra en un comentario de la Issue. La v1.1 atiende la [revisión de Lucas sobre `076440f`](https://github.com/lvckss/piia2-26/pull/98#pullrequestreview-5944085838): el texto del LLM no lleva importes (AC-003, AC-009) y la evaluación exige justificaciones generadas (AC-011). Conserva los 11 IDs de AC y el resto del plan. Antecedente: v1 `b997613` (`076440f` solo añadió el enlace a la Planning PR).
 - Riesgo y revisión previa: **sí requiere revisión previa** (disparador: NEW_ADR). Impacto medio: el texto nuevo llega al informe que lee el perito y un LLM puede afirmar algo que sus fuentes no dicen. Reversibilidad alta: el campo nuevo es opcional y, sin él, el sistema vuelve al comportamiento actual. Incertidumbre media: la calidad de las justificaciones solo se conoce evaluándolas.
 - Planning PR: https://github.com/lvckss/piia2-26/pull/98
 
@@ -64,13 +64,14 @@ Decisiones humanas de la planificación (Víctor, 2026-11-17, en la sesión que 
 - El texto vive en la salida del Agente 2.
 - Si el LLM falla, el informe sale como preliminar con las citas y sin justificación.
 - Evaluación con 10 informes, revisados por Lucía.
+- v1.1, tras la revisión de Lucas: el texto del LLM **no lleva importes**, y la evaluación exige **al menos una justificación generada por informe** (Víctor, 2026-11-17).
 - Reparto: Lucas implementa el Agente 2 y Víctor, el Agente 3.
 
 ## Alcance
 
 - Incluido:
   - El paso de justificación al final de `agente2()`: una llamada al LLM por tema con pasajes, con los pasajes de ese tema como única fuente.
-  - La comprobación en código de cada respuesta (citas literales, importes, términos de validación) y el campo `justificaciones` con su estado por tema.
+  - La comprobación en código de cada respuesta (citas literales, texto sin importes, términos de validación) y el campo `justificaciones` con su estado por tema.
   - El comportamiento ante fallos: sin clave, sin autorización de gasto, error o tiempo agotado del proveedor, respuesta mal formada.
   - La caché de respuestas y el control de gasto según el ADR 0003.
   - La representación en el informe (Agente 3) y el aviso de informe preliminar cuando falte alguna justificación.
@@ -89,7 +90,8 @@ Decisiones humanas de la planificación (Víctor, 2026-11-17, en la sesión que 
 - **Cifras intactas:** todos los campos actuales de la salida del Agente 2 (costes, escenarios, cobertura, `normativa`, `diagnostico_rag`) son idénticos con y sin el paso nuevo. Solo se añade `justificaciones`.
 - **Única fuente, los pasajes:** el mensaje al LLM contiene el tema y los `extracto` de ese tema, sin importes del cálculo ni datos del siniestro.
 - **Citas literales:** cada cita aceptada es un fragmento que aparece tal cual en algún pasaje del mismo tema. Se compara tras normalizar espacios en blanco consecutivos; ningún otro cambio.
-- **Importes:** cada importe en euros del `texto` (por ejemplo «300 €», «1.500 EUR», «2.500,00 euros») debe tener el mismo valor numérico que un importe de sus citas. Si no, la justificación se descarta. Así, `comprobar_cifras` sigue devolviendo `[]` en el informe.
+- **Texto sin importes:** el `texto` no puede contener ningún importe en euros: un número seguido o precedido de «€», «EUR», «euro» o «euros», en cualquier formato («300 €», «1.500 EUR», «1500 EUR», «2.500,00 euros», «€ 300»). Si lo contiene, la justificación se descarta, aunque el importe esté en sus citas. Los importes solo aparecen en el informe por dos vías ya existentes: el cálculo del Agente 2 y las citas literales de la `normativa`, que se muestran como bloque literal debajo de cada justificación. El Agente 3 vuelve a comprobarlo: una justificación `generada` con importes en el `texto` es una entrada mal formada. Así, el texto del LLM no añade ningún importe nuevo al informe y `comprobar_cifras` sigue igual.
+- **Límite conocido de `comprobar_cifras`, sin cambios en esta Spec:** solo reconoce importes con coma, dos decimales y «€» (spec 31 AC-013), por lo que no detecta formas como «1500 EUR». Las citas de la `normativa` ya se muestran hoy en el informe con esa limitación; esta Spec no la amplía ni la corrige.
 - **Sin validación jurídica:** el `texto` no puede contener las raíces «verific», «valid» ni «garantiz». Si las contiene, se descarta (coherente con la spec 31 AC-014).
 - **Proveedor:** OpenAI con la clave de la empresa en `OPENAI_API_KEY` y el modelo en `OPENAI_MODEL` o en el parámetro `modelo` ([ADR 0003](../docs/adr/0003-proveedor-openai-clave-empresa.md)). El cliente se recibe como parámetro para probar sin red.
 - **Gasto controlado:** se llama al LLM solo con autorización explícita de gasto, como la consulta del RAG (`RAG_QUERY_EXECUTE` y presupuesto finito en la #32). Las respuestas se cachean por modelo y mensaje.
@@ -101,8 +103,8 @@ Decisiones humanas de la planificación (Víctor, 2026-11-17, en la sesión que 
 | ¿El LLM recibe el resultado del cálculo? | Resuelta (decisión humana) | No: solo pasajes. Evita que fuerce una explicación que cuadre con el cálculo. |
 | ¿Dónde vive el texto? | Resuelta (decisión humana) | En la salida del Agente 2; el Agente 3 solo lo muestra y sigue siendo determinista. |
 | ¿Qué hace el sistema si el LLM falla? | Resuelta (decisión humana) | El informe sale como preliminar, con citas y sin justificación; nunca se bloquea. |
-| ¿Qué texto lleva el aviso preliminar? | Supuesto aceptable, a confirmar en la revisión | «Informe preliminar: no se ha podido redactar la justificación de algunas fuentes; se muestran sus citas sin justificación y requieren revisión.» Es distinto del aviso de la #32 porque el motivo es otro. |
-| ¿Basta comparar importes por valor? | Supuesto aceptable | Cubre las formas «300 €», «300 EUR» y «300,00 euros». Un importe en letras no se detecta; la evaluación manual lo vigila. |
+| ¿Qué texto lleva el aviso preliminar? | Resuelta (confirmado por Lucas en la revisión de la v1) | «Informe preliminar: no se ha podido redactar la justificación de algunas fuentes; se muestran sus citas sin justificación y requieren revisión.» Es distinto del aviso de la #32 porque el motivo es otro. |
+| ¿Cómo encajan los importes del texto con `comprobar_cifras`? | Resuelta (decisión humana, v1.1) | El texto no lleva importes; los importes de la póliza solo aparecen en sus citas literales. Se descartó permitir en el texto los importes de las citas, porque obligaría a ampliar `comprobar_cifras` y su garantía (revisión de Lucas). Un importe escrito en letras no se detecta automáticamente; la evaluación manual lo vigila. |
 | ¿Qué modelo de chat? | Resuelta por el ADR 0003 | El identificador de la cuenta de la empresa, por entorno o parámetro; se registra el usado en la evaluación. Comparar modelos queda fuera. |
 | ¿Cuándo estará `agente2()`? | Dependencia, no bloqueante para planificar | Las slices 1 y 3 no la necesitan; la 2 y la 5, sí. Si no llega a tiempo para la congelación del 2026-11-24, se registra como bloqueo con su alternativa. |
 
@@ -111,7 +113,7 @@ Decisiones humanas de la planificación (Víctor, 2026-11-17, en la sesión que 
 - **Cálculo y contrato actual del Agente 2** ([ADR 0002](../docs/adr/0002-contrato-json-entre-agentes.md), spec 32 AC-006): mismos campos y valores; `justificaciones` es aditivo. Protegido por AC-006 y por `probar_costes.py` y `probar_rag.py`.
 - **Informe sin el campo nuevo** (spec 31 AC-001 a AC-015): una salida del Agente 2 sin `justificaciones` produce exactamente el informe actual. Protegido por AC-009 y `probar_informe.py`.
 - **Determinismo del informe** (spec 31 AC-012): `generar_informe` no llama a ningún modelo; con la misma entrada da el mismo informe sin clave ni red. Protegido por AC-010 y `probar_informe.py`.
-- **Cifras verificadas** (spec 31 AC-013): `comprobar_cifras` sigue dando `[]` con justificaciones. Protegido por AC-003 y AC-008.
+- **Cifras verificadas** (spec 31 AC-013): `comprobar_cifras` no cambia y sigue dando `[]` con justificaciones, incluso cuando una cita contiene un importe de la póliza ausente del cálculo. Protegido por AC-003, AC-008 y AC-009.
 - **Los 9 encabezados del informe** no cambian: la justificación va dentro de «Fuentes consultadas».
 
 ## Failure modes y requisitos no funcionales
@@ -119,12 +121,12 @@ Decisiones humanas de la planificación (Víctor, 2026-11-17, en la sesión que 
 | Situación | Comportamiento esperado | AC |
 |---|---|---|
 | Cita que no está literalmente en los pasajes del tema | Esa justificación queda `descartada` con motivo; las demás no se ven afectadas | AC-002 |
-| Importe del texto que no está en sus citas | `descartada` con motivo | AC-003 |
+| El texto contiene un importe en euros (aunque esté en sus citas) | `descartada` con motivo en el Agente 2; si llega así al Agente 3, excepción | AC-003, AC-009 |
 | Texto que se presenta como validación jurídica | `descartada` con motivo | AC-004 |
 | Sin `OPENAI_API_KEY`, sin autorización de gasto, error o tiempo agotado del proveedor, respuesta no JSON | `no_generada` con motivo comprensible, sin excepción hacia arriba y sin tocar el resto de la salida | AC-005 |
 | Tema sin pasajes recuperados | No se llama al LLM para ese tema ni aparece en `justificaciones` | AC-006 |
 | Alguna justificación `descartada` o `no_generada` | Informe preliminar con el aviso y el tema y su motivo | AC-009 |
-| `justificaciones` mal formado | El Agente 3 lanza una excepción que nombra el campo | AC-009 |
+| `justificaciones` mal formado (incluida una `generada` con importes en el texto) | El Agente 3 lanza una excepción que nombra el campo | AC-009 |
 | Repetir el mismo caso | Respuesta desde la caché, sin nueva llamada de pago | AC-010 |
 | Error inesperado del código (no del proveedor) | Se propaga; no se convierte en `no_generada` | AC-005 |
 | Coste y latencia | Una llamada por tema con pasajes (de 1 a 4 temas por caso según la #32); se registran tokens y tiempo en la evaluación, sin umbral fijado | AC-011 |
@@ -136,15 +138,15 @@ Decisiones humanas de la planificación (Víctor, 2026-11-17, en la sesión que 
 |---|---|---|
 | AC-001 | Una `normativa` con pasajes para un tema y un cliente falso que devuelve un texto sin importes y dos citas que aparecen literalmente en esos pasajes. | `justificaciones` contiene ese tema con `estado: generada`, el `texto` recibido y las dos citas. Cada cita lleva como `fuente` la del pasaje que la contiene, aunque el cliente devuelva otra. |
 | AC-002 | El cliente falso devuelve para un tema una cita que no aparece en sus pasajes (o que solo aparece en los de otro tema), y para otro tema una respuesta válida. | El primer tema queda `descartada` con un `motivo` que menciona la cita no encontrada, sin `texto` ni `citas`. El segundo queda `generada`. Ninguna cita no literal llega a la salida. |
-| AC-003 | El texto devuelto contiene, en tres variantes, «500 €», «1.200 EUR» y «300,00 euros», con citas en las que solo aparece «300 EUR». | Las dos primeras variantes quedan `descartada` por importe no respaldado; la tercera, `generada`. Con la justificación generada en el informe, `comprobar_cifras` devuelve `[]`. |
+| AC-003 | Pasajes de la póliza P-TR-FR300 que contienen «1500 EUR» (límite de lunas, ausente del cálculo) y «300 EUR». El texto devuelto, en cinco variantes, contiene «500 €», «1.500 EUR», «1500 EUR», «300,00 euros» o ningún importe; las citas incluyen el pasaje del límite. | Las cuatro variantes con importe quedan `descartada` con un motivo que menciona el importe, aunque esté en sus citas. La variante sin importes queda `generada`. Con esa justificación y su cita («…límite de 1500 EUR…») en el informe, `comprobar_cifras` devuelve `[]`. |
 | AC-004 | El texto devuelto contiene «verificado», «validada» o «garantiza». | El tema queda `descartada` con un motivo que lo explica. |
 | AC-005 | Por separado: sin `OPENAI_API_KEY`; sin autorización de gasto; el cliente lanza un error del proveedor o de tiempo agotado; el cliente devuelve texto que no es JSON o un JSON sin `texto` o sin `citas`. Además, un error inesperado del propio código. | En los cuatro primeros casos, cada tema queda `no_generada` con un motivo comprensible, sin excepción. Sin clave o sin autorización no se hace ninguna llamada. El resto de la salida es idéntico y ningún motivo contiene la clave. El error inesperado del código se propaga. |
 | AC-006 | Una salida de `agente2()` con `normativa` de tres temas, uno de ellos sin pasajes, y un cliente falso; se ejecuta el paso de justificación. | Todos los campos originales (cifras, escenarios, `normativa`, `diagnostico_rag`) son idénticos a los de antes del paso y las entradas no se modifican. Se añade `justificaciones` con los dos temas que tienen pasajes. Para el tema sin pasajes no hay llamada al LLM. |
 | AC-007 | El cliente falso registra los mensajes que recibe, para un caso con importes en los escenarios y en la cobertura. | Cada mensaje contiene el tema y los `extracto` de ese tema, y ningún importe del cálculo, ningún campo de `escenarios`, `contexto` ni `valor_venal_eur`. |
 | AC-008 | Una salida del Agente 2 con dos justificaciones `generada`; se llama a `generar_informe`. | En «Fuentes consultadas», cada tema muestra su texto y, debajo, sus citas con su fuente, como bloque literal. Los 9 encabezados no cambian, no aparece la palabra «verificada» y `comprobar_cifras` devuelve `[]`. |
-| AC-009 | Tres salidas del Agente 2: una con una justificación `descartada` o `no_generada`; otra sin el campo `justificaciones`; otra con `justificaciones` mal formado (estado desconocido o tema ausente). | La primera lleva en la cabecera el aviso de informe preliminar de justificaciones y, en «Fuentes consultadas», el tema con su motivo y sus citas sin justificación. La segunda produce exactamente el informe actual. La tercera lanza una excepción que nombra el campo y no devuelve informe. |
+| AC-009 | Tres salidas del Agente 2: una con una justificación `descartada` o `no_generada`; otra sin el campo `justificaciones`; otra con `justificaciones` mal formado (estado desconocido, tema ausente, o una `generada` cuyo `texto` contiene «1.500 €» o «300 EUR»). | La primera lleva en la cabecera el aviso de informe preliminar de justificaciones y, en «Fuentes consultadas», el tema con su motivo y sus citas sin justificación. La segunda produce exactamente el informe actual. La tercera lanza una excepción que nombra el campo y no devuelve informe. |
 | AC-010 | Se ejecuta dos veces el paso de justificación con el mismo modelo y los mismos pasajes y caché, y se llama dos veces a `generar_informe` con la misma salida. | La segunda ejecución no hace ninguna llamada nueva al cliente y devuelve el mismo `justificaciones`. Los dos informes son idénticos, sin clave ni red. |
-| AC-011 | Los 10 informes reales de la lista fijada en el Test Plan, generados con `agente2()` real, el modelo registrado y autorización de gasto; Lucía revisa cada justificación `generada` con sus citas delante. | Se publica en la Issue una tabla por informe y tema con: fiel (solo afirma lo que dicen sus citas, sí/no), pertinente al tema (sí/no), importe inventado (sí/no), estado, tokens y tiempo. **Éxito: 0 justificaciones no fieles y 0 importes inventados.** La pertinencia se informa sin umbral. Si no se cumple, se ajusta el prompt y se reevalúa con la misma lista; el criterio no se rebaja sin decisión humana. |
+| AC-011 | Los 10 informes reales de la lista fijada en el Test Plan, generados con `agente2()` real, el modelo registrado y autorización de gasto; Lucía revisa cada justificación `generada` con sus citas delante. | Se publica en la Issue: (a) una tabla por informe y tema con tema elegible (con pasajes), estado (`generada`, `descartada` o `no_generada`) y motivo, fiel (solo afirma lo que dicen sus citas, sí/no), pertinente (sí/no), tokens y tiempo; (b) por informe y en total, cuántos temas eran elegibles y cuántos se generaron, descartaron y fallaron. **Éxito, todo a la vez:** 0 justificaciones no fieles; ningún `no_generada` por fallo técnico del proveedor en la ejecución evaluada (si lo hay, se repite la ejecución y no cuenta); y cada informe con al menos un tema elegible tiene al menos una justificación `generada`. Un lote sin justificaciones generadas nunca acredita este AC. La pertinencia y los descartes se informan sin umbral. Si no se cumple, se ajusta el prompt y se reevalúa con la misma lista; el criterio no se rebaja sin decisión humana. |
 
 ## Test Plan
 
@@ -163,22 +165,22 @@ Decisiones humanas de la planificación (Víctor, 2026-11-17, en la sesión que 
 |---|---|---|---|---|---|---|
 | `specs/97-justificacion-llm-normativa.md#AC-001` | Paso de justificación | TDD unitario, cliente falso | Justificación generada; fuente asignada por código | `normativa` escrita en la prueba con pasajes del ejemplo del contrato | Prueba nueva del Agente 2 (`probar_justificacion.py` o equivalente) | Red/Green |
 | `specs/97-justificacion-llm-normativa.md#AC-002` | Paso de justificación | TDD unitario | Cita no literal o de otro tema → `descartada`; el otro tema, `generada` | Ídem | Ídem | Red/Green |
-| `specs/97-justificacion-llm-normativa.md#AC-003` | Paso de justificación + `comprobar_cifras` | TDD unitario | Tres variantes de importes | Ídem | Ídem y `probar_informe.py` | Red/Green |
+| `specs/97-justificacion-llm-normativa.md#AC-003` | Paso de justificación + `comprobar_cifras` | TDD unitario | Cinco variantes (€, EUR con y sin separador, euros, sin importe); importe de la póliza ausente del cálculo | Pasajes de `P-TR-FR300.md` con «1500 EUR» y «300 EUR» copiados en la prueba | Ídem y `probar_informe.py` | Red/Green |
 | `specs/97-justificacion-llm-normativa.md#AC-004` | Paso de justificación | TDD unitario | Términos de validación → `descartada` | Ídem | Ídem | Red/Green |
 | `specs/97-justificacion-llm-normativa.md#AC-005` | Paso de justificación | TDD unitario, cliente falso que falla | Fallos del proveedor → `no_generada`; error del código → se propaga; sin llamadas sin clave o autorización | Cliente falso que lanza, devuelve texto no JSON o registra llamadas; entorno sin `OPENAI_API_KEY` | Ídem | Red/Green |
 | `specs/97-justificacion-llm-normativa.md#AC-006` | `agente2()` | TDD de integración, RAG y cliente guionizados | Campos originales idénticos; tema sin pasajes sin llamada | Salida guionizada de `agente2()` mientras no exista; después, la real con RAG simulado | `probar_rag.py` o la prueba nueva, `probar_costes.py` | Red/Green y regresión verde |
 | `specs/97-justificacion-llm-normativa.md#AC-007` | Paso de justificación | TDD unitario | Mensajes sin cifras ni contexto | Caso con importes conocidos en escenarios | Prueba nueva | Red/Green |
 | `specs/97-justificacion-llm-normativa.md#AC-008` | `generar_informe` | TDD | Texto y citas en «Fuentes consultadas»; encabezados iguales | `agente2_salida.json` ampliado | `python probar_informe.py` | Red/Green |
-| `specs/97-justificacion-llm-normativa.md#AC-009` | `generar_informe` | TDD | Aviso preliminar; sin campo idéntico; mal formado → excepción | Ídem, en tres variantes | `python probar_informe.py` | Red/Green |
+| `specs/97-justificacion-llm-normativa.md#AC-009` | `generar_informe` | TDD | Aviso preliminar; sin campo idéntico; mal formado (incluido texto con importes) → excepción | Ídem, en tres variantes | `python probar_informe.py` | Red/Green |
 | `specs/97-justificacion-llm-normativa.md#AC-010` | Paso de justificación y `generar_informe` | TDD | Caché sin llamada nueva; informe determinista | Caché en carpeta temporal | Prueba nueva y `probar_informe.py` | Red/Green |
-| `specs/97-justificacion-llm-normativa.md#AC-011` | Salida real del Agente 2 e informe | **Eval-first** (humano) | Tabla de fidelidad, pertinencia e importes | Los 10 informes de la lista, `OPENAI_MODEL` registrado, índice del RAG de la #32 | Generar los 10 con `agente2()` real y el comando de la #84; Lucía revisa | Tabla en la Issue y comparación con la línea base |
+| `specs/97-justificacion-llm-normativa.md#AC-011` | Salida real del Agente 2 e informe | **Eval-first** (humano) | Tabla de estados, fidelidad y pertinencia; recuento de elegibles, generadas, descartadas y fallidas | Los 10 informes de la lista, `OPENAI_MODEL` registrado, índice del RAG de la #32 | Generar los 10 con `agente2()` real y el comando de la #84; Lucía revisa | Tabla en la Issue y comparación con la línea base |
 
 ### Evaluación (AC-011)
 
 - **Línea base:** los mismos 10 informes sin el paso nuevo: «Fuentes consultadas» con citas y sin justificación. El hueco que se mide es la ausencia de explicación; la evaluación comprueba que la explicación añadida es fiel.
 - **Lista fijada de antemano:** 000381, 001008, 001245, 001281, 002536, 002632, 002859, 003083, 003637 y 003806. Son los 10 de los 30 sin problemas de visión en la [revisión de Lucía](https://github.com/lvckss/piia2-26/issues/54#issuecomment-6806373544), para que los fallos del Agente 1 no se confundan con los de la justificación. Mezclan terceros (4), Terceros Ampliado (3), Terceros Básico (1) y Todo Riesgo con franquicia (2), según la asignación de la #84 con semilla 84.
-- **Protocolo:** una persona (Lucía), con cada justificación y sus citas delante. Para cada una anota si es fiel, si es pertinente y si inventa un importe. Se registran el modelo, la versión del índice y el commit.
-- **Criterio:** 0 no fieles y 0 importes inventados. La pertinencia y el coste se informan sin umbral, porque no hay evidencia para fijarlo.
+- **Protocolo:** una persona (Lucía), con cada justificación y sus citas delante. Para cada una anota si es fiel y si es pertinente; los importes los descarta ya el código (AC-003), y si aun así aparece uno escrito en letras, cuenta como no fiel. Se registran por informe y tema los elegibles y los estados, además del modelo, la versión del índice y el commit.
+- **Criterio:** 0 no fieles; ningún fallo técnico del proveedor en la ejecución evaluada; y al menos una justificación `generada` en cada informe con temas elegibles. La pertinencia, los descartes y el coste se informan sin umbral, porque no hay evidencia para fijarlos.
 
 Regresión de todas las slices: `probar_costes.py`, `probar_rag.py`, `probar_indexado.py` (con `--postgres` cuando aplique), `probar_informe.py` y `probar_informes_reales.py`, sin clave ni red salvo en AC-011.
 
@@ -197,8 +199,8 @@ Orden: las slices 1 y 3 pueden ir en paralelo; la 2 espera a `agente2()`. Objeti
 ## Pendientes para Ready
 
 - Revisión humana de esta Spec y aceptación del ADR 0009 en la Planning PR, y su integración en `main`.
-- Confirmar en la revisión el texto del aviso preliminar de justificaciones.
-- Analyze (2026-11-17): requisitos de la Issue cubiertos por AC-001 a AC-011; cada AC con verificación y slice; comportamiento preservado protegido por AC-006, AC-009 y AC-010; sin contradicciones con los ADR 0002, 0003, 0004 y 0006 (este ADR los amplía sin cambiar sus decisiones). Gaps: ninguno bloqueante. Dependencia: `agente2()` de la #32.
+- El texto del aviso preliminar y la lista de 10 informes ya los confirmó Lucas en su [revisión sobre `076440f`](https://github.com/lvckss/piia2-26/pull/98#pullrequestreview-5944085838); falta su aceptación de la v1.1 y del ADR 0009.
+- Analyze v1.1 (2026-11-17, tras la revisión de Lucas): resueltos los dos puntos (texto sin importes, compatible con `comprobar_cifras` sin cambiarlo; cobertura mínima de justificaciones generadas en AC-011). Analyze (2026-11-17): requisitos de la Issue cubiertos por AC-001 a AC-011; cada AC con verificación y slice; comportamiento preservado protegido por AC-006, AC-009 y AC-010; sin contradicciones con los ADR 0002, 0003, 0004 y 0006 (este ADR los amplía sin cambiar sus decisiones). Gaps: ninguno bloqueante. Dependencia: `agente2()` de la #32.
 
 ## Definition of Done
 

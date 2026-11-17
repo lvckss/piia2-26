@@ -38,7 +38,7 @@ Drivers:
 4. **Comprobación en código** antes de aceptar la respuesta:
    - cada cita aparece literalmente en un pasaje del mismo tema, tras normalizar espacios;
    - la `fuente` de cada cita la asigna el código, desde el pasaje que la contiene;
-   - cada importe en euros del texto coincide en valor con un importe de sus citas;
+   - el texto no contiene ningún importe en euros (número con «€», «EUR», «euro» o «euros», en cualquier formato), aunque esté en sus citas;
    - el texto no contiene las raíces «verific», «valid» ni «garantiz».
 
    Si algo falla, el tema queda `descartada` con su motivo, sin texto ni citas.
@@ -60,18 +60,19 @@ Drivers:
 | Mantener lo actual: citas sin justificación | Sin coste ni riesgo nuevos; ya está planificado en la #32. | El perito no tiene ninguna explicación; no responde a lo que pide el equipo. |
 | LLM en el Agente 3 (el redactor llama al modelo) | No cambia el contrato entre agentes. | El informe deja de ser determinista (rompe la spec 31 AC-012) y un fallo del proveedor afectaría a la composición del informe. Descartada por decisión del equipo. |
 | LLM con los pasajes y el resultado del cálculo | Explicación más directa («se aplica 300 € porque…»). | Si los pasajes no respaldan el cálculo, el modelo tiende a forzar una explicación que cuadre, que es difícil de detectar. Descartada por decisión del equipo. |
+| Permitir en el texto los importes que aparecen en sus citas | Explicación más concreta («límite de 1.500 €»). | Un importe de la póliza ausente del cálculo haría fallar `comprobar_cifras`, o habría que ampliarlo y redefinir su garantía (revisión de Lucas sobre `076440f`). Descartada por decisión del equipo (v1.1): el importe ya se ve en la cita literal. |
 | LLM que decide la cobertura leyendo la póliza | Se adapta a documentos nuevos sin código. | Pone dinero en manos de un modelo no determinista; contradice los ADR 0002 y 0004; no cabe en el plazo. |
 | LLM que además avisa de discrepancias o condiciones no calculadas (exclusiones, plazos, IVA contra factura) | Más útil para el perito. | Más alcance y más riesgo de falsos avisos; con los datos sintéticos actuales la tabla y los documentos coinciden. Queda como evolución, como la «opción B» de la spec 32. |
 
 ## Consecuencias
 
 - **Contrato:** la salida del Agente 2 gana `justificaciones`, opcional y aditivo. Los consumidores que no lo conocen (el informe actual y la #34) siguen funcionando. La #34 debe transportarlo sin cambios.
-- **Cifras:** el punto 5 del ADR 0002 («todas las cifras las calcula código determinista») se mantiene. El texto del LLM no aporta importes que no estén literalmente en sus citas, y `comprobar_cifras` sigue vigilando el informe.
+- **Cifras:** el punto 5 del ADR 0002 («todas las cifras las calcula código determinista») se mantiene. El texto del LLM no contiene importes; los importes de la póliza solo llegan al informe dentro de sus citas literales, como ya ocurre con la `normativa`. `comprobar_cifras` no cambia: su límite actual (solo reconoce la forma «1.234,56 €») sigue igual que hoy. El Agente 3 rechaza una justificación `generada` con importes en el texto.
 - **Determinismo:** el Agente 2 deja de ser determinista en `justificaciones` cuando se llama al modelo; la caché hace repetibles las ejecuciones con la misma entrada. El informe sigue siendo determinista con la misma salida del Agente 2.
 - **Coste:** una llamada por tema con pasajes (de 1 a 4 por caso, según la selección de temas de la #32), solo con autorización de gasto.
 - **Riesgo aceptado:** un texto puede ser poco pertinente aunque sea fiel. Se informa en la evaluación sin umbral.
 - **Dependencia:** necesita `agente2()` de la #32.
-- **Tests:** todo lo automático se prueba con un cliente falso, sin clave ni red (citas, importes, términos, fallos, caché, contrato e informe). La fidelidad se evalúa a mano sobre 10 informes reales con criterio de 0 justificaciones no fieles y 0 importes inventados (spec 97 AC-011).
+- **Tests:** todo lo automático se prueba con un cliente falso, sin clave ni red (citas, importes, términos, fallos, caché, contrato e informe). La fidelidad se evalúa a mano sobre 10 informes reales: 0 justificaciones no fieles, ningún fallo técnico en la ejecución evaluada y al menos una justificación generada por informe con temas elegibles (spec 97 AC-011).
 
 ## Referencias y evidencia
 
