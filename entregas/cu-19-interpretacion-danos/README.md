@@ -75,7 +75,7 @@ El recorrido objetivo es:
 
 La [spec de orquestación](https://github.com/lvckss/piia2-26/pull/60) reúne el recorrido web, las confirmaciones y los errores. **Su diseño técnico y el ADR 0007 siguen como propuesta en revisión**: incluirlos en esta entrega no los da por aprobados ni habilita su implementación. Las specs de categoría y RAG ya tienen su planificación revisada; eso tampoco acredita que el código esté terminado.
 
-Se incluye también la evaluación reproducible de las piezas: configuración, datos usados, calidad y limitaciones. El objetivo del proyecto completo es levantar la aplicación con un único Compose local. **En esta entrega todavía no existe ningún Compose; el Compose completo es una evolución de la #34, no un compromiso de la entrega.** No se indexa con servicios de pago al arrancar.
+Se incluye también la evaluación reproducible de las piezas: configuración, datos usados, calidad y limitaciones. El objetivo del proyecto completo es levantar la aplicación con un único Compose local. Esta rama incorpora `compose.yaml` para PostgreSQL compartida con pgvector, utilizada por el explorador y el RAG. **El Compose del conjunto completo sigue siendo una evolución de la #34, no un compromiso de la entrega.** No se indexa con servicios de pago al arrancar.
 
 Queda fuera del alcance:
 
@@ -128,6 +128,9 @@ cu-19-interpretacion-danos/
 ├── ARCHITECTURE.md  # arquitectura de la solución: diagrama, componentes y flujo
 ├── specs/           # funcionalidades y sus criterios de aceptación (la de orquestación, en revisión)
 ├── decisions/       # ADRs de las decisiones de implementación (0001–0006)
+├── justfile         # comandos de desarrollo y preparación local
+├── compose.yaml     # PostgreSQL compartida con pgvector; conjunto completo pendiente
+├── scripts/         # preparación de PostgreSQL, CARDD y verificación de la entrega
 ├── docs/            # registro de ADRs, workflow y material de apoyo
 │   ├── adr/
 │   ├── guias/
@@ -185,4 +188,37 @@ Las decisiones de implementación están en [decisions/](decisions/).
 - [Registro de ADRs](docs/adr/README.md): decisiones 0001–0006 aceptadas con su evidencia; el [ADR 0007](https://github.com/lvckss/piia2-26/pull/60) sigue Propuesto (PR #60).
 - [Workflow](docs/workflow.md) y [template de Spec](docs/templates/spec-template.md): procedimientos internos, no funcionalidades adicionales.
 - [Diseño previo multiagente](docs/piia2-arquitectura-multiagente.md), `docs/guias/` y `docs/historico/`: referencias de apoyo con sus decisiones y versiones históricas. Los contratos vigentes de esta entrega son los de `specs/`; una guía anterior no los sustituye.
-- [Aplicación](app/README.md): backend, frontend, ML, contenedores y agentes adjuntos. Se conserva el código del corte original y no se presenta como una integración completa del flujo objetivo.
+- [Aplicación](app/README.md): backend, frontend, ML, contenedores y agentes adjuntos. La documentación de cada componente identifica lo implementado y lo pendiente; el código adjunto no acredita una integración completa del flujo objetivo.
+
+## Desarrollo y preparación local
+
+Desde la raíz del repositorio de la asignatura, entra en la carpeta del caso:
+
+```bash
+cd entregas/cu-19-interpretacion-danos
+just           # muestra los comandos disponibles
+just cardd     # prepara el entorno Python y descarga/comprueba CARDD
+```
+
+Si recibes esta carpeta por separado, ejecuta los mismos comandos desde su raíz.
+El descargador, sus requisitos y el `justfile` están incluidos; no dependen de
+archivos auxiliares de la raíz de la asignatura. Consulta los
+[prerrequisitos y comandos de frontend/backend](app/README.md#comandos-con-just)
+y la [guía de descarga](scripts/README.md). La preparación de archivos CARDD
+no crea ni carga PostgreSQL.
+
+La base del proyecto se ejecuta en Docker: `just db-init` la prepara la primera
+vez y `just db-up` la arranca después conservando sus datos. El backend y el
+RAG utilizan esa misma instancia. Consulta la
+[guía de PostgreSQL compartida](docs/postgresql-local.md).
+
+Para preparar e indexar las pólizas y legislación: `just rag-setup`,
+`just rag-plan` y `just rag-index <presupuesto-USD>`. El [README del RAG](app/agentes/agente_recuperacion/README.md#indexado-reproducible)
+explica los modelos, los datos locales y las pruebas. Consulta la
+[evidencia del primer indexado](docs/evidencias/32-indexado.md).
+La búsqueda con filtro por póliza está disponible mediante `just rag-query-plan`
+y `just rag-query <presupuesto-USD> <pregunta> [poliza-id] [modelo]`;
+[uso y errores](app/agentes/agente_recuperacion/README.md#búsqueda-con-fuentes-y-filtro-por-póliza).
+Las comprobaciones están en la [evidencia de búsqueda](docs/evidencias/32-busqueda.md).
+Las recetas Just usan Linux/macOS/WSL; el README del RAG incluye equivalentes
+de PowerShell para Windows. `agente2()` y la evaluación de calidad siguen pendientes.
