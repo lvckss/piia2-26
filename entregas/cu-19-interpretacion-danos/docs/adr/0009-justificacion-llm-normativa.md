@@ -4,7 +4,7 @@
 - Fecha: 2026-11-17
 - GitHub Issue: https://github.com/lvckss/piia2-26/issues/97
 - Planes cubiertos (Issue/mini-spec/Spec): [entregas/cu-19-interpretacion-danos/specs/97-justificacion-llm-normativa.md](../../specs/97-justificacion-llm-normativa.md): el paso del Agente 2 que redacta, con un LLM, una justificación por tema a partir de los pasajes del RAG, y su representación en el informe.
-- Planning PR: <URL; completar al abrirla>
+- Planning PR: [#98](https://github.com/lvckss/piia2-26/pull/98)
 - Aceptación: <revisor y referencia de revisión; completar al aceptar>
 - Sustituye / sustituido por: no sustituye a ningún ADR. Amplía el [ADR 0002](0002-contrato-json-entre-agentes.md) (un campo nuevo, opcional, en la salida del Agente 2) y el [ADR 0006](0006-rag-postgresql-estado-recuperacion.md) (un paso después de la recuperación). Reutiliza el [ADR 0003](0003-proveedor-openai-clave-empresa.md) para el proveedor, la clave y el control de gasto. Mantiene el [ADR 0004](0004-herramienta-costes-datos-empresa.md): las cifras siguen saliendo de la herramienta de la empresa.
 

@@ -7,7 +7,7 @@
 - Justificación: añade un modelo de lenguaje al Agente 2 y un campo nuevo a su salida, que consumen el Agente 3 y la orquestación de la #34 (frontera entre agentes del [ADR 0002](../docs/adr/0002-contrato-json-entre-agentes.md)). Además cambia el alcance aceptado: la [spec 32](32-rag-normativa.md) deja fuera «generar respuestas o conclusiones con otro LLM» y la [spec 31](31-informe-peritaje.md) no usa ningún LLM. Amplía los ADR 0002 y [0006](../docs/adr/0006-rag-postgresql-estado-recuperacion.md) sin sustituirlos y reutiliza el [ADR 0003](../docs/adr/0003-proveedor-openai-clave-empresa.md) para el proveedor y la clave.
 - Plan vigente / versión: **v1** (2026-11-17), este archivo en la rama `plan/97-justificacion-llm`; el commit exacto se registra en un comentario de la Issue.
 - Riesgo y revisión previa: **sí requiere revisión previa** (disparador: NEW_ADR). Impacto medio: el texto nuevo llega al informe que lee el perito y un LLM puede afirmar algo que sus fuentes no dicen. Reversibilidad alta: el campo nuevo es opcional y, sin él, el sistema vuelve al comportamiento actual. Incertidumbre media: la calidad de las justificaciones solo se conoce evaluándolas.
-- Planning PR: pendiente (se completa al abrirla).
+- Planning PR: https://github.com/lvckss/piia2-26/pull/98
 
 ## Qué construir
 
