@@ -1,11 +1,11 @@
 # Spec: Orquestación desde la web, de una imagen subida al informe
 
 - GitHub Issue: https://github.com/lvckss/piia2-26/issues/34
-- Estado: Borrador v1.6, 2026-11-16.
+- Estado: Borrador v1.7, 2026-11-18.
 - ADR decision: NEW_ADR.
-- ADR: [0007 — Orquestación ADK y ejecución web efímera](../docs/adr/0007-orquestacion-adk-web-efimera.md), Propuesto.
-- Justificación: adopta ADK como dependencia del producto, define una frontera HTTP entre web y servicio Python y el ciclo de vida de las ejecuciones. Los ADRs 0002–0005 aceptados cubren contratos, proveedor, costes y filtro previo; no cubren estas decisiones.
-- Plan vigente / versión: v1.6 en la misma PR #60; el registro de #34 fija el commit publicado. Continúa v1.5 `c52217d` y conserva v1 `733c5d0`, v1.1 `9a65c26`, v1.2 `5ed9ca6`, v1.3 `06f4c08` y v1.4 `6a6666e`. Atiende la [revisión de Lucía sobre v1.5](https://github.com/lvckss/piia2-26/pull/60#issuecomment-6911760739): registra el hito del 10 de noviembre como no cumplido, el smoke de #34 sin ejecución acreditada, el impedimento y siguiente acción, y reajusta el hito/corte del 17 de noviembre. Los 14 AC y sus filas del Test/Eval Plan, las cuatro slices, la política V14/`minimo_por_defecto`, las precisiones de compatibilidad/validación y la DoD permanecen idénticos a v1.5. No acredita aprobación del documento completo ni del ADR. Continúa el [registro de alcance](https://github.com/lvckss/piia2-26/issues/34#issuecomment-6426795027).
+- ADR: [0007 — Orquestación en Python directo y ejecución web efímera](../docs/adr/0007-orquestacion-adk-web-efimera.md), Propuesto.
+- Justificación: orquesta las dos fases con Python directo, sin framework de agentes, define una frontera HTTP entre web y servicio Python y el ciclo de vida de las ejecuciones. Los ADRs 0002–0005 aceptados cubren contratos, proveedor, costes y filtro previo; no cubren estas decisiones.
+- Plan vigente / versión: v1.7 en la misma PR #60; el registro de #34 fija el commit publicado. Continúa v1.6 `8362807` y conserva v1 `733c5d0`, v1.1 `9a65c26`, v1.2 `5ed9ca6`, v1.3 `06f4c08`, v1.4 `6a6666e` y v1.5 `c52217d`. Registra la decisión humana del 18 de noviembre de orquestar en Python directo en lugar de ADK (ver «Decisión sobre el framework»). Cambian la redacción de AC-005, las secciones de orquestación, el seam S3 y la fila de AC-005 del Test Plan, la slice 1 y el ADR 0007; los otros 13 AC y sus filas, las cuatro slices, la política V14/`minimo_por_defecto`, las precisiones de compatibilidad/validación y la DoD permanecen idénticos a v1.6. No acredita aprobación del documento completo ni del ADR. Continúa el [registro de alcance](https://github.com/lvckss/piia2-26/issues/34#issuecomment-6426795027).
 - Riesgo y revisión previa: sí, por NEW_ADR y por el acuerdo del equipo. Impacto en cifras y fuentes del informe, frontera entre servicios, subida de archivos y nuevas dependencias de #28/#31/#32. La implementación y sus planes deben revisarse por los responsables afectados; el documento completo todavía no tiene aceptación humana.
 - Planning PR: https://github.com/lvckss/piia2-26/pull/60 — draft mientras se acuerdan las dependencias indicadas al final.
 
@@ -32,7 +32,7 @@ resultado. El índice del RAG y los datos del explorador mantienen su persistenc
 Lucas confirmó en la conversación del 2026-10-26/27: entrada desde la web,
 pestaña separada y una imagen subida; recuperar la categoría automática con
 confirmación/corrección del vehículo; mostrar los daños sin permitir editar
-pieza ni severidad; mostrar y descargar Markdown, sin historial; utilizar ADK.
+pieza ni severidad; mostrar y descargar Markdown, sin historial; orquestación inicialmente con ADK, sustituida por Python directo el 2026-11-18 (ver «Decisión sobre el framework»).
 Las decisiones iniciales constan en el registro de alcance enlazado arriba y
 en la [solicitud de retomar #28](https://github.com/lvckss/piia2-26/issues/28#issuecomment-6426798908).
 El objetivo de levantar el conjunto con Compose se conserva del diseño de #32.
@@ -49,7 +49,7 @@ Las viñetas siguientes conservan ese corte. Actualización comprobada para v1.5
 `main` `3c73e83ad3875b83fc07f7bdf65d246212f5e10b` (2026-11-12) ya incluye
 el informe de #75, el plan RAG v1.7 de #80 y la estructura de #79. #72 sigue
 abierta y #85 propone generar 30 informes desde salidas guardadas del Agente 1;
-ninguna acredita el recorrido de una imagen nueva mediante ADK de esta Issue.
+ninguna acredita el recorrido de una imagen nueva de esta Issue.
 
 - React/Vite y Bun/Hono sirven el explorador; no hay pestaña de peritaje ni
   ruta de orquestación montada en `app/server/app.ts`.
@@ -95,7 +95,7 @@ responsabilidades y detecta los fallos entre ellas.
 
 - Incluido: pestaña y subida; formulario de contexto; adaptación PIIA 1 →
   Agente 1; integración de categoría; confirmación/corrección del vehículo;
-  coordinación ADK; integración con #30/#31/#32; errores y progreso;
+  orquestación en Python directo; integración con #30/#31/#32; errores y progreso;
   comprobación de cifras; renderizado y descarga Markdown; ejecución efímera;
   Compose del conjunto; ejemplo reproducible y comprobación con 3–5 imágenes.
 - Fuera de alcance: PDF, historial, cuentas de usuario y despliegue público;
@@ -146,13 +146,13 @@ No se reactivan silenciosamente los AC retirados de sus planes.
   de enviarlo no vuelve a ejecutar PIIA 1, visión ni categoría. La primera versión
   no ofrece editar el caso una vez generado: se descarga o se inicia uno nuevo.
 
-### Orquestación ADK
+### Orquestación en Python directo
 
-ADK coordina etapas en orden fijo, utilizando sus agentes/workflows nativos.
-Se proponen adaptadores mínimos de `BaseAgent` para invocar las funciones
-existentes y una secuencia por fase. No se añade un modelo coordinador que
-decida qué agentes saltarse ni que reescriba las cifras. Las llamadas al modelo
-siguen dentro de visión/categoría y embeddings, con su configuración existente.
+El orquestador es código Python que llama en orden fijo a las funciones
+existentes, una función por fase. No hay framework de agentes ni modelo
+coordinador que decida qué agentes saltarse o que reescriba las cifras. Las
+llamadas al modelo siguen dentro de visión/categoría y embeddings, con su
+configuración existente.
 
 - Fase A: PIIA 1 → adaptación de detecciones → Agente 1 con categoría de #28.
 - Espera explícita de confirmación y contexto en la web; sin llamadas de pago.
@@ -163,10 +163,9 @@ siguen dentro de visión/categoría y embeddings, con su configuración existent
 `agente2()` calcula una sola vez mediante #30; no se llama antes a
 `estimar_siniestro` para luego repetirlo dentro de `agente2()`. No se vuelven
 a calcular tiers ni se modifica el JSON para promover hallazgos dudosos.
-Cada ejecución tiene su estado ADK aislado; no comparte datos de otro caso.
-La versión del framework y dependencias se fijarán y comprobarán al implementar,
-partiendo de la prueba #33. Adoptar una API nueva de ADK exige comprobar su
-compatibilidad; el experimento no acredita ya instalados los wrappers propuestos.
+Cada ejecución tiene su estado aislado, propio del servicio (identificador,
+fase, resultados y archivos temporales); no comparte datos de otro caso. Las
+dependencias se fijarán y comprobarán al implementar.
 
 ### Adaptación de imagen y procedencia del vehículo
 
@@ -270,7 +269,7 @@ Estados públicos: `analizando`, `esperando_datos`, `generando_informe`,
 `completada`, `error`. Etapas: `entrada`, `piia1`, `agente1`, `agente2`,
 `agente3`, `verificacion`. La categoría forma parte de `agente1`; no hay una
 segunda consulta de categoría desde la web. El estado público no expone el
-historial interno de ADK ni rutas del host.
+historial interno de la ejecución ni rutas del host.
 
 Respuesta de estado propuesta: `ejecucion_id`, `estado`, `etapa`, `analisis`,
 `resultado` y `error`; los tres últimos son `null` hasta estar disponibles.
@@ -376,8 +375,8 @@ para verificar la parte RAG antes del recorrido web completo. Su comprobación
 pertenece al AC-013 de #32; el arranque y recorrido del conjunto, al AC-013 de
 #34. Este reparto no acredita que los contenedores ya estén implementados.
 
-- Servicios: web/backend Bun que sirve el frontend compilado, orquestador Python
-  con ADK, servicio ML existente y PostgreSQL con pgvector. El frontend de Vite
+- Servicios: web/backend Bun que sirve el frontend compilado, orquestador Python,
+  servicio ML existente y PostgreSQL con pgvector. El frontend de Vite
   en desarrollo no debe ser una dependencia del arranque normal del conjunto.
 - PostgreSQL utiliza un volumen persistente, schema del backend e índice RAG
   separado. Se inicializa el schema antes de aceptar peticiones. Un entorno
@@ -403,7 +402,7 @@ pertenece al AC-013 de #32; el arranque y recorrido del conjunto, al AC-013 de
 | Incertidumbre | Clasificación | Evidencia y efecto |
 |---|---|---|
 | Web, imagen subida, edición y salida | Resuelta por Lucas en la conversación | Pestaña independiente; una imagen; daños sin edición; vehículo corregible; Markdown visible/descargable; sin historial. Se fija la versión de estas decisiones en #34. |
-| Framework | Resuelta por Lucas | ADK tras #33/#52. La secuencia nativa y el servicio efímero son propuestas técnicas de este borrador, no resultados de una integración ya probada. |
+| Framework | Decisión humana del 2026-11-18 (Lucía Luis Castaño; pendiente de confirmación de Lucas) | Python directo en lugar de ADK, por riesgo y plazo: el smoke de ADK no tuvo ejecución acreditada y la entrega final es el 7 de diciembre. No se debe a una incompatibilidad observada de ADK. El servicio efímero es una propuesta técnica de este borrador, no un resultado de una integración ya probada. |
 | Categoría y procedencia | Regla confirmada por Víctor; aceptación formal y adaptación consumidora pendientes | La corrección de Lucía sustituye V25/máximo por V14 fijo/`minimo_por_defecto`. Víctor confirma el cambio con campo opcional y error por incoherencia; falta su aceptación formal sobre v1.5, el AC nuevo de #31 y la aceptación del plan/ADR completos. #28/ADR 0001 permanece intacto. |
 | RAG | Contrato aceptado; implementación pendiente | #56/#67 y ADR 0006 Aceptado; #34 consume `agente2()` y `diagnostico_rag` conservando sus estados. #72 aporta PostgreSQL y RAG al Compose común. Código real requerido para integración final. |
 | Contrato web/Python y límites configurados | Propuestos para revisión | HTTP, idempotencia, estado efímero y límites iniciales 10 MiB / 20 millones de píxeles / 60 min / 2 casos. Son valores de partida, sin benchmark ni aceptación atribuida. |
@@ -450,7 +449,7 @@ pertenece al AC-013 de #32; el arranque y recorrido del conjunto, al AC-013 de
 | AC-002 | Respuesta ML guionizada con cero, una y varias detecciones; también respuesta malformada. | La adaptación entrega todas las predicciones al Agente 1, con clase/score/bbox conservados e índices estables y únicos para el caso. Imagen normalizada y cajas son coherentes. Cero detecciones es válido; estructura inválida detiene antes del Agente 1. |
 | AC-003 | #28 propone categoría válida y representante, o `desconocido`; la persona confirma, elige o no selecciona. | Se resuelve un vehículo válido antes de fase B. Con `desconocido` sin elección se usa V14 fijo; con elección válida se respeta esa elección. CLI y web usan la misma función y conservan predicción y procedencia. En el caso por defecto, pantalla y contrato del informe muestran literalmente: «Vehículo no identificado en la imagen: el presupuesto usa el vehículo de menor coste del catálogo. Es una estimación a la baja: si el taller encuentra un importe mayor, avisará a la aseguradora para revisarlo.». No se calcula el mínimo exacto entre los 27 coches ni se aplica V14 ante fallo técnico; V14 es una referencia fija y no garantiza ese mínimo para cada siniestro. |
 | AC-004 | Enviar contexto válido de rol propio y de tercero, y contexto inválido/ausente. | Se pasan los campos de #30 sin inventarlos; póliza obligatoria solo en rol propio. Error por campo antes del cálculo, conservando fase A para corregirlo. Confirmar vehículo o completar datos no vuelve a llamar a PIIA 1/visión. |
-| AC-005 | Ejecutar ambas fases con dependencias que registran llamadas. | Se usa el runtime nativo ADK, con orden PIIA 1 → Agente 1; tras contexto válido, `agente2()` → Agente 3 → verificación. No se llama al coste antes de `agente2()` ni se añade un LLM para coordinar/redactar cifras. Una fase fallida no ejecuta sus sucesoras. |
+| AC-005 | Ejecutar ambas fases con dependencias que registran llamadas. | El orquestador en Python directo ejecuta, en orden fijo, PIIA 1 → Agente 1; tras contexto válido, `agente2()` → Agente 3 → verificación. No se llama al coste antes de `agente2()` ni se añade un LLM para coordinar/redactar cifras. Una fase fallida no ejecuta sus sucesoras. |
 | AC-006 | Findings con confirmados, pendientes y rechazados, y escenario sin daños. | La web solo muestra los resultados, sin permitir cambiar daños; una petición con findings editados se rechaza. Los JSON de entrada al cálculo y al informe conservan hallazgos y tiers, y los dos escenarios y sus cifras coinciden con la ejecución directa de #30/#32 para el mismo contexto. |
 | AC-007 | Respuestas `diagnostico_rag` en los cinco estados y con citas parciales. | JSON e informe conservan el diagnóstico acordado con #32/#31. `parcial`, `sin_resultados` y `error` producen aviso preliminar y causas por tema, sin perder citas de consultas `recuperadas`. `recuperadas` no se presenta como verificación; `no_aplica` no genera fallo técnico. |
 | AC-008 | Representante confirmado, vehículo elegido y V14 por defecto; además, una entrada anterior sin origen y entradas con origen inválido o incoherente. | El flujo nuevo conserva `referencia_confirmada`, `seleccion_usuario` o `minimo_por_defecto` hasta la salida. Informe/pantalla distinguen las tres procedencias; con mínimo por defecto muestran el aviso de AC-003 y la limitación del valor venal, pérdida total e indemnización calculados con V14. Sin el campo, #31 conserva el informe previo con `vehiculo_id` como entrada y sin aviso de procedencia. Con un valor fuera de los tres, mínimo por defecto con ID distinto de V14 o referencia confirmada distinta de `vehiculo_id_referencia` (incluida referencia nula), #31 lanza una excepción explícita que nombra el campo/ID; #34 comunica error y no publica informe final. La confirmación de Víctor de la regla no sustituye su aceptación formal sobre v1.5, el AC nuevo consumidor de #31 ni la aceptación del plan/ADR completos antes de Ready. |
@@ -469,8 +468,8 @@ pertenece al AC-013 de #32; el arranque y recorrido del conjunto, al AC-013 de
   de Hono y servicio Python; probar como usuario/consumidor, no handlers privados.
 - **S2 — PIIA 1 → Agente 1 y categoría:** servicio ML guionizado y cliente de
   visión falso; JSON completo antes/después, sin modificar las funciones internas.
-- **S3 — Runtime ADK → funciones públicas de agentes:** registro de invocaciones,
-  salidas de costes/diagnóstico y generador; usar ADK real con proveedores falsos.
+- **S3 — Orquestador Python → funciones públicas de agentes:** registro de invocaciones,
+  salidas de costes/diagnóstico y generador; usar el orquestador real con proveedores falsos.
 - **S4 — Integración real:** herramientas de Plexus, agentes, PostgreSQL y ML;
   dependencias y datos locales identificados por versión/hash, fuera de Git.
 - **S5 — Despliegue y ciclo de vida:** Compose, HTTP, descarga y limpieza observable.
@@ -499,7 +498,7 @@ repetir conservando resultados. No se crea un umbral nuevo de precisión para
 | `specs/34-orquestacion-web.md#AC-002` | S2 | TDD: adaptar cero/una/varias detecciones y rechazar formato inválido. | Respuesta ML guionizada, imagen con orientación conocida y bboxes. | Suite Python; capturar entrada pública del Agente 1. | Red/Green; comparación de clases, scores y geometría. |
 | `specs/34-orquestacion-web.md#AC-003` | S1 + S2 + S3 | TDD: confirmar/corregir; desconocido con selección y sin ella; fallo técnico sin fallback. | Catálogo real y #28 integrado; cliente falso. | CLI y HTTP con la misma función; comprobar V14/origen y frase literal, selección expresa de V14 diferenciada. | Red/Green; procedencia y texto; cero cálculo ante fallo técnico. |
 | `specs/34-orquestacion-web.md#AC-004` | S1 + S3 | TDD: contexto inválido, corrección y rol tercero. | Contextos del contrato y copias inválidas; datos Plexus. | Suite HTTP; contador de fases antes/después. | Red/Green; mensajes y llamadas sin duplicar. |
-| `specs/34-orquestacion-web.md#AC-005` | S3 | TDD: ejecución nativa y orden con detención en fallos. | ADK real, funciones públicas/proveedores falsos con registro. | Suite Python por fase y recorrido completo. | Red/Green; secuencia de invocaciones. |
+| `specs/34-orquestacion-web.md#AC-005` | S3 | TDD: ejecución en orden fijo y detención en fallos. | Orquestador real, funciones públicas/proveedores falsos con registro. | Suite Python por fase y recorrido completo. | Red/Green; secuencia de invocaciones. |
 | `specs/34-orquestacion-web.md#AC-006` | S1 + S3 + S4 | TDD y regresión: daños inmutables, dos escenarios y caso vacío. | Ejemplos de contrato; paquete real; salida directa de #30/#32 como referencia independiente. | Suites Python/HTTP; comparar JSON y rechazar edición de findings. | Igualdad de campos/entradas y escenarios. |
 | `specs/34-orquestacion-web.md#AC-007` | S1 + S3 | TDD: los cinco estados RAG y conservación de citas parciales. | Contrato final #56; respuestas guionizadas. | Ejecutar fase B y revisar JSON/Markdown con #31. | Red/Green; texto de aviso y temas afectados. |
 | `specs/34-orquestacion-web.md#AC-008` | S1 + S3 | TDD: tres procedencias, aviso V14/pérdida total, compatibilidad sin campo y rechazo de valores/coherencia inválidos. | Ejemplos anteriores sin origen; copias con los tres valores, valor inventado y el anterior `maximo_por_defecto` (ambos rechazados), mínimo con V05, referencia V05 con ID V14 y referencia nula; selección explícita de V14 válida. AC nuevo consumidor pendiente en #31. | Llamada pública a #31 y recorrido CLI/formulario → informe → pantalla/descarga; comparar con informe previo, observar errores sin publicación y verificar que el flujo nuevo siempre transporta el origen. | Red/Green; ausencia sin aviso, errores explícitos con campo/ID, misma procedencia/cifras/advertencias y predicción intacta. |
@@ -514,7 +513,7 @@ repetir conservando resultados. No se crea un umbral nuevo de precisión para
 
 | Slice | Objetivo observable | AC | Dependencias y verificación |
 |---|---|---|---|
-| 1 — Recorrido CLI primero | Foto → PIIA 1 → Agente 1 → resolución común de vehículo/contexto → Agente 2 → Agente 3 → comprobación → Markdown. | AC-002 a AC-009, AC-011 | Plan/ADR aceptados; #28/#30 integrados; #31/#32 reales para acreditar integración. TDD por fronteras y smoke ADK. Mientras falta RAG, `estimar_siniestro` con `normativa: []` permite un esqueleto parcial explícito, sin acreditar AC-007 ni el flujo completo. |
+| 1 — Recorrido CLI primero | Foto → PIIA 1 → Agente 1 → resolución común de vehículo/contexto → Agente 2 → Agente 3 → comprobación → Markdown. | AC-002 a AC-009, AC-011 | Plan/ADR aceptados; #28/#30 integrados; #31/#32 reales para acreditar integración. TDD por fronteras y recorrido de prueba con proveedores falsos. Mientras falta RAG, `estimar_siniestro` con `normativa: []` permite un esqueleto parcial explícito, sin acreditar AC-007 ni el flujo completo. |
 | 2 — Web y contrato HTTP | Pestaña, subida, hallazgos de solo lectura, confirmación y formulario sobre la misma resolución CLI. | AC-001 a AC-004, AC-006, AC-008 | Slice 1; HTTP propuesto revisado. Casos de entrada y formulario, mismo resultado que CLI con iguales datos. |
 | 3 — Estado y entrega | Dos fases asíncronas, idempotencia, límites, errores, descarga y limpieza. | AC-005, AC-009 a AC-012 | Slices 1–2; pruebas de capacidad, TTL con reloj controlado, reenvíos, fallos y bytes. |
 | 4 — Compose e integración real | Compose único y preparación reproducible; 3–5 imágenes con lectura humana. | AC-006, AC-007, AC-013, AC-014 | Componentes reales integrados y configuración/modelos/paquete identificados. Filas de integración y regresiones del Test Plan. |
@@ -559,40 +558,36 @@ comunicado por el equipo. Se conserva como atribución de esa coordinación; no
 se modifica el enunciado de la asignatura desde esta PR. La entrega documental
 no acredita producto implementado ni sustituye los gates de revisión y DoR.
 
-### ADK: razón y disparador de revisión
+### Decisión sobre el framework (v1.7)
 
-La elección de ADK se mantiene por decisión de Lucas y por reutilizar sesiones,
-eventos y workflows del framework probado en #52. No se atribuye a un requisito
-confirmado de la asignatura ni a una mejora de calidad del presupuesto. El
-coste frente a Python directo son adaptadores y entorno adicionales. Punto de
-partida reproducible: ADK 2.12.0 y LiteLLM 1.106.0 del experimento; las APIs
-nativas propuestas necesitan su propia prueba.
+El 18 de noviembre de 2026 se decide **orquestar en Python directo** en lugar de
+ADK. La decisión es de Lucía Luis Castaño, en la sesión de trabajo con el
+asistente, y queda pendiente de confirmación de Lucas, autor de esta Issue, que
+había elegido ADK. Razón: riesgo y plazo. El disparador del 10 de noviembre y el
+corte del 17 a las 18:00 vencieron sin ejecución acreditada del smoke de ADK, y
+la entrega final es el 7 de diciembre. **No se atribuye a una incompatibilidad
+observada de ADK**: el smoke no llegó a ejecutarse. ADK no es un requisito de la
+asignatura ni mejora la calidad del presupuesto, que calcula el código; su coste
+frente a Python directo eran adaptadores y entorno adicionales.
 
-El disparador original del 10 de noviembre venció sin un resultado satisfactorio
-acreditado; el registro anterior consigna el incumplimiento, la falta de ejecución
-del smoke y la alternativa Python directo propuesta ahora al equipo. El nuevo
-corte propuesto es el **17 de noviembre de 2026 a las 18:00 Europe/Madrid**.
-
-El smoke de la slice 1 comprueba ambas fases nativas, estado aislado, orden y
-detención en errores, sin modelo coordinador, con ADK 2.12.0 y LiteLLM 1.106.0
-como punto de partida y proveedores falsos. Se ejecuta tras DoR; no necesita
-inferencias de pago. Si no pasa, se registra comando, resultado y causa y se
-somete Python directo al equipo ese mismo día. Si no puede ejecutarse por gate
-pendiente, se registra ese impedimento y siguiente acción en el mismo corte,
-sin llamarlo incompatibilidad técnica. Cambiar de framework requiere decisión
-humana y revisión de ADR 0007 y AC-005 antes de implementar la alternativa;
-no hay cambio automático ni recorte de web.
+Qué se pierde: las sesiones, eventos y workflows del framework, que aquí se
+sustituyen por un estado de ejecución propio y pequeño (identificador, fase,
+resultados y archivos temporales), ya previsto en esta Spec. Qué no cambia: el
+orden fijo, los dos escenarios y sus cifras, los 14 IDs de AC y las demás
+decisiones. La sección anterior sobre ADK se conserva como historial en v1.6
+(`8362807`). Volver a ADK exigiría una decisión humana nueva y revisar el ADR 0007
+y AC-005.
 
 ## Pendientes para Ready
 
-1. Revisión humana del documento v1.6 completo y aceptación/integración de
+1. Revisión humana del documento v1.7 completo y aceptación/integración de
    Planning PR #60 y ADR 0007 sobre el head final. Lucía es la revisora prevista.
 2. Víctor confirma V14/`minimo_por_defecto` con las dos precisiones de v1.4;
    falta su aceptación formal del contrato actualizado y debe incorporar aviso,
    compatibilidad y validación en un AC nuevo del plan #31. Ese plan sigue pendiente,
    sin reutilizar AC-010. #28/ADR 0001 y #32/ADR 0006 ya están aceptados en main;
    no se les atribuye aceptación del nuevo plan/ADR.
-3. Revisar límites, HTTP, calendario y disparador ADK. Confirmar lector de
+3. Revisar límites, HTTP, calendario y la decisión sobre el framework. Confirmar lector de
    los 3–5 informes y equipo/perfil ML; acceso al proveedor se comprueba antes
    de verificaciones de pago, sin suponer autorización de gasto por este plan.
 4. Acreditar DoR de la nueva versión en #34 y registrar el commit publicado.
@@ -606,10 +601,11 @@ no hay cambio automático ni recorte de web.
 | Trazabilidad | 14 IDs conservados; cada AC tiene fila Test Plan y slice. AC-003/008 adaptados a la corrección de Lucía y confirmación de Víctor: V14/`minimo_por_defecto`; AC-010 de #31 sigue retirado. |
 | Preservación | Predicción #28 intacta; costes y dos escenarios #30 sin cambios; contrato RAG aceptado consumido sin reescribir cifras. Procedencia es ampliación propuesta a revisar con #31. |
 | Decisión arquitectónica | NEW_ADR: 0007 sigue Propuesto; incorpora la política del orquestador y campo aditivo, sin modificar la salida de #28 ni las fórmulas de #30. No se crea otro ADR por la misma decisión. |
-| Estado | Borrador v1.6, no Ready. Víctor confirma V14/`minimo_por_defecto` con las precisiones de v1.4, pero reserva su aceptación formal; siguen pendientes el AC nuevo consumidor y la revisión del plan/ADR completos. Los parámetros y calendario mantienen su revisión pendiente. |
+| Estado | Borrador v1.7, no Ready. Víctor confirma V14/`minimo_por_defecto` con las precisiones de v1.4, pero reserva su aceptación formal; siguen pendientes el AC nuevo consumidor y la revisión del plan/ADR completos. Los parámetros y calendario mantienen su revisión pendiente. |
 | Historial v1.4 (`6a6666e`) | Campo opcional y validación de valores/coherencia a petición de Lucas, sobre las precisiones de Víctor. Se conservan estas garantías; la política anterior V25/`maximo_por_defecto` y su frase quedan sustituidas por v1.5. |
 | Actualización v1.5 | V14/`minimo_por_defecto`, frase de estimación a la baja y límites del mínimo fijo trazados a la corrección de Lucía y confirmación de Víctor. Cambian AC-003/008 y sus verificaciones; los otros 12 AC, sus verificaciones, slices, contratos base, disparador ADK y DoD se conservan. |
 | Actualización v1.6 | Hito del 10 no cumplido y smoke sin ejecución acreditada; impedimento, avance y siguiente acción registrados. Nuevo corte propuesto el 17 a las 18:00 Europe/Madrid; se presenta Python directo al equipo sin adoptarlo. AC, Test Plan, cuatro slices y DoD idénticos a v1.5. |
+| Actualización v1.7 | Decisión del 18 de noviembre de orquestar en Python directo: cambian la redacción de AC-005, la sección de orquestación, el seam S3, la fila de AC-005 del Test Plan, la slice 1 (sin smoke de ADK) y el ADR 0007. Los otros 13 AC, sus verificaciones, las cuatro slices, V14/`minimo_por_defecto` y la DoD son idénticos a v1.6. |
 | Verificación | Revisión documental de AC, enlaces, tablas y diff. No se ha ejecutado el flujo ni una inferencia de pago durante esta planificación. |
 
 ## Definition of Done
@@ -625,7 +621,7 @@ La DoD global del workflow y de #34 sigue vigente. Esta Spec añade:
 | Uso y límites actualizados en la carpeta del caso. | README de orquestación y enlaces desde README del caso, contratos acordados y guía de ejecución vigente. |
 | Entrega sin datos/modelos/claves ni temporales. | Revisión del diff; solo archivos del producto y documentación autorizados. |
 
-Referencias técnicas de diseño: [ADK, secuencia nativa](https://adk.dev/agents/workflow-agents/sequential-agents/)
+Referencias técnicas de la propuesta anterior (v1.6), conservadas como historial: [ADK, secuencia nativa](https://adk.dev/agents/workflow-agents/sequential-agents/)
 y [agentes personalizados nativos](https://adk.dev/agents/custom-agents/), consultadas
-el 2026-10-26. Fundamentan la propuesta; no acreditan su ejecución con las
+el 2026-10-26. La implementación en Python directo no depende de ellas; no acreditan su ejecución con las
 versiones del producto ni sustituyen el plan de pruebas.
