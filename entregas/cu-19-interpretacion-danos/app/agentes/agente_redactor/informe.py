@@ -7,6 +7,8 @@ ninguna se calcula ni se escribe a mano, y no se usa ningun modelo de lenguaje.
 Plan: entregas/cu-19-interpretacion-danos/specs/31-informe-peritaje.md
 Contrato de entrada: ADR 0002 y app/agentes/ejemplos_contrato/.
 Catalogo de la empresa: piia2_paquete_datos/ (fuera de git).
+Justificaciones de la normativa (#97, ADR 0009): las redacta un LLM en el Agente 2; aqui solo se
+muestran y se comprueba su forma.
 """
 
 from __future__ import annotations
@@ -50,6 +52,13 @@ AVISO_LEGAL = ("Informe generado automáticamente con datos sintéticos de proto
 AVISO_PRELIMINAR = ("Informe preliminar: no se han recuperado fuentes suficientes para respaldar las "
                     "conclusiones indicadas sobre cobertura e indemnización. Estas conclusiones requieren revisión.")
 ESTADOS_RAG = ("recuperadas", "parcial", "sin_resultados", "error", "no_aplica")
+# Justificaciones con LLM de la normativa (#97, ADR 0009; specs/97-justificacion-llm-normativa.md).
+AVISO_JUSTIFICACION = ("Informe preliminar: no se ha podido redactar la justificación de algunas fuentes; "
+                       "se muestran sus citas sin justificación y requieren revisión.")
+ESTADOS_JUSTIFICACION = ("generada", "descartada", "no_generada")
+# Un importe en euros en cualquier formato: el texto de una justificacion no puede llevar ninguno (AC-003).
+_NUMERO = r"\d{1,3}(?:[.\s]\d{3})+(?:,\d+)?|\d+(?:[.,]\d+)?"
+_IMPORTE_TEXTO = re.compile(rf"(?:{_NUMERO})\s*(?:€|\beur\b|\beuros?\b)|(?:€|\beur\b)\s*(?:{_NUMERO})", re.IGNORECASE)
 ESTADOS_PRELIMINARES = ("parcial", "sin_resultados", "error")
 POLIZA_TERCERO = "Terceros (RC obligatoria)"
 
@@ -195,6 +204,35 @@ def validar_entradas(agente1: dict, agente2: dict) -> None:
             raise ValueError(f"pieza_id no esta en el catalogo de la empresa: {pieza!r}")
     if "diagnostico_rag" in agente2:
         _validar_diagnostico(agente2["diagnostico_rag"])
+    if "justificaciones" in agente2:
+        _validar_justificaciones(agente2["justificaciones"])
+
+
+def _validar_justificaciones(justificaciones: list) -> None:
+    """`justificaciones` opcional, con la forma del ADR 0009 (specs/97-justificacion-llm-normativa.md#AC-009).
+    Una `generada` con importes en el texto es una entrada mal formada: el texto del LLM no puede
+    llevar importes, que solo aparecen en las citas literales y en el calculo."""
+    if not isinstance(justificaciones, list):
+        raise ValueError("justificaciones debe ser una lista")
+    for n, j in enumerate(justificaciones):
+        campo = f"justificaciones[{n}]"
+        if not isinstance(j, dict) or not isinstance(j.get("tema"), str) or not j["tema"]:
+            raise ValueError(f"{campo} sin tema")
+        if j.get("estado") not in ESTADOS_JUSTIFICACION:
+            raise ValueError(f"{campo}.estado no valido: {j.get('estado')!r} (debe ser {', '.join(ESTADOS_JUSTIFICACION)})")
+        if j["estado"] != "generada":
+            if not isinstance(j.get("motivo"), str) or not j["motivo"]:
+                raise ValueError(f"{campo}.motivo vacio")
+            continue
+        if not isinstance(j.get("texto"), str) or not j["texto"].strip():
+            raise ValueError(f"{campo}.texto vacio")
+        if _IMPORTE_TEXTO.search(j["texto"]):
+            raise ValueError(f"{campo}.texto contiene un importe: {_IMPORTE_TEXTO.search(j['texto']).group(0)!r}")
+        citas = j.get("citas")
+        if not isinstance(citas, list) or not citas or not all(
+                isinstance(c, dict) and isinstance(c.get("extracto"), str) and c["extracto"]
+                and isinstance(c.get("fuente"), str) and c["fuente"] for c in citas):
+            raise ValueError(f"{campo}.citas debe ser una lista no vacia de {{extracto, fuente}}")
 
 
 def _validar_diagnostico(diagnostico: dict) -> None:
@@ -223,6 +261,31 @@ def _consultas_sin_fuentes(diagnostico: dict | None) -> list[str]:
         if c["estado"] != "recuperadas":
             motivo = " ".join(i["mensaje"] for i in c.get("incidencias", [])) or "sin resultados"
             lineas.append(f"- Sin fuentes para «{c['tema']}»: {motivo}")
+    return lineas
+
+
+def _fuentes(agente2: dict) -> list[str]:
+    """Pasajes de «Fuentes consultadas». Sin `justificaciones`, el formato de la spec 31. Con ellas
+    (specs/97-justificacion-llm-normativa.md#AC-008 y AC-009), por tema: si esta `generada`, su texto y
+    debajo sus citas con su fuente como bloque literal; si no, sus pasajes sin justificacion y el motivo."""
+    lineas: list[str] = []
+    if "justificaciones" not in agente2:
+        for n in agente2["normativa"]:
+            lineas += [f"- {n['tema']} ({n['fuente']}):", *_bloque_literal(n["extracto"]), ""]
+        return lineas
+    por_tema = {j["tema"]: j for j in agente2["justificaciones"]}
+    temas = list(dict.fromkeys(n["tema"] for n in agente2["normativa"]))
+    for tema in temas:
+        j = por_tema.get(tema)
+        if j and j["estado"] == "generada":
+            lineas += [f"- **{tema}:** {j['texto']}", ""]
+            for c in j["citas"]:
+                lineas += [f"- Cita ({c['fuente']}):", *_bloque_literal(c["extracto"]), ""]
+            continue
+        for n in (x for x in agente2["normativa"] if x["tema"] == tema):
+            lineas += [f"- {tema} ({n['fuente']}):", *_bloque_literal(n["extracto"]), ""]
+        if j:
+            lineas += [f"  Sin justificación: {j['motivo']}", ""]
     return lineas
 
 
@@ -258,6 +321,8 @@ def generar_informe(agente1: dict, agente2: dict, hoy: str | None = None) -> str
     md += ["", f"> {AVISO_LEGAL}"]
     if diagnostico and diagnostico["estado"] in ESTADOS_PRELIMINARES:
         md += ["", f"> **{AVISO_PRELIMINAR}**"]
+    if any(j["estado"] != "generada" for j in agente2.get("justificaciones", [])):
+        md += ["", f"> **{AVISO_JUSTIFICACION}**"]
     md += [
         "",
         "## Resumen",
@@ -325,8 +390,7 @@ def generar_informe(agente1: dict, agente2: dict, hoy: str | None = None) -> str
         "## Fuentes consultadas",
         "",
     ]
-    for n in agente2["normativa"]:
-        md += [f"- {n['tema']} ({n['fuente']}):", *_bloque_literal(n["extracto"]), ""]
+    md += _fuentes(agente2)
     if not agente2["normativa"]:
         md.append("_Sin fuentes._")
     sin_fuentes = _consultas_sin_fuentes(diagnostico)
