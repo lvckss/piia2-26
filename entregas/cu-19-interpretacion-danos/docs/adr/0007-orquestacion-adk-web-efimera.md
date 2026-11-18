@@ -1,8 +1,8 @@
-# ADR 0007: Orquestación ADK, interfaz web y ejecuciones efímeras
+# ADR 0007: Orquestación en Python directo, interfaz web y ejecuciones efímeras
 
 - Estado: Propuesto
 - Fecha: 2026-10-27
-- Versión: propuesta v1.6 (2026-11-16); continúa v1.5 `c52217d` y conserva v1 `733c5d0`, v1.1 `9a65c26`, v1.2 `5ed9ca6`, v1.3 `06f4c08` y v1.4 `6a6666e`. Registra el hito del 10 no cumplido y el smoke sin ejecución acreditada; reajusta el corte al 17 de noviembre, 18:00 Europe/Madrid. Conserva las decisiones, contratos y alternativas de v1.5; no acepta el ADR ni cambia el framework.
+- Versión: propuesta v1.7 (2026-11-18): Python directo en lugar de ADK; continúa v1.6 `8362807` y conserva v1 `733c5d0`, v1.5 `c52217d`, v1.1 `9a65c26`, v1.2 `5ed9ca6`, v1.3 `06f4c08` y v1.4 `6a6666e`. Registra el hito del 10 no cumplido y el smoke sin ejecución acreditada; reajusta el corte al 17 de noviembre, 18:00 Europe/Madrid. Conserva las decisiones, contratos y alternativas de v1.5; no acepta el ADR ni cambia el framework.
 - GitHub Issue: https://github.com/lvckss/piia2-26/issues/34
 - Planes cubiertos: [34-orquestacion-web.md](../../specs/34-orquestacion-web.md), coordinación, frontera web/Python, estado temporal y Compose.
 - Planning PR: https://github.com/lvckss/piia2-26/pull/60 — draft.
@@ -40,26 +40,23 @@ Es una decisión estructural: fija un framework de producto, una API entre
 componentes, el ciclo de vida de sus datos y cómo se despliegan. Los ADRs
 previos no cubren esa frontera ni este recorrido.
 
+**Actualización del 18 de noviembre de 2026 (v1.7).** El smoke de ADK no se ejecutó en plazo y la entrega final es el 7 de diciembre: la decisión pasa a Python directo (ver el punto 1 de «Decisión propuesta»).
+
 ## Decisión propuesta
 
-1. **ADK nativo con orden fijo.** Usar sus workflows/agentes nativos y adaptadores
-   mínimos para llamar a las funciones existentes, con estado independiente por
-   ejecución. Se reutilizan sesiones/eventos y workflows de ADK; el precio lo
-   calcula código y no mejora por adoptar el framework. #52 probó ADK 2.12.0 y
-   LiteLLM 1.106.0, no las APIs nativas de esta integración. El hito del 10 de
-   noviembre **no se cumplió** y el smoke de #34 no tiene ejecución acreditada;
-   la planificación registrada no lo ejecutó. El [registro del hito](../../specs/34-orquestacion-web.md#registro-del-hito-del-10-de-noviembre)
-   fija impedimento, evidencia y siguiente acción. Se propone Python directo
-   al equipo el 16 de noviembre sin adoptarlo; el nuevo corte propuesto es el
-   **17 de noviembre de 2026 a las 18:00 Europe/Madrid**. Tras DoR se prueba el
-   smoke con proveedores falsos: fases, aislamiento, orden y detención. Si falla,
-   se registra causa/comando/resultado y el equipo decide sobre la alternativa;
-   si no se ejecuta por gate pendiente, se registra como tal. Cambiar requiere
-   decisión humana y revisar este ADR y AC-005 antes de implementar Python
-   directo; no se aplica automáticamente. No añadir un modelo que elija el orden o reescriba cifras. La
-   documentación de ADK describe `SequentialAgent` como secuencia determinista
-   y `BaseAgent` como extensión para lógica propia; las APIs y dependencias se
-   fijan y comprueban al implementar. No se construye otro framework de agentes.
+1. **Python directo con orden fijo.** El orquestador es código Python que
+   llama, en orden fijo, a las funciones existentes de cada agente, con estado
+   independiente por ejecución; no usa un framework de agentes ni un modelo que
+   decida el orden o reescriba cifras. El precio lo calcula código y esta
+   decisión no lo cambia. **Cambio del 18 de noviembre de 2026:** la v1.6
+   proponía ADK nativo (ADK 2.12.0 y LiteLLM 1.106.0, probados con una tool en
+   #52). El hito del 10 de noviembre y el corte del 17 a las 18:00 vencieron sin
+   ejecución acreditada del smoke y la entrega final es el 7 de diciembre, así
+   que Lucía Luis Castaño, en la sesión de trabajo con el asistente, decide pasar
+   a Python directo, pendiente de confirmación de Lucas. No se atribuye a una
+   incompatibilidad observada de ADK. Se pierden las sesiones, eventos y
+   workflows del framework, sustituidos por un estado propio y pequeño. Volver a
+   ADK exigiría una decisión humana nueva y revisar este ADR y AC-005.
 2. **Dos fases.** PIIA 1 y Agente 1/categoría antes de la confirmación del usuario;
    `agente2()` → Agente 3 → verificador después. Una confirmación válida no
    vuelve a detectar ni a consultar visión. La categoría se implementa en #28,
@@ -131,8 +128,8 @@ previos no cubren esa frontera ni este recorrido.
 
 | Alternativa | Ventajas | Costes / motivo de la propuesta |
 |---|---|---|
-| ADK nativo con secuencia fija, propuesta | Respeta la elección de Lucas y reutiliza el framework probado; orden y cifras controlados por código. | Añade dependencia/entorno ADK y adaptadores que hay que probar de extremo a extremo. |
-| Python directo | Cableado pequeño y sencillo; mismas funciones deterministas. | Menos dependencias para el orden fijo; alternativa presentada al equipo el 16 al no acreditarse el corte del 10. Nuevo corte propuesto: 17 de noviembre, 18:00 Europe/Madrid, con ejecución tras DoR. Requiere decisión humana, revisión de ADR/AC-005 y registro antes de cambiar, sin recortar web. |
+| ADK nativo con secuencia fija | Reutiliza sesiones, eventos y workflows del framework probado con una tool en #52; orden y cifras controlados por código. | Añade dependencia/entorno ADK y adaptadores que hay que probar de extremo a extremo; el smoke no tuvo ejecución acreditada. Descartado el 18 de noviembre por riesgo y plazo, no por una incompatibilidad observada. |
+| Python directo con secuencia fija, propuesta | Cableado pequeño y sencillo; mismas funciones deterministas; menos dependencias y sin un smoke de framework que bloquee la implementación. | Hay que escribir un estado de ejecución propio y pequeño (identificador, fase, resultados, archivos temporales). Decisión del 18 de noviembre, pendiente de confirmación de Lucas. |
 | Coordinador LLM que decide qué tools llamar | Flexible para recorridos variables. | El recorrido está fijado; introduce llamadas y riesgo de saltarse pasos o reformular cifras sin una necesidad identificada. |
 | Mantener únicamente un comando con archivos de CarDD | Reduce trabajo de interfaz y subida. | No cumple la entrada web con una imagen nueva elegida por Lucas. |
 | Una petición HTTP larga hasta el informe | Menos estados y operaciones. | No encaja con la confirmación/corrección del vehículo entre las fases ni con consultar progreso sin repetir trabajo. |
@@ -146,7 +143,7 @@ previos no cubren esa frontera ni este recorrido.
   JSON entre agentes. Cada una se prueba sin utilizar mocks de funciones privadas.
 - Categoría #28/ADR 0001 y RAG #32/ADR 0006 están aceptados e integrados.
   En `main` `3c73e83`, el informe #75 y el plan RAG v1.7 de #80 ya están
-  integrados; #72 sigue abierta. Esto no acredita el recorrido ADK completo
+  integrados; #72 sigue abierta. Esto no acredita el recorrido completo
   ni la adaptación del informe al contrato de procedencia de v1.5.
 - La regla V14/`minimo_por_defecto` confirmada por Víctor conserva las dos
   precisiones de v1.4. Su aceptación formal, el AC nuevo consumidor de #31 y
@@ -184,10 +181,10 @@ previos no cubren esa frontera ni este recorrido.
   y [confirmación de Víctor de V14/`minimo_por_defecto`](https://github.com/lvckss/piia2-26/issues/34#issuecomment-6802366608).
   La política anterior V25/`maximo_por_defecto` y el «techo prudente» quedan
   conservados como historial en v1.3 `06f4c08` y v1.4 `6a6666e`, sustituidos por v1.5.
-- [ADK: secuencia nativa](https://adk.dev/agents/workflow-agents/sequential-agents/)
+- Referencias de la propuesta anterior (v1.6), conservadas como historial:
+  [ADK: secuencia nativa](https://adk.dev/agents/workflow-agents/sequential-agents/)
   y [agentes personalizados](https://adk.dev/agents/custom-agents/), consultadas
-  el 2026-10-26. La compatibilidad de las versiones de producto se comprobará
-  durante implementación, sin dar por hecho que el experimento cubra estas APIs.
+  el 2026-10-26. La implementación en Python directo no depende de ellas.
 - [Revisión de Lucía sobre v1.5](https://github.com/lvckss/piia2-26/pull/60#issuecomment-6911760739)
   y [registro del hito y avance](../../specs/34-orquestacion-web.md#registro-del-hito-del-10-de-noviembre):
   el código de `orquestador/` en `main` `3c73e83` sigue siendo el experimento de
