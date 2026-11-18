@@ -33,7 +33,10 @@ MOTIVO_MAL_FORMADA = "La respuesta del modelo no tenía el formato esperado (tex
 
 # Un importe en euros en cualquier formato: «300 €», «1.500 EUR», «1500 EUR», «300,00 euros», «€ 300»...
 _NUMERO = r"\d{1,3}(?:[.\s]\d{3})+(?:,\d+)?|\d+(?:[.,]\d+)?"
-_IMPORTE = re.compile(rf"(?:{_NUMERO})\s*(?:€|\beur\b|\beuros?\b)|(?:€|\beur\b)\s*(?:{_NUMERO})", re.IGNORECASE)
+# La moneda puede ir pegada al numero («1500EUR», «1500euros», «€1500») o delante («euro 1500»); el
+# \b final evita palabras como «europeo» (revision de Lucas en la #101).
+_MONEDA = r"(?:€|eur\b|euros?\b)"
+_IMPORTE = re.compile(rf"(?:{_NUMERO})\s*{_MONEDA}|(?:€|\b(?:eur|euros?))\s*(?:{_NUMERO})", re.IGNORECASE)
 # Raices que presentarian el texto como validacion juridica (spec 97, AC-004; spec 31, AC-014).
 _VALIDACION = re.compile(r"verific|valid|garantiz", re.IGNORECASE)
 

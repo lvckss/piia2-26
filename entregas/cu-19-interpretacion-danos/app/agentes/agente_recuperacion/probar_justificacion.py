@@ -126,13 +126,21 @@ def probar_97_ac003_texto_con_importes_se_descarta():
                  {"tema": "cobertura de daños propios", "extracto": DANOS_PROPIOS,
                   "fuente": f"{FR300}#2. Coberturas incluidas"}]
     citas = ["Rotura de lunas** (parabrisas, lunas laterales y luneta) con límite de 1500 EUR por anualidad"]
-    for importe in ("500 €", "1.500 EUR", "1500 EUR", "300,00 euros", "€ 300", "1500 euros"):
+    for importe in ("500 €", "1.500 EUR", "1500 EUR", "300,00 euros", "€ 300", "1500 euros",
+                    # revision de Lucas en la #101: moneda pegada al numero o escrita delante
+                    "1500EUR", "1500euros", "euro 1500", "euros 1500", "€1500", "EUR1500"):
         texto = f"La póliza cubre la rotura de lunas con un límite de {importe} al año."
         r = _por_tema(_justificar(ClienteFalso({"rotura de lunas": {"texto": texto, "citas": citas},
                                                 "cobertura de daños propios": BIEN_DANOS}), normativa))
         j = r["rotura de lunas"]
         assert j["estado"] == "descartada", (importe, j)
         assert "importe" in j["motivo"].lower(), (importe, j)
+    # sin falsos positivos: palabras como «europeo» o cifras que no son importes no descartan
+    for texto in ("La póliza cubre la rotura de lunas con un límite anual.",
+                  "Se aplica la normativa europea a la rotura de lunas en 2 supuestos."):
+        j = _por_tema(_justificar(ClienteFalso({"rotura de lunas": {"texto": texto, "citas": citas},
+                                                "cobertura de daños propios": BIEN_DANOS}), normativa))["rotura de lunas"]
+        assert j["estado"] == "generada", (texto, j)
     sin_importe = {"texto": "La póliza cubre la rotura de lunas con un límite anual.", "citas": citas}
     j = _por_tema(_justificar(ClienteFalso({"rotura de lunas": sin_importe, "cobertura de daños propios": BIEN_DANOS}),
                               normativa))["rotura de lunas"]
