@@ -2,11 +2,11 @@
 
 - Estado: Propuesto
 - Fecha: 2026-10-27
-- Versión: propuesta v1.7 (2026-11-18): Python directo en lugar de ADK; continúa v1.6 `8362807` y conserva v1 `733c5d0`, v1.5 `c52217d`, v1.1 `9a65c26`, v1.2 `5ed9ca6`, v1.3 `06f4c08` y v1.4 `6a6666e`. Registra el hito del 10 no cumplido y el smoke sin ejecución acreditada; reajusta el corte al 17 de noviembre, 18:00 Europe/Madrid. Conserva las decisiones, contratos y alternativas de v1.5; no acepta el ADR ni cambia el framework.
+- Versión: propuesta v1.7 (2026-11-18): Python directo en lugar de ADK; continúa v1.6 `8362807` y conserva v1 `733c5d0`, v1.5 `c52217d`, v1.1 `9a65c26`, v1.2 `5ed9ca6`, v1.3 `06f4c08` y v1.4 `6a6666e`. Conserva como historial el hito del 10 y el corte del 17 vencidos sin ejecución acreditada del smoke; cambia la propuesta de framework por riesgo y plazo y mantiene los contratos, V14 y el resto del alcance. La adopción en la rama de #60 no acepta el ADR completo.
 - GitHub Issue: https://github.com/lvckss/piia2-26/issues/34
 - Planes cubiertos: [34-orquestacion-web.md](../../specs/34-orquestacion-web.md), coordinación, frontera web/Python, estado temporal y Compose.
-- Planning PR: https://github.com/lvckss/piia2-26/pull/60 — draft.
-- Aceptación: pendiente de revisión humana del documento completo y sus alternativas. Las [precisiones de Víctor](https://github.com/lvckss/piia2-26/pull/60#issuecomment-6773699753) sobre compatibilidad y validación de v1.4 se conservan. Víctor [confirma V14/`minimo_por_defecto`](https://github.com/lvckss/piia2-26/issues/34#issuecomment-6802366608), pero reserva su aceptación formal para la #60 actualizada. Ninguna de esas confirmaciones acepta el conjunto del ADR.
+- Planning PR: https://github.com/lvckss/piia2-26/pull/60 — preparada para revisión de la v1.7; aceptación e integración pendientes.
+- Aceptación: pendiente de revisión humana del documento completo y sus alternativas. Las [precisiones de Víctor](https://github.com/lvckss/piia2-26/pull/60#issuecomment-6773699753) sobre compatibilidad y validación de v1.4 se conservan. Víctor [aceptó el contrato de procedencia de v1.6](https://github.com/lvckss/piia2-26/pull/60#issuecomment-6924027132), conservado en v1.7. Ninguna de esas confirmaciones acepta el conjunto del ADR.
 - Sustituye / sustituido por: no sustituye un ADR aceptado. Reutiliza las responsabilidades base de los ADRs 0002–0005; se apoya en #28/ADR 0001 y #32/ADR 0006 ya aceptados en main. El contrato nuevo de procedencia requiere revisión propia.
 
 ## Contexto y motivación
@@ -16,7 +16,7 @@ archivos de CarDD. La prueba #33/#52 integrada en `main` `d5dd44d` acredita
 viabilidad mínima de ADK con OpenAI y una tool que conserva su importe. No
 acredita la integración completa ni convierte sus dependencias en las del producto.
 
-Lucas ha elegido ADK y un recorrido desde una pestaña de la web: subir una
+Lucas eligió inicialmente ADK y un recorrido desde una pestaña de la web: subir una
 imagen, ver los daños sin editarlos, confirmar/corregir el vehículo, completar
 datos y mostrar/descargar Markdown. Ha elegido no tener historial. #28/#69 y
 ADR 0001 ya están integrados: `desconocido` entrega referencia nula y los
@@ -28,15 +28,15 @@ cambio y a la regla anterior se conservan en la Spec y su historial.
 Los fallos técnicos detienen el flujo.
 La regla vive en una sola función del orquestador para CLI y web; #30 recibe
 siempre vehículo válido. Se conservan compatibilidad para entradas anteriores
-y validaciones explícitas; falta la aceptación formal de Víctor sobre el
-contrato actualizado. El plan completo sigue Borrador y este ADR Propuesto.
+y validaciones explícitas; Víctor [aceptó ese contrato en v1.6](https://github.com/lvckss/piia2-26/pull/60#issuecomment-6924027132),
+conservado en v1.7. Sigue pendiente su adaptación consumidora en #31. El plan completo sigue Borrador y este ADR Propuesto.
 
 La web y backend son React/Bun/Hono; los agentes son Python. PIIA 1 ya ofrece
 `POST /v1/damage-assessment` con archivo, pero su JSON necesita adaptación al
 Agente 1. Hay Compose de ML, no del conjunto. La confirmación humana separa
 dos fases y exige conservar el análisis sin repetir las consultas de pago.
 
-Es una decisión estructural: fija un framework de producto, una API entre
+Es una decisión estructural: fija la estrategia de orquestación, una API entre
 componentes, el ciclo de vida de sus datos y cómo se despliegan. Los ADRs
 previos no cubren esa frontera ni este recorrido.
 
@@ -52,8 +52,8 @@ previos no cubren esa frontera ni este recorrido.
    proponía ADK nativo (ADK 2.12.0 y LiteLLM 1.106.0, probados con una tool en
    #52). El hito del 10 de noviembre y el corte del 17 a las 18:00 vencieron sin
    ejecución acreditada del smoke y la entrega final es el 7 de diciembre, así
-   que Lucía Luis Castaño, en la sesión de trabajo con el asistente, decide pasar
-   a Python directo, pendiente de confirmación de Lucas. No se atribuye a una
+   que Lucas [adopta Python directo en la revisión de #104](https://github.com/lvckss/piia2-26/pull/104#pullrequestreview-5963214874),
+   a propuesta de Lucía Luis Castaño; #104 queda integrada en la rama de #60. No se atribuye a una
    incompatibilidad observada de ADK. Se pierden las sesiones, eventos y
    workflows del framework, sustituidos por un estado propio y pequeño. Volver a
    ADK exigiría una decisión humana nueva y revisar este ADR y AC-005.
@@ -91,8 +91,8 @@ previos no cubren esa frontera ni este recorrido.
    compatibilidad y validación, sin reutilizar el retirado.
    Pantalla e informe conservan la frase literal y el aviso adicional de la
    Spec, incluida la limitación del mínimo fijo. La regla V14/`minimo_por_defecto`
-   está confirmada por Víctor con las dos precisiones; falta su aceptación formal
-   sobre la actualización y no equivale a aprobar este ADR. Conservar el
+   tiene la aceptación de Víctor sobre el contrato de v1.6, conservado en v1.7;
+   esa aceptación no equivale a aprobar este ADR completo. Conservar el
    `diagnostico_rag` acordado con #32/#31 y sus avisos preliminares.
 5. **Estado efímero, sin historial de casos.** Mantener estado y artefactos
    temporales hasta descarga/descartado/caducidad, sin tablas de casos ni su
@@ -129,7 +129,7 @@ previos no cubren esa frontera ni este recorrido.
 | Alternativa | Ventajas | Costes / motivo de la propuesta |
 |---|---|---|
 | ADK nativo con secuencia fija | Reutiliza sesiones, eventos y workflows del framework probado con una tool en #52; orden y cifras controlados por código. | Añade dependencia/entorno ADK y adaptadores que hay que probar de extremo a extremo; el smoke no tuvo ejecución acreditada. Descartado el 18 de noviembre por riesgo y plazo, no por una incompatibilidad observada. |
-| Python directo con secuencia fija, propuesta | Cableado pequeño y sencillo; mismas funciones deterministas; menos dependencias y sin un smoke de framework que bloquee la implementación. | Hay que escribir un estado de ejecución propio y pequeño (identificador, fase, resultados, archivos temporales). Decisión del 18 de noviembre, pendiente de confirmación de Lucas. |
+| Python directo con secuencia fija, propuesta | Cableado pequeño y sencillo; mismas funciones deterministas; menos dependencias y sin un smoke de framework que bloquee la implementación. | Hay que escribir un estado de ejecución propio y pequeño (identificador, fase, resultados, archivos temporales). Propuesta de Lucía adoptada por Lucas el 18 de noviembre al revisar e integrar #104 en la rama de #60; aceptación global del ADR pendiente. |
 | Coordinador LLM que decide qué tools llamar | Flexible para recorridos variables. | El recorrido está fijado; introduce llamadas y riesgo de saltarse pasos o reformular cifras sin una necesidad identificada. |
 | Mantener únicamente un comando con archivos de CarDD | Reduce trabajo de interfaz y subida. | No cumple la entrada web con una imagen nueva elegida por Lucas. |
 | Una petición HTTP larga hasta el informe | Menos estados y operaciones. | No encaja con la confirmación/corrección del vehículo entre las fases ni con consultar progreso sin repetir trabajo. |
@@ -145,9 +145,9 @@ previos no cubren esa frontera ni este recorrido.
   En `main` `3c73e83`, el informe #75 y el plan RAG v1.7 de #80 ya están
   integrados; #72 sigue abierta. Esto no acredita el recorrido completo
   ni la adaptación del informe al contrato de procedencia de v1.5.
-- La regla V14/`minimo_por_defecto` confirmada por Víctor conserva las dos
-  precisiones de v1.4. Su aceptación formal, el AC nuevo consumidor de #31 y
-  la revisión global del plan/ADR siguen pendientes. La frase de estimación a
+- La regla V14/`minimo_por_defecto` aceptada por Víctor en v1.6 conserva las dos
+  precisiones de v1.4. El AC nuevo consumidor de #31 y la revisión global del
+  plan/ADR siguen pendientes. La frase de estimación a
   la baja sustituye el «techo prudente». Según la medición publicada por Lucía,
   V14 es el mínimo en 209 de 249 casos y V24 en 40; V14 queda hasta un 2,6 %
   por encima del mínimo exacto. Es evidencia publicada, no reevaluada aquí;

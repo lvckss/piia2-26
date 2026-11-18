@@ -7,7 +7,7 @@
 - Justificación: orquesta las dos fases con Python directo, sin framework de agentes, define una frontera HTTP entre web y servicio Python y el ciclo de vida de las ejecuciones. Los ADRs 0002–0005 aceptados cubren contratos, proveedor, costes y filtro previo; no cubren estas decisiones.
 - Plan vigente / versión: v1.7 en la misma PR #60; el registro de #34 fija el commit publicado. Continúa v1.6 `8362807` y conserva v1 `733c5d0`, v1.1 `9a65c26`, v1.2 `5ed9ca6`, v1.3 `06f4c08`, v1.4 `6a6666e` y v1.5 `c52217d`. Registra la decisión humana del 18 de noviembre de orquestar en Python directo en lugar de ADK (ver «Decisión sobre el framework»). Cambian la redacción de AC-005, las secciones de orquestación, el seam S3 y la fila de AC-005 del Test Plan, la slice 1 y el ADR 0007; los otros 13 AC y sus filas, las cuatro slices, la política V14/`minimo_por_defecto`, las precisiones de compatibilidad/validación y la DoD permanecen idénticos a v1.6. No acredita aprobación del documento completo ni del ADR. Continúa el [registro de alcance](https://github.com/lvckss/piia2-26/issues/34#issuecomment-6426795027).
 - Riesgo y revisión previa: sí, por NEW_ADR y por el acuerdo del equipo. Impacto en cifras y fuentes del informe, frontera entre servicios, subida de archivos y nuevas dependencias de #28/#31/#32. La implementación y sus planes deben revisarse por los responsables afectados; el documento completo todavía no tiene aceptación humana.
-- Planning PR: https://github.com/lvckss/piia2-26/pull/60 — draft mientras se acuerdan las dependencias indicadas al final.
+- Planning PR: https://github.com/lvckss/piia2-26/pull/60 — preparada para revisión de la v1.7; aceptación e integración pendientes.
 
 ## Qué construir
 
@@ -402,8 +402,8 @@ pertenece al AC-013 de #32; el arranque y recorrido del conjunto, al AC-013 de
 | Incertidumbre | Clasificación | Evidencia y efecto |
 |---|---|---|
 | Web, imagen subida, edición y salida | Resuelta por Lucas en la conversación | Pestaña independiente; una imagen; daños sin edición; vehículo corregible; Markdown visible/descargable; sin historial. Se fija la versión de estas decisiones en #34. |
-| Framework | Decisión humana del 2026-11-18 (Lucía Luis Castaño; pendiente de confirmación de Lucas) | Python directo en lugar de ADK, por riesgo y plazo: el smoke de ADK no tuvo ejecución acreditada y la entrega final es el 7 de diciembre. No se debe a una incompatibilidad observada de ADK. El servicio efímero es una propuesta técnica de este borrador, no un resultado de una integración ya probada. |
-| Categoría y procedencia | Regla confirmada por Víctor; aceptación formal y adaptación consumidora pendientes | La corrección de Lucía sustituye V25/máximo por V14 fijo/`minimo_por_defecto`. Víctor confirma el cambio con campo opcional y error por incoherencia; falta su aceptación formal sobre v1.5, el AC nuevo de #31 y la aceptación del plan/ADR completos. #28/ADR 0001 permanece intacto. |
+| Framework | Decisión humana del 2026-11-18 (propuesta de Lucía Luis Castaño; [adoptada por Lucas en #104](https://github.com/lvckss/piia2-26/pull/104#pullrequestreview-5963214874)) | Python directo en lugar de ADK, por riesgo y plazo: el smoke de ADK no tuvo ejecución acreditada y la entrega final es el 7 de diciembre. No se debe a una incompatibilidad observada de ADK. El servicio efímero es una propuesta técnica de este borrador, no un resultado de una integración ya probada. |
+| Categoría y procedencia | Contrato de procedencia aceptado por Víctor; adaptación consumidora pendiente | La corrección de Lucía sustituye V25/máximo por V14 fijo/`minimo_por_defecto`. Víctor [aceptó el contrato de v1.6](https://github.com/lvckss/piia2-26/pull/60#issuecomment-6924027132), que v1.7 conserva, con campo opcional y error por incoherencia; siguen pendientes el AC nuevo de #31 y la aceptación del plan/ADR completos. #28/ADR 0001 permanece intacto. |
 | RAG | Contrato aceptado; implementación pendiente | #56/#67 y ADR 0006 Aceptado; #34 consume `agente2()` y `diagnostico_rag` conservando sus estados. #72 aporta PostgreSQL y RAG al Compose común. Código real requerido para integración final. |
 | Contrato web/Python y límites configurados | Propuestos para revisión | HTTP, idempotencia, estado efímero y límites iniciales 10 MiB / 20 millones de píxeles / 60 min / 2 casos. Son valores de partida, sin benchmark ni aceptación atribuida. |
 | Modelo concreto y dependencias | Comprobación de entorno | Visión por configuración y embeddings según #32; no elegir aquí otro modelo de chat ni copiar automáticamente las dependencias del experimento. Registrar versiones/acceso al preparar la implementación. |
@@ -560,10 +560,9 @@ no acredita producto implementado ni sustituye los gates de revisión y DoR.
 
 ### Decisión sobre el framework (v1.7)
 
-El 18 de noviembre de 2026 se decide **orquestar en Python directo** en lugar de
-ADK. La decisión es de Lucía Luis Castaño, en la sesión de trabajo con el
-asistente, y queda pendiente de confirmación de Lucas, autor de esta Issue, que
-había elegido ADK. Razón: riesgo y plazo. El disparador del 10 de noviembre y el
+El 18 de noviembre de 2026 Lucas adopta **orquestar en Python directo** en lugar
+de ADK, a propuesta de Lucía Luis Castaño, en la [revisión de #104](https://github.com/lvckss/piia2-26/pull/104#pullrequestreview-5963214874),
+integrada en la rama de #60 por `5a4266f`. Razón: riesgo y plazo. El disparador del 10 de noviembre y el
 corte del 17 a las 18:00 vencieron sin ejecución acreditada del smoke de ADK, y
 la entrega final es el 7 de diciembre. **No se atribuye a una incompatibilidad
 observada de ADK**: el smoke no llegó a ejecutarse. ADK no es un requisito de la
@@ -582,9 +581,9 @@ y AC-005.
 
 1. Revisión humana del documento v1.7 completo y aceptación/integración de
    Planning PR #60 y ADR 0007 sobre el head final. Lucía es la revisora prevista.
-2. Víctor confirma V14/`minimo_por_defecto` con las dos precisiones de v1.4;
-   falta su aceptación formal del contrato actualizado y debe incorporar aviso,
-   compatibilidad y validación en un AC nuevo del plan #31. Ese plan sigue pendiente,
+2. Víctor [aceptó el contrato de procedencia de v1.6](https://github.com/lvckss/piia2-26/pull/60#issuecomment-6924027132),
+   conservado en v1.7: V14/`minimo_por_defecto`, compatibilidad y validación.
+   Sigue pendiente incorporar aviso, compatibilidad y validación en un AC nuevo del plan #31. Ese plan sigue pendiente,
    sin reutilizar AC-010. #28/ADR 0001 y #32/ADR 0006 ya están aceptados en main;
    no se les atribuye aceptación del nuevo plan/ADR.
 3. Revisar límites, HTTP, calendario y la decisión sobre el framework. Confirmar lector de
@@ -601,7 +600,7 @@ y AC-005.
 | Trazabilidad | 14 IDs conservados; cada AC tiene fila Test Plan y slice. AC-003/008 adaptados a la corrección de Lucía y confirmación de Víctor: V14/`minimo_por_defecto`; AC-010 de #31 sigue retirado. |
 | Preservación | Predicción #28 intacta; costes y dos escenarios #30 sin cambios; contrato RAG aceptado consumido sin reescribir cifras. Procedencia es ampliación propuesta a revisar con #31. |
 | Decisión arquitectónica | NEW_ADR: 0007 sigue Propuesto; incorpora la política del orquestador y campo aditivo, sin modificar la salida de #28 ni las fórmulas de #30. No se crea otro ADR por la misma decisión. |
-| Estado | Borrador v1.7, no Ready. Víctor confirma V14/`minimo_por_defecto` con las precisiones de v1.4, pero reserva su aceptación formal; siguen pendientes el AC nuevo consumidor y la revisión del plan/ADR completos. Los parámetros y calendario mantienen su revisión pendiente. |
+| Estado | Borrador v1.7, no Ready. Víctor ya aceptó el contrato de procedencia de v1.6, conservado en v1.7; siguen pendientes el AC nuevo consumidor y la revisión del plan/ADR completos. Los parámetros y calendario mantienen su revisión pendiente. |
 | Historial v1.4 (`6a6666e`) | Campo opcional y validación de valores/coherencia a petición de Lucas, sobre las precisiones de Víctor. Se conservan estas garantías; la política anterior V25/`maximo_por_defecto` y su frase quedan sustituidas por v1.5. |
 | Actualización v1.5 | V14/`minimo_por_defecto`, frase de estimación a la baja y límites del mínimo fijo trazados a la corrección de Lucía y confirmación de Víctor. Cambian AC-003/008 y sus verificaciones; los otros 12 AC, sus verificaciones, slices, contratos base, disparador ADK y DoD se conservan. |
 | Actualización v1.6 | Hito del 10 no cumplido y smoke sin ejecución acreditada; impedimento, avance y siguiente acción registrados. Nuevo corte propuesto el 17 a las 18:00 Europe/Madrid; se presenta Python directo al equipo sin adoptarlo. AC, Test Plan, cuatro slices y DoD idénticos a v1.5. |
