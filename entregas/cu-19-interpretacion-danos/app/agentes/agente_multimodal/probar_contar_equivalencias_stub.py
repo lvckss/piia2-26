@@ -13,12 +13,15 @@ Se ejecuta desde esta carpeta:  python probar_contar_equivalencias_stub.py
 
 from __future__ import annotations
 
+import contextlib
+import io
 import json
 import tempfile
 from pathlib import Path
 
 from catalogo import Catalogo, cargar_catalogo
 from contar_equivalencias import contar
+from contar_equivalencias import main as main_contar
 from equivalencias import cargar_equivalencias  # catalogo.py anade app/agentes/comun a sys.path
 
 AQUI = Path(__file__).resolve().parent
@@ -94,11 +97,13 @@ def probar_ac007_las_30_versionadas() -> None:
     assert "003478" not in r["salidas_que_cambian"]
 
 
-def probar_ac007_las_500_locales() -> None:
+def probar_ac007_las_500_locales(carpeta: Path | None = None) -> None:
     """AC-007: en las 500 salidas locales, los hallazgos no rechazados con pieza y severidad sin regla
-    pasan de 37 a 13; los 24 con equivalencia pasan a tener regla y ninguno pierde la que tenia."""
-    raiz = next((c for c in AQUI.parents if (c / ".git").exists()), None)
-    carpeta = raiz / "piia2_detecciones" / "salida_agente1_500" if raiz else Path("no_existe")
+    pasan de 37 a 13; los 24 con equivalencia pasan a tener regla y ninguno pierde la que tenia.
+    `carpeta` solo sirve para probar la prueba; por defecto se busca en la raiz del repositorio."""
+    if carpeta is None:
+        raiz = next((c for c in AQUI.parents if (c / ".git").exists()), None)
+        carpeta = raiz / "piia2_detecciones" / "salida_agente1_500" if raiz else Path("no_existe")
     try:
         catalogo = cargar_catalogo()
     except FileNotFoundError:
@@ -108,15 +113,52 @@ def probar_ac007_las_500_locales() -> None:
         print("(faltan las 500 salidas locales del Agente 1: se salta el recuento; la PR de entrega debe mostrarlo ejecutado)")
         return
     r = contar(carpeta, catalogo)
-    assert r["salidas"] == 500, r["salidas"]
+    if r["salidas"] != 500:
+        print(f"(solo hay {r['salidas']} de las 500 salidas locales del Agente 1: se salta el recuento; "
+              "la PR de entrega debe mostrarlo ejecutado)")
+        return
     assert r["sin_regla_propia"] == 37 and r["sin_regla_con_equivalencias"] == 13 and r["ganan_regla"] == 24, r
     assert r["pierden_regla"] == 0, r
+
+
+def probar_ac007_las_500_con_copia_parcial_se_salta() -> None:
+    """AC-007: si la carpeta de las 500 existe pero no tiene las 500 salidas (una copia parcial), la
+    prueba avisa y se salta en lugar de fallar, como el resto de pruebas con datos que no se versionan."""
+    with tempfile.TemporaryDirectory() as tmp:
+        carpeta = Path(tmp)
+        for i in range(3):
+            _escribir(carpeta, f"{i:06d}.json", [_hallazgo(f"{i}-1", "scratch", "confirmado", "PARABRISAS", "leve")])
+        probar_ac007_las_500_locales(carpeta)  # no debe lanzar AssertionError
+
+
+def _main_con_salida(argv: list[str]) -> tuple[int, str, str]:
+    salida, error = io.StringIO(), io.StringIO()
+    with contextlib.redirect_stdout(salida), contextlib.redirect_stderr(error):
+        codigo = main_contar(argv)
+    return codigo, salida.getvalue(), error.getvalue()
+
+
+def probar_ac007_carpeta_inexistente_o_vacia_es_un_error() -> None:
+    """AC-007: una ruta mal escrita no debe pasar por un recuento correcto de 0 salidas: el script
+    termina con codigo distinto de 0 y dice la ruta en stderr, tanto si no existe como si esta vacia."""
+    with tempfile.TemporaryDirectory() as tmp:
+        inexistente = Path(tmp) / "no_existe"
+        codigo, _, error = _main_con_salida([str(inexistente)])
+        assert codigo != 0 and str(inexistente) in error, (codigo, error)
+
+        vacia = Path(tmp) / "vacia"
+        vacia.mkdir()
+        (vacia / "resumen_lote.json").write_text(json.dumps({"imagenes": 0}), encoding="utf-8")
+        codigo, _, error = _main_con_salida([str(vacia)])
+        assert codigo != 0 and str(vacia) in error, (codigo, error)
 
 
 def main() -> None:
     probar_ac007_recuento_con_catalogo_de_prueba()
     probar_ac007_las_30_versionadas()
     probar_ac007_las_500_locales()
+    probar_ac007_las_500_con_copia_parcial_se_salta()
+    probar_ac007_carpeta_inexistente_o_vacia_es_un_error()
     print("\nTodo ok: contar_equivalencias (recuento de hallazgos sin regla, antes y despues de las equivalencias).")
 
 

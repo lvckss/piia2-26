@@ -71,9 +71,19 @@ def informe(nombre: str, r: dict) -> str:
 def main(argv: list[str]) -> int:
     catalogo = cargar_catalogo()
     carpetas = [Path(a) for a in argv] or [VERSIONADAS]
+    codigo = 0
     for carpeta in carpetas:
-        print(informe(carpeta.name, contar(carpeta, catalogo)))
-    return 0
+        if not carpeta.is_dir():
+            print(f"error: no existe la carpeta {carpeta}", file=sys.stderr)
+            codigo = 2
+            continue
+        r = contar(carpeta, catalogo)
+        if r["salidas"] == 0:
+            print(f"error: la carpeta {carpeta} no tiene ninguna salida del Agente 1", file=sys.stderr)
+            codigo = 2
+            continue
+        print(informe(carpeta.name, r))
+    return codigo
 
 
 if __name__ == "__main__":
