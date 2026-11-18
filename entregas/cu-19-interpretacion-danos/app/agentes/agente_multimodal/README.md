@@ -24,7 +24,7 @@ Diseño del filtro de confianza:
 | Fichero | Qué hace |
 |---|---|
 | `confianza.py` | `classify_confidence` (solo score) y `decidir_tier` (score + visión + pieza con regla de coste). |
-| `catalogo.py` | Lee `piezas.csv` y `reglas_dano.csv` del paquete de la empresa; valida que una pieza/severidad se pueda presupuestar. |
+| `catalogo.py` | Lee `piezas.csv` y `reglas_dano.csv` del paquete de la empresa y la tabla de equivalencias de `../comun/`; valida que una pieza/severidad se pueda presupuestar, con regla propia o por equivalencia. |
 | `seleccion.py` | Filtro previo: qué detecciones de PIIA-1 llegan al modelo de visión (`glass shatter` con score ≥ 0,5; en el resto las 2 mejores por imagen y clase). Medido con 500 imágenes: 3.712 llamadas en vez de 18.507. |
 | `hallazgos.py` | Lee el JSON de PIIA-1, aplica el filtro previo y construye los findings del contrato (con `resumen_filtro_previo`). |
 | `recorte.py` | Recorta cada hallazgo (con 15 % de margen) y dibuja la caja sobre la foto completa. |
@@ -38,6 +38,24 @@ Diseño del filtro de confianza:
 | `juez_vision.py` | Un modelo más potente etiqueta los hallazgos en las mismas condiciones que una persona (solo recorte y clase) y se mide su acuerdo con las etiquetas humanas. Caché, tope de llamadas y `--ejecutar` explícito. Ver «Juez de visión». |
 | `tabla_umbrales.py` | Tabla reproducible de precisión por clase y tramo de score, y acumulada por umbral, con las etiquetas del juez (Issue #44, AC-003) y, con `--criterio`, los umbrales que salen del criterio de la D-6. Calcula, no cambia nada. Ver «Tabla de precisión por clase y umbral». |
 | `colab/` | Notebook para exportar las detecciones de PIIA-1 (SAM3) de ~500 imágenes, una sola vez, con cada detección marcada como acierto/falso positivo. |
+
+## Equivalencias de reglas de coste
+
+Si la combinación de **clase de daño, zona de la pieza y severidad** de un hallazgo no tiene regla en `reglas_dano.csv`, `catalogo.py` consulta la tabla versionada [`../comun/equivalencias_reglas.csv`](../comun/equivalencias_reglas.csv) y usa la regla de una combinación vecina que sí existe ([ADR 0008](../../../docs/adr/0008-equivalencias-reglas-coste.md), [spec 88](../../../specs/88-equivalencias-reglas-coste.md)). Así `regla_coste_aplicable` es `true` también para esos hallazgos.
+
+| Clase de origen × zona | Se trata como | Severidad mínima | Motivo |
+|---|---|---|---|
+| `glass_shatter` × óptica | `lamp_broken` | — | Todas las reglas de óptica son «sustituir»: un cristal roto de faro o piloto se sustituye como una óptica rota. |
+| `lamp_broken` × cristal | `glass_shatter` | — | Un cristal roto etiquetado como óptica rota se trata como cristal roto. |
+| `crack` × neumático | `tire_flat` | moderado | Una grieta de neumático no se repara: la severidad leve de `tire_flat` es «reparar pinchazo», así que se parte de moderado («sustituir neumático»). |
+| `lamp_broken` × retrovisor | `crack` | — | Un retrovisor roto etiquetado como óptica rota se trata como grieta de retrovisor («sustituir y pintar»). |
+
+- **La regla de la empresa siempre prevalece.** Una equivalencia solo actúa si la combinación de origen no tiene regla propia, y solo apunta a una combinación que existe en `reglas_dano.csv`. No se crean acciones, precios ni tiempos.
+- **El hallazgo no cambia.** `category`, `clase_tool`, `severidad` y el resto de campos (el contrato del [ADR 0002](../../../docs/adr/0002-contrato-json-entre-agentes.md)) quedan igual; solo cambia `regla_coste_aplicable`. La equivalencia se aplica al consumir: según el plan de la #88 (slices 3 y 4, en curso), el Agente 2 traduce la clase y la severidad al calcular y el Agente 3 usa la acción de la regla efectiva.
+- **El informe no las marca** como reglas propias, por recomendación del tutor de la empresa. La constancia queda en el ADR 0008, en la tabla y en esta documentación.
+- **Siguen sin regla** y fuera del coste, visibles en «Detecciones no incluidas en el coste» del informe: `scratch` en cristal, neumático y óptica, `crack` en estructura y `glass_shatter` en panel metálico.
+- **Cambiar la tabla:** añadir una fila con su motivo y ejecutar `python ../comun/probar_equivalencias.py`. La prueba de coherencia (AC-001, con el paquete de la empresa) comprueba que el origen no tiene regla propia y que el destino existe para las tres severidades. Una tabla ausente o mal formada falla con un error claro.
+- Detalle del módulo: [`../comun/README.md`](../comun/README.md).
 
 ## Uso
 
