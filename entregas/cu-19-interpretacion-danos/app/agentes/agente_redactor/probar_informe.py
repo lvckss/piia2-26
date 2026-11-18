@@ -489,7 +489,10 @@ def probar_97_ac009_justificaciones_mal_formadas():
     sin_tema = {k: v for k, v in J_DANOS.items() if k != "tema"}
     malas = [dict(J_DANOS, estado="rara"), sin_tema,
              dict(J_DANOS, texto="La póliza cubre las lunas hasta 1.500 € al año."),
-             dict(J_DANOS, texto="La franquicia es de 300 EUR por siniestro.")]
+             dict(J_DANOS, texto="La franquicia es de 300 EUR por siniestro."),
+             # revision de Lucas en la #101: moneda pegada al numero o escrita delante
+             dict(J_DANOS, texto="La franquicia es de 300EUR por siniestro."),
+             dict(J_DANOS, texto="El límite es de euros 1500 al año.")]
     for mala in malas:
         try:
             generar_informe(a1, _con_justificaciones(a2, mala), hoy=HOY)

@@ -58,7 +58,7 @@ AVISO_JUSTIFICACION = ("Informe preliminar: no se ha podido redactar la justific
 ESTADOS_JUSTIFICACION = ("generada", "descartada", "no_generada")
 # Un importe en euros en cualquier formato: el texto de una justificacion no puede llevar ninguno (AC-003).
 _NUMERO = r"\d{1,3}(?:[.\s]\d{3})+(?:,\d+)?|\d+(?:[.,]\d+)?"
-_IMPORTE_TEXTO = re.compile(rf"(?:{_NUMERO})\s*(?:€|\beur\b|\beuros?\b)|(?:€|\beur\b)\s*(?:{_NUMERO})", re.IGNORECASE)
+_IMPORTE_TEXTO = re.compile(rf"(?:{_NUMERO})\s*(?:€|eur\b|euros?\b)|(?:€|\b(?:eur|euros?))\s*(?:{_NUMERO})", re.IGNORECASE)
 ESTADOS_PRELIMINARES = ("parcial", "sin_resultados", "error")
 POLIZA_TERCERO = "Terceros (RC obligatoria)"
 
