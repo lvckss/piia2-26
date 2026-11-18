@@ -31,13 +31,23 @@ assert comprobar_cifras(md, salida_agente2) == []  # ningún importe inventado
   líneas y `desglose`).
 - `diagnostico_rag` (#32) es opcional: con `parcial`, `sin_resultados` o
   `error` el informe se marca como preliminar y lista los temas sin fuentes.
+- `justificaciones` (#97) es opcional. Es el texto que un LLM redacta en el
+  Agente 2 a partir de los pasajes del RAG ([ADR 0009](../../../docs/adr/0009-justificacion-llm-normativa.md),
+  [spec 97](../../../specs/97-justificacion-llm-normativa.md)). El Agente 3 no llama a ningún
+  modelo: solo lo muestra en «Fuentes consultadas».
+  - Con `generada`, cada tema lleva su texto y, debajo, sus citas literales con su fuente.
+  - Si alguna está `descartada` o `no_generada`, la cabecera lleva el aviso de
+    informe preliminar de justificaciones, y el tema muestra sus pasajes y el motivo.
+  - Sin el campo, el informe es el de siempre.
+  - Un campo mal formado lanza `ValueError` con su nombre. Cuenta como mal formado
+    un estado desconocido, un tema que falta o una `generada` con importes en el texto.
 
 ## Pruebas y ejemplo
 
 Desde esta carpeta:
 
 ```bash
-python probar_informe.py   # pruebas de AC-001 a AC-009 y AC-011 a AC-015
+python probar_informe.py   # spec 31 (AC-001 a AC-009 y AC-011 a AC-015) y spec 97 (AC-008 a AC-010)
 ```
 
 Para ver el informe del ejemplo:
