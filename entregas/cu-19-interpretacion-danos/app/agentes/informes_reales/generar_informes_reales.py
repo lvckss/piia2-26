@@ -51,7 +51,14 @@ def preparar_casos(salidas: list[dict], siniestros: list[dict], semilla: int = 8
     elegidos = random.Random(semilla).sample(sorted(siniestros, key=lambda s: s["siniestro_id"]), len(ordenadas))
     casos = []
     for salida, siniestro in zip(ordenadas, elegidos):
-        vehiculo = salida["vehiculo"]
+        vehiculo = salida.get("vehiculo")
+        if not isinstance(vehiculo, dict):
+            # Salida anterior a la #28, sin el coche estimado: se registra en su caso (AC-004).
+            casos.append({"image_id": salida["image_id"], "siniestro_id": siniestro["siniestro_id"],
+                          "categoria": "—", "salida_agente1": salida, "vehiculo_id": "—",
+                          "rol": siniestro.get("rol", ""),
+                          "error": "la salida del Agente 1 no tiene el campo vehiculo (anterior a la #28)"})
+            continue
         vehiculo_id = vehiculo["vehiculo_id_referencia"] or VEHICULO_DESCONOCIDO
         caso = {"image_id": salida["image_id"], "siniestro_id": siniestro["siniestro_id"],
                 "categoria": vehiculo["categoria"], "salida_agente1": salida,
@@ -80,12 +87,14 @@ def generar(salidas_dir, destino, hoy: str = FECHA_POR_DEFECTO, semilla: int = 8
     Una salida que no pasa la validacion de los Agentes 2 o 3 queda en el
     resumen con su error y no detiene las demas. Devuelve 1 si hubo errores o
     cifras que no salen del Agente 2, y 0 si no (plan #84, AC-001, AC-002 y AC-004)."""
-    archivos = sorted(Path(salidas_dir).glob("*.json"))
-    if not archivos:
+    # Un *.json que no es una salida del Agente 1 (sin `findings`, como el resumen_lote.json de la
+    # carpeta de las 500) se omite.
+    leidos = [json.loads(p.read_text(encoding="utf-8")) for p in sorted(Path(salidas_dir).glob("*.json"))]
+    salidas = [d for d in leidos if isinstance(d, dict) and "findings" in d]
+    if not salidas:
         raise ValueError(f"no hay salidas del Agente 1 (*.json) en {salidas_dir}: la carpeta no existe o esta vacia")
     destino = Path(destino)
     destino.mkdir(parents=True, exist_ok=True)
-    salidas = [json.loads(p.read_text(encoding="utf-8")) for p in archivos]
     casos = preparar_casos(salidas, leer_siniestros(), semilla)
     filas, errores, inventadas = [], 0, 0
     for caso in casos:
