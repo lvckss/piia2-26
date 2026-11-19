@@ -57,3 +57,4 @@ __pycache__/
 
 # informes generados con datos del paquete de la empresa (Issue #84)
 agentes/informes_reales/salida/
+agentes/informes_reales/salida_evaluacion/

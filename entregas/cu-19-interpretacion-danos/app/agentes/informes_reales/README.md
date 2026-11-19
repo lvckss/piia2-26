@@ -43,3 +43,35 @@ Las salidas del Agente 1 no traen datos del siniestro. Hasta que la web
 
 Los informes usan datos del paquete de la empresa: se generan en local y no se
 suben al repositorio.
+
+## Evaluación de punta a punta, Parte 1 (Issue #46)
+
+[Plan v1 de la #46](https://github.com/lvckss/piia2-26/issues/46#issuecomment-6985712887)
+(AC-001, AC-002 y AC-007). `evaluar_informes.py` genera los mismos informes que
+`generar_informes_reales.py` y reúne en `resumen_evaluacion.md` las
+comprobaciones automáticas del AC-002 sobre las 30: informes generados,
+cifras que no salen del Agente 2, reparto de los hallazgos (confirmados,
+pendientes de revisión y fuera del coste, con su motivo), hallazgos que entran
+por equivalencia (#88), temas del RAG con pasajes, sin pasajes y con error,
+justificaciones (#97) generadas, descartadas y no generadas con su motivo, y la
+repetición con la misma entrada. Todo se informa tal cual, sin umbrales.
+
+```bash
+python evaluar_informes.py --repetir                  # solo costes; resumen en ./salida_evaluacion/ (ignorada por git)
+python evaluar_informes.py --completo --repetir       # con agente2(): RAG y justificaciones (#32, #97)
+python evaluar_informes.py --destino /ruta --hoy 2026-11-25 --salidas /ruta/salidas
+python probar_evaluar_informes.py                     # pruebas de la Parte 1
+```
+
+- **Sin `--completo`** solo se calculan los costes: el RAG y las justificaciones constan
+  como «no disponible», no como cero. **Con `--completo`** se usa `agente2()` de la #32
+  y hace falta PostgreSQL con el índice y, para las justificaciones, la clave y la
+  autorización de gasto (`RAG_QUERY_EXECUTE=1` y `RAG_QUERY_MAX_COST_USD`); si `agente2`
+  no se puede importar, el comando termina con código 2 y lo dice.
+- **`--repetir`** vuelve a generar cada informe y lista los que cambian. Con la
+  justificación del LLM, la caché evita volver a pagar la misma consulta.
+- Termina con código 1 si algún caso falla o un informe trae cifras que no salen del
+  Agente 2, y con código 2 si no hay salidas del Agente 1 en la carpeta.
+- Los informes de `salida_evaluacion/` salen de siniestros sintéticos de la empresa y de
+  datos del paquete: se generan en local y no se suben al repositorio. Para la evidencia
+  de la #46 se copian las tablas del resumen, no los informes.

@@ -14,6 +14,7 @@ agentes/
   agente_redactor/       # Agente 3 — informe de peritaje en markdown (Víctor)
   comun/                 # Módulo común de equivalencias de reglas de coste (#88): tabla, `regla_efectiva` y pruebas
   informes_reales/       # 30 informes de las salidas reales del Agente 1 en línea de comandos (#84, Víctor)
+  #   evaluar_informes.py: comprobaciones de la Parte 1 de la evaluación de punta a punta (#46)
   orquestador/           # (por crear) integración de los tres agentes con Google ADK (Lucas)
   ejemplos_contrato/     # JSON de ejemplo del contrato entre agentes, con cifras reales
 ```
