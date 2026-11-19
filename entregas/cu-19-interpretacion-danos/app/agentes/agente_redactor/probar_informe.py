@@ -410,6 +410,89 @@ def probar_ac012_determinista_sin_clave_ni_red():
             os.environ["OPENAI_API_KEY"] = clave
 
 
+# --- Issue #88, slice 4 (Agente 3): equivalencias de reglas de coste ----------
+# Plan: specs/88-equivalencias-reglas-coste.md (AC-005 y AC-009); ADR 0008.
+def _agente2_real(a1: dict) -> dict:
+    """Salida del Agente 2 calculada con su codigo (agente_recuperacion/, slice 3 de la #88)."""
+    sys.path.insert(0, str(AQUI.parent / "agente_recuperacion"))
+    from costes_y_cobertura import estimar_siniestro
+    return estimar_siniestro(a1, _cargar("contexto_siniestro.json"))
+
+
+def _fila_por_id(seccion: str, finding_id: str) -> list[str]:
+    """Columnas de la fila de la tabla de una seccion cuyo ID es `finding_id`."""
+    for linea in seccion.splitlines():
+        celdas = [c.strip() for c in linea.strip().strip("|").split("|")]
+        if linea.startswith("|") and finding_id in [x.strip() for x in celdas[0].split(",")]:
+            return celdas
+    raise AssertionError(f"{finding_id} no aparece en la tabla:\n{seccion}")
+
+
+def _salida_1248_con_tabla() -> dict:
+    """001248 como la deja el Agente 1 con la tabla de equivalencias (AC-007): 1248-9, cristal roto en
+    PILOTO_TRAS_I, moderado, needs_review, pasa a `regla_coste_aplicable = true`."""
+    a1 = _cargar("agente1_real/001248.json")
+    nueve = next(f for f in a1["findings"] if f["finding_id"] == "1248-9")
+    nueve["regla_coste_aplicable"] = True
+    return a1
+
+
+def probar_88_ac005_reparacion_de_la_regla_efectiva_1248():
+    """specs/88-equivalencias-reglas-coste.md#AC-005: en el informe de la salida de AC-004, `1248-9` aparece
+    en «Daños pendientes de revisión» con la clase detectada y, en «Reparación», la accion de la regla
+    efectiva (optica rota -> «Sustituir la pieza»); no figura en «Detecciones no incluidas en el coste»; el
+    texto no habla de equivalencias ni de reglas propias; `comprobar_cifras == []`."""
+    a1 = _salida_1248_con_tabla()
+    a2 = _agente2_real(a1)
+    md = generar_informe(a1, a2, hoy=HOY)
+    s = _secciones(md)
+    fila = _fila_por_id(s["## Daños pendientes de revisión"], "1248-9")
+    assert fila[2] == "rotura de cristal", fila          # clase detectada, no la equivalente
+    assert fila[3] == "moderado", fila
+    assert fila[4] == "Sustituir la pieza", fila          # accion de lamp_broken/optica/moderado
+    assert "sin regla de coste" not in fila[5], fila
+    assert "1248-9" not in s["## Detecciones no incluidas en el coste"], s["## Detecciones no incluidas en el coste"]
+    assert "equivalen" not in md.lower() and "regla propia" not in md.lower(), "el informe no menciona equivalencias"
+    assert comprobar_cifras(md, a2) == [], comprobar_cifras(md, a2)
+
+
+def probar_88_ac005_grieta_de_neumatico_leve_con_severidad_minima():
+    """specs/88-equivalencias-reglas-coste.md#AC-005 (severidad minima): una grieta `leve` en el neumatico se
+    muestra como grieta y `leve`, pero su reparacion es la de `tire_flat` `moderado`
+    («Sustituir el neumático y alinear»), la que se ha presupuestado."""
+    a1 = {"image_id": 7, "resumen_filtro_previo": {"detecciones_totales": 1, "candidatas": 1, "descartadas_por_clase": {}},
+          "findings": [{"finding_id": "7-1", "category": "crack", "clase_tool": "crack", "score": 0.9,
+                        "score_tier": "confirmed", "confidence_tier": "needs_review", "bbox_xywh": [0, 0, 10, 10],
+                        "vision_verdict": "confirmado", "pieza_id": "NEUMATICO", "severidad": "leve",
+                        "regla_coste_aplicable": True, "vision_description": "Grieta en el flanco.",
+                        "crop_image_path": None}]}
+    a2 = _agente2_real(a1)
+    md = generar_informe(a1, a2, hoy=HOY)
+    fila = _fila_por_id(_secciones(md)["## Daños pendientes de revisión"], "7-1")
+    assert (fila[2], fila[3], fila[4]) == ("grieta", "leve", "Sustituir el neumático y alinear"), fila
+    assert comprobar_cifras(md, a2) == []
+
+
+def probar_88_ac009_informe_con_equivalencia_determinista_sin_clave_ni_red():
+    """specs/88-equivalencias-reglas-coste.md#AC-009: dos ejecuciones de `generar_informe` sobre una salida con
+    una equivalencia dan el mismo informe, sin clave ni red. Regresion: verde antes y despues."""
+    a1 = _salida_1248_con_tabla()
+    a2 = _agente2_real(a1)
+    clave = os.environ.pop("OPENAI_API_KEY", None)
+    socket_original = socket.socket
+
+    def _sin_red(*args, **kwargs):
+        raise AssertionError("intento de conexion de red")
+
+    socket.socket = _sin_red
+    try:
+        assert generar_informe(a1, a2, hoy=HOY) == generar_informe(a1, a2, hoy=HOY)
+    finally:
+        socket.socket = socket_original
+        if clave is not None:
+            os.environ["OPENAI_API_KEY"] = clave
+
+
 # --- specs/31-informe-peritaje.md#AC-014 y AC-015 ---------------------------
 # `diagnostico_rag` con la forma del contrato integrado de la #32
 # (specs/32-rag-normativa.md, «Contrato propuesto de diagnóstico»; ADR 0006).
@@ -527,6 +610,9 @@ PRUEBAS = [
     probar_ac012_determinista_sin_clave_ni_red,
     probar_ac014_diagnostico_en_sus_cinco_estados,
     probar_ac015_sin_diagnostico_y_diagnostico_malformado,
+    probar_88_ac005_reparacion_de_la_regla_efectiva_1248,
+    probar_88_ac005_grieta_de_neumatico_leve_con_severidad_minima,
+    probar_88_ac009_informe_con_equivalencia_determinista_sin_clave_ni_red,
 ]
 
 
