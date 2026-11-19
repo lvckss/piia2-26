@@ -14,10 +14,10 @@ Datos de entrada y salida de ejemplo: `../ejemplos_contrato/`.
 
 Los documentos, fragmentos, vectores y generaciones se guardan en el esquema
 `rag` de la misma PostgreSQL Docker del explorador. No se utiliza ChromaDB.
-Ya están implementados el indexado y `buscar_normativa()`; `agente2()` y la
-evaluación de calidad siguen pendientes. La spec v1.7 para AC-007 ya está
-revisada e integrada en `main` mediante [#80](https://github.com/lvckss/piia2-26/pull/80);
-la composición seguirá sus reglas y las dependencias de la slice 3.
+Ya están implementados el indexado, `buscar_normativa()` y la composición
+`agente2()`. La evaluación de calidad sigue pendiente. La spec v1.7 para AC-007
+ya está revisada e integrada en `main` mediante
+[#80](https://github.com/lvckss/piia2-26/pull/80); la composición aplica esas reglas.
 
 Las recetas `just` usan un shell POSIX y las rutas de entorno virtual de Linux,
 macOS o WSL. Para Windows nativo se ofrecen [comandos de PowerShell](#windows-nativo-powershell);
@@ -233,7 +233,12 @@ salida["justificaciones"] = justificar_normativa(
   excepciones; un error del propio código, como una entrada sin `tema`, sí se propaga.
 - Con `cache_dir`, la misma consulta no se vuelve a pagar, y lo que sale de la caché no necesita
   cliente ni autorización. `uso` acumula las llamadas y los tokens pagados.
-- La llamada desde `agente2()` es la slice 2 de la #97 (Lucas).
+`agente2(salida_agente1, contexto)` ejecuta los costes y selecciona los temas
+RAG a partir de ambos escenarios. Para lunas usa la pieza de cristal o el
+resultado `Cobertura de lunas`; para daños propios sin cobertura busca también
+la cláusula que explica esa decisión. Deduplica temas y conserva los campos y
+cifras calculados. Añade `normativa`, `diagnostico_rag` y `justificaciones`.
+El ejemplo de contrato se actualizará en la slice 4 de la #97.
 
 Desde esta carpeta, sin clave ni red (cliente falso):
 
@@ -256,7 +261,8 @@ salida = estimar_siniestro(salida_agente1, contexto)  # JSON del contrato Agente
 - `vehiculo_id` es obligatorio en el contexto; debe estar resuelto antes del cálculo de costes.
 - `poliza_id` es obligatorio solo con `rol == "propio"`; con `tercero_perjudicado` se ignora.
 - Un contexto no válido lanza `ValueError` con el nombre del campo.
-- `normativa` sale vacía: la rellena el RAG (#32).
+- `estimar_siniestro()` devuelve `normativa` vacía; `agente2()` completa la
+  salida con las consultas RAG y el diagnóstico correspondiente.
 
 Desde esta carpeta:
 
