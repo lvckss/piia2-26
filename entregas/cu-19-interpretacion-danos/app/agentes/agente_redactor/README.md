@@ -31,6 +31,11 @@ assert comprobar_cifras(md, salida_agente2) == []  # ningún importe inventado
   líneas y `desglose`).
 - `diagnostico_rag` (#32) es opcional: con `parcial`, `sin_resultados` o
   `error` el informe se marca como preliminar y lista los temas sin fuentes.
+- La columna «Reparación» muestra la acción de la regla con la que el Agente 2
+  presupuesta el daño. Es la propia o, si no la tiene, la de su equivalente,
+  con la severidad mínima ([ADR 0008](../../../docs/adr/0008-equivalencias-reglas-coste.md),
+  [spec 88](../../../specs/88-equivalencias-reglas-coste.md)). La columna «Daño» sigue
+  mostrando la clase detectada, y el informe no menciona las equivalencias.
 
 ## Pruebas y ejemplo
 

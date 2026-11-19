@@ -8,10 +8,16 @@
 
 | Caso de uso | Base documentada | Lectura del estado |
 |---|---|---|
-| CU-19 · PIIA2 · Plexus | [`main` · `8a38e02`](https://github.com/lvckss/piia2-26/tree/8a38e02310f8cb3b5e2994684715fe34dfee4613) · 10 de noviembre de 2026 | Componentes existentes y evolución propuesta, identificados por separado. |
+| CU-19 · PIIA2 · Plexus Tech | [`main` · `bddc468`](https://github.com/lvckss/piia2-26/tree/bddc468bdddb34b0a766325b7396899642ce818f) · 18 de noviembre de 2026 | Código integrado y propuesta de orquestación v1.7, identificados por separado. |
 
 > [!IMPORTANT]
-> Este documento describe un **snapshot**, no acredita que el flujo completo esté implementado. Agente 1, categoría y costes tienen código integrado. El RAG tiene el plan y ADR 0006 aceptados; su implementación está en la PR #72. El informe tiene el plan v2.1 integrado y su implementación está en la PR #75. La orquestación web sigue en la propuesta [#60][pr60]. Las PR abiertas no forman parte del código integrado; documentarlas no acepta el ADR 0007 ni acredita el recorrido completo.
+> Este documento describe el estado al 18 de noviembre. Agente 1, categoría, costes e informe tienen código integrado. La #72 integra persistencia vectorial, indexado y búsqueda; quedan `agente2()`, diagnóstico, evaluación y entorno completo. Los ADR 0008 y 0009 están aceptados e integrados. La #60 propone orquestación en Python directo, adoptada en su rama mediante #104, con aceptación del ADR 0007 e integración en main pendientes. No se acredita todavía el recorrido web completo.
+
+**Actualización del 18 de noviembre:** inventario, secuencias Mermaid y decisiones
+contrastados con `main` `bddc468` y la v1.7 de [#60][pr60]. El mapa SVG conserva
+su corte histórico del 10 de noviembre; el inventario y las secuencias que siguen
+recogen las integraciones posteriores. Los enlaces de #34 fijan el head de la
+propuesta mientras la #60 siga abierta; pasarán a main después de su integración.
 
 <p align="center">
   <a href="#01--el-sistema-en-un-vistazo">Mapa del sistema</a> ·
@@ -32,9 +38,9 @@ esa revisión: conserva incertidumbre, separa escenarios y muestra procedencia.
 |---|---|---|---|
 | PIIA1 propone detecciones; Agente 1 contrasta la imagen. | La herramienta de Plexus y el código de cobertura calculan los importes. | El RAG recuperará pasajes de póliza y legislación con su referencia. | Agente 3 generará Markdown; la orquestación verificará sus importes antes de publicarlo. |
 
-![Mapa de componentes: visión y costes existentes; RAG, informe y coordinación pendientes; conexiones propuestas indicadas con trazo discontinuo.](docs/architecture/system-map.svg)
+![Mapa histórico del 10 de noviembre: estados anteriores a la integración del RAG y del informe; consultar el inventario actualizado del apartado 02.](docs/architecture/system-map.svg)
 
-**Cómo leer el mapa.** Representa la arquitectura objetivo y el color indica el estado en el snapshot. Verde indica código integrado; ámbar, una pieza planificada
+**Cómo leer el mapa.** Conserva la arquitectura objetivo y el estado del snapshot del 10 de noviembre; para el estado actual se usa el apartado 02. Verde indica código integrado; ámbar, una pieza planificada
 pendiente de implementación o aceptación; violeta identifica datos o servicios
 externos. Las conexiones discontinuas muestran la integración objetivo. Tener
 dos componentes implementados no implica que estén conectados automáticamente.
@@ -46,7 +52,7 @@ y la introducción del contexto, Agente 2 combinará costes con recuperación
 documental. Agente 3 consumirá los hallazgos y el resultado económico completo.
 La comprobación monetaria precederá a la presentación y descarga. OpenAI
 interviene en visión y embeddings; Plexus aporta catálogos, reglas y documentos.
-La PostgreSQL actual del explorador no tiene todavía el índice vectorial propuesto.
+La #72 incorpora el índice vectorial en un schema separado; conectarlo al recorrido y al Compose global sigue pendiente.
 
 ### Cinco reglas que atraviesan la arquitectura
 
@@ -65,7 +71,7 @@ La PostgreSQL actual del explorador no tiene todavía el índice vectorial propu
 
 ## 02 · Qué existe hoy
 
-El código y los contratos de este apartado se contrastaron con el commit base.
+El código y los contratos de este apartado se contrastaron con `main` `bddc468`.
 Las referencias a propuestas abiertas fijan sus versiones para que el documento
 no cambie de significado cuando se actualice una rama.
 
@@ -76,10 +82,10 @@ no cambie de significado cuando se actualice una rama.
 | Agente 1 | **Código integrado** | [`analizar_imagen`](app/agentes/agente_multimodal/agente1.py): detecciones + foto → hallazgos enriquecidos con visión. |
 | Categoría de vehículo | **Código integrado por #69; plan v1.3.2 en main** | [#28][i28] / [#29][pr29] y [ADR 0001 Aceptado][adr1]. Agente 1 entrega `vehiculo`; `desconocido` lleva `vehiculo_id_referencia: null`. La resolución del vehículo y procedencia corresponden a #34; el aviso del informe, a #31. |
 | Costes y cobertura | **Código integrado por [#59][pr59]** | [`estimar_siniestro`](app/agentes/agente_recuperacion/costes_y_cobertura.py) produce ambos escenarios. Devuelve `normativa: []`. |
-| RAG + `agente2()` | **Plan v1.6 integrado; implementación abierta #72** | [Spec v1.6][rag-spec] y [ADR 0006 Aceptado][adr6], #56/#67 integradas. El indexado y PostgreSQL de #72 no están en main; búsqueda y composición siguen pendientes. |
-| Agente 3 | **Plan v2.1 integrado; implementación abierta #75** | [Spec #31](specs/31-informe-peritaje.md); [`agente_redactor/`](app/agentes/agente_redactor/) solo contiene README en main. El contrato RAG ya está aceptado. #75 implementa el informe, sin procedencia de vehículo; ese AC nuevo se acuerda en #31 al fijar #34 su contrato. |
+| RAG + `agente2()` | **Plan v1.7 e incremento de persistencia/indexado/búsqueda integrados** | [Spec v1.7](specs/32-rag-normativa.md) y [ADR 0006 Aceptado][adr6]. [#72][pr72], merge `020e549`, integra PostgreSQL, indexado y búsqueda con fuentes y filtro por póliza (slices 1 y 2); `agente2()`, diagnóstico, evaluación small/large (23/25) y entorno completo quedan para PR posteriores. No acredita la DoD de #32. |
+| Agente 3 | **Plan v2.1 e implementación integrados por [#75][pr75] el 10 de noviembre** | [Spec #31](specs/31-informe-peritaje.md); [`informe.py`](app/agentes/agente_redactor/informe.py) implementa `generar_informe` y `comprobar_cifras`, con [`probar_informe.py`](app/agentes/agente_redactor/probar_informe.py). La procedencia de vehículo sigue pendiente del AC nuevo de #31 al fijar #34 su contrato. |
 | ADK + OpenAI | **Experimento integrado por [#52][pr52]** | [`orquestador/README.md`](app/agentes/orquestador/README.md). Acredita una tool y su cifra, no la coordinación del producto. |
-| Orquestación y web de peritaje | **Borrador abierto [#60][pr60]** | [Spec v1.3][orq-spec] y [ADR 0007 Propuesto][adr7]. Las rutas, estados y servicios nuevos no existen todavía. |
+| Orquestación y web de peritaje | **Borrador abierto [#60][pr60]** | [Spec v1.7][orq-spec] y [ADR 0007 Propuesto][adr7]: Python directo con orden fijo y estado por ejecución. #104 está integrada en la rama de #60; el producto y la integración en main siguen pendientes. |
 | Docker Compose | **Integrado para ML** | [`docker-compose.yml`](app/docker/ml-api/docker-compose.yml) levanta el servicio ML. El Compose del conjunto es parte de #34. |
 
 ### Conexiones disponibles y conexiones pendientes
@@ -92,19 +98,20 @@ flowchart LR
     end
     subgraph piezas["Componentes disponibles por separado"]
         ML["API ML · imagen subida"]
+        R["Persistencia, indexado y búsqueda · #72"]
+        A3["Informe · #75"]
         EX["Detecciones guardadas + foto"] --> A1["Agente 1 · analizar_imagen"]
         A1 -. "Consumo manual / integración por construir" .-> C["estimar_siniestro + contexto"]
         C --> JSON["Dos escenarios JSON · normativa vacía"]
     end
     subgraph pendiente["Todavía pendiente"]
-        R["RAG y agente2 · #32"]
-        A3["Informe · #31"]
+        A2["Composición agente2 y diagnóstico · #32"]
         O["Coordinación web · #34"]
     end
     classDef done fill:#e8f7f1,stroke:#19836b,color:#153b35
     classDef pending fill:#fff5df,stroke:#b7791f,color:#694610,stroke-dasharray:5 4
-    class UI,API,DB,ML,EX,A1,C,JSON done
-    class R,A3,O pending
+    class UI,API,DB,ML,EX,A1,C,JSON,R,A3 done
+    class A2,O pending
 ```
 
 La API ML y el JSON que recibe Agente 1 tienen formas distintas. La adaptación
@@ -122,8 +129,8 @@ Los ejemplos permiten trabajar por componentes sin esperar al recorrido web:
 2. Agente 1 filtra candidatas, crea recortes, consulta visión y produce JSON.
 3. Un consumidor combina esa salida con el contexto del siniestro y llama
    a `estimar_siniestro`.
-4. La salida contiene dos escenarios y una lista `normativa` vacía. El informe
-   aún se describe mediante su plan y ejemplos de referencia.
+4. La salida contiene dos escenarios y una lista `normativa` vacía. `generar_informe`
+   y `comprobar_cifras`, integrados por #75, permiten producir y comprobar Markdown.
 
 Los [`ejemplos_contrato/`](app/agentes/ejemplos_contrato/README.md) fijan la
 frontera común. El ejemplo de Agente 1 está escrito a mano; sus cifras de
@@ -142,7 +149,7 @@ sequenceDiagram
     autonumber
     actor U as Usuario
     participant W as Web + Hono
-    participant O as Orquestación ADK
+    participant O as Orquestación Python directo
     participant M as PIIA1
     participant A as Agente 1
     participant B as Agente 2
@@ -191,16 +198,33 @@ sirve para estimar; no demuestra que sea el modelo fotografiado.
 Agente 1 ya devuelve la categoría y su representante; con `desconocido`, la
 referencia es `null`, sin fallback a C. Los AC-009/010 de #28 se transfirieron
 a #34/#31: la resolución y procedencia son de #34, y el aviso del informe, de #31.
-La v1.3 de [#60][orq-spec] recoge V25 fijo (BMW Serie 3) si la categoría
-válida es `desconocido` y la persona no elige coche, según decisión de Lucas
-el 2026-11-10. La selección manual sigue disponible. Propone
+La v1.7 de [#60][orq-spec] conserva **V14 fijo (Dacia Sandero)** si la categoría
+válida es `desconocido` y la persona no elige coche, conforme a la
+[corrección de Lucía tras la reunión del 2026-11-10][regla-vehiculo] y la
+[confirmación de Víctor][confirmacion-vehiculo]. La selección manual sigue
+disponible. El contrato propuesto usa
 `contexto.vehiculo_origen` con `referencia_confirmada`, `seleccion_usuario` o
-`maximo_por_defecto`, pendiente de aceptación por Víctor y adaptación de #31.
-Valor venal, pérdida total e indemnización se calculan también con V25; el
-informe debe avisar de que esa pérdida total no es fiable para el coche real.
-El plan conserva la frase de Lucía sobre el techo prudente y aclara que V25
-no garantiza ser el máximo exacto para cualquier siniestro. No modifica el
-`null` de #28 ni aplica el valor por defecto ante fallos técnicos.
+`minimo_por_defecto`. Víctor [aceptó el contrato de v1.6][aceptacion-vehiculo],
+conservado en v1.7; sigue pendiente el AC nuevo consumidor de #31.
+
+El campo es opcional para entradas anteriores: si falta, el informe trata
+`vehiculo_id` como dato de entrada y no muestra aviso de procedencia. El flujo
+nuevo CLI/web siempre lo construye y conserva. Si aparece, se valida el valor
+y su coherencia: `minimo_por_defecto` exige V14 y `referencia_confirmada` exige
+coincidir con la referencia no nula del Agente 1. Una incoherencia produce error
+explícito y evita publicar el informe final. Elegir V14 manualmente se distingue
+del valor por defecto mediante `seleccion_usuario`.
+
+Pantalla y contrato del informe usan la frase de la corrección:
+
+> Vehículo no identificado en la imagen: el presupuesto usa el vehículo de menor coste del catálogo. Es una estimación a la baja: si el taller encuentra un importe mayor, avisará a la aseguradora para revisarlo.
+
+V14 es una referencia fija a la baja; no garantiza el mínimo exacto para todos
+los siniestros ni se comparan los 27 coches en cada ejecución. Valor venal,
+pérdida total e indemnización se calculan también con V14: el informe debe avisar
+de que ese valor venal no corresponde al coche real y la pérdida total no es
+fiable. No se modifica el `null` de #28 ni se aplica el valor por defecto ante
+fallos técnicos. La propuesta sigue en revisión junto al ADR 0007.
 
 La póliza, rol, taller, región, acabado, tipo de pieza, antigüedad y kilómetros
 se recogen del contexto. Una imagen de un golpe no permite deducir esas condiciones.
@@ -219,9 +243,10 @@ Los ejemplos son la referencia común; el documento no añade campos al contrato
 | Agente 1 → consumidores | `image_id`, `resumen_filtro_previo`, `findings[]` | Implementada; ADR 0002 |
 | Contexto → costes | Catálogos, condiciones y rol del siniestro | Implementada |
 | Costes → consumidor | Contexto, valor venal, umbral, dos escenarios, motivos y `normativa` | Implementada; normativa vacía |
-| RAG → consumidor | Lista de `{tema, extracto, fuente}` | Propuesta #32 |
+| RAG → consumidor | Lista de `{tema, extracto, fuente}` | Búsqueda integrada por #72; composición de #32 pendiente |
 | `agente2()` → informe/orquestación | Resultado económico conservado + citas + `diagnostico_rag` | Propuesta #32; ADR 0006 |
-| Agente 3 → orquestación | Markdown; comprobación devuelve importes no permitidos | Plan #31; implementación pendiente |
+| Ampliación de Agente 2 → informe | Campo opcional `justificaciones`: estado por tema, texto y citas o motivo | ADR 0009 aceptado; implementación #101/#103 en revisión |
+| Agente 3 → orquestación | Markdown; comprobación devuelve importes no permitidos | Funciones integradas por #75; cableado de #34 pendiente |
 | Web → orquestación | Imagen, ejecución, contexto y confirmación; estado y Markdown de respuesta | Propuesta #34; ADR 0007 |
 
 ### 4.1 · Dos formatos de detecciones
@@ -384,7 +409,10 @@ carga de detecciones → selección → recortes → visión → JSON del contra
 La consulta de categoría de #28 sobre la imagen completa añade `vehiculo`;
 no modifica los trece campos de cada hallazgo.
 El cliente OpenAI y el modelo se configuran explícitamente; el catálogo de
-Plexus restringe piezas y reglas válidas.
+Plexus Tech restringe piezas y reglas válidas. El [ADR 0008][adr8] añade una tabla
+y un módulo común de equivalencias (#94), ya usados por Agente 1 (#95): solo
+reutilizan reglas existentes cuando falta una regla propia, sin cambiar la clase
+ni la severidad del hallazgo.
 
 El [filtro previo](app/agentes/agente_multimodal/seleccion.py) aplica
 `score_min = 0.5` a `glass shatter` y `top_k = 2` por imagen/clase a
@@ -398,13 +426,19 @@ cuenta un hallazgo para aumentar el presupuesto.
 
 ### Agente 2 · Calcular y aportar respaldo documental
 
-Tiene dos responsabilidades con estados de implementación distintos:
+Sus responsabilidades tienen estados de implementación distintos:
 
 - **Costes y cobertura, implementados:** `estimar_siniestro` valida contexto,
   clasifica hallazgos, llama a `estimar_coste` para los escenarios y calcula
   cobertura, franquicia, pérdida total e indemnización con reglas de código.
 - **Composición RAG, propuesta:** `agente2()` de #32 conservará todos esos
   resultados, rellenará `normativa` y añadirá el diagnóstico de recuperación.
+- **Equivalencias, en revisión:** #100 aplica el módulo común del [ADR 0008][adr8]
+  al presupuestar; mantiene los hallazgos originales.
+- **Justificación con LLM, plan aceptado:** el [ADR 0009][adr9] y la spec 97 v1.1
+  entraron por #98. La función de la slice 1 está en revisión en #101 y su
+  integración en `agente2()` sigue pendiente. El modelo recibe solo tema y
+  extractos; el código comprueba citas y rechaza importes en el texto libre.
 
 La herramienta externa `estimar_coste` aporta procedimientos, piezas, mano de
 obra y totales. La lógica de cobertura reproduce el generador sintético de
@@ -424,7 +458,7 @@ generar_informe(agente1, agente2, hoy=None) -> str
 comprobar_cifras(informe, agente2) -> list[float]
 ```
 
-El generador será determinista: cabecera y aviso, resumen, confirmados,
+El generador integrado por #75 es determinista: cabecera y aviso, resumen, confirmados,
 pendientes, detecciones fuera del coste, desglose, daños asociados, cobertura
 y fuentes. No necesita una llamada de red para redactar las cifras.
 
@@ -434,27 +468,35 @@ No debe aceptar `image_id`, kilómetros, años o probabilidades como dinero.
 Una lista vacía significa que no encontró importes ajenos según ese control;
 **no demuestra corrección jurídica, exhaustividad ni calidad de la percepción**.
 
+La adaptación a las equivalencias del [ADR 0008][adr8] está en revisión en #102.
+La representación de `justificaciones` y su aviso preliminar, según el
+[ADR 0009][adr9], está en revisión en #103. El Agente 3 consume el texto guardado
+por Agente 2 y sigue sin llamar a un LLM.
+
 La propuesta #34 convierte ese control en condición de publicación. El mismo
 texto Markdown se mostrará y descargará; PDF e historial quedan fuera.
 
 ### Orquestación · Coordinar fases y preservar contratos
 
 El experimento de #33 prueba ADK con OpenAI a través del conector LiteLLM.
-La propuesta de #34 adopta workflows nativos de orden fijo, con adaptadores
-para las funciones existentes y estado aislado por ejecución. No añade un
+La v1.7 de #34 propone Python directo: llamadas a las funciones existentes en
+orden fijo y estado propio, pequeño y aislado por ejecución. El cambio del
+18 de noviembre responde a riesgo y plazo; el smoke de ADK no llegó a ejecutarse
+y no se atribuye a una incompatibilidad observada. No añade un
 modelo coordinador que pueda reescribir cifras o saltarse la verificación.
 
 La fase A termina esperando al usuario. La fase B consume la salida original
 de Agente 1 y el contexto validado, llama a `agente2()`, genera Markdown y lo
-comprueba. La versión y compatibilidad del entorno de producto se verificarán
-al implementarlo; el entorno del experimento no acredita ya esa integración.
+comprueba. El entorno de producto se verificará al implementarlo; ADK queda
+como el experimento de #33/#52 y no es dependencia de la propuesta v1.7.
 
 ## 06 · RAG: recuperación con fuentes
 
 > [!NOTE]
-> Este apartado resume el [plan v1.6 de #32][rag-spec], revisado e integrado.
+> Este apartado resume el [plan v1.7 de #32][rag-spec], revisado e integrado por #80.
 > PostgreSQL con pgvector y `diagnostico_rag` están aceptados en el [ADR 0006][adr6].
-> La implementación #72 sigue abierta; el plan aceptado no acredita recuperación ejecutada.
+> [#72][pr72] ya integra persistencia, indexado y búsqueda (`020e549`); quedan
+> composición `agente2()`, diagnóstico, evaluación y entorno completo. El incremento no completa la DoD de #32.
 
 ### Por qué conviven datos estructurados y documentos
 
@@ -485,16 +527,18 @@ flowchart TB
         S --> DG["Normativa + diagnóstico por tema"]
     end
     classDef storage fill:#eeecff,stroke:#7666ba,color:#352b62
+    classDef integrated fill:#e8f7f1,stroke:#19836b,color:#153b35
     classDef proposal fill:#fff5df,stroke:#b7791f,color:#694610
     class PG storage
-    class D,CH,E,CT,Q,QE,F,S,DG proposal
+    class D,CH,E,QE,F,S integrated
+    class CT,Q,DG proposal
 ```
 
-Se propone trocear pólizas por sección y legislación por artículo; los bloques
+El indexado integrado trocea pólizas por sección y legislación por artículo; los bloques
 largos se dividen en ventanas. Cada generación identifica corpus, troceado,
 modelo y dimensiones. Una generación incompleta no sustituye la activa.
 
-La frontera prevista es
+La frontera de búsqueda integrada es
 `buscar_normativa(pregunta, k=4, poliza_id="") -> list[dict]`, con tres campos
 no vacíos por resultado: `tema`, `extracto`, `fuente`.
 
@@ -558,8 +602,8 @@ en un contenedor para que encuentre los CSV.
 flowchart LR
     U["Navegador"] --> W
     subgraph compose["Compose del caso · propuesto en #34"]
-        W["Web · Bun/Hono + build React"] -.-> O["Python · orquestación ADK"]
-        W --> P[("PostgreSQL · explorador + pgvector propuesto")]
+        W["Web · Bun/Hono + build React"] -.-> O["Python directo · orquestación"]
+        W --> P[("PostgreSQL · explorador + pgvector")]
         O -.-> P
         O -.-> M["Servicio ML existente"]
         V["Volumen persistente PostgreSQL"] --- P
@@ -576,10 +620,10 @@ flowchart LR
     class AI,DATA,MODELS external
 ```
 
-La PostgreSQL relacional ya existe como dependencia; **su integración en este
-Compose** es parte de #34 y la extensión vectorial está aceptada por ADR 0006, como muestra el
-color de su nodo pendiente de implementación en main. El objetivo es una sola instancia con datos del explorador
-y almacenamiento RAG separados, no dos despliegues independientes.
+La PostgreSQL relacional ya existe como dependencia y #72 integra persistencia
+y búsqueda vectorial. **Su integración en este Compose** sigue siendo parte de
+#34; por eso el nodo del despliegue aparece como propuesto. El objetivo es una
+sola instancia, con los datos del explorador y el almacenamiento RAG separados.
 
 La ubicación propuesta es `compose.yaml` en la raíz de la carpeta del caso,
 para que pueda viajar en la entrega. Todavía no existe ese archivo. El comando
@@ -589,7 +633,7 @@ no lo presenta como una instrucción ejecutable actual.
 | Recurso | Persistencia actual / propuesta |
 |---|---|
 | Dataset del explorador | Datos externos y schema relacional existente; carga explícita. |
-| Fragmentos y vectores RAG | Persistentes en volumen PostgreSQL, propuesto en #32. |
+| Fragmentos y vectores RAG | Persistencia PostgreSQL integrada por #72; volumen y entorno global por integrar. |
 | Fotos subidas, recortes, estado y Markdown | Temporales por ejecución, propuesto en #34. Sin historial de casos. |
 | Catálogos, reglas y documentos Plexus | Paquete local externo; montaje de lectura propuesto. |
 | Pesos y cachés ML | Externos; modelo de lectura y caché según configuración del servicio. |
@@ -630,7 +674,7 @@ preliminar. Un error monetario impide publicar el informe.
 | Contexto inválido | Costes lanza `ValueError`; la web propuesta informará campos y conservará fase A. | Contexto → costes |
 | Consulta correcta sin fuentes | `sin_resultados`, diferente de caída de DB/proveedor. | RAG propuesto |
 | Parte de consultas falla | Conservar las fuentes válidas y explicar incidencias. | RAG → informe |
-| Importes ajenos al resultado económico | #31 los detectará; #34 bloqueará publicación. | Verificación final |
+| Importes ajenos al resultado económico | #31 los detecta con el alcance de su comprobador; #34 bloqueará publicación. | Verificación final |
 | Dos clics o reenvío de petición | Idempotencia y transición atómica propuestas; no repetir llamadas de pago. | Web → orquestación |
 | Reinicio o ejecución caducada | Caso no disponible; no prometer restauración ni repetir el recorrido en silencio. | Estado temporal propuesto |
 
@@ -675,7 +719,7 @@ frontera necesita su verificación, y la integración aún tiene trabajo pendien
 | Costes | [#59][pr59] documenta tests y evaluación frente a siniestros sintéticos. | Reproduce el entorno sintético, no una tasación real. |
 | ADK | [Prueba #33](app/agentes/orquestador/README.md): una tool real invocada una vez y `1233.55` conservado. | No prueba los tres agentes, RAG, web ni el flujo completo. |
 | Recuperación | [#32][rag-spec] prevé 25 preguntas: 16 de póliza y 9 legales; comparación small/large y baseline directo de pólizas. | Objetivo del modelo elegido: ≥23/25; **pendiente de medir**, benchmark conocido, sin garantía de generalización. |
-| Informe | [#31](specs/31-informe-peritaje.md) prevé ejemplos, bordes y comprobación monetaria restringida. | Funciones productivas pendientes en el snapshot. |
+| Informe | [#31](specs/31-informe-peritaje.md) y #75 integran ejemplos, bordes y comprobación monetaria restringida. | No acredita el cableado web ni las ampliaciones abiertas de #102/#103. |
 | Integración | [#34][orq-spec] prevé 3–5 casos reales del recorrido web; [#46][i46] la evaluación global. | No se han ejecutado como parte de esta documentación. |
 
 ### Qué acreditó exactamente ADK
@@ -719,14 +763,16 @@ de cada componente; aquí no se lanza ninguna ejecución de pago.
 | [0003 · OpenAI](docs/adr/0003-proveedor-openai-clave-empresa.md) · **Aceptado** | Proveedor y clave de la empresa. | Visión usa ese proveedor; configuración y secretos quedan fuera de Git. |
 | [0004 · Herramienta de costes](docs/adr/0004-herramienta-costes-datos-empresa.md) · **Aceptado** | Tool y datos recibidos de Plexus. | Cálculo determinista y datos sintéticos; el RAG no inventa procedimientos ni precios. |
 | [0005 · Filtro previo](docs/adr/0005-filtro-previo-detecciones-por-clase.md) · **Aceptado** | Selección de candidatas antes de visión. | La orquestación entrega las detecciones y Agente 1 aplica su filtro. |
+| [0008 · Equivalencias de reglas de coste][adr8] · **Aceptado** | Reutilizar reglas existentes mediante tabla y módulo comunes, sin modificar el hallazgo. | Módulo común y Agente 1 integrados (#94/#95); costes (#100) e informe (#102), en revisión. |
+| [0009 · Justificación con LLM][adr9] · **Aceptado** | Tema y pasajes como única entrada; citas comprobadas y texto sin importes. | Plan #98 integrado; paso de justificación (#101) e informe (#103), en revisión; integración en `agente2()` pendiente. |
 
 ### Categoría y RAG aceptados; orquestación propuesta
 
 | Propuesta | Estado y efecto pendiente |
 |---|---|
 | [ADR 0001 · Categoría de vehículo][adr1] / [#29][pr29] | **Aceptado** y registrado por #68; implementación #69 integrada. `desconocido` sin referencia; confirmación/procedencia en #34 y aviso del informe en #31. |
-| [ADR 0006 · RAG y diagnóstico][adr6] / [#56][pr56] | **Aceptado** e integrado, aceptación registrada por #67. Persistencia vectorial y ampliación del contrato con diagnóstico; implementación #72 abierta. |
-| [ADR 0007 · Orquestación ADK y web efímera][adr7] / [#60][pr60] | **Propuesto**, fuera de main. Decide coordinación de producto, frontera HTTP y ciclo de vida temporal. |
+| [ADR 0006 · RAG y diagnóstico][adr6] / [#56][pr56] | **Aceptado** e integrado, aceptación registrada por #67. Persistencia vectorial y ampliación del contrato con diagnóstico; persistencia, indexado y búsqueda integrados por #72; composición y evaluación pendientes. |
+| [ADR 0007 · Python directo y web efímera][adr7] / [#60][pr60] | **Propuesto**, v1.7 adoptada en la rama de #60 tras #104, fuera de main y pendiente de aceptación de Lucía. Python directo por riesgo y plazo; frontera HTTP y ciclo de vida temporal conservados. |
 
 Este documento corresponde a [#38][i38], **NO_ADR_REQUIRED**: reúne y explica
 evidencia y propuestas sin introducir ni aceptar una decisión nueva. El
@@ -755,16 +801,14 @@ Su código ilustrativo no equivale a implementación integrada.
 
 El [README del caso](README.md) describe la categoría retomada y el estado del
 hito, sin presentar la nueva UI como entregada. La ampliación desde una foto subida
-está registrada en [#34][scope34] y descrita en [#60][orq-spec]. La #79 prepara
-el README y la estructura de Entrega 2 después de integrar esta arquitectura.
-El corte de Entrega 1 ya está separado en `entrega-1`; esta PR corresponde a Entrega 2.
+está registrada en [#34][scope34] y descrita en [#60][orq-spec].
 
 ## 12 · Evolución pendiente y mapa del repositorio
 
 | Siguiente integración | Dependencia verificable |
 |---|---|
-| Completar RAG y `agente2()` | Plan/ADR ya aceptados; completar búsqueda, composición y evaluación en #72, y verificar DoD de #32. |
-| Implementar el informe | DoR y contrato RAG ya acreditados; revisar #75, lectura humana del informe e integración. |
+| Completar RAG y `agente2()` | #72 ya integrada: completar composición `agente2()`, diagnóstico, evaluación y entorno completo, verificando la DoD de #32; incorporar las ampliaciones de #100 y #101 tras su revisión e integración. |
+| Conectar el informe al recorrido web | Generador y comprobador ya integrados por [#75][pr75] (`4260b2c`, 10 de noviembre); quedan el contrato de procedencia y su AC nuevo de #31, el cableado de #34 y la lectura humana de los informes del recorrido integrado. |
 | Conectar categoría y confirmación | Categoría ya integrada en #69; revisar contrato de procedencia de #34 y adaptación de #31 con su AC nuevo. |
 | Conectar la pestaña de peritaje | Revisión/aceptación de #60 y ADR 0007; contratos acordados y componentes disponibles para integración final. |
 | Levantar el conjunto con Compose | Rutas de datos configurables, servicios conectados, preparación explícita e instrucciones verificadas. |
@@ -779,15 +823,18 @@ sus diagramas contrastándolo con código y ADRs.
 cu-19-interpretacion-danos/
 ├── ARCHITECTURE.md                  ← este mapa y sus contratos
 ├── README.md                        ← problema, equipo y alcance del hito
+├── decisions/                       ← ADRs 0001–0006, 0008 y 0009; 0007 pendiente de #60
+├── docs/adr/                        ← registro canónico e historial de ADRs
 ├── docs/architecture/                ← ilustraciones SVG editables
 ├── specs/
 │   ├── 30-costes-cobertura.md         ← plan de costes
 │   └── 31-informe-peritaje.md         ← plan del informe
 └── app/
     ├── agentes/
-    │   ├── agente_multimodal/        ← Agente 1 integrado
-    │   ├── agente_recuperacion/      ← costes integrados; RAG pendiente
-    │   ├── agente_redactor/          ← README; implementación pendiente
+    │   ├── comun/                    ← tabla y módulo de equivalencias (#94)
+    │   ├── agente_multimodal/        ← Agente 1 integrado; equivalencias por #95
+    │   ├── agente_recuperacion/      ← costes y persistencia/indexado/búsqueda integrados; agente2, diagnóstico y evaluación pendientes
+    │   ├── agente_redactor/          ← informe.py y probar_informe.py integrados por #75
     │   ├── ejemplos_contrato/        ← fronteras JSON y lote real
     │   └── orquestador/              ← experimento ADK, no flujo productivo
     ├── frontend/                    ← explorador React
@@ -824,9 +871,16 @@ cu-19-interpretacion-danos/
 [pr58]: https://github.com/lvckss/piia2-26/pull/58
 [pr59]: https://github.com/lvckss/piia2-26/pull/59
 [pr60]: https://github.com/lvckss/piia2-26/pull/60
-[rag-spec]: https://github.com/lvckss/piia2-26/blob/8a38e02310f8cb3b5e2994684715fe34dfee4613/entregas/cu-19-interpretacion-danos/specs/32-rag-normativa.md
-[orq-spec]: https://github.com/lvckss/piia2-26/blob/d950fb6/entregas/cu-19-interpretacion-danos/specs/34-orquestacion-web.md
+[pr75]: https://github.com/lvckss/piia2-26/pull/75
+[rag-spec]: https://github.com/lvckss/piia2-26/blob/main/entregas/cu-19-interpretacion-danos/specs/32-rag-normativa.md
+[orq-spec]: https://github.com/lvckss/piia2-26/blob/65192b4370a667266aa694ce7814f6af743cfcd9/entregas/cu-19-interpretacion-danos/specs/34-orquestacion-web.md
 [adr1]: https://github.com/lvckss/piia2-26/blob/8a38e02310f8cb3b5e2994684715fe34dfee4613/entregas/cu-19-interpretacion-danos/docs/adr/0001-categoria-vehiculo-contrato-agente1.md
 [adr6]: https://github.com/lvckss/piia2-26/blob/8a38e02310f8cb3b5e2994684715fe34dfee4613/entregas/cu-19-interpretacion-danos/docs/adr/0006-rag-postgresql-estado-recuperacion.md
-[adr7]: https://github.com/lvckss/piia2-26/blob/d950fb6/entregas/cu-19-interpretacion-danos/docs/adr/0007-orquestacion-adk-web-efimera.md
+[adr7]: https://github.com/lvckss/piia2-26/blob/65192b4370a667266aa694ce7814f6af743cfcd9/entregas/cu-19-interpretacion-danos/docs/adr/0007-orquestacion-adk-web-efimera.md
 [scope34]: https://github.com/lvckss/piia2-26/issues/34#issuecomment-6426795027
+[regla-vehiculo]: https://github.com/lvckss/piia2-26/issues/34#issuecomment-6774799685
+[confirmacion-vehiculo]: https://github.com/lvckss/piia2-26/issues/34#issuecomment-6802366608
+[pr72]: https://github.com/lvckss/piia2-26/pull/72
+[adr8]: https://github.com/lvckss/piia2-26/blob/main/entregas/cu-19-interpretacion-danos/docs/adr/0008-equivalencias-reglas-coste.md
+[adr9]: https://github.com/lvckss/piia2-26/blob/main/entregas/cu-19-interpretacion-danos/docs/adr/0009-justificacion-llm-normativa.md
+[aceptacion-vehiculo]: https://github.com/lvckss/piia2-26/pull/60#issuecomment-6924027132

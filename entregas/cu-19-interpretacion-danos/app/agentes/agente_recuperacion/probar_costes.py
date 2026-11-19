@@ -243,6 +243,91 @@ def probar_ac010_paquete_ausente():
             f"el error no indica la ruta esperada:\n{r.stderr[-400:]}"
 
 
+# --- Issue #88, slice 3 (Agente 2): equivalencias de reglas de coste ----------
+# Plan: specs/88-equivalencias-reglas-coste.md (AC-004 y AC-006); ADR 0008.
+def _contexto_tool(ctx):
+    return dict(region=ctx["region"], tipo_taller=ctx["tipo_taller"], acabado=ctx["acabado"], tipo_pieza=ctx["tipo_pieza"])
+
+
+def probar_88_ac004_cristal_roto_en_piloto_entra_por_equivalencia_1248():
+    """specs/88-equivalencias-reglas-coste.md#AC-004: en la salida 001248 ya
+    actualizada con la tabla, `1248-9` (cristal roto en PILOTO_TRAS_I, moderado,
+    needs_review) entra en `con_pendientes` y no en `confirmados`, y su coste es el
+    de `estimar_coste` con `lamp_broken` sobre la misma pieza y severidad."""
+    a1 = json.loads((EJ / "agente1_real" / "001248.json").read_text(encoding="utf-8"))
+    nueve = next(f for f in a1["findings"] if f["finding_id"] == "1248-9")
+    assert (nueve["clase_tool"], nueve["pieza_id"], nueve["severidad"], nueve["confidence_tier"]) == \
+        ("glass_shatter", "PILOTO_TRAS_I", "moderado", "needs_review"), nueve
+    nueve["regla_coste_aplicable"] = True  # lo que da el Agente 1 con la tabla (AC-007)
+    ctx = _cargar("contexto_siniestro.json")
+    antes = copy.deepcopy(a1)
+
+    salida = estimar_siniestro(a1, ctx)
+    conf, pend = _escenarios(salida)
+    assert "1248-9" in pend["hallazgos_incluidos"], pend["hallazgos_incluidos"]
+    assert "1248-9" not in conf["hallazgos_incluidos"], conf["hallazgos_incluidos"]
+    assert "1248-9" not in [x["finding_id"] for x in salida["hallazgos_fuera_del_coste"]]
+    assert a1 == antes, "estimar_siniestro no debe modificar la salida del Agente 1"
+
+    por_id = {f["finding_id"]: f for f in a1["findings"]}
+    danos = [{"clase": "lamp_broken" if fid == "1248-9" else por_id[fid]["clase_tool"],
+              "pieza_id": por_id[fid]["pieza_id"], "severidad": por_id[fid]["severidad"]}
+             for fid in pend["hallazgos_incluidos"]]
+    esperado = costes_y_cobertura.estimar_coste(ctx["vehiculo_id"], danos, **_contexto_tool(ctx))
+    assert not [l for l in pend["estimacion"]["lineas"] if l["tipo"] == "aviso" and "Sin regla" in l["descripcion"]], \
+        pend["estimacion"]["lineas"]
+    assert pend["estimacion"] == esperado, "el coste no es el de estimar_coste con la clase efectiva"
+    assert pend["cobertura"] == costes_y_cobertura.calcular_cobertura(ctx, esperado, danos)
+
+
+def probar_88_ac004_grieta_de_neumatico_leve_se_presupuesta_como_moderada():
+    """specs/88-equivalencias-reglas-coste.md#AC-004 (severidad minima): una grieta
+    `leve` en NEUMATICO se presupuesta como `tire_flat` `moderado` («sustituir
+    neumatico»); el hallazgo conserva su clase y su severidad."""
+    grieta = _hallazgo("g-1", "needs_review", "confirmado", "NEUMATICO", "leve", True, clase="crack")
+    a1 = {"image_id": 1, "findings": [grieta]}
+    ctx = _cargar("contexto_siniestro.json")
+    salida = estimar_siniestro(a1, ctx)
+    _, pend = _escenarios(salida)
+    assert pend["hallazgos_incluidos"] == ["g-1"], pend
+    danos = [{"clase": "tire_flat", "pieza_id": "NEUMATICO", "severidad": "moderado"}]
+    assert pend["estimacion"] == costes_y_cobertura.estimar_coste(ctx["vehiculo_id"], danos, **_contexto_tool(ctx))
+    assert (grieta["clase_tool"], grieta["severidad"]) == ("crack", "leve"), grieta
+
+
+def probar_88_ac006_sin_equivalencia_y_regla_propia_no_cambian():
+    """specs/88-equivalencias-reglas-coste.md#AC-006: en una salida con un hallazgo
+    con regla propia (confirmado), uno con equivalencia (pendiente) y uno sin
+    equivalencia (arañazo en el parabrisas), el ultimo sigue fuera con
+    `sin_regla_de_coste` y el escenario de confirmados es identico al que se
+    obtiene sin la tabla de equivalencias. Regresion: verde antes y despues."""
+    propio = _hallazgo("p-1", "confirmed", "confirmado", "PARAG_DEL", "moderado", True, clase="dent")
+    equivalente = _hallazgo("e-1", "needs_review", "confirmado", "PILOTO_TRAS_I", "moderado", True,
+                            clase="glass_shatter")
+    sin_equivalencia = _hallazgo("s-1", "needs_review", "confirmado", "PARABRISAS", "moderado", False,
+                                 clase="scratch")
+    a1 = {"image_id": 2, "findings": [propio, equivalente, sin_equivalencia]}
+    ctx = _cargar("contexto_siniestro.json")
+
+    con_tabla = estimar_siniestro(a1, ctx)
+    tabla = getattr(costes_y_cobertura, "EQUIVALENCIAS", None)
+    costes_y_cobertura.EQUIVALENCIAS = {}
+    try:
+        sin_tabla = estimar_siniestro(a1, ctx)
+    finally:
+        if tabla is None:
+            del costes_y_cobertura.EQUIVALENCIAS
+        else:
+            costes_y_cobertura.EQUIVALENCIAS = tabla
+
+    assert {"finding_id": "s-1", "motivo": "sin_regla_de_coste"} in con_tabla["hallazgos_fuera_del_coste"]
+    assert con_tabla["hallazgos_fuera_del_coste"] == sin_tabla["hallazgos_fuera_del_coste"]
+    assert con_tabla["escenarios"]["confirmados"] == sin_tabla["escenarios"]["confirmados"], \
+        "los importes del hallazgo con regla propia no pueden cambiar por la tabla"
+    for campo in ("valor_venal_eur", "umbral_perdida_total", "contexto", "normativa"):
+        assert con_tabla[campo] == sin_tabla[campo], campo
+
+
 PRUEBAS = [
     probar_ac001_contrato_del_ejemplo,
     probar_ac002_reparto_de_hallazgos,
@@ -254,6 +339,9 @@ PRUEBAS = [
     probar_ac008_determinista_sin_red,
     probar_ac010_contexto_invalido,
     probar_ac010_paquete_ausente,
+    probar_88_ac004_cristal_roto_en_piloto_entra_por_equivalencia_1248,
+    probar_88_ac004_grieta_de_neumatico_leve_se_presupuesta_como_moderada,
+    probar_88_ac006_sin_equivalencia_y_regla_propia_no_cambian,
 ]
 
 
