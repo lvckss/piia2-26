@@ -1,6 +1,6 @@
-> **Copia de [`docs/adr/0007-orquestacion-adk-web-efimera.md`](../docs/adr/0007-orquestacion-adk-web-efimera.md).** El registro canónico de los ADRs es `docs/adr/`; esta copia está en `decisions/` porque la entrega la pide y no se edita aquí.
-
 # ADR 0007: Orquestación en Python directo, interfaz web y ejecuciones efímeras
+
+> **Copia de [`docs/adr/0007-orquestacion-adk-web-efimera.md`](../docs/adr/0007-orquestacion-adk-web-efimera.md).** El registro canónico de los ADRs es `docs/adr/`; esta copia está en `decisions/` porque la entrega la pide y no se edita aquí.
 
 - Estado: Aceptado
 - Fecha: 2026-10-27
