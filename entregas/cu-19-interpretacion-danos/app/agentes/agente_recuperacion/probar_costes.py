@@ -258,7 +258,7 @@ def probar_88_ac004_cristal_roto_en_piloto_entra_por_equivalencia_1248():
     nueve = next(f for f in a1["findings"] if f["finding_id"] == "1248-9")
     assert (nueve["clase_tool"], nueve["pieza_id"], nueve["severidad"], nueve["confidence_tier"]) == \
         ("glass_shatter", "PILOTO_TRAS_I", "moderado", "needs_review"), nueve
-    nueve["regla_coste_aplicable"] = True  # lo que da el Agente 1 con la tabla (AC-007)
+    assert nueve["regla_coste_aplicable"] is True, nueve  # la salida versionada ya lleva la tabla (AC-007)
     ctx = _cargar("contexto_siniestro.json")
     antes = copy.deepcopy(a1)
 

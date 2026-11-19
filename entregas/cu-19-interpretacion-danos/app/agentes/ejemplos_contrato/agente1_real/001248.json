@@ -168,7 +168,7 @@
       "vision_verdict": "confirmado",
       "pieza_id": "PILOTO_TRAS_I",
       "severidad": "moderado",
-      "regla_coste_aplicable": false,
+      "regla_coste_aplicable": true,
       "vision_description": "El piloto trasero izquierdo está roto o ausente y deja la cavidad expuesta, con restos y plástico en el interior. La zona circundante también presenta deformación.",
       "crop_image_path": "crops/1248_glass_shatter_9.jpg"
     },
