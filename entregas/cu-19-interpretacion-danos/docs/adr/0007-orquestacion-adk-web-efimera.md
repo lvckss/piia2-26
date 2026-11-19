@@ -1,12 +1,12 @@
 # ADR 0007: Orquestación en Python directo, interfaz web y ejecuciones efímeras
 
-- Estado: Propuesto
+- Estado: Aceptado
 - Fecha: 2026-10-27
-- Versión: propuesta v1.7 (2026-11-18): Python directo en lugar de ADK; continúa v1.6 `8362807` y conserva v1 `733c5d0`, v1.5 `c52217d`, v1.1 `9a65c26`, v1.2 `5ed9ca6`, v1.3 `06f4c08` y v1.4 `6a6666e`. Conserva como historial el hito del 10 y el corte del 17 vencidos sin ejecución acreditada del smoke; cambia la propuesta de framework por riesgo y plazo y mantiene los contratos, V14 y el resto del alcance. La adopción en la rama de #60 no acepta el ADR completo.
+- Versión: v1.7 (2026-11-18), aceptada por Lucía Luis Castaño en la [revisión APPROVED del 2026-11-19](https://github.com/lvckss/piia2-26/pull/60#pullrequestreview-5972681070) sobre `65192b4`. Orquestación en Python directo por riesgo y plazo; continúa v1.6 `8362807` y conserva v1 `733c5d0`, v1.5 `c52217d`, v1.1 `9a65c26`, v1.2 `5ed9ca6`, v1.3 `06f4c08` y v1.4 `6a6666e`. El hito del 10 y el corte del 17 quedan como historial, sin ejecución acreditada del smoke.
 - GitHub Issue: https://github.com/lvckss/piia2-26/issues/34
 - Planes cubiertos: [34-orquestacion-web.md](../../specs/34-orquestacion-web.md), coordinación, frontera web/Python, estado temporal y Compose.
-- Planning PR: https://github.com/lvckss/piia2-26/pull/60 — preparada para revisión de la v1.7; aceptación e integración pendientes.
-- Aceptación: pendiente de revisión humana del documento completo y sus alternativas. Las [precisiones de Víctor](https://github.com/lvckss/piia2-26/pull/60#issuecomment-6773699753) sobre compatibilidad y validación de v1.4 se conservan. Víctor [aceptó el contrato de procedencia de v1.6](https://github.com/lvckss/piia2-26/pull/60#issuecomment-6924027132), conservado en v1.7. Ninguna de esas confirmaciones acepta el conjunto del ADR.
+- Planning PR: https://github.com/lvckss/piia2-26/pull/60 — aceptación registrada; aprobación del head con los metadatos e integración pendientes.
+- Aceptación: Lucía Luis Castaño (`lucia-luis-castano`), [revisión APPROVED del 2026-11-19](https://github.com/lvckss/piia2-26/pull/60#pullrequestreview-5972681070) sobre `65192b4`, que acepta el ADR 0007 con su decisión y alternativas y la Spec 34 v1.7. Se conservan las [precisiones de Víctor](https://github.com/lvckss/piia2-26/pull/60#issuecomment-6773699753) sobre compatibilidad y validación de v1.4 y su [aceptación del contrato de procedencia de v1.6](https://github.com/lvckss/piia2-26/pull/60#issuecomment-6924027132).
 - Sustituye / sustituido por: no sustituye un ADR aceptado. Reutiliza las responsabilidades base de los ADRs 0002–0005; se apoya en #28/ADR 0001 y #32/ADR 0006 ya aceptados en main. El contrato nuevo de procedencia requiere revisión propia.
 
 ## Contexto y motivación
@@ -40,9 +40,9 @@ Es una decisión estructural: fija la estrategia de orquestación, una API entre
 componentes, el ciclo de vida de sus datos y cómo se despliegan. Los ADRs
 previos no cubren esa frontera ni este recorrido.
 
-**Actualización del 18 de noviembre de 2026 (v1.7).** El smoke de ADK no se ejecutó en plazo y la entrega final es el 7 de diciembre: la decisión pasa a Python directo (ver el punto 1 de «Decisión propuesta»).
+**Actualización del 18 de noviembre de 2026 (v1.7).** El smoke de ADK no se ejecutó en plazo y la entrega final es el 7 de diciembre: la decisión adoptada es Python directo (ver el punto 1 de «Decisión»).
 
-## Decisión propuesta
+## Decisión
 
 1. **Python directo con orden fijo.** El orquestador es código Python que
    llama, en orden fijo, a las funciones existentes de cada agente, con estado
@@ -129,7 +129,7 @@ previos no cubren esa frontera ni este recorrido.
 | Alternativa | Ventajas | Costes / motivo de la propuesta |
 |---|---|---|
 | ADK nativo con secuencia fija | Reutiliza sesiones, eventos y workflows del framework probado con una tool en #52; orden y cifras controlados por código. | Añade dependencia/entorno ADK y adaptadores que hay que probar de extremo a extremo; el smoke no tuvo ejecución acreditada. Descartado el 18 de noviembre por riesgo y plazo, no por una incompatibilidad observada. |
-| Python directo con secuencia fija, propuesta | Cableado pequeño y sencillo; mismas funciones deterministas; menos dependencias y sin un smoke de framework que bloquee la implementación. | Hay que escribir un estado de ejecución propio y pequeño (identificador, fase, resultados, archivos temporales). Propuesta de Lucía adoptada por Lucas el 18 de noviembre al revisar e integrar #104 en la rama de #60; aceptación global del ADR pendiente. |
+| **Python directo con secuencia fija (elegida)** | Cableado pequeño y sencillo; mismas funciones deterministas; menos dependencias y sin un smoke de framework que bloquee la implementación. | Hay que escribir un estado de ejecución propio y pequeño (identificador, fase, resultados, archivos temporales). Propuesta de Lucía adoptada por Lucas el 18 de noviembre al revisar e integrar #104 en la rama de #60; decisión aceptada por Lucía sobre el head `65192b4`. |
 | Coordinador LLM que decide qué tools llamar | Flexible para recorridos variables. | El recorrido está fijado; introduce llamadas y riesgo de saltarse pasos o reformular cifras sin una necesidad identificada. |
 | Mantener únicamente un comando con archivos de CarDD | Reduce trabajo de interfaz y subida. | No cumple la entrada web con una imagen nueva elegida por Lucas. |
 | Una petición HTTP larga hasta el informe | Menos estados y operaciones. | No encaja con la confirmación/corrección del vehículo entre las fases ni con consultar progreso sin repetir trabajo. |
@@ -146,9 +146,8 @@ previos no cubren esa frontera ni este recorrido.
   integrados; #72 sigue abierta. Esto no acredita el recorrido completo
   ni la adaptación del informe al contrato de procedencia de v1.5.
 - La regla V14/`minimo_por_defecto` aceptada por Víctor en v1.6 conserva las dos
-  precisiones de v1.4. El AC nuevo consumidor de #31 y la revisión global del
-  plan/ADR siguen pendientes. La frase de estimación a
-  la baja sustituye el «techo prudente». Según la medición publicada por Lucía,
+  precisiones de v1.4. El AC nuevo consumidor de #31 sigue pendiente. La frase
+  de estimación a la baja sustituye el «techo prudente». Según la medición publicada por Lucía,
   V14 es el mínimo en 209 de 249 casos y V24 en 40; V14 queda hasta un 2,6 %
   por encima del mínimo exacto. Es evidencia publicada, no reevaluada aquí;
   no convierte V14 en el mínimo exacto universal ni su valor venal en el real.

@@ -1,13 +1,13 @@
 # Spec: Orquestación desde la web, de una imagen subida al informe
 
 - GitHub Issue: https://github.com/lvckss/piia2-26/issues/34
-- Estado: Borrador v1.7, 2026-11-18.
+- Estado: Revisada (v1.7) — por Lucía Luis Castaño (`lucia-luis-castano`), [revisión APPROVED del 2026-11-19](https://github.com/lvckss/piia2-26/pull/60#pullrequestreview-5972681070) sobre `65192b4`, que acepta los 14 AC, el Test Plan, las 4 slices, la DoD y el ADR 0007.
 - ADR decision: NEW_ADR.
-- ADR: [0007 — Orquestación en Python directo y ejecución web efímera](../docs/adr/0007-orquestacion-adk-web-efimera.md), Propuesto.
+- ADR: [0007 — Orquestación en Python directo y ejecución web efímera](../docs/adr/0007-orquestacion-adk-web-efimera.md), Aceptado.
 - Justificación: orquesta las dos fases con Python directo, sin framework de agentes, define una frontera HTTP entre web y servicio Python y el ciclo de vida de las ejecuciones. Los ADRs 0002–0005 aceptados cubren contratos, proveedor, costes y filtro previo; no cubren estas decisiones.
-- Plan vigente / versión: v1.7 en la misma PR #60; el registro de #34 fija el commit publicado. Continúa v1.6 `8362807` y conserva v1 `733c5d0`, v1.1 `9a65c26`, v1.2 `5ed9ca6`, v1.3 `06f4c08`, v1.4 `6a6666e` y v1.5 `c52217d`. Registra la decisión humana del 18 de noviembre de orquestar en Python directo en lugar de ADK (ver «Decisión sobre el framework»). Cambian la redacción de AC-005, las secciones de orquestación, el seam S3 y la fila de AC-005 del Test Plan, la slice 1 y el ADR 0007; los otros 13 AC y sus filas, las cuatro slices, la política V14/`minimo_por_defecto`, las precisiones de compatibilidad/validación y la DoD permanecen idénticos a v1.6. No acredita aprobación del documento completo ni del ADR. Continúa el [registro de alcance](https://github.com/lvckss/piia2-26/issues/34#issuecomment-6426795027).
-- Riesgo y revisión previa: sí, por NEW_ADR y por el acuerdo del equipo. Impacto en cifras y fuentes del informe, frontera entre servicios, subida de archivos y nuevas dependencias de #28/#31/#32. La implementación y sus planes deben revisarse por los responsables afectados; el documento completo todavía no tiene aceptación humana.
-- Planning PR: https://github.com/lvckss/piia2-26/pull/60 — preparada para revisión de la v1.7; aceptación e integración pendientes.
+- Plan vigente / versión: v1.7 en la misma PR #60; el registro de #34 fija el commit publicado. Continúa v1.6 `8362807` y conserva v1 `733c5d0`, v1.1 `9a65c26`, v1.2 `5ed9ca6`, v1.3 `06f4c08`, v1.4 `6a6666e` y v1.5 `c52217d`. Registra la decisión humana del 18 de noviembre de orquestar en Python directo en lugar de ADK (ver «Decisión sobre el framework»). Cambian la redacción de AC-005, las secciones de orquestación, el seam S3 y la fila de AC-005 del Test Plan, la slice 1 y el ADR 0007; los otros 13 AC y sus filas, las cuatro slices, la política V14/`minimo_por_defecto`, las precisiones de compatibilidad/validación y la DoD permanecen idénticos a v1.6. La aceptación de Lucía de esta versión está registrada abajo. Continúa el [registro de alcance](https://github.com/lvckss/piia2-26/issues/34#issuecomment-6426795027).
+- Riesgo y revisión previa: sí, por NEW_ADR y por el acuerdo del equipo. Impacto en cifras y fuentes del informe, frontera entre servicios, subida de archivos y nuevas dependencias de #28/#31/#32. Lucía aceptó el documento completo y el ADR 0007 sobre `65192b4`; la implementación y sus planes deben revisarse por los responsables afectados.
+- Planning PR: https://github.com/lvckss/piia2-26/pull/60 — aceptación registrada; aprobación del head con los metadatos e integración pendientes.
 
 ## Qué construir
 
@@ -38,9 +38,9 @@ en la [solicitud de retomar #28](https://github.com/lvckss/piia2-26/issues/28#is
 El objetivo de levantar el conjunto con Compose se conserva del diseño de #32.
 
 Las rutas HTTP, estados, separación en servicios y forma de presentar la
-procedencia del vehículo que siguen son **propuestas de este borrador**, para
-revisar con el equipo. No se atribuye a Lucas ni a PRs anteriores la aprobación
-anticipada de esos contratos ni del ADR 0007.
+procedencia del vehículo que siguen son el diseño aceptado para guiar la
+implementación. Su aceptación no acredita que los contratos o el producto estén
+ya implementados.
 
 ### Estado actual y evidencia
 
@@ -579,16 +579,11 @@ y AC-005.
 
 ## Pendientes para Ready
 
-1. Revisión humana del documento v1.7 completo y aceptación/integración de
-   Planning PR #60 y ADR 0007 sobre el head final. Lucía es la revisora prevista.
+1. Aceptación de Lucía de la Spec v1.7 y el ADR 0007: registrada en su [revisión APPROVED del 2026-11-19](https://github.com/lvckss/piia2-26/pull/60#pullrequestreview-5972681070) sobre `65192b4`. Falta la aprobación del head con estos metadatos y la integración humana de la Planning PR #60 en `main`.
 2. Víctor [aceptó el contrato de procedencia de v1.6](https://github.com/lvckss/piia2-26/pull/60#issuecomment-6924027132),
    conservado en v1.7: V14/`minimo_por_defecto`, compatibilidad y validación.
-   Sigue pendiente incorporar aviso, compatibilidad y validación en un AC nuevo del plan #31. Ese plan sigue pendiente,
-   sin reutilizar AC-010. #28/ADR 0001 y #32/ADR 0006 ya están aceptados en main;
-   no se les atribuye aceptación del nuevo plan/ADR.
-3. Revisar límites, HTTP, calendario y la decisión sobre el framework. Confirmar lector de
-   los 3–5 informes y equipo/perfil ML; acceso al proveedor se comprueba antes
-   de verificaciones de pago, sin suponer autorización de gasto por este plan.
+   Sigue pendiente incorporar aviso, compatibilidad y validación en un AC nuevo del plan #31; no se reutiliza AC-010.
+3. La aceptación cubre los límites, HTTP, calendario y la decisión sobre el framework. Lucía leerá los 3–5 informes; falta confirmar equipo/perfil ML. El acceso al proveedor se comprueba antes de verificaciones de pago, sin suponer autorización de gasto por este plan.
 4. Acreditar DoR de la nueva versión en #34 y registrar el commit publicado.
    Las implementaciones reales de #31/#32 siguen siendo dependencias para
    integración final; el esqueleto provisional no acredita su entrega.
@@ -599,8 +594,8 @@ y AC-005.
 |---|---|
 | Trazabilidad | 14 IDs conservados; cada AC tiene fila Test Plan y slice. AC-003/008 adaptados a la corrección de Lucía y confirmación de Víctor: V14/`minimo_por_defecto`; AC-010 de #31 sigue retirado. |
 | Preservación | Predicción #28 intacta; costes y dos escenarios #30 sin cambios; contrato RAG aceptado consumido sin reescribir cifras. Procedencia es ampliación propuesta a revisar con #31. |
-| Decisión arquitectónica | NEW_ADR: 0007 sigue Propuesto; incorpora la política del orquestador y campo aditivo, sin modificar la salida de #28 ni las fórmulas de #30. No se crea otro ADR por la misma decisión. |
-| Estado | Borrador v1.7, no Ready. Víctor ya aceptó el contrato de procedencia de v1.6, conservado en v1.7; siguen pendientes el AC nuevo consumidor y la revisión del plan/ADR completos. Los parámetros y calendario mantienen su revisión pendiente. |
+| Decisión arquitectónica | NEW_ADR: ADR 0007 Aceptado por Lucía en la revisión APPROVED del 2026-11-19 sobre `65192b4`; incorpora la política del orquestador y campo aditivo, sin modificar la salida de #28 ni las fórmulas de #30. No se crea otro ADR por la misma decisión. |
+| Estado | Revisada v1.7; todavía no Ready. Lucía aceptó el plan y el ADR 0007; faltan aprobación del head con este registro, integración en `main`, el AC nuevo consumidor de #31 y completar la DoR. |
 | Historial v1.4 (`6a6666e`) | Campo opcional y validación de valores/coherencia a petición de Lucas, sobre las precisiones de Víctor. Se conservan estas garantías; la política anterior V25/`maximo_por_defecto` y su frase quedan sustituidas por v1.5. |
 | Actualización v1.5 | V14/`minimo_por_defecto`, frase de estimación a la baja y límites del mínimo fijo trazados a la corrección de Lucía y confirmación de Víctor. Cambian AC-003/008 y sus verificaciones; los otros 12 AC, sus verificaciones, slices, contratos base, disparador ADK y DoD se conservan. |
 | Actualización v1.6 | Hito del 10 no cumplido y smoke sin ejecución acreditada; impedimento, avance y siguiente acción registrados. Nuevo corte propuesto el 17 a las 18:00 Europe/Madrid; se presenta Python directo al equipo sin adoptarlo. AC, Test Plan, cuatro slices y DoD idénticos a v1.5. |
