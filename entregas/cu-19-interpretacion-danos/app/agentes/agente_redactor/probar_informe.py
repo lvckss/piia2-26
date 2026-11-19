@@ -493,6 +493,118 @@ def probar_88_ac009_informe_con_equivalencia_determinista_sin_clave_ni_red():
             os.environ["OPENAI_API_KEY"] = clave
 
 
+# --- Issue #97, slice 3 (Agente 3): justificaciones con LLM de la normativa ---
+# Plan: specs/97-justificacion-llm-normativa.md (AC-008, AC-009 y AC-010); ADR 0009.
+AVISO_JUSTIFICACION = ("Informe preliminar: no se ha podido redactar la justificación de algunas fuentes; "
+                       "se muestran sus citas sin justificación y requieren revisión.")
+FUENTE_FR300 = "docs/polizas_sinteticas/P-TR-FR300.md"
+J_DANOS = {"tema": "cobertura de daños propios", "estado": "generada",
+           "texto": "La póliza cubre los daños propios por colisión, vuelco, atropello de animales y actos "
+                    "vandálicos, con una franquicia por siniestro.",
+           "citas": [{"extracto": "Daños propios por colisión, vuelco, atropello de animales y actos vandálicos",
+                      "fuente": f"{FUENTE_FR300}#2. Coberturas incluidas"}]}
+J_PT = {"tema": "pérdida total", "estado": "generada",
+        "texto": "Hay pérdida total cuando la reparación sin IVA alcanza el umbral fijado sobre el valor venal.",
+        "citas": [{"extracto": "Habrá pérdida total cuando el coste de reparación (sin IVA) alcance o supere el 75 % "
+                               "del valor venal.", "fuente": f"{FUENTE_FR300}#5. Pérdida total"}]}
+MOTIVO_NO_GENERADA = "El modelo no respondió (error del proveedor o tiempo agotado)."
+
+
+def _con_justificaciones(a2: dict, *justificaciones: dict) -> dict:
+    x = copy.deepcopy(a2)
+    x["justificaciones"] = [copy.deepcopy(j) for j in justificaciones]
+    return x
+
+
+def probar_97_ac008_justificaciones_con_sus_citas():
+    """specs/97-justificacion-llm-normativa.md#AC-008: con dos justificaciones `generada`, «Fuentes
+    consultadas» muestra el texto de cada tema y, debajo, sus citas con su fuente como bloque literal; los
+    9 encabezados no cambian, no aparece «verificada» y `comprobar_cifras == []`."""
+    a1, a2 = _ejemplos()
+    a2j = _con_justificaciones(a2, J_DANOS, J_PT)
+    md = generar_informe(a1, a2j, hoy=HOY)
+    assert [l for l in md.splitlines() if l.startswith("#")] == ENCABEZADOS, md
+    fuentes = _secciones(md)["## Fuentes consultadas"]
+    for j in (J_DANOS, J_PT):
+        assert j["texto"] in fuentes, (j["tema"], fuentes)
+        cita = j["citas"][0]
+        assert f"  {cita['extracto']}" in fuentes.splitlines(), (cita, fuentes)  # dentro del bloque literal
+        assert cita["fuente"] in fuentes, (cita, fuentes)
+        assert fuentes.index(j["texto"]) < fuentes.index(cita["extracto"]), "la cita va debajo de su texto"
+    assert "verificad" not in md.lower(), md
+    assert AVISO_JUSTIFICACION not in md
+    assert comprobar_cifras(md, a2j) == [], comprobar_cifras(md, a2j)
+
+
+def probar_97_ac009_justificacion_no_generada_da_informe_preliminar():
+    """specs/97-justificacion-llm-normativa.md#AC-009: una justificacion `no_generada` (o `descartada`) pone en
+    la cabecera el aviso de informe preliminar de justificaciones y, en «Fuentes consultadas», el tema con su
+    motivo y sus citas sin justificacion."""
+    a1, a2 = _ejemplos()
+    for estado in ("no_generada", "descartada"):
+        sin = {"tema": "pérdida total", "estado": estado, "motivo": MOTIVO_NO_GENERADA}
+        md = generar_informe(a1, _con_justificaciones(a2, J_DANOS, sin), hoy=HOY)
+        cabecera = md.split("## Resumen")[0]
+        assert AVISO_JUSTIFICACION in cabecera, (estado, cabecera)
+        fuentes = _secciones(md)["## Fuentes consultadas"]
+        pasaje = next(n for n in a2["normativa"] if n["tema"] == "pérdida total")
+        assert MOTIVO_NO_GENERADA in fuentes, (estado, fuentes)
+        assert f"  {pasaje['extracto']}" in fuentes.splitlines(), (estado, fuentes)  # su cita, sin justificacion
+        assert J_DANOS["texto"] in fuentes, fuentes
+        assert comprobar_cifras(md, a2) == []
+
+
+def probar_97_ac009_sin_justificaciones_el_informe_no_cambia():
+    """specs/97-justificacion-llm-normativa.md#AC-009: sin el campo `justificaciones`, el informe es el actual:
+    sin aviso de justificaciones y con «Fuentes consultadas» en el formato de la spec 31."""
+    a1, a2 = _ejemplos()
+    md = generar_informe(a1, a2, hoy=HOY)
+    assert AVISO_JUSTIFICACION not in md and "Justificación" not in md
+    fuentes = _secciones(md)["## Fuentes consultadas"]
+    for n in a2["normativa"]:
+        assert f"- {n['tema']} ({n['fuente']}):" in fuentes.splitlines(), fuentes
+
+
+def probar_97_ac009_justificaciones_mal_formadas():
+    """specs/97-justificacion-llm-normativa.md#AC-009: estado desconocido, tema ausente o una `generada` con un
+    importe en el texto («1.500 €», «300 EUR») -> excepcion que nombra el campo y ningun informe."""
+    a1, a2 = _ejemplos()
+    sin_tema = {k: v for k, v in J_DANOS.items() if k != "tema"}
+    malas = [dict(J_DANOS, estado="rara"), sin_tema,
+             dict(J_DANOS, texto="La póliza cubre las lunas hasta 1.500 € al año."),
+             dict(J_DANOS, texto="La franquicia es de 300 EUR por siniestro."),
+             # revision de Lucas en la #101: moneda pegada al numero o escrita delante
+             dict(J_DANOS, texto="La franquicia es de 300EUR por siniestro."),
+             dict(J_DANOS, texto="El límite es de euros 1500 al año.")]
+    for mala in malas:
+        try:
+            generar_informe(a1, _con_justificaciones(a2, mala), hoy=HOY)
+        except ValueError as error:
+            assert "justificaciones" in str(error), (mala, error)
+        else:
+            raise AssertionError(f"se esperaba ValueError con {mala}")
+
+
+def probar_97_ac010_informe_con_justificaciones_determinista():
+    """specs/97-justificacion-llm-normativa.md#AC-010: dos informes iguales con las mismas justificaciones, sin
+    clave ni red (el Agente 3 no llama a ningun modelo)."""
+    a1, a2 = _ejemplos()
+    a2j = _con_justificaciones(a2, J_DANOS, J_PT)
+    clave = os.environ.pop("OPENAI_API_KEY", None)
+    socket_original = socket.socket
+
+    def _sin_red(*args, **kwargs):
+        raise AssertionError("intento de conexion de red")
+
+    socket.socket = _sin_red
+    try:
+        assert generar_informe(a1, a2j, hoy=HOY) == generar_informe(a1, a2j, hoy=HOY)
+    finally:
+        socket.socket = socket_original
+        if clave is not None:
+            os.environ["OPENAI_API_KEY"] = clave
+
+
 # --- specs/31-informe-peritaje.md#AC-014 y AC-015 ---------------------------
 # `diagnostico_rag` con la forma del contrato integrado de la #32
 # (specs/32-rag-normativa.md, «Contrato propuesto de diagnóstico»; ADR 0006).
@@ -749,6 +861,11 @@ PRUEBAS = [
     probar_54_ac001_taller_legible,
     probar_54_ac002_umbral_cero_no_aplica,
     probar_54_ac004_hallazgos_iguales_en_una_fila_000341,
+    probar_97_ac008_justificaciones_con_sus_citas,
+    probar_97_ac009_justificacion_no_generada_da_informe_preliminar,
+    probar_97_ac009_sin_justificaciones_el_informe_no_cambia,
+    probar_97_ac009_justificaciones_mal_formadas,
+    probar_97_ac010_informe_con_justificaciones_determinista,
 ]
 
 
