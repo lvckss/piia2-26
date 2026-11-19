@@ -94,6 +94,9 @@ AVISO_PIIA1 = ("Solo se analizan los daños que ha detectado PIIA 1 en la foto; 
                "aparezcan en este informe.")
 # AC-003: hallazgos fuera del coste que no son falsos positivos y que una persona debe revisar.
 MOTIVOS_REVISION_HUMANA = ("sin_pieza_o_severidad", "sin_regla_de_coste")
+# Issue #54, slice 1 (plan v1): https://github.com/lvckss/piia2-26/issues/54#issuecomment-6805208293
+# AC-001: nombres legibles de `tipo_taller`; los que no estan aqui se muestran tal cual.
+TALLER_TEXTO = {"concertado_aseguradora": "concertado con la aseguradora"}
 
 
 def eur(x: float) -> str:
@@ -153,10 +156,19 @@ def _tabla_hallazgos(hallazgos: list[dict], con_motivo: bool = False) -> list[st
         return [NINGUNO]
     ultima = "Por qué está pendiente" if con_motivo else "Score"
     filas = [f"| ID | Pieza | Daño | Severidad | Reparación | {ultima} |", "|---|---|---|---|---|---|"]
-    for f in hallazgos:
-        final = _motivos_pendiente(f) if con_motivo else _decimal(f["score"])
-        filas.append(f"| {f['finding_id']} | {_pieza(f)} | {_clase(f)} | "
-                     f"{f['severidad'] or '—'} | {_reparacion(f)} | {final} |")
+    if con_motivo:
+        for f in hallazgos:
+            filas.append(f"| {f['finding_id']} | {_pieza(f)} | {_clase(f)} | "
+                         f"{f['severidad'] or '—'} | {_reparacion(f)} | {_motivos_pendiente(f)} |")
+    else:
+        # #54 AC-004: los confirmados con la misma pieza, dano, severidad y reparacion van en una sola fila.
+        grupos: dict[tuple, list[dict]] = {}
+        for f in hallazgos:
+            grupos.setdefault((_pieza(f), _clase(f), f["severidad"] or "—", _reparacion(f)), []).append(f)
+        for (pieza, clase, severidad, reparacion), iguales in grupos.items():
+            ids = ", ".join(f["finding_id"] for f in iguales)
+            scores = "; ".join(_decimal(f["score"]) for f in iguales)
+            filas.append(f"| {ids} | {pieza} | {clase} | {severidad} | {reparacion} | {scores} |")
     imagenes = " ".join(f"![{f['finding_id']}]({f['crop_image_path']})" for f in hallazgos if f.get("crop_image_path"))
     return filas + ([""] + [imagenes] if imagenes else [])
 
@@ -169,6 +181,16 @@ def _bloque_literal(texto: str) -> list[str]:
     racha = max((len(r) for r in re.findall(r"`+", texto)), default=0)
     valla = "`" * max(3, racha + 1)
     return [f"  {valla}text", *(f"  {linea}" for linea in texto.split("\n")), f"  {valla}"]
+
+
+def _linea_perdida_total(agente2: dict, cob_c: dict, cob_p: dict) -> str:
+    """Linea de perdida total del «Resumen». Con umbral 0 (polizas sin perdida total, P-TERC-*) no se escribe
+    «umbral 0 %», sino que no aplica (#54 AC-002)."""
+    venal = eur(agente2["valor_venal_eur"])
+    if not agente2["umbral_perdida_total"]:
+        return f"- Pérdida total (valor venal {venal}): no aplica, porque la póliza no fija un umbral de pérdida total."
+    return (f"- Pérdida total (valor venal {venal}, umbral {_porcentaje(agente2['umbral_perdida_total'])}): "
+            f"{_si_no(cob_c['perdida_total'])} con los confirmados; {_si_no(cob_p['perdida_total'])} incluyendo los pendientes.")
 
 
 def _detecciones(n: int) -> str:
@@ -300,7 +322,7 @@ def generar_informe(agente1: dict, agente2: dict, hoy: str | None = None) -> str
         "",
         f"- **Fecha:** {hoy}",
         f"- **Vehículo:** {veh['marca']} {veh['modelo']}",
-        f"- **Taller:** {ctx['tipo_taller']} ({ctx['region']})",
+        f"- **Taller:** {TALLER_TEXTO.get(ctx['tipo_taller'], ctx['tipo_taller'])} ({ctx['region']})",
         f"- **Póliza:** {poliza}",
     ]
     if tercero:
@@ -321,8 +343,7 @@ def generar_informe(agente1: dict, agente2: dict, hoy: str | None = None) -> str
         f"({eur(est_c['total_con_iva_eur'])} con IVA).",
         f"- Coste **incluyendo los pendientes**: {eur(est_p['subtotal_sin_iva_eur'])} sin IVA "
         f"({eur(est_p['total_con_iva_eur'])} con IVA).",
-        f"- Pérdida total (valor venal {eur(agente2['valor_venal_eur'])}, umbral {_porcentaje(agente2['umbral_perdida_total'])}): "
-        f"{_si_no(cob_c['perdida_total'])} con los confirmados; {_si_no(cob_p['perdida_total'])} incluyendo los pendientes.",
+        _linea_perdida_total(agente2, cob_c, cob_p),
         f"- Indemnización estimada: {eur(cob_c['indemnizacion_estimada_eur'])} con los confirmados; "
         f"{eur(cob_p['indemnizacion_estimada_eur'])} incluyendo los pendientes.",
         "",
