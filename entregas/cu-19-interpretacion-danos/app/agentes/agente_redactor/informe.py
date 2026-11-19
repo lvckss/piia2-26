@@ -7,6 +7,7 @@ ninguna se calcula ni se escribe a mano, y no se usa ningun modelo de lenguaje.
 Plan: entregas/cu-19-interpretacion-danos/specs/31-informe-peritaje.md
 Contrato de entrada: ADR 0002 y app/agentes/ejemplos_contrato/.
 Catalogo de la empresa: piia2_paquete_datos/ (fuera de git).
+Equivalencias de reglas de coste: ADR 0008 y specs/88-equivalencias-reglas-coste.md.
 Justificaciones de la normativa (#97, ADR 0009): las redacta un LLM en el Agente 2; aqui solo se
 muestran y se comprueba su forma.
 """
@@ -15,6 +16,7 @@ from __future__ import annotations
 
 import csv
 import re
+import sys
 from datetime import date
 from pathlib import Path
 
@@ -45,6 +47,13 @@ VEHICULOS = _leer_csv("vehiculos.csv", "vehiculo_id")
 POLIZAS = _leer_csv("polizas.csv", "poliza_id")
 with open(DATA / "reglas_dano.csv", encoding="utf-8") as _f:
     REGLAS = {(r["clase_cardd"], r["zona_tipo"], r["severidad"]): r["accion"] for r in csv.DictReader(_f)}
+
+# Equivalencias de reglas de coste (#88, ADR 0008): la reparacion que se muestra es la de la regla con la
+# que el Agente 2 ha presupuestado el dano. Modulo comun de app/agentes/comun, sin paquete Python.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "comun"))
+from equivalencias import cargar_equivalencias, regla_efectiva  # noqa: E402
+
+EQUIVALENCIAS = cargar_equivalencias()
 
 AVISO_LEGAL = ("Informe generado automáticamente con datos sintéticos de prototipo. Las cifras son "
                "orientativas y no vinculantes, y no sustituyen a una valoración pericial.")
@@ -88,6 +97,15 @@ CONCEPTOS = [
     ("Materiales de pintura", "materiales_pintura"), ("Otros", "otros"),
 ]
 NINGUNO = "_Ninguno._"
+# Issue #54, slice 2 (plan v1.1): https://github.com/lvckss/piia2-26/issues/54#issuecomment-6806386857
+# AC-011: el sistema solo juzga lo que detecta PIIA 1; se dice aparte del aviso legal de la cabecera.
+AVISO_PIIA1 = ("Solo se analizan los daños que ha detectado PIIA 1 en la foto; puede haber otros que no "
+               "aparezcan en este informe.")
+# AC-003: hallazgos fuera del coste que no son falsos positivos y que una persona debe revisar.
+MOTIVOS_REVISION_HUMANA = ("sin_pieza_o_severidad", "sin_regla_de_coste")
+# Issue #54, slice 1 (plan v1): https://github.com/lvckss/piia2-26/issues/54#issuecomment-6805208293
+# AC-001: nombres legibles de `tipo_taller`; los que no estan aqui se muestran tal cual.
+TALLER_TEXTO = {"concertado_aseguradora": "concertado con la aseguradora"}
 
 
 def eur(x: float) -> str:
@@ -119,10 +137,16 @@ def _pieza(f: dict) -> str:
 
 
 def _reparacion(f: dict) -> str:
+    """Accion de la regla efectiva (specs/88-equivalencias-reglas-coste.md#AC-005): la propia del dano o,
+    si no la tiene, la de su equivalente. El informe no menciona la equivalencia."""
     if not f["pieza_id"] or not f["severidad"]:
         return "—"
-    accion = REGLAS.get((f["clase_tool"], PIEZAS[f["pieza_id"]]["zona_tipo"], f["severidad"]))
-    return ACCION_TEXTO.get(accion, "—")
+    zona = PIEZAS[f["pieza_id"]]["zona_tipo"]
+    efectiva = regla_efectiva(f["clase_tool"], zona, f["severidad"], REGLAS, EQUIVALENCIAS)
+    if efectiva is None:
+        return "—"
+    clase, severidad = efectiva
+    return ACCION_TEXTO.get(REGLAS[(clase, zona, severidad)], "—")
 
 
 def _motivos_pendiente(f: dict) -> str:
@@ -141,10 +165,19 @@ def _tabla_hallazgos(hallazgos: list[dict], con_motivo: bool = False) -> list[st
         return [NINGUNO]
     ultima = "Por qué está pendiente" if con_motivo else "Score"
     filas = [f"| ID | Pieza | Daño | Severidad | Reparación | {ultima} |", "|---|---|---|---|---|---|"]
-    for f in hallazgos:
-        final = _motivos_pendiente(f) if con_motivo else _decimal(f["score"])
-        filas.append(f"| {f['finding_id']} | {_pieza(f)} | {_clase(f)} | "
-                     f"{f['severidad'] or '—'} | {_reparacion(f)} | {final} |")
+    if con_motivo:
+        for f in hallazgos:
+            filas.append(f"| {f['finding_id']} | {_pieza(f)} | {_clase(f)} | "
+                         f"{f['severidad'] or '—'} | {_reparacion(f)} | {_motivos_pendiente(f)} |")
+    else:
+        # #54 AC-004: los confirmados con la misma pieza, dano, severidad y reparacion van en una sola fila.
+        grupos: dict[tuple, list[dict]] = {}
+        for f in hallazgos:
+            grupos.setdefault((_pieza(f), _clase(f), f["severidad"] or "—", _reparacion(f)), []).append(f)
+        for (pieza, clase, severidad, reparacion), iguales in grupos.items():
+            ids = ", ".join(f["finding_id"] for f in iguales)
+            scores = "; ".join(_decimal(f["score"]) for f in iguales)
+            filas.append(f"| {ids} | {pieza} | {clase} | {severidad} | {reparacion} | {scores} |")
     imagenes = " ".join(f"![{f['finding_id']}]({f['crop_image_path']})" for f in hallazgos if f.get("crop_image_path"))
     return filas + ([""] + [imagenes] if imagenes else [])
 
@@ -157,6 +190,46 @@ def _bloque_literal(texto: str) -> list[str]:
     racha = max((len(r) for r in re.findall(r"`+", texto)), default=0)
     valla = "`" * max(3, racha + 1)
     return [f"  {valla}text", *(f"  {linea}" for linea in texto.split("\n")), f"  {valla}"]
+
+
+def _linea_perdida_total(agente2: dict, cob_c: dict, cob_p: dict) -> str:
+    """Linea de perdida total del «Resumen». Con umbral 0 (polizas sin perdida total, P-TERC-*) no se escribe
+    «umbral 0 %», sino que no aplica (#54 AC-002)."""
+    venal = eur(agente2["valor_venal_eur"])
+    if not agente2["umbral_perdida_total"]:
+        return f"- Pérdida total (valor venal {venal}): no aplica, porque la póliza no fija un umbral de pérdida total."
+    return (f"- Pérdida total (valor venal {venal}, umbral {_porcentaje(agente2['umbral_perdida_total'])}): "
+            f"{_si_no(cob_c['perdida_total'])} con los confirmados; {_si_no(cob_p['perdida_total'])} incluyendo los pendientes.")
+
+
+def _detecciones(n: int) -> str:
+    return "1 detección requiere" if n == 1 else f"{n} detecciones requieren"
+
+
+def _resumen_revision(revision: list[dict], presupuestables: int) -> list[str]:
+    """Lineas del «Resumen» sobre lo que requiere revision humana (#54 AC-003); vacio si no hay nada, para
+    que el «Resumen» no cambie."""
+    if not revision:
+        return []
+    lineas = [f"- {_detecciones(len(revision))} revisión humana (ver «Detecciones no incluidas en el coste»)."]
+    if not presupuestables:
+        lineas.append("- Ningún hallazgo es presupuestable: el coste es 0,00 € porque todas las detecciones "
+                      "quedan fuera del coste.")
+    return lineas
+
+
+def _detecciones_fuera(fuera: list[dict], por_id: dict) -> list[str]:
+    """Los rechazados con su texto de siempre y, aparte, los que requieren revision humana (#54 AC-003)."""
+    if not fuera:
+        return [NINGUNO]
+    linea = lambda x: f"- {x['finding_id']} ({_clase(por_id[x['finding_id']])}): {MOTIVO_FUERA[x['motivo']]}."
+    otros = [linea(x) for x in fuera if x["motivo"] not in MOTIVOS_REVISION_HUMANA]
+    revision = [linea(x) for x in fuera if x["motivo"] in MOTIVOS_REVISION_HUMANA]
+    if not revision:
+        return otros
+    return otros + ([""] if otros else []) + [
+        "**Requieren revisión humana:** no se han podido presupuestar, pero no se han descartado como falso positivo.",
+        "", *revision]
 
 
 def _arrastres(escenarios: dict) -> list[dict]:
@@ -312,15 +385,16 @@ def generar_informe(agente1: dict, agente2: dict, hoy: str | None = None) -> str
         "",
         f"- **Fecha:** {hoy}",
         f"- **Vehículo:** {veh['marca']} {veh['modelo']}",
-        f"- **Taller:** {ctx['tipo_taller']} ({ctx['region']})",
+        f"- **Taller:** {TALLER_TEXTO.get(ctx['tipo_taller'], ctx['tipo_taller'])} ({ctx['region']})",
         f"- **Póliza:** {poliza}",
     ]
     if tercero:
         md.append("- **Perjudicado:** un tercero (reclamación por responsabilidad civil)")
     diagnostico = agente2.get("diagnostico_rag")
-    md += ["", f"> {AVISO_LEGAL}"]
+    md += ["", f"> {AVISO_LEGAL}", "", AVISO_PIIA1]
     if diagnostico and diagnostico["estado"] in ESTADOS_PRELIMINARES:
         md += ["", f"> **{AVISO_PRELIMINAR}**"]
+    revision = [x for x in fuera if x["motivo"] in MOTIVOS_REVISION_HUMANA]
     if any(j["estado"] != "generada" for j in agente2.get("justificaciones", [])):
         md += ["", f"> **{AVISO_JUSTIFICACION}**"]
     md += [
@@ -329,12 +403,12 @@ def generar_informe(agente1: dict, agente2: dict, hoy: str | None = None) -> str
         "",
         f"- {detecciones} detecciones de PIIA-1 frente a {len(agente1['findings'])} hallazgos analizados: "
         f"{len(confirmados)} confirmados, {len(pendientes)} pendientes de revisión y {len(fuera)} fuera del coste.",
+        *_resumen_revision(revision, presupuestables=len(confirmados) + len(pendientes)),
         f"- Coste **solo con los daños confirmados**: {eur(est_c['subtotal_sin_iva_eur'])} sin IVA "
         f"({eur(est_c['total_con_iva_eur'])} con IVA).",
         f"- Coste **incluyendo los pendientes**: {eur(est_p['subtotal_sin_iva_eur'])} sin IVA "
         f"({eur(est_p['total_con_iva_eur'])} con IVA).",
-        f"- Pérdida total (valor venal {eur(agente2['valor_venal_eur'])}, umbral {_porcentaje(agente2['umbral_perdida_total'])}): "
-        f"{_si_no(cob_c['perdida_total'])} con los confirmados; {_si_no(cob_p['perdida_total'])} incluyendo los pendientes.",
+        _linea_perdida_total(agente2, cob_c, cob_p),
         f"- Indemnización estimada: {eur(cob_c['indemnizacion_estimada_eur'])} con los confirmados; "
         f"{eur(cob_p['indemnizacion_estimada_eur'])} incluyendo los pendientes.",
         "",
@@ -350,8 +424,7 @@ def generar_informe(agente1: dict, agente2: dict, hoy: str | None = None) -> str
         "",
         "## Detecciones no incluidas en el coste",
         "",
-        *([f"- {x['finding_id']} ({_clase(por_id[x['finding_id']])}): {MOTIVO_FUERA[x['motivo']]}." for x in fuera]
-          or [NINGUNO]),
+        *_detecciones_fuera(fuera, por_id),
         "",
         "## Desglose del coste",
         "",

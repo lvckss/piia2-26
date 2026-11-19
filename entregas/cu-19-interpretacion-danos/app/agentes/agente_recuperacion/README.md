@@ -203,6 +203,44 @@ antes de ejecutarlo. Para el paquete fuera de las rutas por defecto:
 Los ejemplos nativos se han revisado, pero no ejecutado en Windows en esta
 entrega; la verificación de este incremento se ha realizado en Linux.
 
+## Justificación de la normativa con un LLM (#97)
+
+Decisión: [ADR 0009](../../../docs/adr/0009-justificacion-llm-normativa.md). Plan:
+[spec 97](../../../specs/97-justificacion-llm-normativa.md). Proveedor, clave, caché y gasto:
+[ADR 0003](../../../docs/adr/0003-proveedor-openai-clave-empresa.md).
+
+Para cada tema con pasajes en `normativa`, un LLM recibe **solo el tema y sus extractos**
+(nunca el cálculo ni el contexto) y redacta un texto breve con las citas literales en las que
+se apoya. El código comprueba la respuesta antes de aceptarla y la guarda en el campo nuevo
+`justificaciones` de la salida, que el Agente 3 muestra en «Fuentes consultadas». Las cifras no
+cambian.
+
+```python
+from justificacion_llm import justificar_normativa
+
+salida["justificaciones"] = justificar_normativa(
+    salida["normativa"], cliente=cliente, modelo=modelo,      # cliente=None si no hay OPENAI_API_KEY
+    cache_dir=cache, autorizado=autorizado, uso=uso)           # autorizado: la misma autorización de gasto que el RAG
+```
+
+- **`generada`:** `texto` y `citas` (`[{extracto, fuente}]`). Cada cita está literalmente en un
+  pasaje del mismo tema (tras normalizar espacios) y la `fuente` la pone el código.
+- **`descartada`:** con `motivo`, cuando la respuesta no pasa la comprobación: una cita que no
+  está en los pasajes, cualquier importe en euros en el texto (incluidos «1500EUR» o «euros 1500»)
+  o un texto que se presenta como validación («verific…», «valid…», «garantiz…»).
+- **`no_generada`:** con `motivo`, si falta el cliente o la autorización de gasto, si el
+  proveedor falla o tarda demasiado, o si la respuesta no tiene `texto` y `citas`. No lanza
+  excepciones; un error del propio código, como una entrada sin `tema`, sí se propaga.
+- Con `cache_dir`, la misma consulta no se vuelve a pagar, y lo que sale de la caché no necesita
+  cliente ni autorización. `uso` acumula las llamadas y los tokens pagados.
+- La llamada desde `agente2()` es la slice 2 de la #97 (Lucas).
+
+Desde esta carpeta, sin clave ni red (cliente falso):
+
+```bash
+python probar_justificacion.py   # spec 97: AC-001 a AC-005, AC-007 y la caché de AC-010
+```
+
 ## Costes y cobertura: uso y pruebas
 
 Spec: [`specs/30-costes-cobertura.md`](../../../specs/30-costes-cobertura.md).

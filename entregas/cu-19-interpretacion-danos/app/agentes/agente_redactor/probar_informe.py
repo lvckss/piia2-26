@@ -410,6 +410,89 @@ def probar_ac012_determinista_sin_clave_ni_red():
             os.environ["OPENAI_API_KEY"] = clave
 
 
+# --- Issue #88, slice 4 (Agente 3): equivalencias de reglas de coste ----------
+# Plan: specs/88-equivalencias-reglas-coste.md (AC-005 y AC-009); ADR 0008.
+def _agente2_real(a1: dict) -> dict:
+    """Salida del Agente 2 calculada con su codigo (agente_recuperacion/, slice 3 de la #88)."""
+    sys.path.insert(0, str(AQUI.parent / "agente_recuperacion"))
+    from costes_y_cobertura import estimar_siniestro
+    return estimar_siniestro(a1, _cargar("contexto_siniestro.json"))
+
+
+def _fila_por_id(seccion: str, finding_id: str) -> list[str]:
+    """Columnas de la fila de la tabla de una seccion cuyo ID es `finding_id`."""
+    for linea in seccion.splitlines():
+        celdas = [c.strip() for c in linea.strip().strip("|").split("|")]
+        if linea.startswith("|") and finding_id in [x.strip() for x in celdas[0].split(",")]:
+            return celdas
+    raise AssertionError(f"{finding_id} no aparece en la tabla:\n{seccion}")
+
+
+def _salida_1248_con_tabla() -> dict:
+    """001248 como la deja el Agente 1 con la tabla de equivalencias (AC-007): 1248-9, cristal roto en
+    PILOTO_TRAS_I, moderado, needs_review, pasa a `regla_coste_aplicable = true`."""
+    a1 = _cargar("agente1_real/001248.json")
+    nueve = next(f for f in a1["findings"] if f["finding_id"] == "1248-9")
+    nueve["regla_coste_aplicable"] = True
+    return a1
+
+
+def probar_88_ac005_reparacion_de_la_regla_efectiva_1248():
+    """specs/88-equivalencias-reglas-coste.md#AC-005: en el informe de la salida de AC-004, `1248-9` aparece
+    en «Daños pendientes de revisión» con la clase detectada y, en «Reparación», la accion de la regla
+    efectiva (optica rota -> «Sustituir la pieza»); no figura en «Detecciones no incluidas en el coste»; el
+    texto no habla de equivalencias ni de reglas propias; `comprobar_cifras == []`."""
+    a1 = _salida_1248_con_tabla()
+    a2 = _agente2_real(a1)
+    md = generar_informe(a1, a2, hoy=HOY)
+    s = _secciones(md)
+    fila = _fila_por_id(s["## Daños pendientes de revisión"], "1248-9")
+    assert fila[2] == "rotura de cristal", fila          # clase detectada, no la equivalente
+    assert fila[3] == "moderado", fila
+    assert fila[4] == "Sustituir la pieza", fila          # accion de lamp_broken/optica/moderado
+    assert "sin regla de coste" not in fila[5], fila
+    assert "1248-9" not in s["## Detecciones no incluidas en el coste"], s["## Detecciones no incluidas en el coste"]
+    assert "equivalen" not in md.lower() and "regla propia" not in md.lower(), "el informe no menciona equivalencias"
+    assert comprobar_cifras(md, a2) == [], comprobar_cifras(md, a2)
+
+
+def probar_88_ac005_grieta_de_neumatico_leve_con_severidad_minima():
+    """specs/88-equivalencias-reglas-coste.md#AC-005 (severidad minima): una grieta `leve` en el neumatico se
+    muestra como grieta y `leve`, pero su reparacion es la de `tire_flat` `moderado`
+    («Sustituir el neumático y alinear»), la que se ha presupuestado."""
+    a1 = {"image_id": 7, "resumen_filtro_previo": {"detecciones_totales": 1, "candidatas": 1, "descartadas_por_clase": {}},
+          "findings": [{"finding_id": "7-1", "category": "crack", "clase_tool": "crack", "score": 0.9,
+                        "score_tier": "confirmed", "confidence_tier": "needs_review", "bbox_xywh": [0, 0, 10, 10],
+                        "vision_verdict": "confirmado", "pieza_id": "NEUMATICO", "severidad": "leve",
+                        "regla_coste_aplicable": True, "vision_description": "Grieta en el flanco.",
+                        "crop_image_path": None}]}
+    a2 = _agente2_real(a1)
+    md = generar_informe(a1, a2, hoy=HOY)
+    fila = _fila_por_id(_secciones(md)["## Daños pendientes de revisión"], "7-1")
+    assert (fila[2], fila[3], fila[4]) == ("grieta", "leve", "Sustituir el neumático y alinear"), fila
+    assert comprobar_cifras(md, a2) == []
+
+
+def probar_88_ac009_informe_con_equivalencia_determinista_sin_clave_ni_red():
+    """specs/88-equivalencias-reglas-coste.md#AC-009: dos ejecuciones de `generar_informe` sobre una salida con
+    una equivalencia dan el mismo informe, sin clave ni red. Regresion: verde antes y despues."""
+    a1 = _salida_1248_con_tabla()
+    a2 = _agente2_real(a1)
+    clave = os.environ.pop("OPENAI_API_KEY", None)
+    socket_original = socket.socket
+
+    def _sin_red(*args, **kwargs):
+        raise AssertionError("intento de conexion de red")
+
+    socket.socket = _sin_red
+    try:
+        assert generar_informe(a1, a2, hoy=HOY) == generar_informe(a1, a2, hoy=HOY)
+    finally:
+        socket.socket = socket_original
+        if clave is not None:
+            os.environ["OPENAI_API_KEY"] = clave
+
+
 # --- Issue #97, slice 3 (Agente 3): justificaciones con LLM de la normativa ---
 # Plan: specs/97-justificacion-llm-normativa.md (AC-008, AC-009 y AC-010); ADR 0009.
 AVISO_JUSTIFICACION = ("Informe preliminar: no se ha podido redactar la justificación de algunas fuentes; "
@@ -621,6 +704,136 @@ def probar_ac015_sin_diagnostico_y_diagnostico_malformado():
     _espera_error_diagnostico(a1, x, "tema")
 
 
+# --- plan v1.1 de la #54, AC-003 y AC-011 -----------------------------------
+# https://github.com/lvckss/piia2-26/issues/54#issuecomment-6806386857 (AC-003, modificado)
+# https://github.com/lvckss/piia2-26/issues/54#issuecomment-6805208293 (AC-011)
+REAL = AQUI.parent / "ejemplos_contrato" / "agente1_real"
+
+
+def _agente2_real_con_vehiculo(salida_agente1: dict) -> dict:
+    """Salida real del Agente 2 para una salida del Agente 1, con el contexto del ejemplo y el coche de
+    referencia (o V14 con `desconocido`)."""
+    sys.path.insert(0, str(AQUI.parent / "agente_recuperacion"))
+    from costes_y_cobertura import estimar_siniestro
+
+    ctx = _cargar("contexto_siniestro.json")
+    ctx["vehiculo_id"] = salida_agente1["vehiculo"]["vehiculo_id_referencia"] or "V14"
+    return estimar_siniestro(salida_agente1, ctx)
+
+
+def probar_54_ac003_requieren_revision_humana():
+    """#54 AC-003: los hallazgos fuera del coste por `sin_pieza_o_severidad` o `sin_regla_de_coste` se listan
+    aparte bajo «Requieren revisión humana» con su finding_id y clase, y el «Resumen» dice cuántos son; los
+    rechazados conservan su texto; sin ninguno, el «Resumen» no cambia."""
+    a1, a2 = _ejemplos()
+    resumen_actual = _secciones(generar_informe(a1, a2, hoy=HOY))["## Resumen"]
+    assert "revisión humana" not in resumen_actual, resumen_actual
+    assert sum(l.startswith("- ") for l in resumen_actual.splitlines()) == 5, resumen_actual
+
+    x = copy.deepcopy(a2)
+    x["escenarios"]["con_pendientes"]["hallazgos_incluidos"] = ["160-1", "160-4"]
+    x["hallazgos_fuera_del_coste"] += [{"finding_id": "160-3", "motivo": "sin_pieza_o_severidad"},
+                                       {"finding_id": "160-5", "motivo": "sin_regla_de_coste"}]
+    md = generar_informe(a1, x, hoy=HOY)
+    s = _secciones(md)
+    fuera = s["## Detecciones no incluidas en el coste"]
+    lineas = fuera.splitlines()
+    i = next(n for n, l in enumerate(lineas) if "Requieren revisión humana" in l)
+    bloque = "\n".join(lineas[i:])
+    for fid, clase in (("160-3", "abolladura"), ("160-5", "arañazo")):
+        linea = next(l for l in bloque.splitlines() if fid in l)
+        assert clase in linea, linea
+    linea_2 = next(l for l in lineas if "160-2" in l)
+    assert lineas.index(linea_2) < i and "rechazado por la visión" in linea_2, fuera
+    assert "2 detecciones requieren revisión humana" in s["## Resumen"], s["## Resumen"]
+    encontrados = [l for l in md.splitlines() if l.startswith("# ") or l.startswith("## ")]
+    assert encontrados == ENCABEZADOS, encontrados
+    assert comprobar_cifras(md, x) == [], comprobar_cifras(md, x)
+
+
+def probar_54_ac003_sin_nada_presupuestable_003478():
+    """#54 AC-003: con todos los hallazgos fuera del coste y 0 € (el 003478 real), el «Resumen» dice que ningún
+    hallazgo es presupuestable y cuántas detecciones requieren revisión humana."""
+    a1 = json.loads((REAL / "003478.json").read_text(encoding="utf-8"))
+    a2 = _agente2_real_con_vehiculo(a1)
+    assert a2["escenarios"]["con_pendientes"]["hallazgos_incluidos"] == []
+    md = generar_informe(a1, a2, hoy=HOY)
+    resumen = _secciones(md)["## Resumen"]
+    assert "Ningún hallazgo es presupuestable" in resumen, resumen
+    assert "1 detección requiere revisión humana" in resumen, resumen
+    assert "3478-4" in _secciones(md)["## Detecciones no incluidas en el coste"]
+    encontrados = [l for l in md.splitlines() if l.startswith("# ") or l.startswith("## ")]
+    assert encontrados == [ENCABEZADOS[0].replace("160", "3478")] + ENCABEZADOS[1:], encontrados
+    assert comprobar_cifras(md, a2) == [], comprobar_cifras(md, a2)
+
+
+def probar_54_ac011_aviso_de_lo_que_detecta_piia1():
+    """#54 AC-011: el informe incluye, aparte del aviso literal de la cabecera, una línea que dice que solo se
+    analizan los daños detectados por PIIA 1 y que puede haber otros (el ejemplo y el 000423 real)."""
+    a1, a2 = _ejemplos()
+    real = json.loads((REAL / "000423.json").read_text(encoding="utf-8"))
+    for salida1, salida2 in ((a1, a2), (real, _agente2_real_con_vehiculo(real))):
+        md = generar_informe(salida1, salida2, hoy=HOY)
+        cabecera = _secciones(md)[next(l for l in md.splitlines() if l.startswith("# "))]
+        assert AVISO_LEGAL in cabecera, cabecera
+        linea = next((l for l in cabecera.splitlines() if "PIIA 1" in l), "")
+        assert linea and AVISO_LEGAL not in linea and "puede haber otros" in linea, cabecera
+        encontrados = [l for l in md.splitlines() if l.startswith("# ") or l.startswith("## ")]
+        assert encontrados[1:] == ENCABEZADOS[1:], encontrados
+        assert comprobar_cifras(md, salida2) == [], comprobar_cifras(md, salida2)
+
+
+# --- plan v1 de la #54, AC-001, AC-002 y AC-004 ------------------------------
+# https://github.com/lvckss/piia2-26/issues/54#issuecomment-6805208293
+def probar_54_ac001_taller_legible():
+    """#54 AC-001: con `concertado_aseguradora` la cabecera muestra un nombre legible y ningun valor con guion
+    bajo; con `multimarca`, `oficial` y `concesionario` la cabecera es identica a la actual."""
+    a1, a2 = _ejemplos()
+    for taller in ("multimarca", "oficial", "concesionario"):
+        x = copy.deepcopy(a2)
+        x["contexto"]["tipo_taller"] = taller
+        cabecera = _secciones(generar_informe(a1, x, hoy=HOY))[ENCABEZADOS[0]]
+        assert f"- **Taller:** {taller} (Madrid)" in cabecera, cabecera
+    x = copy.deepcopy(a2)
+    x["contexto"]["tipo_taller"] = "concertado_aseguradora"
+    cabecera = _secciones(generar_informe(a1, x, hoy=HOY))[ENCABEZADOS[0]]
+    linea = next(l for l in cabecera.splitlines() if l.startswith("- **Taller:**"))
+    assert "_" not in cabecera and "concertado con la aseguradora" in linea, cabecera
+
+
+def probar_54_ac002_umbral_cero_no_aplica():
+    """#54 AC-002: con `umbral_perdida_total = 0.0` (polizas P-TERC-*) el «Resumen» no dice «umbral 0 %» e
+    indica que no aplica; con 0.75 el texto es el de siempre."""
+    a1, a2 = _ejemplos()
+    resumen = _secciones(generar_informe(a1, a2, hoy=HOY))["## Resumen"]
+    assert "umbral 75 %" in resumen, resumen
+    x = copy.deepcopy(a2)
+    x["umbral_perdida_total"] = 0.0
+    md = generar_informe(a1, x, hoy=HOY)
+    resumen = _secciones(md)["## Resumen"]
+    linea = next(l for l in resumen.splitlines() if "Pérdida total" in l)
+    assert "umbral 0 %" not in resumen and "no aplica" in linea, linea
+    assert comprobar_cifras(md, x) == [], comprobar_cifras(md, x)
+
+
+def probar_54_ac004_hallazgos_iguales_en_una_fila_000341():
+    """#54 AC-004: en el 000341 real, los confirmados con la misma pieza, dano, severidad y reparacion
+    (`341-1` y `341-2`, cristal roto grave del parabrisas) van en una sola fila con sus finding_id y scores;
+    cada finding_id aparece y los importes no cambian."""
+    a1 = json.loads((REAL / "000341.json").read_text(encoding="utf-8"))
+    a2 = _agente2_real(a1)
+    md = generar_informe(a1, a2, hoy=HOY)
+    tabla = [l for l in _secciones(md)["## Daños confirmados"].splitlines() if l.startswith("| 341-")]
+    fila = next(l for l in tabla if "341-1" in l)
+    assert "341-2" in fila and "0,96" in fila and "0,95" in fila, fila
+    assert len(tabla) == 3, tabla
+    for fid in ("341-1", "341-2", "341-3", "341-4"):
+        assert any(fid in l for l in tabla), fid
+    for esc in ("confirmados", "con_pendientes"):
+        assert informe.eur(a2["escenarios"][esc]["estimacion"]["total_con_iva_eur"]) in md, esc
+    assert comprobar_cifras(md, a2) == [], comprobar_cifras(md, a2)
+
+
 PRUEBAS = [
     probar_ac001_encabezados_cabecera_y_resumen,
     probar_ac002_confirmados_pendientes_y_no_incluidos,
@@ -639,6 +852,15 @@ PRUEBAS = [
     probar_ac012_determinista_sin_clave_ni_red,
     probar_ac014_diagnostico_en_sus_cinco_estados,
     probar_ac015_sin_diagnostico_y_diagnostico_malformado,
+    probar_54_ac003_requieren_revision_humana,
+    probar_54_ac003_sin_nada_presupuestable_003478,
+    probar_54_ac011_aviso_de_lo_que_detecta_piia1,
+    probar_88_ac005_reparacion_de_la_regla_efectiva_1248,
+    probar_88_ac005_grieta_de_neumatico_leve_con_severidad_minima,
+    probar_88_ac009_informe_con_equivalencia_determinista_sin_clave_ni_red,
+    probar_54_ac001_taller_legible,
+    probar_54_ac002_umbral_cero_no_aplica,
+    probar_54_ac004_hallazgos_iguales_en_una_fila_000341,
     probar_97_ac008_justificaciones_con_sus_citas,
     probar_97_ac009_justificacion_no_generada_da_informe_preliminar,
     probar_97_ac009_sin_justificaciones_el_informe_no_cambia,

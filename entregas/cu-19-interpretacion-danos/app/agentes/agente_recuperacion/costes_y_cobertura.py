@@ -7,6 +7,8 @@ estimada. Todo es determinista: no usa ningun modelo de lenguaje ni red.
 Plan: entregas/cu-19-interpretacion-danos/specs/30-costes-cobertura.md
 Contrato de entrada y salida: ADR 0002 y app/agentes/ejemplos_contrato/.
 Herramienta y datos de la empresa: ADR 0004 (piia2_paquete_datos/, fuera de git).
+Equivalencias de reglas de coste: ADR 0008 y specs/88-equivalencias-reglas-coste.md
+(un dano sin regla propia se presupuesta con la regla de su equivalente).
 """
 
 from __future__ import annotations
@@ -33,6 +35,10 @@ if not (PAQUETE / "scripts" / "estimar_coste.py").is_file():
 sys.path.insert(0, str(PAQUETE / "scripts"))
 from estimar_coste import estimar_coste, valor_venal  # noqa: E402
 
+# Equivalencias de reglas de coste (#88, ADR 0008): modulo comun de app/agentes/comun, sin paquete Python.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "comun"))
+from equivalencias import cargar_equivalencias, regla_efectiva  # noqa: E402
+
 
 def _leer_csv(nombre: str, clave: str) -> dict[str, dict]:
     with open(PAQUETE / "data" / nombre, encoding="utf-8") as f:
@@ -42,6 +48,12 @@ def _leer_csv(nombre: str, clave: str) -> dict[str, dict]:
 POLIZAS = _leer_csv("polizas.csv", "poliza_id")
 PIEZAS = _leer_csv("piezas.csv", "pieza_id")
 VEHICULOS = _leer_csv("vehiculos.csv", "vehiculo_id")
+
+# (clase_cardd, zona_tipo, severidad) de reglas_dano.csv y tabla de equivalencias:
+# una combinacion sin regla propia se presupuesta con la de su equivalente (ADR 0008).
+with open(PAQUETE / "data" / "reglas_dano.csv", encoding="utf-8") as _f:
+    REGLAS = frozenset((r["clase_cardd"], r["zona_tipo"], r["severidad"]) for r in csv.DictReader(_f))
+EQUIVALENCIAS = cargar_equivalencias()
 
 ROLES = ("propio", "tercero_perjudicado")
 CAMPOS_OBLIGATORIOS = ("vehiculo_id", "region", "tipo_taller", "acabado", "tipo_pieza", "rol", "edad_anios", "km")
@@ -97,8 +109,20 @@ def clasificar_hallazgos(findings: list[dict]) -> tuple[list[dict], list[dict], 
     return confirmados, pendientes, fuera
 
 
+def _dano(f: dict) -> dict:
+    """Dano para `estimar_coste` con la clase y la severidad efectivas
+    (specs/88-equivalencias-reglas-coste.md#AC-004): con regla propia, las del
+    hallazgo; sin ella pero con equivalencia, las de la regla equivalente. El
+    hallazgo no se modifica. Sin regla ni equivalencia se pasa tal cual y la
+    herramienta lo deja en un aviso, como antes."""
+    efectiva = regla_efectiva(f["clase_tool"], PIEZAS[f["pieza_id"]]["zona_tipo"], f["severidad"],
+                              REGLAS, EQUIVALENCIAS)
+    clase, severidad = efectiva or (f["clase_tool"], f["severidad"])
+    return {"clase": clase, "pieza_id": f["pieza_id"], "severidad": severidad}
+
+
 def _danos(hallazgos: list[dict]) -> list[dict]:
-    return [{"clase": f["clase_tool"], "pieza_id": f["pieza_id"], "severidad": f["severidad"]} for f in hallazgos]
+    return [_dano(f) for f in hallazgos]
 
 
 def umbral_perdida_total(contexto: dict) -> float:
