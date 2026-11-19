@@ -237,6 +237,32 @@ class Agente2Tests(unittest.TestCase):
         self.assertEqual(cliente.mensajes, [])
         self.assertEqual(resultado["justificaciones"], [])
 
+    def test_spec32_ac008_conserva_resultados_buenos_si_otro_tema_falla(self):
+        """AC-008: una RagError no elimina las citas recuperadas por otro tema."""
+        from normativa_rag import RagError
+
+        contexto = {"rol": "propio", "poliza_id": "POLIZA-1"}
+        a1 = {"image_id": 7, "findings": [_hallazgo("F1", "PUERTA_DEL_I"),
+                                           _hallazgo("F2", "PARABRISAS")]}
+        base = _base(contexto, _escenario(["F1"], "Daños propios por colisión"),
+                      _escenario(["F2"], "Cobertura de lunas"))
+
+        def buscar(tema, *, k, poliza_id):
+            if "cristal" in tema.lower():
+                raise RagError("INDICE_NO_PREPARADO", "El índice no está preparado", stage="busqueda")
+            return [{"tema": tema, "extracto": "Cláusula literal de colisión.",
+                     "fuente": "polizas/POLIZA-1.md#colision"}]
+
+        resultado, cliente, _, _ = self._llamar(base, a1, contexto, buscar)
+        diagnostico = resultado["diagnostico_rag"]
+        self.assertEqual(diagnostico["estado"], "parcial")
+        self.assertEqual(len(resultado["normativa"]), 1)
+        self.assertEqual(resultado["normativa"][0]["extracto"], "Cláusula literal de colisión.")
+        self.assertEqual([consulta["estado"] for consulta in diagnostico["consultas"]],
+                         ["recuperadas", "error"])
+        self.assertEqual(diagnostico["consultas"][1]["incidencias"][0]["codigo"], "INDICE_NO_PREPARADO")
+        self.assertEqual(len(cliente.mensajes), 1)
+
     def test_spec32_ac007_error_inesperado_de_costes_se_propaga_sin_buscar(self):
         """AC-007: no se oculta un error inesperado de costes ni se inicia el RAG."""
         agente2 = self._modulo()
