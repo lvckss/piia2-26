@@ -109,6 +109,36 @@ class Agente2Tests(unittest.TestCase):
                     )
         return resultado, cliente, coste, rag
 
+    def test_spec32_ac006_integracion_costes_reales_preserva_importes_del_ejemplo(self):
+        """AC-006: con el ejemplo de contrato, costes reales y RAG simulado, no cambian cifras ni escenarios."""
+        from costes_y_cobertura import estimar_siniestro
+        from probar_costes import _ejemplos
+
+        agente2 = self._modulo()
+        a1, contexto, _ = _ejemplos()
+        entradas_antes = copy.deepcopy((a1, contexto))
+        costes = estimar_siniestro(a1, contexto)
+        cliente = ClienteFalso()
+
+        def buscar(tema, *, k, poliza_id):
+            return [{"tema": tema, "extracto": f"Cláusula literal de {tema}.",
+                     "fuente": "polizas/P-TR-FR300.md#2"}]
+
+        with tempfile.TemporaryDirectory() as cache:
+            with patch.object(agente2, "buscar_normativa", side_effect=buscar):
+                resultado = agente2.agente2(
+                    a1, contexto, cliente=cliente, modelo="modelo-falso", autorizado=False,
+                    cache_dir=cache,
+                )
+
+        for campo, valor in costes.items():
+            if campo != "normativa":
+                self.assertEqual(resultado[campo], valor, f"AC-006: cambió el resultado real {campo}")
+        self.assertTrue(resultado["normativa"])
+        self.assertEqual(resultado["diagnostico_rag"]["estado"], "recuperadas")
+        self.assertEqual(cliente.mensajes, [], "sin autorización no debe llamar al LLM")
+        self.assertEqual((a1, contexto), entradas_antes, "AC-006: se mutaron entradas")
+
     def test_spec32_ac006_spec97_ac006_conserva_salida_y_no_justifica_tema_vacio(self):
         """AC-006: tres temas RAG, uno vacío; no altera cálculo/entradas y no llama al LLM sin pasajes."""
         contexto = {"rol": "propio", "poliza_id": "POLIZA-1"}
