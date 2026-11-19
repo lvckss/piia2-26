@@ -7,12 +7,14 @@ ninguna se calcula ni se escribe a mano, y no se usa ningun modelo de lenguaje.
 Plan: entregas/cu-19-interpretacion-danos/specs/31-informe-peritaje.md
 Contrato de entrada: ADR 0002 y app/agentes/ejemplos_contrato/.
 Catalogo de la empresa: piia2_paquete_datos/ (fuera de git).
+Equivalencias de reglas de coste: ADR 0008 y specs/88-equivalencias-reglas-coste.md.
 """
 
 from __future__ import annotations
 
 import csv
 import re
+import sys
 from datetime import date
 from pathlib import Path
 
@@ -43,6 +45,13 @@ VEHICULOS = _leer_csv("vehiculos.csv", "vehiculo_id")
 POLIZAS = _leer_csv("polizas.csv", "poliza_id")
 with open(DATA / "reglas_dano.csv", encoding="utf-8") as _f:
     REGLAS = {(r["clase_cardd"], r["zona_tipo"], r["severidad"]): r["accion"] for r in csv.DictReader(_f)}
+
+# Equivalencias de reglas de coste (#88, ADR 0008): la reparacion que se muestra es la de la regla con la
+# que el Agente 2 ha presupuestado el dano. Modulo comun de app/agentes/comun, sin paquete Python.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "comun"))
+from equivalencias import cargar_equivalencias, regla_efectiva  # noqa: E402
+
+EQUIVALENCIAS = cargar_equivalencias()
 
 AVISO_LEGAL = ("Informe generado automáticamente con datos sintéticos de prototipo. Las cifras son "
                "orientativas y no vinculantes, y no sustituyen a una valoración pericial.")
@@ -119,10 +128,16 @@ def _pieza(f: dict) -> str:
 
 
 def _reparacion(f: dict) -> str:
+    """Accion de la regla efectiva (specs/88-equivalencias-reglas-coste.md#AC-005): la propia del dano o,
+    si no la tiene, la de su equivalente. El informe no menciona la equivalencia."""
     if not f["pieza_id"] or not f["severidad"]:
         return "—"
-    accion = REGLAS.get((f["clase_tool"], PIEZAS[f["pieza_id"]]["zona_tipo"], f["severidad"]))
-    return ACCION_TEXTO.get(accion, "—")
+    zona = PIEZAS[f["pieza_id"]]["zona_tipo"]
+    efectiva = regla_efectiva(f["clase_tool"], zona, f["severidad"], REGLAS, EQUIVALENCIAS)
+    if efectiva is None:
+        return "—"
+    clase, severidad = efectiva
+    return ACCION_TEXTO.get(REGLAS[(clase, zona, severidad)], "—")
 
 
 def _motivos_pendiente(f: dict) -> str:
