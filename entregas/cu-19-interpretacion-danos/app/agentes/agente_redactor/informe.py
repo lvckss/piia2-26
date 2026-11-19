@@ -88,6 +88,12 @@ CONCEPTOS = [
     ("Materiales de pintura", "materiales_pintura"), ("Otros", "otros"),
 ]
 NINGUNO = "_Ninguno._"
+# Issue #54, slice 2 (plan v1.1): https://github.com/lvckss/piia2-26/issues/54#issuecomment-6806386857
+# AC-011: el sistema solo juzga lo que detecta PIIA 1; se dice aparte del aviso legal de la cabecera.
+AVISO_PIIA1 = ("Solo se analizan los daños que ha detectado PIIA 1 en la foto; puede haber otros que no "
+               "aparezcan en este informe.")
+# AC-003: hallazgos fuera del coste que no son falsos positivos y que una persona debe revisar.
+MOTIVOS_REVISION_HUMANA = ("sin_pieza_o_severidad", "sin_regla_de_coste")
 
 
 def eur(x: float) -> str:
@@ -163,6 +169,36 @@ def _bloque_literal(texto: str) -> list[str]:
     racha = max((len(r) for r in re.findall(r"`+", texto)), default=0)
     valla = "`" * max(3, racha + 1)
     return [f"  {valla}text", *(f"  {linea}" for linea in texto.split("\n")), f"  {valla}"]
+
+
+def _detecciones(n: int) -> str:
+    return "1 detección requiere" if n == 1 else f"{n} detecciones requieren"
+
+
+def _resumen_revision(revision: list[dict], presupuestables: int) -> list[str]:
+    """Lineas del «Resumen» sobre lo que requiere revision humana (#54 AC-003); vacio si no hay nada, para
+    que el «Resumen» no cambie."""
+    if not revision:
+        return []
+    lineas = [f"- {_detecciones(len(revision))} revisión humana (ver «Detecciones no incluidas en el coste»)."]
+    if not presupuestables:
+        lineas.append("- Ningún hallazgo es presupuestable: el coste es 0,00 € porque todas las detecciones "
+                      "quedan fuera del coste.")
+    return lineas
+
+
+def _detecciones_fuera(fuera: list[dict], por_id: dict) -> list[str]:
+    """Los rechazados con su texto de siempre y, aparte, los que requieren revision humana (#54 AC-003)."""
+    if not fuera:
+        return [NINGUNO]
+    linea = lambda x: f"- {x['finding_id']} ({_clase(por_id[x['finding_id']])}): {MOTIVO_FUERA[x['motivo']]}."
+    otros = [linea(x) for x in fuera if x["motivo"] not in MOTIVOS_REVISION_HUMANA]
+    revision = [linea(x) for x in fuera if x["motivo"] in MOTIVOS_REVISION_HUMANA]
+    if not revision:
+        return otros
+    return otros + ([""] if otros else []) + [
+        "**Requieren revisión humana:** no se han podido presupuestar, pero no se han descartado como falso positivo.",
+        "", *revision]
 
 
 def _arrastres(escenarios: dict) -> list[dict]:
@@ -270,15 +306,17 @@ def generar_informe(agente1: dict, agente2: dict, hoy: str | None = None) -> str
     if tercero:
         md.append("- **Perjudicado:** un tercero (reclamación por responsabilidad civil)")
     diagnostico = agente2.get("diagnostico_rag")
-    md += ["", f"> {AVISO_LEGAL}"]
+    md += ["", f"> {AVISO_LEGAL}", "", AVISO_PIIA1]
     if diagnostico and diagnostico["estado"] in ESTADOS_PRELIMINARES:
         md += ["", f"> **{AVISO_PRELIMINAR}**"]
+    revision = [x for x in fuera if x["motivo"] in MOTIVOS_REVISION_HUMANA]
     md += [
         "",
         "## Resumen",
         "",
         f"- {detecciones} detecciones de PIIA-1 frente a {len(agente1['findings'])} hallazgos analizados: "
         f"{len(confirmados)} confirmados, {len(pendientes)} pendientes de revisión y {len(fuera)} fuera del coste.",
+        *_resumen_revision(revision, presupuestables=len(confirmados) + len(pendientes)),
         f"- Coste **solo con los daños confirmados**: {eur(est_c['subtotal_sin_iva_eur'])} sin IVA "
         f"({eur(est_c['total_con_iva_eur'])} con IVA).",
         f"- Coste **incluyendo los pendientes**: {eur(est_p['subtotal_sin_iva_eur'])} sin IVA "
@@ -300,8 +338,7 @@ def generar_informe(agente1: dict, agente2: dict, hoy: str | None = None) -> str
         "",
         "## Detecciones no incluidas en el coste",
         "",
-        *([f"- {x['finding_id']} ({_clase(por_id[x['finding_id']])}): {MOTIVO_FUERA[x['motivo']]}." for x in fuera]
-          or [NINGUNO]),
+        *_detecciones_fuera(fuera, por_id),
         "",
         "## Desglose del coste",
         "",
