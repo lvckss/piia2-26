@@ -118,6 +118,50 @@ def probar_97_ac002_cita_con_espacios_distintos_es_literal():
     assert j["estado"] == "generada", j
 
 
+ART7 = ("Artículo 7. Obligaciones del asegurador y del perjudicado.\n1. El asegurador, dentro del ámbito del "
+        "aseguramiento obligatorio y con cargo al seguro de suscripción obligatoria, habrá de satisfacer al "
+        "perjudicado el importe de los daños sufridos en su persona y en sus bienes.")
+TEMA_LEGAL = "Responsabilidad civil obligatoria de terceros perjudicados: legislación"
+LEGAL = [{"tema": TEMA_LEGAL, "extracto": ART7, "fuente": "docs/legal/BOE-A-2004-18911.txt#seccion-9-ventana-0"}]
+
+
+def _legal(cita: str):
+    """Justificacion del tema legal con una sola cita, para probar la comparacion de citas."""
+    respuesta = {"texto": "El asegurador debe satisfacer al perjudicado los daños.", "citas": [cita]}
+    return _justificar(ClienteFalso({TEMA_LEGAL: respuesta}), normativa=LEGAL)[0]
+
+
+def probar_97_ac002_cita_con_otra_mayuscula_es_literal():
+    """AC-002 (v1.2, sin distinguir mayusculas): el modelo cita «el asegurador, dentro del…» con minuscula y
+    el pasaje dice «El asegurador, dentro del…»; se acepta y la cita guardada es el texto literal del pasaje."""
+    j = _legal("el asegurador, dentro del ámbito del aseguramiento obligatorio")
+    assert j["estado"] == "generada", j
+    assert j["citas"] == [{"extracto": "El asegurador, dentro del ámbito del aseguramiento obligatorio",
+                           "fuente": LEGAL[0]["fuente"]}], j
+
+
+def probar_97_ac002_cita_sin_enfasis_markdown_es_literal():
+    """AC-002 (v1.2, sin marcas de enfasis): el pasaje de la poliza dice «**Rotura de lunas** (parabrisas…)» y el
+    modelo cita «Rotura de lunas (parabrisas…)» sin los asteriscos; se acepta y se guarda el texto literal."""
+    normativa = [{"tema": "rotura de lunas", "extracto": LUNAS, "fuente": f"{FR300}#2. Coberturas incluidas"}]
+    respuesta = {"texto": "La póliza cubre la rotura de lunas.",
+                 "citas": ["Rotura de lunas (parabrisas, lunas laterales y luneta)"]}
+    j = _justificar(ClienteFalso({"rotura de lunas": respuesta}), normativa=normativa)[0]
+    assert j["estado"] == "generada", j
+    assert j["citas"][0]["extracto"] == "Rotura de lunas** (parabrisas, lunas laterales y luneta)", j
+    assert j["citas"][0]["extracto"] in LUNAS, "la cita guardada debe estar tal cual en el pasaje"
+
+
+def probar_97_ac002_otra_mayuscula_no_acepta_otras_palabras():
+    """AC-002 (v1.2): ignorar mayusculas y asteriscos no afloja el resto: una palabra distinta, una cita
+    que solo tiene asteriscos o un fragmento que no esta siguen `descartada`."""
+    for mala in ("el asegurador, fuera del ámbito del aseguramiento obligatorio", "***", "  ** **  ",
+                 "el asegurador cubre todo"):
+        j = _legal(mala)
+        assert j["estado"] == "descartada", (mala, j)
+        assert "cita" in j["motivo"].lower(), j
+
+
 # --- specs/97-justificacion-llm-normativa.md#AC-003 --------------------------
 def probar_97_ac003_texto_con_importes_se_descarta():
     """AC-003: con pasajes que contienen «1500 EUR» (limite de lunas, ausente del calculo) y «300 EUR»,
@@ -249,6 +293,9 @@ PRUEBAS = [
     probar_97_ac001_justificacion_generada_con_fuente_del_codigo,
     probar_97_ac002_cita_no_literal_se_descarta,
     probar_97_ac002_cita_con_espacios_distintos_es_literal,
+    probar_97_ac002_cita_con_otra_mayuscula_es_literal,
+    probar_97_ac002_cita_sin_enfasis_markdown_es_literal,
+    probar_97_ac002_otra_mayuscula_no_acepta_otras_palabras,
     probar_97_ac003_texto_con_importes_se_descarta,
     probar_97_ac004_terminos_de_validacion_se_descartan,
     probar_97_ac005_sin_clave_o_sin_autorizacion_no_llama,
