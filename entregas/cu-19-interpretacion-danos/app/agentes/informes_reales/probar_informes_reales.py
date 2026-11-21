@@ -171,6 +171,49 @@ def probar_ac004_entrada_inexistente_o_vacia():
         assert r.returncode != 0 and "no_existe" in r.stderr, (r.returncode, r.stderr[-300:])
 
 
+def probar_ac004_omite_archivos_que_no_son_salidas():
+    """AC-004 (entrada): un `*.json` que no es una salida del Agente 1, como el
+    `resumen_lote.json` de la carpeta de las 500, se omite sin romper la generacion;
+    si no queda ninguna salida, es el error de carpeta vacia."""
+    resumen_lote = json.dumps({"imagenes": 500, "manifest_sha256": "x"})
+    with tempfile.TemporaryDirectory() as tmp:
+        salidas, destino = Path(tmp) / "salidas", Path(tmp) / "destino"
+        salidas.mkdir()
+        shutil.copy(REALES / "000082.json", salidas / "000082.json")
+        (salidas / "resumen_lote.json").write_text(resumen_lote, encoding="utf-8")
+        codigo = generar_informes_reales.generar(salidas, destino, hoy=HOY)
+        assert codigo == 0, codigo
+        assert sorted(p.name for p in destino.glob("*.md")) == ["000082.md", "resumen.md"]
+        assert len(_filas_resumen(destino)) == 1, _filas_resumen(destino)
+
+        solo_resumen = Path(tmp) / "solo_resumen"
+        solo_resumen.mkdir()
+        (solo_resumen / "resumen_lote.json").write_text(resumen_lote, encoding="utf-8")
+        try:
+            generar_informes_reales.generar(solo_resumen, Path(tmp) / "otro", hoy=HOY)
+        except ValueError as error:
+            assert str(solo_resumen) in str(error), error
+        else:
+            raise AssertionError("una carpeta sin salidas del Agente 1 debe dar error")
+
+
+def probar_ac004_salida_sin_vehiculo_no_detiene_los_demas():
+    """AC-004: una salida anterior a la #28, sin el campo `vehiculo`, queda en el resumen con su error y
+    no impide generar las demas; el codigo de salida es distinto de 0."""
+    with tempfile.TemporaryDirectory() as tmp:
+        salidas, destino = Path(tmp) / "salidas", Path(tmp) / "destino"
+        salidas.mkdir()
+        shutil.copy(REALES / "000082.json", salidas / "000082.json")
+        antigua = json.loads((REALES / "000341.json").read_text(encoding="utf-8"))
+        del antigua["vehiculo"]
+        (salidas / "000341.json").write_text(json.dumps(antigua), encoding="utf-8")
+        codigo = generar_informes_reales.generar(salidas, destino, hoy=HOY)
+        assert codigo != 0, codigo
+        assert (destino / "000082.md").is_file() and not (destino / "000341.md").exists()
+        fila = next(f for f in _filas_resumen(destino) if f.startswith("| 000341 "))
+        assert "vehiculo" in fila, fila
+
+
 def probar_ac004_regenerar_retira_el_informe_que_ahora_falla():
     """AC-004: si un caso tenia informe y al regenerar en la misma carpeta falla,
     su informe anterior se retira para que no parezca un resultado valido."""
@@ -247,6 +290,8 @@ PRUEBAS = [
     probar_ac004_contexto_invalido_no_detiene_los_demas,
     probar_ac004_entrada_inexistente_o_vacia,
     probar_ac004_regenerar_retira_el_informe_que_ahora_falla,
+    probar_ac004_omite_archivos_que_no_son_salidas,
+    probar_ac004_salida_sin_vehiculo_no_detiene_los_demas,
     probar_ac004_paquete_ausente,
     probar_ac005_reproducible_sin_clave_ni_red,
 ]
