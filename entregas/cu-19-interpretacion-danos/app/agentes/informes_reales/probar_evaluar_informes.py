@@ -191,6 +191,31 @@ def probar_ac001_entrada_inexistente_o_vacia():
             assert str(carpeta) in r.stderr, r.stderr[-300:]
 
 
+def probar_ac001_json_que_no_es_una_salida_se_omite():
+    """AC-001: un `*.json` que no es una salida del Agente 1 (como el
+    `resumen_lote.json` que escribe `generar_lote.py`) se omite, como en
+    `generar()`; si solo hay de esos, error de carpeta vacia con codigo 2."""
+    import shutil
+
+    resumen = json.dumps({"imagenes": 30, "manifest_sha256": "x"})
+    with tempfile.TemporaryDirectory() as tmp:
+        salidas, destino = Path(tmp) / "salidas", Path(tmp) / "out"
+        shutil.copytree(REALES, salidas)
+        (salidas / "resumen_lote.json").write_text(resumen, encoding="utf-8")
+        codigo = evaluar_informes.evaluar(salidas, destino, hoy=HOY)
+        assert codigo == 0, codigo
+        assert len(list(destino.glob("0*.md"))) == 30
+        assert "Salidas del Agente 1: 30" in (destino / "resumen_evaluacion.md").read_text(encoding="utf-8")
+
+        solo = Path(tmp) / "solo_resumen"
+        solo.mkdir()
+        (solo / "resumen_lote.json").write_text(resumen, encoding="utf-8")
+        r = subprocess.run([sys.executable, "evaluar_informes.py", "--salidas", str(solo),
+                            "--destino", str(Path(tmp) / "out2")], cwd=AQUI, capture_output=True, text=True)
+        assert r.returncode == 2, (r.returncode, r.stderr[-300:])
+        assert str(solo) in r.stderr, r.stderr[-300:]
+
+
 # --- plan #46, AC-007 (comando) -----------------------------------------------
 def probar_ac007_comando_documentado():
     """AC-007: el comando del README genera la evaluacion de las 30 en una
@@ -246,6 +271,7 @@ PRUEBAS = [
     probar_ac002_repeticion_senala_los_informes_que_cambian,
     probar_ac001_un_error_se_registra_y_no_detiene_a_los_demas,
     probar_ac001_entrada_inexistente_o_vacia,
+    probar_ac001_json_que_no_es_una_salida_se_omite,
     probar_ac007_comando_documentado,
     probar_ac007_modo_completo_sin_agente2_da_error_claro,
     probar_ac007_modo_completo_usa_el_agente2_de_la_composicion,

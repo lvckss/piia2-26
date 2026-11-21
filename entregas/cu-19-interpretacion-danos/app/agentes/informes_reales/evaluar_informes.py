@@ -167,12 +167,14 @@ def evaluar(salidas_dir, destino, hoy: str = FECHA_POR_DEFECTO, semilla: int = 8
     con un error del Agente 2 o del 3 se registra con su causa y no detiene a los
     demás. Devuelve 1 si hubo errores o cifras ajenas al Agente 2, y 0 si no."""
     agente2 = agente2 or estimar_siniestro
-    archivos = sorted(Path(salidas_dir).glob("*.json"))
-    if not archivos:
+    # Un *.json que no es una salida del Agente 1 (sin `findings`, como el resumen_lote.json que escribe
+    # generar_lote.py) se omite, igual que en generar_informes_reales.generar().
+    leidos = [json.loads(p.read_text(encoding="utf-8")) for p in sorted(Path(salidas_dir).glob("*.json"))]
+    salidas = [d for d in leidos if isinstance(d, dict) and "findings" in d]
+    if not salidas:
         raise ValueError(f"no hay salidas del Agente 1 (*.json) en {salidas_dir}: la carpeta no existe o está vacía")
     destino = Path(destino)
     destino.mkdir(parents=True, exist_ok=True)
-    salidas = [json.loads(p.read_text(encoding="utf-8")) for p in archivos]
     casos = preparar_casos(salidas, leer_siniestros(), semilla)
 
     filas, resumenes, errores, cambian = [], [], [], []

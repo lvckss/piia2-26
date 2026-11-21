@@ -64,10 +64,15 @@ python probar_evaluar_informes.py                     # pruebas de la Parte 1
 ```
 
 - **Sin `--completo`** solo se calculan los costes: el RAG y las justificaciones constan
-  como «no disponible», no como cero. **Con `--completo`** se usa `agente2()` de la #32
-  y hace falta PostgreSQL con el índice y, para las justificaciones, la clave y la
-  autorización de gasto (`RAG_QUERY_EXECUTE=1` y `RAG_QUERY_MAX_COST_USD`); si `agente2`
-  no se puede importar, el comando termina con código 2 y lo dice.
+  como «no disponible», no como cero. **Con `--completo`** se usa `agente2()` de la #32:
+  se ejecuta con el Python del entorno del RAG (`just rag-setup` crea `.venv-rag`; en
+  Linux, macOS o WSL, `.venv-rag/bin/python evaluar_informes.py --completo`) y hace falta
+  PostgreSQL con el índice y, para las justificaciones, la clave y la autorización de gasto
+  (`RAG_QUERY_EXECUTE=1` y `RAG_QUERY_MAX_COST_USD`). Si `agente2` no se puede importar
+  (por ejemplo, falta `openai`), el comando termina con código 2 y lo dice.
+- Un `*.json` de la carpeta de salidas que no es una salida del Agente 1 (como el
+  `resumen_lote.json` que escribe `generar_lote.py`) se omite; si no queda ninguna,
+  termina con código 2.
 - **`--repetir`** vuelve a generar cada informe y lista los que cambian. Con la
   justificación del LLM, la caché evita volver a pagar la misma consulta.
 - Termina con código 1 si algún caso falla o un informe trae cifras que no salen del
