@@ -94,8 +94,8 @@
       "category": "scratch",
       "clase_tool": "scratch",
       "score": 0.681640625,
-      "score_tier": "needs_review",
-      "confidence_tier": "needs_review",
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
       "bbox_xywh": [
         532.0,
         579.0,
@@ -114,8 +114,8 @@
       "category": "scratch",
       "clase_tool": "scratch",
       "score": 0.59765625,
-      "score_tier": "needs_review",
-      "confidence_tier": "needs_review",
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
       "bbox_xywh": [
         9.0,
         445.0,
@@ -129,5 +129,12 @@
       "vision_description": "Se aprecia una marca lineal superficial en la cubierta del paragolpes trasero, dentro de la zona marcada. No se observa deformación asociada en ese punto.",
       "crop_image_path": "crops/702_scratch_6.jpg"
     }
-  ]
+  ],
+  "vehiculo": {
+    "categoria": "C",
+    "vehiculo_id_referencia": "V02",
+    "confianza": "media",
+    "descripcion": "Parece un turismo compacto, aunque el detalle visible no permite identificar con seguridad la marca ni el modelo.",
+    "modelo": "gpt-6-luna"
+  }
 }

@@ -1,11 +1,13 @@
 # Documentación de apoyo de CU-19
 
-La puerta de entrada es el [README del proyecto](../README.md). Las ocho
-[specs funcionales](../specs/) contienen la definición que se presenta para la
-Entrega 1; este directorio reúne sus decisiones y antecedentes.
+La puerta de entrada es el [README del proyecto](../README.md). Las
+[specs funcionales](../specs/) contienen la definición presentada en la Entrega 1; la
+[arquitectura](../ARCHITECTURE.md) y los [ADRs](../decisions/) son la Entrega 2. Este
+directorio reúne sus decisiones y antecedentes.
 
 - [Registro de ADRs](adr/README.md): 0001–0006 aceptados con sus revisiones;
-  [0007 de orquestación](adr/0007-orquestacion-adk-web-efimera.md), Propuesto.
+  [0007 de orquestación](https://github.com/lvckss/piia2-26/pull/60), Propuesto (PR #60). [`decisions/`](../decisions/) es la
+  copia de 0001–0006 en el formato de la asignatura.
 - [Workflow](workflow.md), [template de Spec](templates/spec-template.md) y
   [template de ADR](adr/template.md): procedimientos del equipo.
 - [Diseño previo multiagente](piia2-arquitectura-multiagente.md): contexto del

@@ -95,7 +95,7 @@
       "category": "crack",
       "clase_tool": "crack",
       "score": 0.68701171875,
-      "score_tier": "needs_review",
+      "score_tier": "confirmed",
       "confidence_tier": "needs_review",
       "bbox_xywh": [
         258.0,
@@ -115,8 +115,8 @@
       "category": "dent",
       "clase_tool": "dent",
       "score": 0.619140625,
-      "score_tier": "needs_review",
-      "confidence_tier": "needs_review",
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
       "bbox_xywh": [
         486.0,
         544.0,
@@ -135,8 +135,8 @@
       "category": "scratch",
       "clase_tool": "scratch",
       "score": 0.57666015625,
-      "score_tier": "needs_review",
-      "confidence_tier": "needs_review",
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
       "bbox_xywh": [
         524.0,
         146.0,
@@ -155,8 +155,8 @@
       "category": "scratch",
       "clase_tool": "scratch",
       "score": 0.56689453125,
-      "score_tier": "needs_review",
-      "confidence_tier": "needs_review",
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
       "bbox_xywh": [
         258.0,
         490.0,
@@ -195,7 +195,7 @@
       "category": "dent",
       "clase_tool": "dent",
       "score": 0.482421875,
-      "score_tier": "needs_review",
+      "score_tier": "confirmed",
       "confidence_tier": "needs_review",
       "bbox_xywh": [
         257.0,
@@ -210,5 +210,12 @@
       "vision_description": "En la zona marcada no se aprecia una abolladura; solo se ven marcas superficiales tenues sobre el paragolpes.",
       "crop_image_path": "crops/2086_dent_16.jpg"
     }
-  ]
+  ],
+  "vehiculo": {
+    "categoria": "desconocido",
+    "vehiculo_id_referencia": null,
+    "confianza": "baja",
+    "descripcion": "Es una camioneta pickup Toyota Hilux, un tipo de vehículo no incluido en las categorías disponibles.",
+    "modelo": "gpt-6-luna"
+  }
 }

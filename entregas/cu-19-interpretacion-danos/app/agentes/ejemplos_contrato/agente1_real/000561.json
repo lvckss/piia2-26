@@ -115,7 +115,7 @@
       "category": "dent",
       "clase_tool": "dent",
       "score": 0.583984375,
-      "score_tier": "needs_review",
+      "score_tier": "confirmed",
       "confidence_tier": "needs_review",
       "bbox_xywh": [
         510.0,
@@ -135,8 +135,8 @@
       "category": "dent",
       "clase_tool": "dent",
       "score": 0.560546875,
-      "score_tier": "needs_review",
-      "confidence_tier": "needs_review",
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
       "bbox_xywh": [
         187.0,
         156.0,
@@ -150,5 +150,12 @@
       "vision_description": "Se aprecia una pequeña deformación superficial con una marca clara en la aleta delantera izquierda.",
       "crop_image_path": "crops/561_dent_19.jpg"
     }
-  ]
+  ],
+  "vehiculo": {
+    "categoria": "desconocido",
+    "vehiculo_id_referencia": null,
+    "confianza": "baja",
+    "descripcion": "Se observa un daño en la carrocería junto a una rueda, pero no se distingue el tipo de vehículo.",
+    "modelo": "gpt-6-luna"
+  }
 }

@@ -9,16 +9,23 @@ from __future__ import annotations
 
 import json
 import tempfile
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 from PIL import Image
 
 from catalogo import Catalogo, cargar_catalogo
 from confianza import decidir_tier
+from equivalencias import cargar_equivalencias  # catalogo.py anade app/agentes/comun a sys.path
 from hallazgos import cargar_detecciones, construir_hallazgos
 from recorte import generar_recortes
-from vision import enriquecer_con_vision, parsear_respuesta
+from vision import (
+    PROMPT_VARIANTE_ORIENTACION,
+    analizar_hallazgo,
+    descripcion_de_otro_vehiculo,
+    enriquecer_con_vision,
+    parsear_respuesta,
+)
 
 # catalogo minimo para las pruebas: no depende de tener el paquete de la empresa
 MINI_CATALOGO = Catalogo(
@@ -72,10 +79,15 @@ class _Respuesta:
 RESPUESTA_GENERICA = {"veredicto": "incierto", "pieza_id": None, "severidad": None, "descripcion": "No se aprecia con claridad."}
 
 
+# respuesta a la consulta de categoria del vehiculo (Issue #28): lleva una sola imagen, la de hallazgo lleva dos
+RESPUESTA_VEHICULO = {"categoria": "C", "confianza": "media", "descripcion": "Turismo compacto de color gris."}
+
+
 class ClienteFalso:
     """Imita `OpenAI()`: registra las peticiones, responde un JSON segun la
-    clase que aparece en el prompt e informa de tokens (1.500 de entrada y 40
-    de salida por llamada)."""
+    clase que aparece en el prompt (o la categoria del vehiculo, si la consulta
+    lleva una sola imagen) e informa de tokens (1.500 de entrada y 40 de salida
+    por llamada)."""
 
     def __init__(self) -> None:
         self.llamadas: list[dict] = []
@@ -84,6 +96,8 @@ class ClienteFalso:
 
     def create(self, model: str, messages: list[dict], response_format: dict) -> _Respuesta:
         self.llamadas.append({"model": model, "messages": messages, "response_format": response_format})
+        if sum(1 for parte in messages[0]["content"] if parte["type"] == "image_url") == 1:
+            return _Respuesta([_Eleccion(_Mensaje(json.dumps(RESPUESTA_VEHICULO)))], _Uso(1500, 40))
         texto_prompt = messages[0]["content"][0]["text"]
         categoria = texto_prompt.split("tipo '")[1].split("'")[0]
         respuesta = RESPUESTAS_POR_CLASE.get(categoria, RESPUESTA_GENERICA)
@@ -97,6 +111,13 @@ def probar_decidir_tier() -> None:
     assert decidir_tier("lamp broken", 0.95, "incierto", "FARO_DEL_D", True) == "needs_review"
     # la vision lo confirma pero el score no llega -> a revisar (la vision no rescata scores bajos)
     assert decidir_tier("lamp broken", 0.40, "confirmado", "FARO_DEL_D", True) == "needs_review"
+    # umbrales calibrados en la #44 (D-6): dent, scratch y crack desde 0,3; lamp broken, glass shatter y tire flat siguen en 0,6
+    for clase in ("dent", "scratch", "crack"):
+        assert decidir_tier(clase, 0.30, "confirmado", "PARAG_DEL", True) == "confirmed", clase
+        assert decidir_tier(clase, 0.29, "confirmado", "PARAG_DEL", True) == "needs_review", clase
+    for clase in ("lamp broken", "glass shatter", "tire flat"):
+        assert decidir_tier(clase, 0.60, "confirmado", "FARO_DEL_D", True) == "confirmed", clase
+        assert decidir_tier(clase, 0.59, "confirmado", "FARO_DEL_D", True) == "needs_review", clase
     # sin pieza o sin regla de coste no se puede presupuestar
     assert decidir_tier("lamp broken", 0.95, "confirmado", None, None) == "needs_review"
     assert decidir_tier("lamp broken", 0.95, "confirmado", "PARAG_DEL", False) == "needs_review"
@@ -194,13 +215,286 @@ def probar_enriquecer() -> None:
 
     assert lamp["confidence_tier"] == "confirmed" and lamp["pieza_id"] == "FARO_DEL_D"
     assert tire["vision_verdict"] == "rechazado" and tire["confidence_tier"] == "needs_review"
-    # la vision confirma el dent, pero su score (0.68) no llega al umbral de su clase (0.7)
-    assert dent["vision_verdict"] == "confirmado" and dent["score_tier"] == "needs_review"
-    assert dent["confidence_tier"] == "needs_review"
+    # la vision confirma el dent y su score (0.68) pasa el umbral de su clase (0.3, calibrado en la #44; con 0.7 quedaba en revision)
+    assert dent["vision_verdict"] == "confirmado" and dent["score_tier"] == "confirmed"
+    assert dent["confidence_tier"] == "confirmed"
 
     for f in hallazgos["findings"]:
         print(f"  {f['category']:12s} score={f['score']:.2f} vision={f['vision_verdict']:10s} "
               f"pieza={str(f['pieza_id']):11s} -> {f['confidence_tier']}")
+
+
+# --- Issue #54, slice 3 (Agente 1): descripciones corruptas, cache y daños de otro vehiculo ------------------
+# Plan v1.1: https://github.com/lvckss/piia2-26/issues/54#issuecomment-6806386857 (AC-005, AC-006 y AC-013)
+
+# restos reales de la salida del modelo (1008-19 y 1281-8 de las 30 salidas versionadas): alfabetos ajenos y razonamiento
+CORRUPTA_ALFABETOS = (
+    "La zona marcada muestra el contorno y la sombra del paso de rueda, sin una abolladura visible."
+    "】【。} પડી karto? Wait final produced malformed? It says JSON but Spanish sentence ending."
+)
+CORRUPTA_RAZONAMIENTO = "Abolladura leve en el paragolpes. Wait no. Need ensure the JSON is valid."
+DESCRIPCION_NORMAL = "Abolladura leve (≥ 3 cm) en el paragolpes; reparación estimada en 120 € a 45°: “pintar” el panel. El niño señaló el daño."
+DESCRIPCION_OTRO_VEHICULO = (
+    "En la esquina delantera izquierda del vehículo oscuro del fondo, el faro parece estar roto o sin su cubierta, "
+    "con elementos internos expuestos."
+)
+
+
+def _respuesta_json(descripcion: str, veredicto: str = "confirmado", pieza: str | None = "PARAG_DEL",
+                    severidad: str | None = "moderado") -> str:
+    return json.dumps({"veredicto": veredicto, "pieza_id": pieza, "severidad": severidad, "descripcion": descripcion})
+
+
+class ClienteSecuencia(ClienteFalso):
+    """Como `ClienteFalso`, pero contesta con los textos dados, en orden (la ultima se repite)."""
+
+    def __init__(self, textos: list[str]) -> None:
+        super().__init__()
+        self.textos = list(textos)
+
+    def create(self, model: str, messages: list[dict], response_format: dict) -> _Respuesta:
+        self.llamadas.append({"model": model, "messages": messages, "response_format": response_format})
+        texto = self.textos.pop(0) if len(self.textos) > 1 else self.textos[0]
+        return _Respuesta([_Eleccion(_Mensaje(texto))], _Uso(1500, 40))
+
+
+def _hallazgo_de_prueba(tmp: str):
+    carpeta = Path(tmp)
+    recorte = carpeta / "recorte.jpg"
+    Image.new("RGB", (40, 40), "gray").save(recorte)
+    finding = {"category": "dent", "bbox_xywh": [10, 10, 40, 40], "crop_image_path": str(recorte)}
+    return Image.new("RGB", (200, 150), "gray"), finding
+
+
+def probar_ac005_descripcion_corrupta_no_se_acepta() -> None:
+    """AC-005: JSON valido con alfabetos ajenos o restos de razonamiento -> incierto, sin pieza ni severidad y sin
+    el texto corrupto; una descripcion normal (ñ, tildes, €, °, ≥, comillas) se acepta sin cambios."""
+    for corrupta in (CORRUPTA_ALFABETOS, CORRUPTA_RAZONAMIENTO):
+        r = parsear_respuesta(_respuesta_json(corrupta), MINI_CATALOGO, "dent")
+        assert r["vision_verdict"] == "incierto", r
+        assert r["pieza_id"] is None and r["severidad"] is None and r["regla_coste_aplicable"] is None, r
+        for resto in ("Wait", "malformed", "Need ensure", "】", "પ"):
+            assert resto not in r["vision_description"], (resto, r["vision_description"])
+    normal = parsear_respuesta(_respuesta_json(DESCRIPCION_NORMAL), MINI_CATALOGO, "dent")
+    assert normal["vision_verdict"] == "confirmado" and normal["pieza_id"] == "PARAG_DEL", normal
+    assert normal["vision_description"] == DESCRIPCION_NORMAL, normal["vision_description"]
+
+
+def probar_ac005_reintenta_una_vez_sin_cache() -> None:
+    """AC-005: con una respuesta corrupta se repite la consulta una vez; si la segunda es buena se usa, y si
+    persiste el hallazgo queda incierto tras exactamente dos llamadas."""
+    with tempfile.TemporaryDirectory() as tmp:
+        imagen, finding = _hallazgo_de_prueba(tmp)
+        buena = _respuesta_json(DESCRIPCION_NORMAL)
+        mala = _respuesta_json(CORRUPTA_ALFABETOS)
+
+        cliente = ClienteSecuencia([mala, buena])
+        uso: dict[str, int] = {}
+        r = analizar_hallazgo(cliente, "modelo-falso", imagen, finding, MINI_CATALOGO, cache_dir=Path(tmp) / "c1", uso=uso)
+        assert len(cliente.llamadas) == 2 and uso.get("llamadas") == 2, (len(cliente.llamadas), uso)
+        assert r["vision_verdict"] == "confirmado" and r["vision_description"] == DESCRIPCION_NORMAL, r
+
+        siempre_mala = ClienteSecuencia([mala])
+        r2 = analizar_hallazgo(siempre_mala, "modelo-falso", imagen, finding, MINI_CATALOGO, cache_dir=Path(tmp) / "c2")
+        assert len(siempre_mala.llamadas) == 2, len(siempre_mala.llamadas)
+        assert r2["vision_verdict"] == "incierto" and r2["pieza_id"] is None and "Wait" not in r2["vision_description"], r2
+
+
+def probar_ac006_cache_con_respuesta_corrupta() -> None:
+    """AC-006: una respuesta corrupta guardada en la cache se descarta y se vuelve a consultar; la valida se sirve
+    de la cache sin llamada nueva."""
+    with tempfile.TemporaryDirectory() as tmp:
+        imagen, finding = _hallazgo_de_prueba(tmp)
+        cache = Path(tmp) / "cache"
+        buena = _respuesta_json(DESCRIPCION_NORMAL)
+
+        cliente = ClienteSecuencia([buena])
+        analizar_hallazgo(cliente, "modelo-falso", imagen, finding, MINI_CATALOGO, cache_dir=cache)
+        assert len(cliente.llamadas) == 1
+        (entrada,) = list(cache.glob("*.json"))
+        # la cache pasa a contener una respuesta corrupta para esa misma consulta
+        entrada.write_text(json.dumps({"modelo": "modelo-falso", "respuesta": _respuesta_json(CORRUPTA_ALFABETOS)}), encoding="utf-8")
+
+        r = analizar_hallazgo(cliente, "modelo-falso", imagen, finding, MINI_CATALOGO, cache_dir=cache)
+        assert len(cliente.llamadas) == 2, "la respuesta corrupta de la cache no se volvio a consultar"
+        assert r["vision_verdict"] == "confirmado" and r["vision_description"] == DESCRIPCION_NORMAL, r
+        assert json.loads(entrada.read_text(encoding="utf-8"))["respuesta"] == buena, "la cache no se corrigio"
+
+        analizar_hallazgo(cliente, "modelo-falso", imagen, finding, MINI_CATALOGO, cache_dir=cache)
+        assert len(cliente.llamadas) == 2, "la respuesta valida debia servirse de la cache"
+
+
+def probar_ac006_una_respuesta_corrupta_no_se_guarda() -> None:
+    """AC-006: una respuesta que sigue corrupta tras el reintento no se guarda en la cache."""
+    with tempfile.TemporaryDirectory() as tmp:
+        imagen, finding = _hallazgo_de_prueba(tmp)
+        cache = Path(tmp) / "cache"
+        analizar_hallazgo(ClienteSecuencia([_respuesta_json(CORRUPTA_RAZONAMIENTO)]), "modelo-falso", imagen, finding,
+                          MINI_CATALOGO, cache_dir=cache)
+        assert not list(cache.glob("*.json")), "se guardo una respuesta corrupta"
+
+
+def probar_ac013_confirmado_en_otro_vehiculo_queda_incierto() -> None:
+    """AC-013: un `confirmado` cuya descripcion situa el daño en otro vehiculo o en el fondo pasa a `incierto`
+    y conserva su descripcion; una descripcion normal sigue `confirmado`."""
+    r = parsear_respuesta(_respuesta_json(DESCRIPCION_OTRO_VEHICULO, pieza="FARO_DEL_D", severidad="grave"), MINI_CATALOGO, "lamp_broken")
+    assert r["vision_verdict"] == "incierto", r
+    assert r["vision_description"] == DESCRIPCION_OTRO_VEHICULO, r["vision_description"]
+    normal = parsear_respuesta(_respuesta_json("Faro delantero derecho roto, con el cristal desprendido.", pieza="FARO_DEL_D", severidad="grave"),
+                               MINI_CATALOGO, "lamp_broken")
+    assert normal["vision_verdict"] == "confirmado", normal
+    # una mencion al fondo sin otro vehiculo no cambia nada, ni un rechazo
+    fondo = parsear_respuesta(_respuesta_json("Faro del vehículo roto; al fondo se ve un árbol.", pieza="FARO_DEL_D", severidad="grave"),
+                              MINI_CATALOGO, "lamp_broken")
+    assert fondo["vision_verdict"] == "confirmado", fondo
+    rechazo = parsear_respuesta(_respuesta_json(DESCRIPCION_OTRO_VEHICULO, veredicto="rechazado", pieza=None, severidad=None),
+                                MINI_CATALOGO, "lamp_broken")
+    assert rechazo["vision_verdict"] == "rechazado", rechazo
+
+
+# Revision de la #86 (c2ff138): «otro vehiculo» como causa del daño no lo sitúa en otro vehiculo.
+CAUSA_OTRO_VEHICULO = (
+    "Rayón en la puerta trasera causado por el roce con otro vehículo.",
+    "Abolladura por el impacto de otro coche contra el paragolpes.",
+    "Daño en el paragolpes tras la colisión con un segundo vehículo.",
+    "El guardabarros fue golpeado por otro automóvil al maniobrar.",
+)
+DANO_EN_OTRO_VEHICULO = (
+    "La zona marcada pertenece al vehículo oscuro del fondo.",
+    "El faro roto pertenece a otro vehículo.",
+    "La zona marcada corresponde a un segundo coche.",
+    "Abolladura visible en otro vehículo, no en el coche fotografiado.",
+    "Parachoques roto del vehículo del fondo.",
+)
+
+
+def probar_ac013_otro_vehiculo_como_causa_no_cambia_el_veredicto() -> None:
+    """AC-013: solo pasa a `incierto` la descripcion que situa el daño en otro vehiculo o en el del fondo
+    («pertenece a otro vehiculo», «en otro vehiculo», «del vehiculo del fondo»); si otro vehiculo es la causa
+    del daño («por», «con», «contra», «causado por») el `confirmado` se conserva."""
+    for causa in CAUSA_OTRO_VEHICULO:
+        assert not descripcion_de_otro_vehiculo(causa), causa
+        r = parsear_respuesta(_respuesta_json(causa), MINI_CATALOGO, "dent")
+        assert r["vision_verdict"] == "confirmado" and r["pieza_id"] == "PARAG_DEL", (causa, r)
+    for lugar in DANO_EN_OTRO_VEHICULO:
+        assert descripcion_de_otro_vehiculo(lugar), lugar
+        r = parsear_respuesta(_respuesta_json(lugar), MINI_CATALOGO, "dent")
+        assert r["vision_verdict"] == "incierto" and r["vision_description"] == lugar, (lugar, r)
+
+
+def probar_ac012_analizar_con_el_prompt_de_la_variante() -> None:
+    """AC-012 (plan v1.1): `analizar_hallazgo` acepta otro prompt; por defecto el prompt no cambia, y una respuesta
+    con las dos claves nuevas (`vista` y `lado_del_coche`) se lee igual que una normal."""
+    with tempfile.TemporaryDirectory() as tmp:
+        imagen, finding = _hallazgo_de_prueba(tmp)
+        cliente = ClienteFalso()
+        analizar_hallazgo(cliente, "modelo-falso", imagen, finding, MINI_CATALOGO, prompt_template=PROMPT_VARIANTE_ORIENTACION)
+        enviado = cliente.llamadas[0]["messages"][0]["content"][0]["text"]
+        assert "lado_del_coche" in enviado and "tipo 'dent'" in enviado and "PARAG_DEL" in enviado, enviado[:200]
+
+        por_defecto = ClienteFalso()
+        analizar_hallazgo(por_defecto, "modelo-falso", imagen, finding, MINI_CATALOGO)
+        assert "lado_del_coche" not in por_defecto.llamadas[0]["messages"][0]["content"][0]["text"]
+
+    con_claves_nuevas = json.dumps({"vista": "trasera", "lado_del_coche": "derecho", "veredicto": "confirmado",
+                                    "pieza_id": "FARO_DEL_D", "severidad": "grave", "descripcion": "Faro roto."})
+    r = parsear_respuesta(con_claves_nuevas, MINI_CATALOGO, "lamp_broken")
+    assert r["vision_verdict"] == "confirmado" and r["pieza_id"] == "FARO_DEL_D" and "vista" not in r, r
+
+
+# --- Issue #88, slice 2 (Agente 1): equivalencias de reglas de coste ------------------------------------------
+# Plan v1: specs/88-equivalencias-reglas-coste.md#AC-003 (la tabla y el modulo comun son de la slice 1)
+
+CAMPOS_FINDING = {
+    "finding_id", "category", "clase_tool", "score", "score_tier", "confidence_tier", "bbox_xywh",
+    "vision_verdict", "pieza_id", "severidad", "regla_coste_aplicable", "vision_description", "crop_image_path",
+}
+
+# MINI_CATALOGO ampliado: un piloto (optica) y un parabrisas (cristal), la regla destino de la equivalencia
+# `glass_shatter` en optica -> `lamp_broken`, y la tabla de equivalencias real de comun/
+CATALOGO_EQUIVALENCIAS = replace(
+    MINI_CATALOGO,
+    piezas={
+        **MINI_CATALOGO.piezas,
+        "PILOTO_TRAS_I": {"nombre": "Piloto trasero izquierdo", "zona_tipo": "optica", "lado": "I"},
+        "PARABRISAS": {"nombre": "Parabrisas", "zona_tipo": "cristal", "lado": "C"},
+    },
+    reglas=MINI_CATALOGO.reglas | {("lamp_broken", "optica", "moderado")},
+    equivalencias=cargar_equivalencias(),
+)
+
+
+class ClientePorClase(ClienteFalso):
+    """Como `ClienteFalso`, pero responde con las respuestas dadas, segun la clase del prompt."""
+
+    def __init__(self, respuestas: dict[str, dict]) -> None:
+        super().__init__()
+        self.respuestas = respuestas
+
+    def create(self, model: str, messages: list[dict], response_format: dict) -> _Respuesta:
+        self.llamadas.append({"model": model, "messages": messages, "response_format": response_format})
+        categoria = messages[0]["content"][0]["text"].split("tipo '")[1].split("'")[0]
+        return _Respuesta([_Eleccion(_Mensaje(json.dumps(self.respuestas[categoria])))], _Uso(1500, 40))
+
+
+def probar_ac003_equivalencia_marca_la_regla_sin_cambiar_el_hallazgo() -> None:
+    """AC-003 (plan v1 de la #88): una combinacion sin regla propia pero con equivalencia sale con
+    `regla_coste_aplicable = true`; una sin equivalencia, con `false`; y el hallazgo no cambia en nada mas."""
+    # 1) `parsear_respuesta`: cristal roto en un piloto (equivalencia), arañazo en el parabrisas (sin ella)
+    # y grieta de neumatico `leve` (equivalencia con severidad minima: la severidad del hallazgo no se toca)
+    cristal = parsear_respuesta(_respuesta_json("Cristal del piloto roto.", pieza="PILOTO_TRAS_I", severidad="moderado"),
+                                CATALOGO_EQUIVALENCIAS, "glass_shatter")
+    rayon = parsear_respuesta(_respuesta_json("Arañazo en el parabrisas.", pieza="PARABRISAS", severidad="moderado"),
+                              CATALOGO_EQUIVALENCIAS, "scratch")
+    grieta = parsear_respuesta(_respuesta_json("Grieta en el neumático.", pieza="NEUMATICO", severidad="leve"),
+                               CATALOGO_EQUIVALENCIAS, "crack")
+    assert cristal["regla_coste_aplicable"] is True, cristal
+    assert rayon["regla_coste_aplicable"] is False, rayon
+    assert grieta["regla_coste_aplicable"] is True, grieta
+    assert (cristal["pieza_id"], cristal["severidad"]) == ("PILOTO_TRAS_I", "moderado")
+    assert (rayon["pieza_id"], rayon["severidad"]) == ("PARABRISAS", "moderado")
+    assert (grieta["pieza_id"], grieta["severidad"]) == ("NEUMATICO", "leve"), "la severidad minima no cambia la del hallazgo"
+
+    # sin la tabla (catalogo sin equivalencias) la misma respuesta sigue sin regla: lo que cambia es la equivalencia
+    sin_tabla = replace(CATALOGO_EQUIVALENCIAS, equivalencias={})
+    r = parsear_respuesta(_respuesta_json("Cristal del piloto roto.", pieza="PILOTO_TRAS_I", severidad="moderado"),
+                          sin_tabla, "glass_shatter")
+    assert r["regla_coste_aplicable"] is False, r
+
+    # 2) hallazgos completos: category, clase_tool y severidad no cambian, 13 campos y tier de `decidir_tier`
+    deteccion = {
+        "image_id": 1248, "image_width": 1400, "image_height": 933,
+        "predictions": [
+            {"instance_index": 1, "damage_class": "glass shatter", "category_id": 4, "score": 0.9,
+             "bbox_xywh": [700.0, 40.0, 250.0, 200.0], "area": 50000.0},
+            {"instance_index": 2, "damage_class": "scratch", "category_id": 2, "score": 0.9,
+             "bbox_xywh": [420.0, 260.0, 260.0, 180.0], "area": 46800.0},
+        ],
+    }
+    respuestas = {
+        "glass shatter": {"veredicto": "confirmado", "pieza_id": "PILOTO_TRAS_I", "severidad": "moderado",
+                          "descripcion": "Cristal del piloto roto."},
+        "scratch": {"veredicto": "confirmado", "pieza_id": "PARABRISAS", "severidad": "moderado",
+                    "descripcion": "Arañazo en el parabrisas."},
+    }
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp_dir = Path(tmp)
+        foto = tmp_dir / "foto.jpg"
+        Image.new("RGB", (deteccion["image_width"], deteccion["image_height"]), "gray").save(foto)
+        deteccion["image_path"] = str(foto)
+        hallazgos = construir_hallazgos(deteccion)
+        assert len(hallazgos["findings"]) == 2, hallazgos["findings"]
+        generar_recortes(deteccion, hallazgos, tmp_dir / "crops")
+        enriquecer_con_vision(hallazgos, ClientePorClase(respuestas), "modelo-falso", foto, CATALOGO_EQUIVALENCIAS)
+
+    por_clase = {f["category"]: f for f in hallazgos["findings"]}
+    cristal, rayon = por_clase["glass shatter"], por_clase["scratch"]
+    assert cristal["regla_coste_aplicable"] is True and cristal["confidence_tier"] == "confirmed", cristal
+    assert rayon["regla_coste_aplicable"] is False and rayon["confidence_tier"] == "needs_review", rayon
+    for finding, clase_tool, pieza in ((cristal, "glass_shatter", "PILOTO_TRAS_I"), (rayon, "scratch", "PARABRISAS")):
+        assert set(finding) == CAMPOS_FINDING, set(finding) ^ CAMPOS_FINDING
+        assert finding["clase_tool"] == clase_tool and finding["pieza_id"] == pieza and finding["severidad"] == "moderado"
+        assert finding["vision_verdict"] == "confirmado" and finding["score_tier"] == "confirmed"
 
 
 def main() -> None:
@@ -208,6 +502,14 @@ def main() -> None:
     probar_parseo()
     probar_catalogo_real()
     probar_enriquecer()
+    probar_ac005_descripcion_corrupta_no_se_acepta()
+    probar_ac005_reintenta_una_vez_sin_cache()
+    probar_ac006_cache_con_respuesta_corrupta()
+    probar_ac006_una_respuesta_corrupta_no_se_guarda()
+    probar_ac013_confirmado_en_otro_vehiculo_queda_incierto()
+    probar_ac013_otro_vehiculo_como_causa_no_cambia_el_veredicto()
+    probar_ac012_analizar_con_el_prompt_de_la_variante()
+    probar_ac003_equivalencia_marca_la_regla_sin_cambiar_el_hallazgo()
     print("\nTodo ok: peticion bien formada, respuesta validada, cache y tier combinado.")
 
 

@@ -9,8 +9,8 @@ generemos el lote real de imágenes).
 |---|---|
 | `ejemplo_1_faro_roto.json` | Caso simple: una detección, clase fiable, score alto → `confirmed`. |
 | `ejemplo_2_cristal_y_rueda.json` | Dos detecciones de clases distintas, ambas fiables → las dos `confirmed`. |
-| `ejemplo_3_mixto_dificil.json` | Fuerza los 2 tiers a la vez en la misma imagen: `lamp broken` score 0.91 (≥0.6) → `confirmed`; `tire flat` score 0.45 (<0.6) → `needs_review`; `dent` score 0.68 (<0.7, threshold más exigente por ser clase menos fiable) → también `needs_review`. Ninguna se excluye (ver `specs/agente-confianza-hallazgos.md`). |
+| `ejemplo_3_mixto_dificil.json` | Fuerza los 2 tiers a la vez en la misma imagen: `lamp broken` score 0.91 (≥0.6) → `confirmed`; `tire flat` score 0.45 (<0.6) → `needs_review`; `dent` score 0.68 (≥0.3, el umbral calibrado en la #44; antes era 0.7 y quedaba en `needs_review`) → `confirmed` si la visión lo confirma con pieza y regla. Ninguna se excluye (ver `specs/agente-confianza-hallazgos.md`). |
 
 Si `classify_confidence` está bien implementado, el ejemplo 3 debería
-devolver 3 hallazgos: 1 `confirmed` y 2 `needs_review` — es el mejor para
+devolver 3 hallazgos: 2 `confirmed` (`lamp broken` y `dent`) y 1 `needs_review` — es el mejor para
 comprobar que la lógica funciona antes de nada más.

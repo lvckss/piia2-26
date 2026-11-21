@@ -1,0 +1,22 @@
+{
+ "modelo": "gpt-6.1-terra",
+ "esfuerzo": "high",
+ "prompt_sha256": "abe617f3e4b8cdce449682911cd84dc940ee4501187dfd8bfb2b3d66cb0e5205",
+ "alcance": "todos",
+ "hilos": 8,
+ "max_llamadas": 3700,
+ "fecha_utc": "2026-10-28T11:27:27+00:00",
+ "en_alcance": 3712,
+ "etiquetados": 3712,
+ "reparto": {
+  "otra": 1326,
+  "si": 1388,
+  "dudo": 607,
+  "no": 391
+ },
+ "fallos": [],
+ "llamadas_facturadas": 3652,
+ "desde_cache": 60,
+ "prompt_tokens": 1317903,
+ "completion_tokens": 679165
+}

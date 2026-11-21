@@ -1,0 +1,27 @@
+# #32 contributes PostgreSQL; #34 will integrate the remaining services here.
+name: cu19
+
+services:
+  postgres:
+    image: pgvector/pgvector:0.8.7-pg18-bookworm@sha256:c29f30688a9ad961691bdf0ec1650717cc132a5814619d80f80463d6e4c42e47
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-cardd_webapp}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run just db-init first}
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      # PostgreSQL 18 stores PGDATA under /var/lib/postgresql/18/docker.
+      - postgres_data:/var/lib/postgresql
+      - ./app/bd/docker/10-vector.sql:/docker-entrypoint-initdb.d/10-vector.sql:ro
+      - ./app/bd/schema.sql:/docker-entrypoint-initdb.d/20-explorer.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+volumes:
+  postgres_data:

@@ -6,7 +6,7 @@
 - Planes cubiertos (Issue/mini-spec/Spec): [entregas/cu-19-interpretacion-danos/specs/37-adrs-decisiones-previas.md](../historico/37-adrs-decisiones-previas.md) — registro de una decisión ya vigente. La consume el plan de la #30 (`specs/30-costes-cobertura.md`) y, a través de sus cifras, el de la #31.
 - Planning PR: https://github.com/lvckss/piia2-26/pull/51
 - Aceptación: Lucas García (`lvckss`), [revisión APPROVED del 2026-10-20](https://github.com/lvckss/piia2-26/pull/51#pullrequestreview-5588663399) sobre la versión `14b4b28` (aceptación expresa de los ADRs 0002, 0003, 0004 y 0005).
-- Sustituye / sustituido por: no aplica. Registra una decisión anterior sin ADR (`docs/piia2-arquitectura-multiagente.md`, versión 2; `docs/guias/agente2-costes-cobertura-guia.md`, «Qué cambió respecto a la primera versión de esta guía»).
+- Sustituye / sustituido por: no aplica. Ampliado por el [ADR 0008](0008-equivalencias-reglas-coste.md) (punto 3 y primer coste de sus consecuencias), sin sustituirlo. Registra una decisión anterior sin ADR (`specs/piia2-arquitectura-multiagente.md`, versión 2; `specs/agente2-costes-cobertura-guia.md`, «Qué cambió respecto a la primera versión de esta guía»).
 
 ## Contexto y motivación
 
@@ -53,6 +53,6 @@ La decisión se usa en las guías y en el plan de la #30, pero no tiene ADR, y c
   valor_venal("V05", 3, 42000)   # 17491.54, el valor de ejemplos_contrato/agente2_salida.json
   ```
 
-- Guía del Agente 2 con el código de referencia: [`docs/guias/agente2-costes-cobertura-guia.md`](../guias/agente2-costes-cobertura-guia.md).
-- Arquitectura v2: [`docs/piia2-arquitectura-multiagente.md`](../piia2-arquitectura-multiagente.md), «Qué trae ya hecho el paquete de la empresa».
+- Guía del Agente 2 con el código de referencia: [`specs/agente2-costes-cobertura-guia.md`](../guias/agente2-costes-cobertura-guia.md).
+- Arquitectura v2: [`specs/piia2-arquitectura-multiagente.md`](../piia2-arquitectura-multiagente.md), «Qué trae ya hecho el paquete de la empresa».
 - Primera versión, sustituida: `git show d890c20:entregas/cu-19-interpretacion-danos/specs/piia2-arquitectura-multiagente.md`.

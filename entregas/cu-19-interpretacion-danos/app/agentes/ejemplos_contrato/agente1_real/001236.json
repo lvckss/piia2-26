@@ -137,8 +137,8 @@
       "category": "dent",
       "clase_tool": "dent",
       "score": 0.5849609375,
-      "score_tier": "needs_review",
-      "confidence_tier": "needs_review",
+      "score_tier": "confirmed",
+      "confidence_tier": "confirmed",
       "bbox_xywh": [
         243.0,
         35.0,
@@ -157,7 +157,7 @@
       "category": "crack",
       "clase_tool": "crack",
       "score": 0.52734375,
-      "score_tier": "needs_review",
+      "score_tier": "confirmed",
       "confidence_tier": "needs_review",
       "bbox_xywh": [
         163.0,
@@ -192,5 +192,12 @@
       "vision_description": "La luna lateral trasera marcada se ve intacta, sin grietas ni patrón de vidrio roto. El pequeño punto oscuro parece una marca o elemento superficial, no un daño de tipo glass shatter.",
       "crop_image_path": "crops/1236_glass_shatter_12.jpg"
     }
-  ]
+  ],
+  "vehiculo": {
+    "categoria": "FURG",
+    "vehiculo_id_referencia": "V09",
+    "confianza": "alta",
+    "descripcion": "Furgoneta pequeña de reparto.",
+    "modelo": "gpt-6-luna"
+  }
 }

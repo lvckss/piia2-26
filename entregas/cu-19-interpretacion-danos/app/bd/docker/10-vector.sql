@@ -1,0 +1,3 @@
+-- PostgreSQL preparation for spec 32, AC-013.
+CREATE EXTENSION IF NOT EXISTS vector;
+CREATE SCHEMA IF NOT EXISTS rag;
