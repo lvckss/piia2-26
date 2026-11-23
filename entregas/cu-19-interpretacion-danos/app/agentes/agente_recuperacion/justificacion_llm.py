@@ -150,8 +150,11 @@ def _inicio_de_frase(texto: str, posicion: int) -> int:
     """Donde empieza la frase que contiene `posicion`: tras el ultimo salto de linea o final de frase anterior."""
     linea = texto.rfind("\n", 0, posicion) + 1
     inicio = linea
-    for fin in _FIN_DE_FRASE.finditer(texto, linea, posicion):
-        inicio = fin.end()
+    # endpos = posicion + 1: el lookahead del final de frase necesita ver la mayuscula que esta justo en
+    # `posicion` (revision de Victor en la #113); sin ella, una cita que empieza una frase arrastraba la anterior.
+    for fin in _FIN_DE_FRASE.finditer(texto, linea, posicion + 1):
+        if fin.end() <= posicion:
+            inicio = fin.end()
     while inicio < posicion and texto[inicio].isspace():
         inicio += 1
     return inicio

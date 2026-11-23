@@ -218,6 +218,22 @@ def probar_97_ac020_cita_ausente_sigue_descartada():
     assert j["estado"] == "descartada" and "citas" not in j, j
 
 
+def probar_97_ac020_cita_al_inicio_de_una_frase_no_arrastra_la_anterior():
+    """#54 AC-020 (revision de Victor en la #113): si la cita empieza justo donde empieza una frase, la frase
+    guardada empieza ahi y no incluye la anterior. Es el caso de los informes de tercero (el articulo 7)."""
+    pasaje = ("Artículo 7. Obligaciones del asegurador. El asegurador, dentro del ámbito y límites del "
+              "aseguramiento obligatorio, deberá satisfacer al perjudicado el importe de los daños. Art. 8 siguiente.")
+    j = _citar(pasaje, "el asegurador, dentro del ámbito")
+    assert j["estado"] == "generada", j
+    assert j["citas"][0]["extracto"] == (
+        "El asegurador, dentro del ámbito y límites del aseguramiento obligatorio, deberá satisfacer al "
+        "perjudicado el importe de los daños."), j
+    # y tras un punto y coma
+    pasaje2 = "2.1 Cobertura de lunas; Rotura de parabrisas con límite de 800 EUR por anualidad."
+    assert _citar(pasaje2, "rotura de parabrisas")["citas"][0]["extracto"] == (
+        "Rotura de parabrisas con límite de 800 EUR por anualidad.")
+
+
 # --- specs/97-justificacion-llm-normativa.md#AC-003 --------------------------
 def probar_97_ac003_texto_con_importes_se_descarta():
     """AC-003: con pasajes que contienen «1500 EUR» (limite de lunas, ausente del calculo) y «300 EUR»,
@@ -358,6 +374,7 @@ PRUEBAS = [
     probar_97_ac020_no_corta_en_abreviaturas_ni_en_numeros,
     probar_97_ac020_frase_demasiado_larga_no_se_amplia,
     probar_97_ac020_cita_ausente_sigue_descartada,
+    probar_97_ac020_cita_al_inicio_de_una_frase_no_arrastra_la_anterior,
     probar_97_ac003_texto_con_importes_se_descarta,
     probar_97_ac004_terminos_de_validacion_se_descartan,
     probar_97_ac005_sin_clave_o_sin_autorizacion_no_llama,
