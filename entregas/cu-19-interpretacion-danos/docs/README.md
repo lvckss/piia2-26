@@ -8,6 +8,7 @@ directorio reúne sus decisiones y antecedentes.
 - [Registro de ADRs](adr/README.md): 0001–0006 aceptados con sus revisiones;
   [0007 de orquestación](https://github.com/lvckss/piia2-26/pull/60), Propuesto (PR #60). [`decisions/`](../decisions/) es la
   copia de 0001–0006 en el formato de la asignatura.
+- [Limitaciones conocidas](limitaciones.md): qué no hace bien el sistema, con su origen y las cifras medidas.
 - [Workflow](workflow.md), [template de Spec](templates/spec-template.md) y
   [template de ADR](adr/template.md): procedimientos del equipo.
 - [Diseño previo multiagente](piia2-arquitectura-multiagente.md): contexto del
