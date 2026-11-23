@@ -98,23 +98,33 @@ def _comprobar(tema: str, pasajes: list[dict], datos: dict) -> dict:
         encontrada = next(((literal, p) for p in pasajes if (literal := _localizar(extracto, p["extracto"]))), None)
         if encontrada is None:
             return _descartada(tema, f"La cita «{extracto[:80]}» no aparece literalmente en los pasajes de este tema.")
-        # Se guarda el texto tal cual esta en el pasaje, no la version del modelo.
-        citas.append({"extracto": encontrada[0], "fuente": encontrada[1]["fuente"]})
+        # Se guarda la frase del pasaje tal cual esta escrita, no la version del modelo; dos citas de la misma
+        # frase quedan en una.
+        nueva = {"extracto": encontrada[0], "fuente": encontrada[1]["fuente"]}
+        if nueva not in citas:
+            citas.append(nueva)
     return {"tema": tema, "estado": "generada", "texto": texto, "citas": citas}
 
 
 def _localizar(cita: str, pasaje: str) -> str | None:
-    """El fragmento de `pasaje`, tal cual esta escrito, al que corresponde `cita`, o None si no aparece.
+    """La frase de `pasaje`, tal como esta escrita, que contiene `cita`, o None si la cita no aparece.
 
     Se compara tras normalizar espacios, sin distinguir mayusculas y sin los asteriscos de enfasis de Markdown
-    (spec 97 v1.2, AC-002): el modelo escribe «el asegurador» donde el pasaje dice «El asegurador» y copia
-    «Rotura de lunas» donde el pasaje dice «**Rotura de lunas**». Una palabra distinta sigue sin coincidir."""
-    normal = _normalizar(pasaje)
+    (spec 97 v1.2): el modelo escribe «el asegurador» donde el pasaje dice «El asegurador» y copia «Rotura de
+    lunas» donde el pasaje dice «**Rotura de lunas**». Una palabra distinta sigue sin coincidir.
+
+    Lo que se devuelve no es la cita del modelo sino la frase completa del pasaje que la contiene (plan #54,
+    AC-020), hasta el punto, el punto y coma o el salto de linea, para que una cita cortada («franquicia de») lleve
+    sus cifras. Si esa frase pasa de MAX_FRASE caracteres se devuelve solo el fragmento citado."""
     limpio: list[str] = []
-    posicion: list[int] = []  # posicion en `normal` de cada caracter de `limpio`
-    for i, caracter in enumerate(normal):
-        if caracter == "*" or (caracter == " " and limpio and limpio[-1] == " "):
+    posicion: list[int] = []  # posicion en `pasaje` de cada caracter de `limpio`
+    for i, caracter in enumerate(pasaje):
+        if caracter == "*":
             continue
+        if caracter.isspace():
+            if not limpio or limpio[-1] == " ":
+                continue
+            caracter = " "
         limpio.append(caracter)
         posicion.append(i)
     buscada = _normalizar(cita.replace("*", ""))
@@ -123,7 +133,37 @@ def _localizar(cita: str, pasaje: str) -> str | None:
     coincidencia = re.search(re.escape(buscada), "".join(limpio), re.IGNORECASE)
     if coincidencia is None:
         return None
-    return normal[posicion[coincidencia.start()]:posicion[coincidencia.end() - 1] + 1]
+    inicio, fin = posicion[coincidencia.start()], posicion[coincidencia.end() - 1] + 1
+    frase = pasaje[_inicio_de_frase(pasaje, inicio):_fin_de_frase(pasaje, fin)]
+    if len(frase) > MAX_FRASE:
+        frase = pasaje[inicio:fin]
+    return _normalizar(frase)
+
+
+# Final de frase: punto seguido de mayuscula o apertura (no tras un numero ni tras «art.», «num.», «Ref.», «apdo.»)
+# o punto y coma.
+MAX_FRASE = 600
+_FIN_DE_FRASE = re.compile(r"(?:(?<!\d)(?<!\bart)(?<!\bnúm)(?<!\bapdo)(?<!\bRef)\.(?=\s+[A-ZÁÉÍÓÚÑ¿¡«\"(])|;(?=\s))")
+
+
+def _inicio_de_frase(texto: str, posicion: int) -> int:
+    """Donde empieza la frase que contiene `posicion`: tras el ultimo salto de linea o final de frase anterior."""
+    linea = texto.rfind("\n", 0, posicion) + 1
+    inicio = linea
+    for fin in _FIN_DE_FRASE.finditer(texto, linea, posicion):
+        inicio = fin.end()
+    while inicio < posicion and texto[inicio].isspace():
+        inicio += 1
+    return inicio
+
+
+def _fin_de_frase(texto: str, posicion: int) -> int:
+    """Donde termina la frase que contiene `posicion` (incluido su punto): antes del salto de linea o del
+    siguiente final de frase."""
+    salto = texto.find("\n", posicion)
+    limite = len(texto) if salto == -1 else salto
+    fin = _FIN_DE_FRASE.search(texto, max(posicion - 1, 0), limite)
+    return fin.end() if fin else limite
 
 
 def _descartada(tema: str, motivo: str) -> dict:
