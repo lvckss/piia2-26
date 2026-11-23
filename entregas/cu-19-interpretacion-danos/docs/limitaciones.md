@@ -26,7 +26,7 @@ Cada limitación consta con su origen, porque no todas son nuestras:
 | El lado izquierdo/derecho es poco fiable | Acierto de 18 de 29 hallazgos decidibles (62 %, intervalo de Wilson 44 a 77 %). Una variante del prompt se probó y no se adoptó (22 de 29, pero 29 veredictos distintos) | Informes con lados mal asignados o con izquierda y derecha en una misma foto (2859, 381, 3020) |
 | Pieza o severidad equivocadas, con tendencia a subestimar | En la revisión de 11 informes, severidad subestimada en 5 (2859, 1248, 3020, 702 y 1794), pieza mal en 1248 y dudosa en 3478 | Costes más bajos de lo que parece por la foto (1248 y 1794) |
 | Confirmados con score bajo | Los umbrales calibrados en la [#44](https://github.com/lvckss/piia2-26/issues/44) dejan `dent`, `scratch` y `crack` confirmados desde 0,3. Aparecen en 8 de los 11 informes revisados | **No es un error: es el umbral elegido** con la segunda opinión del modelo. El informe muestra el score, pero no avisa de que es bajo |
-| La categoría del vehículo puede ser `desconocido` | Cambia en 7 de 30 imágenes entre ejecuciones | Se usa el coche de menor coste (V14, Dacia Sandero). **Pendiente:** que el informe lo diga (AC-021 del plan v1.2) |
+| La categoría del vehículo es `desconocido` en muchas imágenes | **11 de 30** en la ejecución versionada y en la caché de octubre, y **15 de 30** en la ejecución fresca del 21-nov; la categoría cambia en 7 de 30 entre ejecuciones | Se usa el coche de menor coste (V14, Dacia Sandero): su valor venal y la pérdida total no son los del coche real. Con la [#114](https://github.com/lvckss/piia2-26/pull/114) y la slice 9 el informe lo dice en la cabecera |
 
 ## Herramienta de la empresa (costes y reglas)
 
