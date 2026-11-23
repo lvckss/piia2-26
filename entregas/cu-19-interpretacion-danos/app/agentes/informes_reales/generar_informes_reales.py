@@ -32,10 +32,12 @@ VEHICULO_DESCONOCIDO = "V14"
 CAMPOS_CONTEXTO = ("region", "tipo_taller", "acabado", "tipo_pieza", "rol")
 
 
-def _contexto(siniestro: dict, vehiculo_id: str) -> dict:
+def _contexto(siniestro: dict, vehiculo_id: str, vehiculo_origen: str) -> dict:
     """Solo los campos de contexto del siniestro (regla 1 del plan); sus danos y
-    su coche no se usan. Con tercero no hay poliza."""
-    contexto = {"vehiculo_id": vehiculo_id, **{c: siniestro[c] for c in CAMPOS_CONTEXTO},
+    su coche no se usan. Con tercero no hay poliza. `vehiculo_origen` es la procedencia del coche que lee el
+    informe (spec 34 v1.7; plan v1.2 de la #54, AC-021)."""
+    contexto = {"vehiculo_id": vehiculo_id, "vehiculo_origen": vehiculo_origen,
+                **{c: siniestro[c] for c in CAMPOS_CONTEXTO},
                 "edad_anios": int(siniestro["edad_anios"]), "km": int(siniestro["km"])}
     if siniestro["rol"] == "propio":
         contexto["poliza_id"] = siniestro["poliza_id"]
@@ -60,11 +62,13 @@ def preparar_casos(salidas: list[dict], siniestros: list[dict], semilla: int = 8
                           "error": "la salida del Agente 1 no tiene el campo vehiculo (anterior a la #28)"})
             continue
         vehiculo_id = vehiculo["vehiculo_id_referencia"] or VEHICULO_DESCONOCIDO
+        # Con referencia del Agente 1, `referencia_confirmada`; con `desconocido` y V14, `minimo_por_defecto`.
+        vehiculo_origen = "referencia_confirmada" if vehiculo["vehiculo_id_referencia"] else "minimo_por_defecto"
         caso = {"image_id": salida["image_id"], "siniestro_id": siniestro["siniestro_id"],
                 "categoria": vehiculo["categoria"], "salida_agente1": salida,
                 "vehiculo_id": vehiculo_id, "rol": siniestro.get("rol", "")}
         try:
-            caso["contexto"] = _contexto(siniestro, vehiculo_id)
+            caso["contexto"] = _contexto(siniestro, vehiculo_id, vehiculo_origen)
         except (KeyError, ValueError) as e:
             # Un siniestro con un dato que falta o no es numerico se registra en
             # su caso y no impide preparar los demas (plan #84, AC-004).

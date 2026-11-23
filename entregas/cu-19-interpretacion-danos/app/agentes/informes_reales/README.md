@@ -38,7 +38,9 @@ Las salidas del Agente 1 no traen datos del siniestro. Hasta que la web
   rol, póliza (con rol propio), años y km; sus daños y su coche no.
 - **Coche:** el de referencia de la categoría que propone el Agente 1 o, con
   `desconocido`, el de menor coste (`V14`, Dacia Sandero). Es una regla
-  provisional: su sitio definitivo es el orquestador de la #34.
+  provisional: su sitio definitivo es el orquestador de la #34. El contexto lleva además
+  `vehiculo_origen` (`referencia_confirmada` o `minimo_por_defecto`), que el informe usa para decir
+  de dónde sale el coche (spec 34 v1.7; plan v1.2 de la #54, AC-021).
 - **Fecha:** fija (`--hoy`), para que dos ejecuciones den los mismos archivos.
 
 Los informes usan datos del paquete de la empresa: se generan en local y no se
