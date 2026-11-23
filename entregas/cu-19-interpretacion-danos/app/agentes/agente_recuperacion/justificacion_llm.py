@@ -2,7 +2,8 @@
 
 Para cada tema con pasajes en `normativa` (salida de `agente2()`, #32), un LLM recibe SOLO el tema y
 sus pasajes y devuelve un texto breve con las citas literales en las que se apoya. El codigo comprueba
-la respuesta antes de aceptarla: citas literales del mismo tema (la fuente la pone el codigo), texto
+la respuesta antes de aceptarla: citas literales del mismo tema (sin distinguir mayusculas ni asteriscos
+de enfasis; la fuente la pone el codigo), texto
 sin importes en euros y sin terminos de validacion. Nunca cambia cifras: no recibe el calculo.
 
 Plan: entregas/cu-19-interpretacion-danos/specs/97-justificacion-llm-normativa.md (AC-001 a AC-005,
@@ -94,11 +95,35 @@ def _comprobar(tema: str, pasajes: list[dict], datos: dict) -> dict:
     for cita in datos["citas"]:
         extracto = cita.get("extracto") if isinstance(cita, dict) else cita
         extracto = _normalizar(extracto) if isinstance(extracto, str) else ""
-        pasaje = next((p for p in pasajes if extracto and extracto in _normalizar(p["extracto"])), None)
-        if pasaje is None:
+        encontrada = next(((literal, p) for p in pasajes if (literal := _localizar(extracto, p["extracto"]))), None)
+        if encontrada is None:
             return _descartada(tema, f"La cita «{extracto[:80]}» no aparece literalmente en los pasajes de este tema.")
-        citas.append({"extracto": extracto, "fuente": pasaje["fuente"]})
+        # Se guarda el texto tal cual esta en el pasaje, no la version del modelo.
+        citas.append({"extracto": encontrada[0], "fuente": encontrada[1]["fuente"]})
     return {"tema": tema, "estado": "generada", "texto": texto, "citas": citas}
+
+
+def _localizar(cita: str, pasaje: str) -> str | None:
+    """El fragmento de `pasaje`, tal cual esta escrito, al que corresponde `cita`, o None si no aparece.
+
+    Se compara tras normalizar espacios, sin distinguir mayusculas y sin los asteriscos de enfasis de Markdown
+    (spec 97 v1.2, AC-002): el modelo escribe «el asegurador» donde el pasaje dice «El asegurador» y copia
+    «Rotura de lunas» donde el pasaje dice «**Rotura de lunas**». Una palabra distinta sigue sin coincidir."""
+    normal = _normalizar(pasaje)
+    limpio: list[str] = []
+    posicion: list[int] = []  # posicion en `normal` de cada caracter de `limpio`
+    for i, caracter in enumerate(normal):
+        if caracter == "*" or (caracter == " " and limpio and limpio[-1] == " "):
+            continue
+        limpio.append(caracter)
+        posicion.append(i)
+    buscada = _normalizar(cita.replace("*", ""))
+    if not buscada:
+        return None
+    coincidencia = re.search(re.escape(buscada), "".join(limpio), re.IGNORECASE)
+    if coincidencia is None:
+        return None
+    return normal[posicion[coincidencia.start()]:posicion[coincidencia.end() - 1] + 1]
 
 
 def _descartada(tema: str, motivo: str) -> dict:
