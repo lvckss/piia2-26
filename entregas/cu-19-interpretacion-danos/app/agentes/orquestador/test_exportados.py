@@ -89,6 +89,20 @@ class ExportTests(unittest.TestCase):
         self.assertNotIn("/content/drive", json.dumps(result))
         self.vision.assert_not_called(); self.ml.assert_not_called()
 
+    def test_ac017_thumbnail_uses_existing_webp(self):
+        thumbnail = self.images / "test/thumbnails/000082.webp"
+        thumbnail.parent.mkdir()
+        Image.new("RGB", (4, 3), "white").save(thumbnail, "WEBP")
+        image = self.client.get("/catalogos").json()["imagenes_exportadas"][0]
+        self.assertEqual(image["ruta_thumbnail"], "test/thumbnails/000082.webp")
+        self.assertTrue((self.images / image["ruta_thumbnail"]).is_file())
+        self.assertEqual(image["ruta_imagen"], "test/fullsize/000082.png")
+
+    def test_ac017_missing_thumbnail_allows_original_fallback(self):
+        image = self.client.get("/catalogos").json()["imagenes_exportadas"][0]
+        self.assertIsNone(image["ruta_thumbnail"])
+        self.assertTrue((self.images / image["ruta_imagen"]).is_file())
+
     def test_ac018_report_keeps_document_id_and_download_bytes(self):
         case_id = self.send().json()["ejecucion_id"]
         self.flow.cases[case_id].future.result(5)

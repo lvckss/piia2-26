@@ -42,7 +42,10 @@ class ExportStore:
             if not self.original(record).is_file():
                 continue
             relative = f'{record["split"]}/fullsize/{record["image_file"]}'
-            images.append({"id": record["image_id"], "id_externo": record["image_id"], "file_name": record["image_file"], "split": record["split"], "ruta_imagen": relative, "ruta_thumbnail": relative.replace("/fullsize/", "/thumbnails/"), "width": record["image_width"], "height": record["image_height"], "numero_instancias": len(record["predictions"]), "numero_categorias": len({p["damage_class"] for p in record["predictions"]}), "labels": sorted({p["damage_class"] for p in record["predictions"]})})
+            thumbnail = f'{record["split"]}/thumbnails/{Path(record["image_file"]).stem}.webp'
+            if not (self.images / thumbnail).is_file():
+                thumbnail = None
+            images.append({"id": record["image_id"], "id_externo": record["image_id"], "file_name": record["image_file"], "split": record["split"], "ruta_imagen": relative, "ruta_thumbnail": thumbnail, "width": record["image_width"], "height": record["image_height"], "numero_instancias": len(record["predictions"]), "numero_categorias": len({p["damage_class"] for p in record["predictions"]}), "labels": sorted({p["damage_class"] for p in record["predictions"]})})
         return images
 
     def prepare(self, image, filename):
