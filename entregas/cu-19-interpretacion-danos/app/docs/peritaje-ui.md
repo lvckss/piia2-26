@@ -8,6 +8,10 @@ En la demo local se elige una de las 500 imágenes de `app/bd/subset_500/`, cuyo
 
 El recorrido es: imagen → «Analizar imagen» → resultados de solo lectura → confirmar/elegir vehículo y completar el siniestro → «Generar informe» → Markdown visible y descargable. La categoría desconocida muestra V14 y las advertencias acordadas; el navegador no fabrica `vehiculo_origen`. La póliza solo se envía para rol propio. Los datos y presupuestos los produce el servidor.
 
+En **Siniestro**, «Datos para el presupuesto» empieza plegado y muestra un resumen de los valores actuales. Los valores iniciales acordados para la demo son 3 años, 42.000 km, Madrid, taller multimarca, pintura sólida, pieza OEM, vehículo propio y Terceros Básico. Son editables y se conservan al plegar el bloque y al actualizar los catálogos. Solo se preseleccionan opciones que existen en el catálogo; si falta alguna, debe completarse antes de generar el informe. El aviso visible incluso con el bloque cerrado explica que, en un sistema integrado, estos datos se cargarían desde el cliente y su póliza en la aseguradora, mientras esta demo usa ejemplos modificables.
+
+Confirmar la propuesta actualiza el campo **Vehículo** y conserva `referencia_confirmada`; cambiar el selector registra `seleccion_usuario`. Se mantienen el caso desconocido/V14 y la omisión de póliza para tercero. Criterio humano y Test Plan: [concreción UI v3, AC-003/004](https://github.com/lvckss/piia2-26/issues/34#issuecomment-7139477864).
+
 ## Estado de integración
 
 Este incremento implementa el **cliente web**, las rutas Hono y el servicio Python de orquestación. Hono transporta `/api/catalogos` y `/api/peritajes` al servicio interno; Python ejecuta PIIA 1 → Agente 1 y, tras recibir contexto válido, Agente 2 → informe → verificación de cifras. Los proveedores reales se conectan desde `agentes/orquestador/pipeline.py`; los dobles de ML/visión solo existen en tests. Compose completo y el recorrido con modelos reales siguen pendientes en #34.

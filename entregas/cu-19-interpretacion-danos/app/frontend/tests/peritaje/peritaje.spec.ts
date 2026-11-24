@@ -11,7 +11,7 @@ const catalogos = {
   polizas: [option('P-TR-FR300', 'Todo riesgo con franquicia'), option('P-TERC-BASICO', 'Terceros básico')],
   regiones: [option('Madrid', 'Madrid')],
   tipos_taller: [option('multimarca', 'Multimarca')],
-  acabados: [option('metalizado', 'Metalizado')],
+  acabados: [option('metalizado', 'Metalizado'), option('solido', 'Sólido')],
   tipos_pieza: [option('oem', 'Original (OEM)')],
 }
 
@@ -74,6 +74,8 @@ async function analizar(page: Page) {
 async function contexto(page: Page, tercero = false) {
   const confirmar = page.getByRole('button', { name: 'Confirmar vehículo propuesto' })
   if (await confirmar.count()) await confirmar.click()
+  const budget = page.getByRole('button', { name: /Datos para el presupuesto/ })
+  if (await budget.getAttribute('aria-expanded') !== 'true') await budget.click()
   await page.getByLabel('Antigüedad (años)').fill('3')
   await page.getByLabel('Kilómetros', { exact: true }).fill('42000')
   await page.getByLabel('Región').selectOption('Madrid')
@@ -166,7 +168,7 @@ test('AC-003/008: desconocido muestra V14 sin fabricar procedencia', async ({ pa
 test('AC-003/004: selección manual y tercero omiten póliza', async ({ page }) => {
   const l = await preparar(page)
   await analizar(page); await contexto(page, true)
-  await page.getByLabel('Elegir otro vehículo').selectOption('V05')
+  await page.getByRole('combobox', { name: 'Vehículo', exact: true }).selectOption('V05')
   await page.getByRole('button', { name: 'Generar informe', exact: true }).click()
   await expect(page.getByRole('button', { name: 'Descargar Markdown' })).toBeVisible()
   expect(l.cuerpos[0]).toHaveProperty('seleccion_vehiculo', { tipo: 'seleccion_usuario', vehiculo_id: 'V05' })
@@ -330,4 +332,55 @@ test('AC-015/017: inicio fijo en escritorio, scroll del listado y aviso pequeño
   })).toBe(true)
   expect(await main.evaluate(element => element.scrollTop)).toBe(0)
   expect(l.analisis).toBe(0)
+})
+
+test('AC-003/004: presupuesto plegado con valores de demo, disclaimer y vehículo confirmado visible', async ({ page }) => {
+  const l = await preparar(page)
+  await analizar(page)
+  const budget = page.getByRole('button', { name: /Datos para el presupuesto/ })
+  await expect(budget).toHaveAttribute('aria-expanded', 'false')
+  await expect(page.getByLabel('Antigüedad (años)')).toBeHidden()
+  await expect(page.getByText('En un sistema integrado con la aseguradora, estos datos se cargarían desde la información del cliente y su póliza, sin introducirlos manualmente. Esta demo utiliza valores de ejemplo que puedes modificar.', { exact: true })).toBeVisible()
+  await expect(page.getByRole('combobox', { name: 'Vehículo', exact: true })).toHaveValue('')
+  await page.getByRole('button', { name: 'Confirmar vehículo propuesto' }).click()
+  await expect(page.getByRole('combobox', { name: 'Vehículo', exact: true })).toHaveValue('V02')
+  await page.getByRole('button', { name: 'Generar informe', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Descargar Markdown' })).toBeVisible()
+  expect(l.cuerpos[0]).toEqual({ contexto: { vehiculo_id: 'V02', region: 'Madrid', tipo_taller: 'multimarca', acabado: 'solido', tipo_pieza: 'oem', rol: 'propio', edad_anios: 3, km: 42000, poliza_id: 'P-TERC-BASICO' }, seleccion_vehiculo: { tipo: 'referencia_confirmada', vehiculo_id: 'V02' } })
+  expect(l.analisis).toBe(1)
+})
+
+test('AC-003/004: editar y plegar conserva datos; volver a confirmar sincroniza vehículo y origen', async ({ page }) => {
+  const l = await preparar(page)
+  await analizar(page)
+  const vehicle = page.getByRole('combobox', { name: 'Vehículo', exact: true })
+  await vehicle.selectOption('V05')
+  const budget = page.getByRole('button', { name: /Datos para el presupuesto/ })
+  await budget.click()
+  await expect(page.getByLabel('Antigüedad (años)')).toHaveValue('3')
+  await expect(page.getByLabel('Póliza')).toHaveValue('P-TERC-BASICO')
+  await page.getByLabel('Kilómetros', { exact: true }).fill('56000')
+  await budget.click(); await budget.click()
+  await expect(page.getByLabel('Kilómetros', { exact: true })).toHaveValue('56000')
+  await page.getByRole('button', { name: 'Confirmar vehículo propuesto' }).click()
+  await expect(vehicle).toHaveValue('V02')
+  await page.getByRole('button', { name: 'Generar informe', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Descargar Markdown' })).toBeVisible()
+  expect(l.cuerpos[0]).toHaveProperty('seleccion_vehiculo', { tipo: 'referencia_confirmada', vehiculo_id: 'V02' })
+  expect(l.cuerpos[0].contexto).toHaveProperty('km', 56000)
+  expect(l.analisis).toBe(1)
+})
+
+test('AC-004: un valor de demo ausente del catálogo se deja pendiente, sin sustituirlo', async ({ page }) => {
+  const l = await preparar(page)
+  await page.route('**/api/catalogos', route => route.fulfill({ json: { ...catalogos, acabados: [option('metalizado', 'Metalizado')] } }))
+  await page.reload(); await analizar(page)
+  await page.getByRole('button', { name: 'Confirmar vehículo propuesto' }).click()
+  await expect(page.getByRole('button', { name: 'Generar informe', exact: true })).toBeDisabled()
+  await page.getByRole('button', { name: /Datos para el presupuesto/ }).click()
+  await expect(page.getByLabel('Acabado de pintura')).toHaveValue('')
+  await page.getByLabel('Acabado de pintura').selectOption('metalizado')
+  await page.getByRole('button', { name: 'Generar informe', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Descargar Markdown' })).toBeVisible()
+  expect(l.cuerpos[0].contexto).toHaveProperty('acabado', 'metalizado')
 })
