@@ -298,3 +298,36 @@ test('AC-017: modo documentos limita el selector al lote y no ofrece subidas nue
   await page.getByLabel('Buscar por nombre en las imágenes cargadas').fill('000009')
   await expect(page.getByRole('button', { name: /Seleccionar imagen / })).toHaveCount(0)
 })
+
+test('AC-015/017: inicio fijo en escritorio, scroll del listado y aviso pequeño al pie', async ({ page }) => {
+  const l = await preparar(page)
+  await page.route('**/api/catalogos', route => route.fulfill({ json: {
+    ...catalogos, fuente_detecciones: 'documentos', imagenes_exportadas: Array.from({ length: 60 }, (_, index) => ({
+      id: 82 + index, id_externo: 82 + index, file_name: `${String(82 + index).padStart(6, '0')}.jpg`,
+      ruta_imagen: `test/${82 + index}.png`, ruta_thumbnail: `test/${82 + index}.png`, width: 1, height: 1, split: 'test', labels: ['dent'],
+    })),
+  } }))
+  await page.setViewportSize({ width: 1280, height: 800 })
+  await page.reload()
+  await seleccionar(page)
+  const main = page.getByRole('main')
+  await expect.poll(() => main.evaluate(element => element.scrollHeight - element.clientHeight)).toBeLessThanOrEqual(1)
+  const note = page.locator('footer').getByText('Las detecciones de estas imágenes ya están calculadas. SAM3 no se ejecuta en este equipo.', { exact: true })
+  await expect(note).toBeVisible()
+  expect(await note.evaluate(element => parseFloat(getComputedStyle(element).fontSize))).toBeLessThanOrEqual(12)
+  expect((await note.boundingBox())!.y + (await note.boundingBox())!.height).toBeLessThanOrEqual(800)
+  const first = page.getByRole('button', { name: 'Seleccionar imagen 000082.jpg', exact: true })
+  const position = await first.boundingBox()
+  await page.mouse.move(position!.x + 20, position!.y + 20)
+  await page.mouse.wheel(0, 600)
+  await expect.poll(() => first.evaluate(element => {
+    let parent = element.parentElement
+    while (parent && parent.tagName !== 'MAIN') {
+      if (parent.scrollTop > 0) return true
+      parent = parent.parentElement
+    }
+    return false
+  })).toBe(true)
+  expect(await main.evaluate(element => element.scrollTop)).toBe(0)
+  expect(l.analisis).toBe(0)
+})

@@ -15,8 +15,8 @@ export function DatasetSelector({ disabled, selectedId, onSelect, exportedImages
   const query = useInfiniteImages({ split: split ? [split as Split] : [], damageCategories: damage ? [damage as DamageCategory] : [] }, exportedImages === undefined)
   const filtered = (exportedImages ?? query.data?.pages.flatMap(p => p.items) ?? []).filter(i => i.file_name.toLowerCase().includes(search.toLowerCase()) && (!split || i.split === split) && (!damage || i.labels.includes(damage)))
   const images = exportedImages ? filtered.slice(0, visibleCount) : filtered
-  return <section className="rounded-lg border bg-card" aria-label="Imágenes del dataset">
-    <div className="border-b p-4">
+  return <section className="peritaje-selector rounded-lg border bg-card" aria-label="Imágenes del dataset">
+    <div className="shrink-0 border-b p-4">
       <h2 className="flex items-center gap-2 font-semibold"><ImageIcon className="size-4" /> Seleccionar del dataset</h2>
       <p className="mt-1 text-sm text-muted-foreground">{exportedImages ? `${exportedImages.length} imágenes con documento de detecciones disponible.` : 'Elige una imagen original.'} Seleccionarla todavía no inicia el análisis.</p>
       <div className="mt-4 grid gap-2 sm:grid-cols-2">
@@ -35,7 +35,7 @@ export function DatasetSelector({ disabled, selectedId, onSelect, exportedImages
         <input aria-label="Buscar por nombre en las imágenes cargadas" className="h-9 w-full bg-transparent text-sm outline-none" placeholder="Buscar en las imágenes cargadas…" value={search} onChange={e => setSearch(e.target.value)} disabled={disabled} />
       </label>
     </div>
-    <div className="max-h-[28rem] overflow-auto p-3">
+    <div className="peritaje-imagenes max-h-[28rem] overflow-auto p-3">
       {!exportedImages && query.isPending && <p className="p-6 text-center text-sm text-muted-foreground">Cargando imágenes…</p>}
       {!exportedImages && query.isError && <div className="p-4 text-sm"><p>No se pudieron cargar las imágenes del dataset.</p><Button variant="outline" className="mt-2" onClick={() => query.refetch()}>Volver a cargar imágenes</Button></div>}
       {(exportedImages || (!query.isPending && !query.isError)) && images.length === 0 && <p className="p-6 text-center text-sm text-muted-foreground">No hay imágenes con estos filtros.</p>}

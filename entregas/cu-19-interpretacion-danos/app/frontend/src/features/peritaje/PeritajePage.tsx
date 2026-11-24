@@ -116,8 +116,8 @@ export function PeritajePage() {
     finally { lock.current = false; setPending(false) }
   }
 
-  return <main className="peritaje h-full overflow-auto bg-muted/20">
-    <div className="mx-auto max-w-[1500px] space-y-5 p-4 md:p-6">
+  return <main className={`peritaje h-full overflow-auto bg-muted/20 ${!execution ? 'peritaje-inicio' : ''}`}>
+    <div className="peritaje-content mx-auto flex max-w-[1500px] flex-col gap-5 p-4 md:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div><h1 className="flex items-center gap-2 text-xl font-semibold"><FileText className="size-5" /> Peritaje</h1><p className="mt-1 text-sm text-muted-foreground">Selecciona una imagen, revisa el análisis y genera el informe del siniestro.</p></div>
         {execution && <Button variant="outline" onClick={nuevo} disabled={active || pending}><RotateCcw className="size-4" /> Nuevo peritaje</Button>}
@@ -127,16 +127,15 @@ export function PeritajePage() {
         {pasos.map((paso, index) => <li key={paso} aria-current={index === stage ? 'step' : undefined} className={`flex items-center justify-center gap-2 text-xs sm:text-sm ${index > stage ? 'text-muted-foreground' : 'font-medium'}`}><span className={`flex size-6 shrink-0 items-center justify-center rounded-full border text-xs ${index === stage ? 'border-primary bg-primary text-primary-foreground' : index < stage ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : ''}`}>{index < stage ? <Check className="size-3" /> : index + 1}</span>{paso}</li>)}
       </ol>
       {shownError && <div role="alert" className="flex items-start gap-3 rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm"><AlertCircle className="mt-0.5 size-4 shrink-0 text-destructive" /><div><p>{shownError}</p>{execution?.estado === 'error' && <p className="mt-1 text-xs text-muted-foreground">El caso se ha detenido. No se ha publicado ningún informe final.</p>}{paused && <Button variant="outline" className="mt-3" onClick={consultar} disabled={pending}>Volver a consultar progreso</Button>}</div></div>}
-      {documents && <p className="rounded-lg border bg-card p-4 text-sm">Las detecciones de estas imágenes ya están calculadas. SAM3 no se ejecuta en este equipo.</p>}
       {!execution && catalogue.isPending && <p className="text-sm text-muted-foreground">Cargando imágenes y catálogos…</p>}
       {!execution && catalogue.isError && <div role="alert" className="rounded-lg border p-4 text-sm"><p>{catalogue.error.message}</p><Button variant="outline" className="mt-2" onClick={() => catalogue.refetch()}>Volver a cargar catálogos</Button></div>}
-      {completed && execution.resultado ? <Informe execution={execution} /> : <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
-        <div className="space-y-4">
+      {completed && execution.resultado ? <Informe execution={execution} /> : <div className="peritaje-layout grid items-start gap-5 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
+        <div className="peritaje-columna flex flex-col gap-4">
           {!execution && catalogue.data && <DatasetSelector disabled={pending} selectedId={imagen?.datasetId} onSelect={chooseDataset} exportedImages={documents ? catalogue.data.imagenes_exportadas : undefined} />}
           {!execution && catalogue.data && !documents && <section className="rounded-lg border bg-card p-4"><h2 className="flex items-center gap-2 font-semibold"><Upload className="size-4" /> O subir una imagen</h2><label className="mt-3 block cursor-pointer rounded-md border border-dashed p-4 text-sm"><span className="mb-2 flex items-center gap-2 text-muted-foreground"><ImagePlus className="size-4" /> JPEG o PNG · hasta 10 MiB y 20 millones de píxeles</span><input aria-label="Subir imagen JPEG o PNG" className="block w-full text-xs file:mr-3 file:rounded-md file:border file:bg-background file:px-3 file:py-1.5 file:font-medium" type="file" accept="image/jpeg,image/png" disabled={Boolean(execution)} onChange={e => { const file = e.target.files?.[0]; if (file) void chooseFile(file); e.target.value = '' }} /></label></section>}
           {imagen && execution && <VistaPrevia imagen={imagen} analizada />}
         </div>
-        <div className="space-y-4">
+        <div className="peritaje-columna flex flex-col gap-4">
           {!execution && <section className="rounded-lg border bg-card p-5"><h2 className="font-semibold">Analizar la imagen</h2><p className="mt-2 text-sm leading-relaxed text-muted-foreground">{documents ? 'Se lee el documento de detecciones y la visión analiza sus daños y propone la categoría del vehículo.' : 'El detector localiza los daños y la visión propone su descripción y la categoría del vehículo.'} Después podrás completar el siniestro antes de calcular el presupuesto.</p><Button className="mt-5" onClick={analizar} disabled={!imagen || pending || !catalogue.data}>{pending ? <LoaderCircle className="size-4 animate-spin" /> : <ArrowRight className="size-4" />} Analizar imagen</Button><p className="mt-3 text-xs text-muted-foreground">Esta acción consulta los modelos configurados. Navegar y seleccionar imágenes no los ejecuta.</p></section>}
           {imagen && !execution && <VistaPrevia imagen={imagen} />}
           {active && <section aria-live="polite" className="rounded-lg border bg-card p-5"><h2 className="flex items-center gap-2 font-semibold">{!paused && <LoaderCircle className="size-4 animate-spin" />}{paused ? 'Consulta del progreso interrumpida' : etapas[execution.etapa]}</h2><p className="mt-2 text-sm text-muted-foreground">{paused ? 'Puedes consultar el estado sin volver a enviar el trabajo.' : 'La operación sigue en curso. No necesitas volver a enviarla.'}</p></section>}
@@ -145,13 +144,16 @@ export function PeritajePage() {
         </div>
       </div>}
       {execution?.analisis && !completed && <Hallazgos analisis={execution.analisis} />}
-      <p className="text-xs text-muted-foreground">Datos sintéticos de prototipo. Las cifras son orientativas y requieren revisión; no sustituyen una valoración pericial.</p>
+      <footer className="peritaje-pie space-y-1 text-xs text-muted-foreground">
+        {documents && <p>Las detecciones de estas imágenes ya están calculadas. SAM3 no se ejecuta en este equipo.</p>}
+        <p>Datos sintéticos de prototipo. Las cifras son orientativas y requieren revisión; no sustituyen una valoración pericial.</p>
+      </footer>
     </div>
   </main>
 }
 
 function VistaPrevia({ imagen, analizada = false }: { imagen: Imagen; analizada?: boolean }) {
-  return <section className="overflow-hidden rounded-lg border bg-card"><div className="flex items-center justify-between gap-2 border-b p-3"><p className="truncate text-sm font-medium">{imagen.file.name}</p><span className="shrink-0 text-xs text-muted-foreground">{(imagen.file.size / 1024).toFixed(1)} KiB</span></div><img src={imagen.url} alt={`Vista previa de ${imagen.file.name}`} className="max-h-[25rem] w-full bg-muted/40 object-contain" /><p className="p-3 text-xs text-muted-foreground">{analizada ? 'Imagen utilizada para este análisis.' : 'Imagen original seleccionada. El análisis se ejecuta al pulsar el botón.'}</p></section>
+  return <section className="peritaje-vista-previa overflow-hidden rounded-lg border bg-card"><div className="flex shrink-0 items-center justify-between gap-2 border-b p-3"><p className="truncate text-sm font-medium">{imagen.file.name}</p><span className="shrink-0 text-xs text-muted-foreground">{(imagen.file.size / 1024).toFixed(1)} KiB</span></div><img src={imagen.url} alt={`Vista previa de ${imagen.file.name}`} className="max-h-[25rem] w-full bg-muted/40 object-contain" /><p className="shrink-0 p-3 text-xs text-muted-foreground">{analizada ? 'Imagen utilizada para este análisis.' : 'Imagen original seleccionada. El análisis se ejecuta al pulsar el botón.'}</p></section>
 }
 
 function Hallazgos({ analisis }: { analisis: Analisis }) {
