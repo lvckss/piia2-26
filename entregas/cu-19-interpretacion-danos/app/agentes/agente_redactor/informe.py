@@ -183,14 +183,18 @@ def _tabla_hallazgos(hallazgos: list[dict], con_motivo: bool = False) -> list[st
             filas.append(f"| {f['finding_id']} | {_pieza(f)} | {_clase(f)} | "
                          f"{f['severidad'] or '—'} | {_reparacion(f)} | {_motivos_pendiente(f)} |")
     else:
-        # #54 AC-004: los confirmados con la misma pieza, dano, severidad y reparacion van en una sola fila.
+        # #54 AC-004 y AC-022 (plan v1.3): los confirmados con la misma pieza y reparacion van en una sola
+        # fila, con sus danos y severidades distintos, sus finding_id y sus scores; una reparacion distinta
+        # de la misma pieza sigue en otra fila. Solo cambia la presentacion: los importes no se tocan.
         grupos: dict[tuple, list[dict]] = {}
         for f in hallazgos:
-            grupos.setdefault((_pieza(f), _clase(f), f["severidad"] or "—", _reparacion(f)), []).append(f)
-        for (pieza, clase, severidad, reparacion), iguales in grupos.items():
+            grupos.setdefault((_pieza(f), _reparacion(f)), []).append(f)
+        for (pieza, reparacion), iguales in grupos.items():
             ids = ", ".join(f["finding_id"] for f in iguales)
+            clases = ", ".join(dict.fromkeys(_clase(f) for f in iguales))
+            severidades = ", ".join(dict.fromkeys(f["severidad"] or "—" for f in iguales))
             scores = "; ".join(_decimal(f["score"]) for f in iguales)
-            filas.append(f"| {ids} | {pieza} | {clase} | {severidad} | {reparacion} | {scores} |")
+            filas.append(f"| {ids} | {pieza} | {clases} | {severidades} | {reparacion} | {scores} |")
     imagenes = " ".join(f"![{f['finding_id']}]({f['crop_image_path']})" for f in hallazgos if f.get("crop_image_path"))
     return filas + ([""] + [imagenes] if imagenes else [])
 

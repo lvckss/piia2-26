@@ -823,14 +823,15 @@ def probar_54_ac002_umbral_cero_no_aplica():
 def probar_54_ac004_hallazgos_iguales_en_una_fila_000341():
     """#54 AC-004: en el 000341 real, los confirmados con la misma pieza, dano, severidad y reparacion
     (`341-1` y `341-2`, cristal roto grave del parabrisas) van en una sola fila con sus finding_id y scores;
-    cada finding_id aparece y los importes no cambian."""
+    cada finding_id aparece y los importes no cambian. Desde AC-022 la fila agrupa por pieza y reparacion."""
     a1 = json.loads((REAL / "000341.json").read_text(encoding="utf-8"))
     a2 = _agente2_real(a1)
     md = generar_informe(a1, a2, hoy=HOY)
     tabla = [l for l in _secciones(md)["## Daños confirmados"].splitlines() if l.startswith("| 341-")]
     fila = next(l for l in tabla if "341-1" in l)
     assert "341-2" in fila and "0,96" in fila and "0,95" in fila, fila
-    assert len(tabla) == 3, tabla
+    # AC-022 (plan v1.3): la grieta 341-4 del parabrisas tiene la misma reparacion y entra en esa fila.
+    assert "341-4" in fila and len(tabla) == 2, tabla
     for fid in ("341-1", "341-2", "341-3", "341-4"):
         assert any(fid in l for l in tabla), fid
     for esc in ("confirmados", "con_pendientes"):
@@ -1025,6 +1026,56 @@ def probar_54_ac021_procedencia_del_vehiculo():
 
 
 
+# --- plan v1.3 de la #54, slice 10: una fila por pieza y reparacion (AC-022) ---
+# https://github.com/lvckss/piia2-26/issues/54 (plan v1.3, AC-022)
+def _filas_confirmadas(md: str) -> list[list[str]]:
+    seccion = _secciones(md)["## Daños confirmados"]
+    return [[c.strip() for c in l.strip().strip("|").split("|")] for l in seccion.splitlines()
+            if l.startswith("| ") and not l.startswith("| ID")]
+
+
+def probar_54_ac022_una_fila_por_pieza_y_reparacion_003806():
+    """#54 AC-022: en el 003806 real, la grieta (3806-1, 3806-5) y la rotura de cristal (3806-2) del parabrisas,
+    las tres «Sustituir la pieza», van en una sola fila (IDs en el orden de la salida) con los dos danos, los tres IDs y sus scores; los
+    importes, los totales y los 9 encabezados no cambian y `comprobar_cifras == []`."""
+    a1 = json.loads((REAL / "003806.json").read_text(encoding="utf-8"))
+    a2 = _agente2_real_con_vehiculo(a1)
+    md = generar_informe(a1, a2, hoy=HOY)
+    filas = [f for f in _filas_confirmadas(md) if f[1] == "Parabrisas"]
+    assert len(filas) == 1, filas
+    ids, _, dano, severidad, reparacion, scores = filas[0]
+    assert [x.strip() for x in ids.split(",")] == ["3806-1", "3806-2", "3806-5"], ids
+    assert "grieta" in dano and "rotura de cristal" in dano, dano
+    assert severidad == "grave" and reparacion == "Sustituir la pieza", filas[0]
+    assert scores.count(";") == 2, scores
+    assert [l for l in md.splitlines() if l.startswith("## ")] == ENCABEZADOS[1:], md
+    for esc in ("confirmados", "con_pendientes"):
+        assert informe.eur(a2["escenarios"][esc]["estimacion"]["total_con_iva_eur"]) in md, esc
+    assert comprobar_cifras(md, a2) == [], comprobar_cifras(md, a2)
+
+
+def probar_54_ac022_reparaciones_distintas_siguen_separadas_001248():
+    """#54 AC-022: en el 001248 real, el paragolpes trasero tiene dos reparaciones distintas («Sustituir la pieza
+    y pintarla» y «Reparar el plástico y pintar») y siguen en dos filas; ninguna tabla de confirmados de los
+    informes reales repite pieza y reparacion, y cada finding_id confirmado aparece una vez."""
+    a1 = json.loads((REAL / "001248.json").read_text(encoding="utf-8"))
+    md = generar_informe(a1, _agente2_real_con_vehiculo(a1), hoy=HOY)
+    filas = [f for f in _filas_confirmadas(md) if f[1] == "Paragolpes trasero (cubierta)"]
+    assert sorted(f[4] for f in filas) == ["Reparar el plástico y pintar", "Sustituir la pieza y pintarla"], filas
+    for ruta in sorted(REAL.glob("*.json")):
+        a1 = json.loads(ruta.read_text(encoding="utf-8"))
+        if "vehiculo" not in a1:
+            continue
+        a2 = _agente2_real_con_vehiculo(a1)
+        md = generar_informe(a1, a2, hoy=HOY)
+        filas = _filas_confirmadas(md)
+        claves = [(f[1], f[4]) for f in filas]
+        assert len(claves) == len(set(claves)), (ruta.stem, claves)
+        ids = [x.strip() for f in filas for x in f[0].split(",")]
+        assert sorted(ids) == sorted(a2["escenarios"]["confirmados"]["hallazgos_incluidos"]), (ruta.stem, ids)
+        assert comprobar_cifras(md, a2) == [], (ruta.stem, comprobar_cifras(md, a2))
+
+
 PRUEBAS = [
     probar_ac001_encabezados_cabecera_y_resumen,
     probar_ac002_confirmados_pendientes_y_no_incluidos,
@@ -1064,6 +1115,8 @@ PRUEBAS = [
     probar_54_ac018_pendientes_vacios_localizan_la_revision_humana,
     probar_54_ac019_frase_de_fuentes_explicativas,
     probar_54_ac021_procedencia_del_vehiculo,
+    probar_54_ac022_una_fila_por_pieza_y_reparacion_003806,
+    probar_54_ac022_reparaciones_distintas_siguen_separadas_001248,
 ]
 
 
