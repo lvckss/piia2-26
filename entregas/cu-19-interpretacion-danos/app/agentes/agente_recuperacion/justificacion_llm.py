@@ -140,10 +140,10 @@ def _localizar(cita: str, pasaje: str) -> str | None:
     return _normalizar(frase)
 
 
-# Final de frase: punto seguido de mayuscula o apertura (no tras un numero ni tras «art.», «num.», «Ref.», «apdo.»)
+# Final de frase: punto seguido de mayuscula o apertura, con o sin enfasis Markdown `*` delante (no tras un numero ni tras «art.», «num.», «Ref.», «apdo.»)
 # o punto y coma.
 MAX_FRASE = 600
-_FIN_DE_FRASE = re.compile(r"(?:(?<!\d)(?<!\bart)(?<!\bnúm)(?<!\bapdo)(?<!\bRef)\.(?=\s+[A-ZÁÉÍÓÚÑ¿¡«\"(])|;(?=\s))")
+_FIN_DE_FRASE = re.compile(r"(?:(?<!\d)(?<!\bart)(?<!\bnúm)(?<!\bapdo)(?<!\bRef)\.(?=\s+\**[A-ZÁÉÍÓÚÑ¿¡«\"(])|;(?=\s))")
 
 
 def _inicio_de_frase(texto: str, posicion: int) -> int:

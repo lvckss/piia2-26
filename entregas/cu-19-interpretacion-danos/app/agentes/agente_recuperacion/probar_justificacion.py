@@ -234,6 +234,21 @@ def probar_97_ac020_cita_al_inicio_de_una_frase_no_arrastra_la_anterior():
         "Rotura de parabrisas con límite de 800 EUR por anualidad.")
 
 
+def probar_97_ac020_enfasis_markdown_al_inicio_de_la_frase_no_arrastra_la_anterior():
+    """#54 AC-020 (revision de Lucas en la #113): tras un punto, el enfasis Markdown (`**`) que abre la frase
+    siguiente tambien marca el final de la frase anterior; sin ello, una frase previa larga hacia pasar la
+    ampliacion de 600 caracteres y se perdian el limite y la franquicia."""
+    frase = "**Rotura de lunas** con límite de 800 EUR por anualidad y franquicia de 0 EUR."
+    previa = "Condiciones anteriores: " + ("se requiere revisión " * 30) + "."
+    assert len(previa) > 600
+    j = _citar(previa + " " + frase + " Otra frase.", "Rotura de lunas")
+    assert j["estado"] == "generada", j
+    assert j["citas"][0]["extracto"] == frase, j
+    # caso corto: la frase previa no entra en la cita
+    corto = "Una frase previa. " + frase
+    assert _citar(corto, "Rotura de lunas")["citas"][0]["extracto"] == frase
+
+
 # --- specs/97-justificacion-llm-normativa.md#AC-003 --------------------------
 def probar_97_ac003_texto_con_importes_se_descarta():
     """AC-003: con pasajes que contienen «1500 EUR» (limite de lunas, ausente del calculo) y «300 EUR»,
@@ -375,6 +390,7 @@ PRUEBAS = [
     probar_97_ac020_frase_demasiado_larga_no_se_amplia,
     probar_97_ac020_cita_ausente_sigue_descartada,
     probar_97_ac020_cita_al_inicio_de_una_frase_no_arrastra_la_anterior,
+    probar_97_ac020_enfasis_markdown_al_inicio_de_la_frase_no_arrastra_la_anterior,
     probar_97_ac003_texto_con_importes_se_descarta,
     probar_97_ac004_terminos_de_validacion_se_descartan,
     probar_97_ac005_sin_clave_o_sin_autorizacion_no_llama,
