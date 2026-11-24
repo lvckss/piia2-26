@@ -100,8 +100,8 @@ NINGUNO = "_Ninguno._"
 # Issue #54, slice 2 (plan v1.1): https://github.com/lvckss/piia2-26/issues/54#issuecomment-6806386857
 # AC-011: el sistema solo juzga lo que encuentra el detector de danos; se dice aparte del aviso legal.
 # Plan v1.2 de la #54, AC-014: sin jerga para el lector («el detector de daños» y no el nombre interno).
-AVISO_DETECTOR = ("Solo se analizan los daños que ha encontrado el detector de daños en la foto; puede haber otros "
-                  "que no aparezcan en este informe.")
+AVISO_DETECTOR = ("Solo se analizan los daños que ha encontrado el detector en la foto; puede haber otros que no "
+                  "aparezcan en este informe.")
 # Plan v1.2 de la #54 (https://github.com/lvckss/piia2-26/issues/54#issuecomment-7107366100), slice 8.
 # AC-014: sigla que se desarrolla la primera vez que aparece fuera de las citas literales.
 SIGLAS = {"LRCSCVM": "Ley sobre responsabilidad civil y seguro en la circulación de vehículos a motor"}
@@ -408,10 +408,13 @@ def _celda_cubierto(escenario: dict) -> str:
     return _si_no(escenario["cobertura"]["cubierto"])
 
 
-def _celda_indemnizacion(cobertura: dict) -> str:
-    """Con cobertura e indemnizacion 0 €, el motivo (#54 AC-017). Las cifras no cambian."""
+def _celda_indemnizacion(escenario: dict) -> str:
+    """Con cobertura e indemnizacion 0 € porque el coste no supera la franquicia, se dice (#54 AC-017). Se compara
+    de forma explicita, para no afirmarlo si la indemnizacion es 0 € por otro motivo. Las cifras no cambian."""
+    cobertura = escenario["cobertura"]
     celda = eur(cobertura["indemnizacion_estimada_eur"])
-    if cobertura["cubierto"] and cobertura["indemnizacion_estimada_eur"] == 0:
+    if (cobertura["cubierto"] and cobertura["indemnizacion_estimada_eur"] == 0
+            and escenario["estimacion"]["total_con_iva_eur"] <= cobertura["franquicia_eur"]):
         celda += " (el coste no supera la franquicia)"
     return celda
 
@@ -574,7 +577,7 @@ def generar_informe(agente1: dict, agente2: dict, hoy: str | None = None) -> str
         f"| Motivo | {cob_c['motivo']} | {cob_p['motivo']} |",
         f"| Franquicia | {eur(cob_c['franquicia_eur'])} | {eur(cob_p['franquicia_eur'])} |",
         f"| Pérdida total | {_si_no(cob_c['perdida_total'])} | {_si_no(cob_p['perdida_total'])} |",
-        f"| Indemnización estimada | {_celda_indemnizacion(cob_c)} | {_celda_indemnizacion(cob_p)} |",
+        f"| Indemnización estimada | {_celda_indemnizacion(esc_c)} | {_celda_indemnizacion(esc_p)} |",
         "",
         "## Fuentes consultadas",
         "",

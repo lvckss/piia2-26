@@ -773,14 +773,14 @@ def probar_54_ac003_sin_nada_presupuestable_003478():
 def probar_54_ac011_aviso_de_lo_que_detecta_piia1():
     """#54 AC-011: el informe incluye, aparte del aviso literal de la cabecera, una línea que dice que solo se
     analizan los daños que encuentra el detector y que puede haber otros (el ejemplo y el 000423 real). Desde el
-    plan v1.2 (AC-014) el detector se nombra «el detector de daños»."""
+    plan v1.2 (AC-014) el aviso dice «el detector» y el «Resumen», «el detector de daños»."""
     a1, a2 = _ejemplos()
     real = json.loads((REAL / "000423.json").read_text(encoding="utf-8"))
     for salida1, salida2 in ((a1, a2), (real, _agente2_real_con_vehiculo(real))):
         md = generar_informe(salida1, salida2, hoy=HOY)
         cabecera = _secciones(md)[next(l for l in md.splitlines() if l.startswith("# "))]
         assert AVISO_LEGAL in cabecera, cabecera
-        linea = next((l for l in cabecera.splitlines() if "detector de daños" in l), "")
+        linea = next((l for l in cabecera.splitlines() if "el detector en la foto" in l), "")
         assert linea and AVISO_LEGAL not in linea and "puede haber otros" in linea, cabecera
         encontrados = [l for l in md.splitlines() if l.startswith("# ") or l.startswith("## ")]
         assert encontrados[1:] == ENCABEZADOS[1:], encontrados
@@ -885,7 +885,7 @@ def probar_54_ac014_lenguaje_sin_jerga():
         md = generar_informe(salida1, salida2, hoy=HOY)
         for palabra in JERGA:
             assert palabra not in _fuera_de_bloques(md), (salida1["image_id"], palabra)
-        assert "el detector de daños" in md, salida1["image_id"]
+        assert "detector de daños" in md, salida1["image_id"]
         encabezados = [l for l in md.splitlines() if l.startswith("# ") or l.startswith("## ")]
         assert encabezados[1:] == ENCABEZADOS[1:], encabezados
         assert comprobar_cifras(md, salida2) == [], (salida1["image_id"], comprobar_cifras(md, salida2))
@@ -945,11 +945,21 @@ def probar_54_ac017_cobertura_sin_danos_y_sin_indemnizacion():
     a1, a2 = _ejemplos()
     x = copy.deepcopy(a2)
     for e in x["escenarios"].values():
-        e["cobertura"].update(cubierto=True, indemnizacion_estimada_eur=0.0)
+        # el coste no supera la franquicia: franquicia por encima del total con IVA
+        e["cobertura"].update(cubierto=True, indemnizacion_estimada_eur=0.0,
+                              franquicia_eur=e["estimacion"]["total_con_iva_eur"] + 1)
     md = generar_informe(a1, x, hoy=HOY)
     fila = next(l for l in _secciones(md)["## Cobertura e indemnización"].splitlines() if l.startswith("| Indemnización"))
     assert "el coste no supera la franquicia" in fila and informe.eur(0.0) in fila, fila
     assert comprobar_cifras(md, x) == []
+    # Revision de Lucia en la #114: la nota solo sale si el coste de verdad no supera la franquicia. Con
+    # indemnizacion 0 € por otro motivo (por ejemplo, un limite agotado) no se afirma.
+    y = copy.deepcopy(x)
+    for e in y["escenarios"].values():
+        e["cobertura"]["franquicia_eur"] = 10.0
+    fila = next(l for l in _secciones(generar_informe(a1, y, hoy=HOY))["## Cobertura e indemnización"].splitlines()
+                if l.startswith("| Indemnización"))
+    assert "franquicia" not in fila, fila
 
 
 def probar_54_ac018_pendientes_vacios_localizan_la_revision_humana():
