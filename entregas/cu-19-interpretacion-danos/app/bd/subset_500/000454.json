@@ -1,0 +1,118 @@
+{
+  "image_id": 454,
+  "image_file": "000454.jpg",
+  "image_path": "/content/drive/MyDrive/CarDD_release/rawdata/images/000454.jpg",
+  "image_width": 1000,
+  "image_height": 662,
+  "split": "val",
+  "variant": "baseline",
+  "strategy_name": "baseline_prompt",
+  "num_predictions": 5,
+  "predictions": [
+    {
+      "instance_index": 1,
+      "damage_class": "tire flat",
+      "category_id": 6,
+      "score": 0.541015625,
+      "bbox_xywh": [
+        878.0,
+        430.0,
+        122.0,
+        232.0
+      ],
+      "area": 10877.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 2,
+      "damage_class": "tire flat",
+      "category_id": 6,
+      "score": 0.440673828125,
+      "bbox_xywh": [
+        0.0,
+        624.0,
+        86.0,
+        38.0
+      ],
+      "area": 2171.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 3,
+      "damage_class": "dent",
+      "category_id": 1,
+      "score": 0.404541015625,
+      "bbox_xywh": [
+        940.0,
+        74.0,
+        60.0,
+        411.0
+      ],
+      "area": 8379.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 4,
+      "damage_class": "tire flat",
+      "category_id": 6,
+      "score": 0.341064453125,
+      "bbox_xywh": [
+        954.0,
+        428.0,
+        46.0,
+        232.0
+      ],
+      "area": 5878.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 5,
+      "damage_class": "dent",
+      "category_id": 1,
+      "score": 0.337158203125,
+      "bbox_xywh": [
+        0.0,
+        115.0,
+        229.0,
+        545.0
+      ],
+      "area": 57443.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    }
+  ],
+  "ground_truth": [
+    {
+      "damage_class": "dent",
+      "category_id": 1,
+      "bbox_xywh": [
+        551.08,
+        70.02,
+        167.45,
+        351.22
+      ]
+    },
+    {
+      "damage_class": "dent",
+      "category_id": 1,
+      "bbox_xywh": [
+        712.57,
+        100.11,
+        78.81,
+        238.12
+      ]
+    }
+  ],
+  "gt_unmatched_by_class": {
+    "dent": 2,
+    "scratch": 0,
+    "crack": 0,
+    "glass shatter": 0,
+    "lamp broken": 0,
+    "tire flat": 0
+  }
+}

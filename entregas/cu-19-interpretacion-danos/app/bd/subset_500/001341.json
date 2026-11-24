@@ -1,0 +1,153 @@
+{
+  "image_id": 1341,
+  "image_file": "001341.jpg",
+  "image_path": "/content/drive/MyDrive/CarDD_release/rawdata/images/001341.jpg",
+  "image_width": 1000,
+  "image_height": 653,
+  "split": "val",
+  "variant": "baseline",
+  "strategy_name": "baseline_prompt",
+  "num_predictions": 8,
+  "predictions": [
+    {
+      "instance_index": 1,
+      "damage_class": "glass shatter",
+      "category_id": 4,
+      "score": 0.947265625,
+      "bbox_xywh": [
+        252.0,
+        42.0,
+        647.0,
+        432.0
+      ],
+      "area": 192060.0,
+      "is_true_positive": true,
+      "best_iou": 0.9773
+    },
+    {
+      "instance_index": 2,
+      "damage_class": "lamp broken",
+      "category_id": 5,
+      "score": 0.79052734375,
+      "bbox_xywh": [
+        63.0,
+        363.0,
+        66.0,
+        57.0
+      ],
+      "area": 2751.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 3,
+      "damage_class": "crack",
+      "category_id": 3,
+      "score": 0.77685546875,
+      "bbox_xywh": [
+        319.0,
+        84.0,
+        510.0,
+        387.0
+      ],
+      "area": 118627.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 4,
+      "damage_class": "lamp broken",
+      "category_id": 5,
+      "score": 0.57373046875,
+      "bbox_xywh": [
+        52.0,
+        328.0,
+        234.0,
+        130.0
+      ],
+      "area": 25659.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 5,
+      "damage_class": "scratch",
+      "category_id": 2,
+      "score": 0.44775390625,
+      "bbox_xywh": [
+        319.0,
+        84.0,
+        496.0,
+        385.0
+      ],
+      "area": 111517.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 6,
+      "damage_class": "dent",
+      "category_id": 1,
+      "score": 0.423583984375,
+      "bbox_xywh": [
+        319.0,
+        84.0,
+        496.0,
+        374.0
+      ],
+      "area": 107062.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 7,
+      "damage_class": "crack",
+      "category_id": 3,
+      "score": 0.308349609375,
+      "bbox_xywh": [
+        250.0,
+        39.0,
+        655.0,
+        436.0
+      ],
+      "area": 195292.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 8,
+      "damage_class": "lamp broken",
+      "category_id": 5,
+      "score": 0.302490234375,
+      "bbox_xywh": [
+        125.0,
+        37.0,
+        780.0,
+        438.0
+      ],
+      "area": 193417.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    }
+  ],
+  "ground_truth": [
+    {
+      "damage_class": "glass shatter",
+      "category_id": 4,
+      "bbox_xywh": [
+        243.5,
+        39.52,
+        650.94,
+        433.96
+      ]
+    }
+  ],
+  "gt_unmatched_by_class": {
+    "dent": 0,
+    "scratch": 0,
+    "crack": 0,
+    "glass shatter": 0,
+    "lamp broken": 0,
+    "tire flat": 0
+  }
+}
