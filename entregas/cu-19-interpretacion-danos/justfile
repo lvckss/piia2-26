@@ -15,6 +15,15 @@ frontend:
 backend:
     cd {{ quote(app) }} && bun run dev
 
+# Preparar el servicio Python del peritaje (sin inferencia ni llamadas de pago).
+orquestador-setup:
+    @test -x .venv-rag/bin/python || python3 -m venv .venv-rag
+    .venv-rag/bin/python -m pip install -r app/agentes/orquestador/requirements-orquestador.txt
+
+# Iniciar la orquestación; requiere API ML y OPENAI_MODEL configurados.
+orquestador:
+    .venv-rag/bin/python app/agentes/orquestador/servidor.py
+
 # Preparar el entorno Python y descargar/verificar CARDD sin activar el venv.
 cardd:
     @test -x .venv-cardd/bin/python || python3 -m venv .venv-cardd

@@ -8,13 +8,26 @@ El recorrido es: imagen → «Analizar imagen» → resultados de solo lectura �
 
 ## Estado de integración
 
-Este incremento implementa el **cliente web** y sus pruebas de navegador. Consume `/api/catalogos` y `/api/peritajes` conforme al recorrido aceptado; el backend de orquestación y el Compose completo siguen pendientes en #34. Ante una API ausente o incompatible muestra un error; nunca sustituye la respuesta por detecciones o informes precalculados. Las pruebas guionizan HTTP exclusivamente desde Playwright, fuera del código de producto.
+Este incremento implementa el **cliente web**, las rutas Hono y el servicio Python de orquestación. Hono transporta `/api/catalogos` y `/api/peritajes` al servicio interno; Python ejecuta PIIA 1 → Agente 1 y, tras recibir contexto válido, Agente 2 → informe → verificación de cifras. Los proveedores reales se conectan desde `agentes/orquestador/pipeline.py`; los dobles de ML/visión solo existen en tests. Compose completo y el recorrido con modelos reales siguen pendientes en #34.
 
 Los esquemas de `server/models/` necesarios para reutilizar el explorador se incluyen como código fuente: antes una regla de ignorado de pesos `models/` también los excluía del repositorio. Las carpetas de modelos, imágenes, credenciales y resultados locales siguen ignoradas.
 
 ## Ejecutar y comprobar
 
 Desde `app/`, instalar dependencias con `bun install`; desde `app/frontend/`, ejecutar también `bun install`. Arrancar el backend con su configuración habitual y `bun run dev` desde `app/`; arrancar Vite con `bun run dev` desde `app/frontend/`. La UI usa los proxies `/api` y `/dataset` existentes.
+
+Desde la carpeta de la entrega, preparar e iniciar el servicio Python en otra terminal:
+
+```sh
+just orquestador-setup
+just orquestador
+```
+
+Por defecto escucha en `127.0.0.1:8004`; Hono usa `ORQUESTADOR_URL` si se necesita otra dirección. El detector debe estar iniciado en `http://127.0.0.1:8001`, configurable mediante `ML_API_URL`. Su arranque está documentado en [ML API](../docker/ml-api/README.md); `PROJECT_MODELS_DIR` permite indicar la carpeta local de pesos al contenedor. El orquestador lee `.env` de la entrega y `app/.env` sin sobrescribir variables ya exportadas. Necesita `OPENAI_API_KEY` válida y `OPENAI_MODEL` con un identificador disponible en esa cuenta. No existe un modelo por defecto ni se habilita gasto RAG automáticamente.
+
+El análisis es asíncrono: los POST aceptados responden 202 y el GET informa del progreso o del fallo de etapa. Un detector apagado produce `ML_NO_DISPONIBLE`; un 401 de OpenAI produce `VISION_NO_DISPONIBLE`. No se publica ni permite descargar un informe que falle `comprobar_cifras()`.
+
+El servicio conserva dos casos por defecto (`PERITAJE_CAPACITY`) y caduca los inactivos a los 3600 segundos (`PERITAJE_TTL_SECONDS`). Polling y descarga no renuevan ese plazo; no se borran casos en ejecución. El barrido periódico funciona cada 30 segundos. Se utiliza un único proceso Python; varios workers no comparten la deduplicación. Descartar y el apagado ordenado eliminan los temporales propios. La limpieza de temporales tras una terminación abrupta sigue pendiente.
 
 Para instalar el navegador de pruebas desde `app/frontend/`:
 
@@ -27,6 +40,10 @@ Checks:
 ```sh
 # Desde app/
 bun run test:peritaje
+bun test server/routes/peritajesRoute.test.ts server/routes/peritajes.integration.test.ts
+
+# Desde app/agentes/orquestador/, con dependencias y paquete local preparados
+../../../.venv-rag/bin/python -m unittest -v test_workflow
 
 # Desde app/frontend/
 bun run build
@@ -44,8 +61,8 @@ El cliente valida las respuestas con `src/features/peritaje/api.ts`. Catálogos:
 
 La fase A envía multipart `file`; ambos POST llevan `Idempotency-Key`. La fase B envía `{contexto, seleccion_vehiculo?}` y nunca envía findings, tiers ni procedencia libre. Para contexto corregido se crea otra clave; un reintento explícito del mismo contenido conserva la suya.
 
-Las respuestas de ejecución contienen `ejecucion_id`, `estado`, `etapa`, `analisis`, `resultado`, `error`; los tres últimos son anulables según la fase. `analisis` conserva `image_id`, `vehiculo` y `findings` públicos del Agente 1. `resultado` contiene `markdown` y `agente2` con `diagnostico_rag`. Solo se muestra y descarga en `completada`, sin error, y se rechaza un GET que devuelva el ID de otro caso. Estos detalles de serialización concretan el contrato de la Spec para conectar el servidor pendiente; no acreditan que exista su implementación.
+Las respuestas de ejecución contienen `ejecucion_id`, `estado`, `etapa`, `analisis`, `resultado`, `error`; los tres últimos son anulables según la fase. `analisis` conserva `image_id`, `vehiculo` y `findings` públicos del Agente 1. `resultado` contiene `markdown` y `agente2` con `diagnostico_rag`. Solo se muestra y descarga en `completada`, sin error, y se rechaza un GET que devuelva el ID de otro caso. Estos detalles de serialización concretan el contrato de la Spec.
 
 No hay historial ni reenvío automático de POST. Un fallo de polling exige consulta explícita y no reinicia el análisis. Descartar usa DELETE; si el servidor no confirma la limpieza, conserva el caso y muestra el error. La descarga conserva los mismos bytes UTF-8 del Markdown recibido; el renderizador deshabilita HTML crudo y no carga imágenes incluidas en el texto generado.
 
-La integración real, la igualdad con los importes del Agente 2, el ciclo de vida del servidor, Compose y la lectura humana de 3–5 informes permanecen pendientes en sus slices. Los tests del cliente no acreditan la DoD completa de #34.
+La suite Python verifica, con ML/visión inyectados, costes e informe reales, contexto corregible, procedencia, cero detecciones, igualdad de bytes, bloqueo de cifras, idempotencia, capacidad y caducidad. Las pruebas Hono verifican el transporte y las rutas reales. El recorrido completo con modelos reales, Compose, la limpieza tras caída del proceso y la lectura humana de 3–5 informes permanecen pendientes. Estas comprobaciones no acreditan la DoD completa de #34.
