@@ -1,0 +1,978 @@
+{
+  "image_id": 1637,
+  "image_file": "001637.jpg",
+  "image_path": "/content/drive/MyDrive/CarDD_release/rawdata/images/001637.jpg",
+  "image_width": 1000,
+  "image_height": 667,
+  "split": "test",
+  "variant": "baseline",
+  "strategy_name": "baseline_prompt",
+  "num_predictions": 63,
+  "predictions": [
+    {
+      "instance_index": 1,
+      "damage_class": "scratch",
+      "category_id": 2,
+      "score": 0.8525390625,
+      "bbox_xywh": [
+        771.0,
+        523.0,
+        48.0,
+        45.0
+      ],
+      "area": 692.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 2,
+      "damage_class": "tire flat",
+      "category_id": 6,
+      "score": 0.84716796875,
+      "bbox_xywh": [
+        594.0,
+        613.0,
+        333.0,
+        54.0
+      ],
+      "area": 13116.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 3,
+      "damage_class": "scratch",
+      "category_id": 2,
+      "score": 0.82861328125,
+      "bbox_xywh": [
+        840.0,
+        586.0,
+        45.0,
+        46.0
+      ],
+      "area": 436.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 4,
+      "damage_class": "crack",
+      "category_id": 3,
+      "score": 0.7607421875,
+      "bbox_xywh": [
+        771.0,
+        523.0,
+        48.0,
+        45.0
+      ],
+      "area": 711.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 5,
+      "damage_class": "crack",
+      "category_id": 3,
+      "score": 0.75634765625,
+      "bbox_xywh": [
+        840.0,
+        586.0,
+        45.0,
+        46.0
+      ],
+      "area": 450.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 6,
+      "damage_class": "dent",
+      "category_id": 1,
+      "score": 0.75390625,
+      "bbox_xywh": [
+        560.0,
+        287.0,
+        440.0,
+        241.0
+      ],
+      "area": 27602.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 7,
+      "damage_class": "scratch",
+      "category_id": 2,
+      "score": 0.73876953125,
+      "bbox_xywh": [
+        880.0,
+        554.0,
+        12.0,
+        32.0
+      ],
+      "area": 179.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 8,
+      "damage_class": "scratch",
+      "category_id": 2,
+      "score": 0.73828125,
+      "bbox_xywh": [
+        553.0,
+        287.0,
+        447.0,
+        241.0
+      ],
+      "area": 27488.0,
+      "is_true_positive": false,
+      "best_iou": 0.452
+    },
+    {
+      "instance_index": 9,
+      "damage_class": "crack",
+      "category_id": 3,
+      "score": 0.7333984375,
+      "bbox_xywh": [
+        548.0,
+        287.0,
+        452.0,
+        242.0
+      ],
+      "area": 31824.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 10,
+      "damage_class": "scratch",
+      "category_id": 2,
+      "score": 0.7109375,
+      "bbox_xywh": [
+        841.0,
+        512.0,
+        24.0,
+        14.0
+      ],
+      "area": 119.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 11,
+      "damage_class": "scratch",
+      "category_id": 2,
+      "score": 0.65771484375,
+      "bbox_xywh": [
+        958.0,
+        655.0,
+        25.0,
+        12.0
+      ],
+      "area": 215.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 12,
+      "damage_class": "scratch",
+      "category_id": 2,
+      "score": 0.64599609375,
+      "bbox_xywh": [
+        754.0,
+        461.0,
+        34.0,
+        37.0
+      ],
+      "area": 348.0,
+      "is_true_positive": false,
+      "best_iou": 0.003
+    },
+    {
+      "instance_index": 13,
+      "damage_class": "crack",
+      "category_id": 3,
+      "score": 0.623046875,
+      "bbox_xywh": [
+        880.0,
+        554.0,
+        12.0,
+        32.0
+      ],
+      "area": 178.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 14,
+      "damage_class": "scratch",
+      "category_id": 2,
+      "score": 0.59912109375,
+      "bbox_xywh": [
+        910.0,
+        577.0,
+        13.0,
+        7.0
+      ],
+      "area": 61.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 15,
+      "damage_class": "crack",
+      "category_id": 3,
+      "score": 0.587890625,
+      "bbox_xywh": [
+        841.0,
+        512.0,
+        24.0,
+        14.0
+      ],
+      "area": 120.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 16,
+      "damage_class": "crack",
+      "category_id": 3,
+      "score": 0.56103515625,
+      "bbox_xywh": [
+        754.0,
+        461.0,
+        34.0,
+        37.0
+      ],
+      "area": 365.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 17,
+      "damage_class": "crack",
+      "category_id": 3,
+      "score": 0.5498046875,
+      "bbox_xywh": [
+        958.0,
+        655.0,
+        25.0,
+        12.0
+      ],
+      "area": 220.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 18,
+      "damage_class": "crack",
+      "category_id": 3,
+      "score": 0.5458984375,
+      "bbox_xywh": [
+        453.0,
+        429.0,
+        50.0,
+        85.0
+      ],
+      "area": 1009.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 19,
+      "damage_class": "dent",
+      "category_id": 1,
+      "score": 0.53369140625,
+      "bbox_xywh": [
+        840.0,
+        586.0,
+        45.0,
+        46.0
+      ],
+      "area": 442.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 20,
+      "damage_class": "dent",
+      "category_id": 1,
+      "score": 0.51025390625,
+      "bbox_xywh": [
+        771.0,
+        522.0,
+        48.0,
+        46.0
+      ],
+      "area": 714.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 21,
+      "damage_class": "scratch",
+      "category_id": 2,
+      "score": 0.49755859375,
+      "bbox_xywh": [
+        872.0,
+        479.0,
+        27.0,
+        17.0
+      ],
+      "area": 116.0,
+      "is_true_positive": false,
+      "best_iou": 0.0019
+    },
+    {
+      "instance_index": 22,
+      "damage_class": "scratch",
+      "category_id": 2,
+      "score": 0.4970703125,
+      "bbox_xywh": [
+        639.0,
+        514.0,
+        25.0,
+        14.0
+      ],
+      "area": 192.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 23,
+      "damage_class": "crack",
+      "category_id": 3,
+      "score": 0.496826171875,
+      "bbox_xywh": [
+        651.0,
+        287.0,
+        278.0,
+        176.0
+      ],
+      "area": 11461.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 24,
+      "damage_class": "scratch",
+      "category_id": 2,
+      "score": 0.475341796875,
+      "bbox_xywh": [
+        882.0,
+        590.0,
+        7.0,
+        11.0
+      ],
+      "area": 56.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 25,
+      "damage_class": "scratch",
+      "category_id": 2,
+      "score": 0.469482421875,
+      "bbox_xywh": [
+        567.0,
+        179.0,
+        79.0,
+        83.0
+      ],
+      "area": 3520.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 26,
+      "damage_class": "scratch",
+      "category_id": 2,
+      "score": 0.4677734375,
+      "bbox_xywh": [
+        653.0,
+        287.0,
+        275.0,
+        175.0
+      ],
+      "area": 11219.0,
+      "is_true_positive": false,
+      "best_iou": 0.1854
+    },
+    {
+      "instance_index": 27,
+      "damage_class": "crack",
+      "category_id": 3,
+      "score": 0.462158203125,
+      "bbox_xywh": [
+        581.0,
+        380.0,
+        419.0,
+        148.0
+      ],
+      "area": 9662.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 28,
+      "damage_class": "crack",
+      "category_id": 3,
+      "score": 0.457763671875,
+      "bbox_xywh": [
+        566.0,
+        179.0,
+        80.0,
+        83.0
+      ],
+      "area": 3646.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 29,
+      "damage_class": "crack",
+      "category_id": 3,
+      "score": 0.45751953125,
+      "bbox_xywh": [
+        910.0,
+        577.0,
+        13.0,
+        7.0
+      ],
+      "area": 64.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 30,
+      "damage_class": "crack",
+      "category_id": 3,
+      "score": 0.43896484375,
+      "bbox_xywh": [
+        730.0,
+        624.0,
+        36.0,
+        41.0
+      ],
+      "area": 424.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 31,
+      "damage_class": "scratch",
+      "category_id": 2,
+      "score": 0.434814453125,
+      "bbox_xywh": [
+        867.0,
+        343.0,
+        133.0,
+        63.0
+      ],
+      "area": 1863.0,
+      "is_true_positive": false,
+      "best_iou": 0.0036
+    },
+    {
+      "instance_index": 32,
+      "damage_class": "scratch",
+      "category_id": 2,
+      "score": 0.41455078125,
+      "bbox_xywh": [
+        896.0,
+        28.0,
+        17.0,
+        9.0
+      ],
+      "area": 92.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 33,
+      "damage_class": "crack",
+      "category_id": 3,
+      "score": 0.412353515625,
+      "bbox_xywh": [
+        866.0,
+        342.0,
+        134.0,
+        65.0
+      ],
+      "area": 2068.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 34,
+      "damage_class": "crack",
+      "category_id": 3,
+      "score": 0.410400390625,
+      "bbox_xywh": [
+        677.0,
+        620.0,
+        45.0,
+        47.0
+      ],
+      "area": 512.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 35,
+      "damage_class": "dent",
+      "category_id": 1,
+      "score": 0.406005859375,
+      "bbox_xywh": [
+        566.0,
+        178.0,
+        80.0,
+        84.0
+      ],
+      "area": 3626.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 36,
+      "damage_class": "scratch",
+      "category_id": 2,
+      "score": 0.405029296875,
+      "bbox_xywh": [
+        909.0,
+        14.0,
+        10.0,
+        7.0
+      ],
+      "area": 55.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 37,
+      "damage_class": "dent",
+      "category_id": 1,
+      "score": 0.40185546875,
+      "bbox_xywh": [
+        958.0,
+        655.0,
+        35.0,
+        12.0
+      ],
+      "area": 221.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 38,
+      "damage_class": "crack",
+      "category_id": 3,
+      "score": 0.396484375,
+      "bbox_xywh": [
+        882.0,
+        590.0,
+        7.0,
+        13.0
+      ],
+      "area": 63.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 39,
+      "damage_class": "scratch",
+      "category_id": 2,
+      "score": 0.396240234375,
+      "bbox_xywh": [
+        906.0,
+        290.0,
+        11.0,
+        29.0
+      ],
+      "area": 149.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 40,
+      "damage_class": "crack",
+      "category_id": 3,
+      "score": 0.3955078125,
+      "bbox_xywh": [
+        872.0,
+        479.0,
+        27.0,
+        17.0
+      ],
+      "area": 117.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 41,
+      "damage_class": "crack",
+      "category_id": 3,
+      "score": 0.385009765625,
+      "bbox_xywh": [
+        781.0,
+        625.0,
+        27.0,
+        42.0
+      ],
+      "area": 480.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 42,
+      "damage_class": "lamp broken",
+      "category_id": 5,
+      "score": 0.374755859375,
+      "bbox_xywh": [
+        469.0,
+        78.0,
+        139.0,
+        187.0
+      ],
+      "area": 9679.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 43,
+      "damage_class": "scratch",
+      "category_id": 2,
+      "score": 0.369384765625,
+      "bbox_xywh": [
+        581.0,
+        380.0,
+        273.0,
+        97.0
+      ],
+      "area": 5863.0,
+      "is_true_positive": false,
+      "best_iou": 0.0963
+    },
+    {
+      "instance_index": 44,
+      "damage_class": "crack",
+      "category_id": 3,
+      "score": 0.367919921875,
+      "bbox_xywh": [
+        638.0,
+        514.0,
+        28.0,
+        14.0
+      ],
+      "area": 214.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 45,
+      "damage_class": "crack",
+      "category_id": 3,
+      "score": 0.361328125,
+      "bbox_xywh": [
+        639.0,
+        633.0,
+        27.0,
+        34.0
+      ],
+      "area": 275.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 46,
+      "damage_class": "crack",
+      "category_id": 3,
+      "score": 0.35498046875,
+      "bbox_xywh": [
+        582.0,
+        380.0,
+        275.0,
+        98.0
+      ],
+      "area": 6177.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 47,
+      "damage_class": "scratch",
+      "category_id": 2,
+      "score": 0.35107421875,
+      "bbox_xywh": [
+        586.0,
+        380.0,
+        414.0,
+        148.0
+      ],
+      "area": 9062.0,
+      "is_true_positive": false,
+      "best_iou": 0.1491
+    },
+    {
+      "instance_index": 48,
+      "damage_class": "scratch",
+      "category_id": 2,
+      "score": 0.34814453125,
+      "bbox_xywh": [
+        754.0,
+        461.0,
+        17.0,
+        14.0
+      ],
+      "area": 169.0,
+      "is_true_positive": false,
+      "best_iou": 0.0028
+    },
+    {
+      "instance_index": 49,
+      "damage_class": "dent",
+      "category_id": 1,
+      "score": 0.340087890625,
+      "bbox_xywh": [
+        841.0,
+        510.0,
+        27.0,
+        16.0
+      ],
+      "area": 147.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 50,
+      "damage_class": "scratch",
+      "category_id": 2,
+      "score": 0.337158203125,
+      "bbox_xywh": [
+        831.0,
+        551.0,
+        51.0,
+        30.0
+      ],
+      "area": 113.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 51,
+      "damage_class": "dent",
+      "category_id": 1,
+      "score": 0.333251953125,
+      "bbox_xywh": [
+        879.0,
+        554.0,
+        13.0,
+        32.0
+      ],
+      "area": 196.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 52,
+      "damage_class": "crack",
+      "category_id": 3,
+      "score": 0.331298828125,
+      "bbox_xywh": [
+        556.0,
+        524.0,
+        81.0,
+        140.0
+      ],
+      "area": 2595.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 53,
+      "damage_class": "dent",
+      "category_id": 1,
+      "score": 0.32470703125,
+      "bbox_xywh": [
+        399.0,
+        3.0,
+        601.0,
+        664.0
+      ],
+      "area": 275422.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 54,
+      "damage_class": "scratch",
+      "category_id": 2,
+      "score": 0.3212890625,
+      "bbox_xywh": [
+        816.0,
+        591.0,
+        16.0,
+        11.0
+      ],
+      "area": 85.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 55,
+      "damage_class": "crack",
+      "category_id": 3,
+      "score": 0.321044921875,
+      "bbox_xywh": [
+        639.0,
+        628.0,
+        38.0,
+        39.0
+      ],
+      "area": 489.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 56,
+      "damage_class": "crack",
+      "category_id": 3,
+      "score": 0.3193359375,
+      "bbox_xywh": [
+        838.0,
+        554.0,
+        44.0,
+        28.0
+      ],
+      "area": 119.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 57,
+      "damage_class": "dent",
+      "category_id": 1,
+      "score": 0.317626953125,
+      "bbox_xywh": [
+        753.0,
+        461.0,
+        35.0,
+        37.0
+      ],
+      "area": 384.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 58,
+      "damage_class": "dent",
+      "category_id": 1,
+      "score": 0.312744140625,
+      "bbox_xywh": [
+        403.0,
+        508.0,
+        280.0,
+        159.0
+      ],
+      "area": 33148.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 59,
+      "damage_class": "scratch",
+      "category_id": 2,
+      "score": 0.306640625,
+      "bbox_xywh": [
+        983.0,
+        431.0,
+        17.0,
+        13.0
+      ],
+      "area": 169.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 60,
+      "damage_class": "crack",
+      "category_id": 3,
+      "score": 0.305419921875,
+      "bbox_xywh": [
+        906.0,
+        290.0,
+        11.0,
+        28.0
+      ],
+      "area": 145.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 61,
+      "damage_class": "crack",
+      "category_id": 3,
+      "score": 0.302734375,
+      "bbox_xywh": [
+        633.0,
+        620.0,
+        88.0,
+        47.0
+      ],
+      "area": 2406.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 62,
+      "damage_class": "tire flat",
+      "category_id": 6,
+      "score": 0.302490234375,
+      "bbox_xywh": [
+        383.0,
+        0.0,
+        617.0,
+        667.0
+      ],
+      "area": 339892.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 63,
+      "damage_class": "lamp broken",
+      "category_id": 5,
+      "score": 0.3017578125,
+      "bbox_xywh": [
+        386.0,
+        2.0,
+        614.0,
+        665.0
+      ],
+      "area": 333250.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    }
+  ],
+  "ground_truth": [
+    {
+      "damage_class": "scratch",
+      "category_id": 2,
+      "bbox_xywh": [
+        563.32,
+        286.06,
+        436.68,
+        247.36
+      ]
+    }
+  ],
+  "gt_unmatched_by_class": {
+    "dent": 0,
+    "scratch": 1,
+    "crack": 0,
+    "glass shatter": 0,
+    "lamp broken": 0,
+    "tire flat": 0
+  }
+}
