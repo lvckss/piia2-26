@@ -1,0 +1,27 @@
+.peritaje-input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  height: 2.375rem;
+  padding: .45rem .65rem;
+  border: 1px solid var(--input);
+  border-radius: .375rem;
+  background: var(--background);
+  color: var(--foreground);
+  font-size: .875rem;
+}
+.peritaje-input:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.peritaje-input:disabled { opacity: .55; cursor: not-allowed; }
+.peritaje-markdown { overflow-wrap: anywhere; line-height: 1.7; font-size: .925rem; }
+.peritaje-markdown h1 { margin: 0 0 1rem; font-size: 1.5rem; font-weight: 650; line-height: 1.3; }
+.peritaje-markdown h2 { margin: 1.75rem 0 .7rem; padding-bottom: .4rem; border-bottom: 1px solid var(--border); font-size: 1.125rem; font-weight: 600; }
+.peritaje-markdown h3 { margin: 1.25rem 0 .5rem; font-weight: 600; }
+.peritaje-markdown p, .peritaje-markdown ul, .peritaje-markdown ol { margin: .6rem 0; }
+.peritaje-markdown ul { padding-left: 1.5rem; list-style: disc; }
+.peritaje-markdown ol { padding-left: 1.5rem; list-style: decimal; }
+.peritaje-markdown table { display: block; overflow-x: auto; width: 100%; border-collapse: collapse; margin: 1rem 0; }
+.peritaje-markdown th, .peritaje-markdown td { padding: .6rem .8rem; border: 1px solid var(--border); vertical-align: top; }
+.peritaje-markdown th { background: var(--muted); font-weight: 600; }
+.peritaje-markdown blockquote { padding: .5rem 1rem; margin: .75rem 0; border-left: 3px solid var(--border); color: var(--muted-foreground); }
+.peritaje-markdown a { text-decoration: underline; text-underline-offset: 3px; }
+.peritaje-markdown pre { overflow-x: auto; padding: .8rem; background: var(--muted); border-radius: .375rem; }

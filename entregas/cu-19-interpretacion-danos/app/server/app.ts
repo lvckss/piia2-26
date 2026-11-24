@@ -1,3 +1,4 @@
+/// <reference types="bun" />
 import { Hono } from 'hono';
 import { logger } from 'hono/logger';
 
