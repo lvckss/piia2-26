@@ -72,7 +72,7 @@ def create_app(workflow=None):
                     raise FlowError("PERITAJE_ENTRADA_INVALIDA", "Sube una sola imagen JPEG o PNG.")
                 file = entries[0][1]
                 data = await file.read(MAX_BYTES + 1)
-                return await asyncio.to_thread(workflow.create, data, file.content_type, key)
+                return await asyncio.to_thread(workflow.create, data, file.content_type, key, file.filename)
         except FlowError:
             raise
         except Exception as exc:

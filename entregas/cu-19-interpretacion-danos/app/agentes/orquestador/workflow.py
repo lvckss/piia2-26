@@ -131,6 +131,7 @@ class Case:
     folder: Path
     fingerprint: str
     image_size: tuple[int, int]
+    source_detection: dict | None = None
     state: str = "analizando"
     stage: str = "entrada"
     analysis: dict | None = None
@@ -176,9 +177,9 @@ class Workflow:
         if not isinstance(key, str) or not 1 <= len(key) <= 200:
             raise FlowError("PERITAJE_ENTRADA_INVALIDA", "Falta una clave de petición válida.")
 
-    def create(self, data, mime, key):
+    def create(self, data, mime, key, filename=None):
         self._key(key)
-        fingerprint = hashlib.sha256(mime.encode() + b"\0" + data).hexdigest()
+        fingerprint = hashlib.sha256(mime.encode() + b"\0" + (filename or "").encode() + b"\0" + data).hexdigest()
         with self.lock:
             self.cleanup()
             if key in self.keys:
@@ -188,6 +189,8 @@ class Workflow:
                 return self.snapshot(case)
         image = normalize_image(data, mime)
         try:
+            prepare = getattr(self.pipeline, "prepare", None)
+            source = prepare(image, filename) if prepare else None
             self.pipeline.preflight()
             with self.lock:
                 # Another simultaneous request may have reserved the key while decoding.
@@ -206,7 +209,7 @@ class Workflow:
                 except Exception:
                     shutil.rmtree(folder)
                     raise
-                case = Case(case_id, folder, fingerprint, image.size, last_activity=self.clock())
+                case = Case(case_id, folder, fingerprint, image.size, source_detection=source, last_activity=self.clock())
                 self.cases[case_id], self.keys[key] = case, case_id
                 case.future = self.executor.submit(self._analyze, case)
                 return self.snapshot(case)
@@ -228,13 +231,17 @@ class Workflow:
         try:
             path = case.folder / "imagen.png"
             self._stage(case, "piia1")
-            detection = adapt_detection(self.pipeline.detect(path), case.id, path, case.image_size)
+            if case.source_detection is not None:
+                detection = copy.deepcopy(case.source_detection)
+                detection["image_path"] = str(path)
+            else:
+                detection = adapt_detection(self.pipeline.detect(path), case.id, path, case.image_size)
             detection_path = case.folder / "deteccion.json"
             detection_path.write_text(json.dumps(detection), encoding="utf-8")
             self._stage(case, "agente1")
             analysis = self.pipeline.analyze(detection_path, case.folder)
             vehicle = analysis.get("vehiculo", {})
-            if analysis.get("image_id") != case.id or not isinstance(analysis.get("findings"), list) or vehicle.get("categoria") not in CATEGORIES:
+            if analysis.get("image_id") != detection["image_id"] or not isinstance(analysis.get("findings"), list) or vehicle.get("categoria") not in CATEGORIES:
                 raise FlowError("CONTRATO_INVALIDO", "El análisis de visión no respeta el contrato esperado.", stage="agente1", status=502)
             reference = vehicle.get("vehiculo_id_referencia")
             if (vehicle["categoria"] == "desconocido" and reference is not None) or (vehicle["categoria"] != "desconocido" and not reference):
@@ -268,7 +275,7 @@ class Workflow:
         try:
             self._stage(case, "agente2")
             output = self.pipeline.costs(copy.deepcopy(case.analysis), copy.deepcopy(context), case.folder)
-            if output.get("contexto") != context or output.get("image_id") != case.id:
+            if output.get("contexto") != context or output.get("image_id") != case.analysis["image_id"]:
                 raise FlowError("CONTRATO_INVALIDO", "El presupuesto no conserva el contexto del caso.", stage="agente2", status=502)
             self._stage(case, "agente3")
             markdown = self.pipeline.report(copy.deepcopy(case.analysis), copy.deepcopy(output), case.day)

@@ -269,10 +269,9 @@ test('AC-011: respuesta de otro caso se rechaza sin mostrar sus datos', async ({
 
 test('AC-004: catálogo ausente bloquea el presupuesto sin inventar opciones', async ({ page }) => {
   const l = await preparar(page, { catalogoAusente: true })
-  await analizar(page)
   await expect(page.getByRole('alert')).toContainText('no está disponible')
-  await expect(page.getByRole('button', { name: 'Generar informe', exact: true })).toBeDisabled()
-  expect(l.informes).toBe(0)
+  await expect(page.getByRole('button', { name: 'Analizar imagen', exact: true })).toBeDisabled()
+  expect(l.informes).toBe(0); expect(l.analisis).toBe(0)
 })
 
 test('Preservación y AC-015: el explorador mantiene su ruta y el móvil no desborda', async ({ page }) => {
@@ -283,4 +282,19 @@ test('Preservación y AC-015: el explorador mantiene su ruta y el móvil no desb
   await page.getByRole('link', { name: 'Explorar dataset' }).click()
   await expect(page).toHaveURL(/\/explorer$/)
   await expect(page.getByRole('button', { name: 'Analizar imagen', exact: true })).toHaveCount(0)
+})
+
+// Complemento UI v2: https://github.com/lvckss/piia2-26/issues/34#issuecomment-7138654855
+test('AC-017: modo documentos limita el selector al lote y no ofrece subidas nuevas', async ({ page }) => {
+  const l = await preparar(page)
+  await page.route('**/api/catalogos', route => route.fulfill({ json: { ...catalogos, fuente_detecciones: 'documentos', imagenes_exportadas: [{ id: 82, id_externo: 82, file_name: '000082.jpg', ruta_imagen: 'test/82.png', ruta_thumbnail: 'test/82.png', width: 1, height: 1, split: 'test', labels: ['dent'] }] } }))
+  await page.reload()
+  await expect(page.getByText('Las detecciones de estas imágenes ya están calculadas. SAM3 no se ejecuta en este equipo.', { exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Seleccionar imagen 000082.jpg', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Seleccionar imagen 000381.jpg', exact: true })).toHaveCount(0)
+  await expect(page.getByLabel('Subir imagen JPEG o PNG')).toHaveCount(0)
+  await seleccionar(page)
+  expect(l.analisis).toBe(0)
+  await page.getByLabel('Buscar por nombre en las imágenes cargadas').fill('000009')
+  await expect(page.getByRole('button', { name: /Seleccionar imagen / })).toHaveCount(0)
 })

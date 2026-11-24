@@ -23,6 +23,17 @@ from configuracion_rag import load_environment
 class ProductionPipeline:
     def __init__(self):
         load_environment()
+        mode = os.environ.get("PERITAJE_DETECTION_SOURCE", "api")
+        if mode not in {"api", "export"}:
+            raise FlowError("CONTRATO_INVALIDO", "PERITAJE_DETECTION_SOURCE debe ser api o export.", status=503)
+        self.archive = None
+        if mode == "export":
+            from exportados import ExportStore
+            self.archive = ExportStore(os.environ.get("PERITAJE_EXPORT_DIR", AGENTS.parent / "bd/subset_500"), os.environ.get("PERITAJE_DATASET_DIR", AGENTS.parent / "bd/clean_data"))
+
+    def prepare(self, image, filename):
+        archive = getattr(self, "archive", None)
+        return archive.prepare(image, filename) if archive else None
 
     def preflight(self):
         if not os.environ.get("OPENAI_API_KEY") or not os.environ.get("OPENAI_MODEL"):
@@ -43,7 +54,7 @@ class ProductionPipeline:
             return [{"id": value, "nombre": value.replace("_", " ")} for value in sorted(set(values))]
 
         tariffs = rows("tarifas.csv")
-        return {
+        result = {
             "vehiculos": [{"id": v["vehiculo_id"], "nombre": f'{v["marca"]} {v["modelo"]}'} for v in rows("vehiculos.csv")],
             "polizas": [{"id": p["poliza_id"], "nombre": p["producto"]} for p in rows("polizas.csv")],
             "regiones": options(t["region"] for t in tariffs),
@@ -51,6 +62,11 @@ class ProductionPipeline:
             "acabados": options(p["acabado"] for p in rows("pintura.csv")),
             "tipos_pieza": options(["oem", "aftermarket"]),
         }
+        if getattr(self, "archive", None):
+            result.update(fuente_detecciones="documentos", imagenes_exportadas=self.archive.catalogue())
+        else:
+            result["fuente_detecciones"] = "api"
+        return result
 
     def detect(self, path):
         boundary = f"piia2-{uuid.uuid4().hex}"

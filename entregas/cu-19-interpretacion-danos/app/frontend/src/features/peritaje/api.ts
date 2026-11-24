@@ -1,9 +1,20 @@
 import { z } from 'zod'
 
 const option = z.object({ id: z.string(), nombre: z.string() })
+const exportedImage = z.object({
+  id: z.number().int().positive(), id_externo: z.number().int(), file_name: z.string(),
+  split: z.enum(['train', 'val', 'test']), ruta_imagen: z.string(), ruta_thumbnail: z.string().nullable().optional(),
+  width: z.number().int().positive(), height: z.number().int().positive(),
+  numero_instancias: z.number().int().default(0), numero_categorias: z.number().int().default(0), labels: z.array(z.string()).default([]),
+})
 export const catalogosSchema = z.object({
   vehiculos: z.array(option), polizas: z.array(option), regiones: z.array(option),
   tipos_taller: z.array(option), acabados: z.array(option), tipos_pieza: z.array(option),
+  fuente_detecciones: z.enum(['api', 'documentos']).default('api'),
+  imagenes_exportadas: z.array(exportedImage).optional(),
+}).superRefine((catalogue, ctx) => {
+  if (catalogue.fuente_detecciones === 'documentos' && !catalogue.imagenes_exportadas)
+    ctx.addIssue({ code: 'custom', message: 'Falta el lote de documentos.' })
 })
 export type Catalogos = z.infer<typeof catalogosSchema>
 const errorSchema = z.object({

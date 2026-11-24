@@ -27,7 +27,7 @@ export function ContextoForm({ analisis, disabled, onSubmit }: Props) {
     }, ...(selection ? { seleccion_vehiculo: selection } : {}) }
     onSubmit(body)
   }
-  function select(key: keyof typeof fields, label: string, options: Catalogos[keyof Catalogos] | undefined) {
+  function select(key: keyof typeof fields, label: string, options: Catalogos['vehiculos'] | undefined) {
     return <label className="text-sm">{label}<select className="peritaje-input mt-1.5" value={fields[key]} onChange={e => update(key, e.target.value)} required disabled={disabled || !query.data}><option value="">Seleccionar…</option>{options?.map(o => <option key={o.id} value={o.id}>{o.nombre}</option>)}</select></label>
   }
   return <form onSubmit={submit} className="rounded-lg border bg-card">
