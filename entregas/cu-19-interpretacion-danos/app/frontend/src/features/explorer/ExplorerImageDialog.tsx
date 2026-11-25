@@ -15,7 +15,6 @@ import {
     Maximize2,
     ImageIcon,
     AlertTriangle,
-    Info,
     Eye,
     EyeOff,
     Download

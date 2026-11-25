@@ -3,6 +3,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import type { Image, ImageWithLabels } from "@server/models/Image";
 import { useInfiniteImages } from "./api/use-infinite-images";
 import { ExplorerImageDialog } from "./ExplorerImageDialog";
+import { toDatasetUrl } from "@/lib/dataset-url";
 
 import {
   Camera,
@@ -116,21 +117,6 @@ function getDamageBadgeClass(label: string) {
     LABEL_BADGE_CLASSES[label] ??
     "bg-muted text-muted-foreground border border-border"
   );
-}
-
-function toDatasetUrl(rawPath?: string | null) {
-  if (!rawPath) return "";
-
-  const cleaned = rawPath
-    .replace(/\\/g, "/")
-    .replace(/^\.?\//, "")
-    .replace(/^.*\/bd\/clean_data\//, "")
-    .replace(/^.*\/clean_data\//, "");
-
-  return `/dataset/${cleaned
-    .split("/")
-    .map(encodeURIComponent)
-    .join("/")}`;
 }
 
 function splitBadgeClass(split: Image["split"]) {
