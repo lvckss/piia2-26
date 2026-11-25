@@ -588,6 +588,28 @@ def probar_97_ac009_justificaciones_mal_formadas():
             raise AssertionError(f"se esperaba ValueError con {mala}")
 
 
+def probar_97_ejemplo_completo_del_contrato():
+    """specs/97-justificacion-llm-normativa.md#AC-006 y AC-008 (ejemplos, slice 4): `agente2_salida_completa.json`
+    (la salida de `agente2()` con RAG y LLM simulados) tiene las mismas cifras que `agente2_salida.json`; cada
+    cita de sus justificaciones esta literalmente en un pasaje de su tema, y el informe la muestra sin aviso y
+    con `comprobar_cifras == []`."""
+    a1, a2 = _ejemplos()
+    completa = _cargar("agente2_salida_completa.json")
+    nuevos = ("normativa", "diagnostico_rag", "justificaciones")
+    assert {k: v for k, v in completa.items() if k not in nuevos} == {k: v for k, v in a2.items() if k != "normativa"}
+    assert completa["diagnostico_rag"]["estado"] == "recuperadas"
+    for j in completa["justificaciones"]:
+        assert j["estado"] == "generada", j
+        pasajes = [n["extracto"] for n in completa["normativa"] if n["tema"] == j["tema"]]
+        for cita in j["citas"]:
+            assert any(cita["extracto"] in p for p in pasajes), (j["tema"], cita)
+    md = generar_informe(a1, completa, hoy=HOY)
+    assert AVISO_JUSTIFICACION not in md and AVISO_PRELIMINAR not in md
+    fuentes = _secciones(md)["## Fuentes consultadas"]
+    assert all(j["texto"] in fuentes for j in completa["justificaciones"]), fuentes
+    assert comprobar_cifras(md, completa) == [], comprobar_cifras(md, completa)
+
+
 def probar_97_ac010_informe_con_justificaciones_determinista():
     """specs/97-justificacion-llm-normativa.md#AC-010: dos informes iguales con las mismas justificaciones, sin
     clave ni red (el Agente 3 no llama a ningun modelo)."""
@@ -1172,6 +1194,7 @@ PRUEBAS = [
     probar_97_ac009_sin_justificaciones_el_informe_no_cambia,
     probar_97_ac009_justificaciones_mal_formadas,
     probar_97_ac010_informe_con_justificaciones_determinista,
+    probar_97_ejemplo_completo_del_contrato,
     probar_54_ac014_lenguaje_sin_jerga,
     probar_54_ac015_resumen_explica_las_detecciones_descartadas,
     probar_54_ac016_citas_sin_repetir_agrupadas_por_fuente,
