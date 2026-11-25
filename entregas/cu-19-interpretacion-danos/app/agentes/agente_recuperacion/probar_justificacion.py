@@ -89,7 +89,8 @@ def probar_97_ac001_justificacion_generada_con_fuente_del_codigo():
     j = r["cobertura de daños propios"]
     assert j["estado"] == "generada", j
     assert j["texto"] == BIEN_DANOS["texto"], j
-    assert [c["extracto"] for c in j["citas"]] == BIEN_DANOS["citas"], j
+    # v1.3 (AC-020): las dos citas caen en la misma frase del pasaje, que se guarda una sola vez y completa
+    assert [c["extracto"] for c in j["citas"]] == [DANOS_PROPIOS], j
     assert all(c["fuente"] == f"{FR300}#2. Coberturas incluidas" for c in j["citas"]), j
     assert set(j) == {"tema", "estado", "texto", "citas"}, j
     assert r["pérdida total"]["estado"] == "generada", r["pérdida total"]
@@ -136,8 +137,8 @@ def probar_97_ac002_cita_con_otra_mayuscula_es_literal():
     el pasaje dice «El asegurador, dentro del…»; se acepta y la cita guardada es el texto literal del pasaje."""
     j = _legal("el asegurador, dentro del ámbito del aseguramiento obligatorio")
     assert j["estado"] == "generada", j
-    assert j["citas"] == [{"extracto": "El asegurador, dentro del ámbito del aseguramiento obligatorio",
-                           "fuente": LEGAL[0]["fuente"]}], j
+    frase = ART7.split("\n")[1]  # la frase completa del pasaje, con su «1. El» en mayuscula
+    assert j["citas"] == [{"extracto": frase, "fuente": LEGAL[0]["fuente"]}], j
 
 
 def probar_97_ac002_cita_sin_enfasis_markdown_es_literal():
@@ -148,7 +149,7 @@ def probar_97_ac002_cita_sin_enfasis_markdown_es_literal():
                  "citas": ["Rotura de lunas (parabrisas, lunas laterales y luneta)"]}
     j = _justificar(ClienteFalso({"rotura de lunas": respuesta}), normativa=normativa)[0]
     assert j["estado"] == "generada", j
-    assert j["citas"][0]["extracto"] == "Rotura de lunas** (parabrisas, lunas laterales y luneta)", j
+    assert j["citas"][0]["extracto"] == LUNAS, j  # v1.3: la frase completa, con sus asteriscos tal cual
     assert j["citas"][0]["extracto"] in LUNAS, "la cita guardada debe estar tal cual en el pasaje"
 
 
@@ -160,6 +161,92 @@ def probar_97_ac002_otra_mayuscula_no_acepta_otras_palabras():
         j = _legal(mala)
         assert j["estado"] == "descartada", (mala, j)
         assert "cita" in j["motivo"].lower(), j
+
+
+# --- specs/97-justificacion-llm-normativa.md#AC-002 (v1.3) y plan #54 AC-020 ---
+def _citar(pasaje: str, *citas: str):
+    """Justificacion de un tema con ese pasaje y esas citas; devuelve la justificacion."""
+    normativa = [{"tema": "t", "extracto": pasaje, "fuente": "docs/p.md#s"}]
+    r = {"texto": "El pasaje describe la cobertura.", "citas": list(citas)}
+    return _justificar(ClienteFalso({"t": r}), normativa=normativa)[0]
+
+
+def probar_97_ac020_cita_corta_se_amplia_a_la_frase_completa():
+    """#54 AC-020: las citas cortadas del informe 003806 («franquicia de», «con limite de») se amplian a la frase
+    del pasaje, que lleva las cifras (el limite y la franquicia)."""
+    for corta in ("franquicia de", "con límite de", "Rotura de lunas"):
+        j = _citar(LUNAS, corta)
+        assert j["estado"] == "generada", (corta, j)
+        assert j["citas"] == [{"extracto": LUNAS, "fuente": "docs/p.md#s"}], (corta, j)
+        assert "1500 EUR por anualidad" in j["citas"][0]["extracto"] and "franquicia de 0 EUR" in j["citas"][0]["extracto"]
+
+
+def probar_97_ac020_frase_completa_no_cambia():
+    """#54 AC-020: una cita que ya es la frase completa se guarda igual."""
+    j = _citar(LUNAS, LUNAS)
+    assert j["citas"] == [{"extracto": LUNAS, "fuente": "docs/p.md#s"}], j
+
+
+def probar_97_ac020_respeta_salto_de_linea_y_punto_y_coma():
+    """#54 AC-020: la frase termina en el salto de linea, en el punto o en el punto y coma; no se mezclan lineas."""
+    pasaje = ("2.1 Cobertura de responsabilidad civil obligatoria; no se aplica franquicia a terceros.\n"
+              "2.2 Rotura de lunas con limite de 800 EUR por anualidad.")
+    assert _citar(pasaje, "no se aplica franquicia")["citas"][0]["extracto"] == "no se aplica franquicia a terceros."
+    assert _citar(pasaje, "limite de 800")["citas"][0]["extracto"] == "2.2 Rotura de lunas con limite de 800 EUR por anualidad."
+
+
+def probar_97_ac020_no_corta_en_abreviaturas_ni_en_numeros():
+    """#54 AC-020: «art. 7», «1.» y «2.2» no son final de frase."""
+    pasaje = "Conforme al art. 7 de la Ley, el asegurador pagará los daños. Otra frase distinta."
+    assert _citar(pasaje, "pagará los daños")["citas"][0]["extracto"] == (
+        "Conforme al art. 7 de la Ley, el asegurador pagará los daños.")
+    j = _citar("1. El asegurador pagará los daños materiales.", "pagará los daños")
+    assert j["citas"][0]["extracto"] == "1. El asegurador pagará los daños materiales.", j
+
+
+def probar_97_ac020_frase_demasiado_larga_no_se_amplia():
+    """#54 AC-020: si la frase pasa de 600 caracteres se guarda la cita literal sin ampliar."""
+    larga = "El asegurador pagará " + ", ".join(f"el daño numero {i}" for i in range(80)) + "."
+    assert len(larga) > 600
+    j = _citar(larga, "el daño numero 40")
+    assert j["citas"][0]["extracto"] == "el daño numero 40", j
+
+
+def probar_97_ac020_cita_ausente_sigue_descartada():
+    """#54 AC-020 + AC-002: ampliar solo afecta a las citas que si estan en los pasajes."""
+    j = _citar(LUNAS, "franquicia de 9999 EUR")
+    assert j["estado"] == "descartada" and "citas" not in j, j
+
+
+def probar_97_ac020_cita_al_inicio_de_una_frase_no_arrastra_la_anterior():
+    """#54 AC-020 (revision de Victor en la #113): si la cita empieza justo donde empieza una frase, la frase
+    guardada empieza ahi y no incluye la anterior. Es el caso de los informes de tercero (el articulo 7)."""
+    pasaje = ("Artículo 7. Obligaciones del asegurador. El asegurador, dentro del ámbito y límites del "
+              "aseguramiento obligatorio, deberá satisfacer al perjudicado el importe de los daños. Art. 8 siguiente.")
+    j = _citar(pasaje, "el asegurador, dentro del ámbito")
+    assert j["estado"] == "generada", j
+    assert j["citas"][0]["extracto"] == (
+        "El asegurador, dentro del ámbito y límites del aseguramiento obligatorio, deberá satisfacer al "
+        "perjudicado el importe de los daños."), j
+    # y tras un punto y coma
+    pasaje2 = "2.1 Cobertura de lunas; Rotura de parabrisas con límite de 800 EUR por anualidad."
+    assert _citar(pasaje2, "rotura de parabrisas")["citas"][0]["extracto"] == (
+        "Rotura de parabrisas con límite de 800 EUR por anualidad.")
+
+
+def probar_97_ac020_enfasis_markdown_al_inicio_de_la_frase_no_arrastra_la_anterior():
+    """#54 AC-020 (revision de Lucas en la #113): tras un punto, el enfasis Markdown (`**`) que abre la frase
+    siguiente tambien marca el final de la frase anterior; sin ello, una frase previa larga hacia pasar la
+    ampliacion de 600 caracteres y se perdian el limite y la franquicia."""
+    frase = "**Rotura de lunas** con límite de 800 EUR por anualidad y franquicia de 0 EUR."
+    previa = "Condiciones anteriores: " + ("se requiere revisión " * 30) + "."
+    assert len(previa) > 600
+    j = _citar(previa + " " + frase + " Otra frase.", "Rotura de lunas")
+    assert j["estado"] == "generada", j
+    assert j["citas"][0]["extracto"] == frase, j
+    # caso corto: la frase previa no entra en la cita
+    corto = "Una frase previa. " + frase
+    assert _citar(corto, "Rotura de lunas")["citas"][0]["extracto"] == frase
 
 
 # --- specs/97-justificacion-llm-normativa.md#AC-003 --------------------------
@@ -189,7 +276,7 @@ def probar_97_ac003_texto_con_importes_se_descarta():
     j = _por_tema(_justificar(ClienteFalso({"rotura de lunas": sin_importe, "cobertura de daños propios": BIEN_DANOS}),
                               normativa))["rotura de lunas"]
     assert j["estado"] == "generada", j
-    assert j["citas"][0]["extracto"] == citas[0], j
+    assert j["citas"][0]["extracto"] == LUNAS, j  # v1.3: la cita corta se amplia a la frase completa
 
 
 # --- specs/97-justificacion-llm-normativa.md#AC-004 --------------------------
@@ -296,6 +383,14 @@ PRUEBAS = [
     probar_97_ac002_cita_con_otra_mayuscula_es_literal,
     probar_97_ac002_cita_sin_enfasis_markdown_es_literal,
     probar_97_ac002_otra_mayuscula_no_acepta_otras_palabras,
+    probar_97_ac020_cita_corta_se_amplia_a_la_frase_completa,
+    probar_97_ac020_frase_completa_no_cambia,
+    probar_97_ac020_respeta_salto_de_linea_y_punto_y_coma,
+    probar_97_ac020_no_corta_en_abreviaturas_ni_en_numeros,
+    probar_97_ac020_frase_demasiado_larga_no_se_amplia,
+    probar_97_ac020_cita_ausente_sigue_descartada,
+    probar_97_ac020_cita_al_inicio_de_una_frase_no_arrastra_la_anterior,
+    probar_97_ac020_enfasis_markdown_al_inicio_de_la_frase_no_arrastra_la_anterior,
     probar_97_ac003_texto_con_importes_se_descarta,
     probar_97_ac004_terminos_de_validacion_se_descartan,
     probar_97_ac005_sin_clave_o_sin_autorizacion_no_llama,
