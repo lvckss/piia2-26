@@ -135,6 +135,39 @@ autenticación, cuota, límite temporal, timeout y respuesta inválida.
 fallos técnicos. La falta de autorización o presupuesto lanza `PermissionError`.
 Los errores inesperados se propagan. No hay reintentos automáticos.
 
+### Filtro de cobertura por póliza (#54, AC-024)
+
+Para activar el filtro acordado en el [plan de AC-024](https://github.com/lvckss/piia2-26/issues/54#issuecomment-7140196344),
+configurar `RAG_POLICY_TOPIC_FILTER=1` en el entorno del proceso que ejecuta
+`agente2()`, o en `.env` del caso / `app/.env`. Con la variable ausente o con
+`0`, la recuperación conserva sus resultados anteriores. No es necesario
+reindexar ni cambiar `RAG_MODEL`.
+
+Con el filtro activo y una póliza conocida, estos tres temas exactos de
+`agente2()` buscan únicamente en las secciones **2. Coberturas incluidas** y
+**3. Exclusiones** de esa póliza:
+
+- `Daños de cristal: cobertura, franquicia y límite de lunas`.
+- `Daños propios por colisión: cobertura y franquicia`.
+- `Cobertura de daños propios: cláusula aplicable a este siniestro`.
+
+El filtro precede al ranking coseno y a `LIMIT`: no reordena un top-k ya
+recortado. Devuelve hasta k pasajes, sin completar con legislación u otras
+secciones. Si faltan esas secciones, devuelve `[]` sin pedir un embedding;
+la composición mantiene `sin_resultados` y no pide justificación para ese tema.
+Una póliza desconocida o un índice incompleto siguen siendo errores explícitos.
+
+Pérdida total, legislación/terceros, póliza vacía y otras preguntas mantienen
+la búsqueda anterior. No hay clasificación general de preguntas ni cambio
+en cálculos o contratos. Recuperar estas secciones tampoco demuestra que
+respalden cualquier conclusión: la ausencia de una cláusula sobre lunas no
+debe presentarse como una exclusión literal de lunas.
+
+La [comparación controlada](../../../docs/evidencias/54-rag-pertinencia.md)
+conserva las 25 preguntas y los 30 casos, con ambos modelos y sin nuevas llamadas
+a la API. El evaluador `scripts/evaluar_pertinencia.py` reproduce el cambio con
+los vectores guardados y consulta la base en modo de solo lectura.
+
 **Límite de calidad:** top-k devuelve candidatos, no acredita que respalden una
 conclusión. Se conserva el protocolo v1, incluidos los fragmentos cortos de
 tablas legales señalados en revisión. No se filtran silenciosamente antes de
