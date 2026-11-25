@@ -1,0 +1,63 @@
+{
+  "image_id": 1244,
+  "image_file": "001244.jpg",
+  "image_path": "/content/drive/MyDrive/CarDD_release/rawdata/images/001244.jpg",
+  "image_width": 1000,
+  "image_height": 702,
+  "split": "val",
+  "variant": "baseline",
+  "strategy_name": "baseline_prompt",
+  "num_predictions": 2,
+  "predictions": [
+    {
+      "instance_index": 1,
+      "damage_class": "tire flat",
+      "category_id": 6,
+      "score": 0.9169921875,
+      "bbox_xywh": [
+        304.0,
+        66.0,
+        425.0,
+        531.0
+      ],
+      "area": 184049.0,
+      "is_true_positive": true,
+      "best_iou": 0.982
+    },
+    {
+      "instance_index": 2,
+      "damage_class": "dent",
+      "category_id": 1,
+      "score": 0.343017578125,
+      "bbox_xywh": [
+        729.0,
+        72.0,
+        42.0,
+        223.0
+      ],
+      "area": 6967.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    }
+  ],
+  "ground_truth": [
+    {
+      "damage_class": "tire flat",
+      "category_id": 6,
+      "bbox_xywh": [
+        298.58,
+        63.3,
+        432.84,
+        533.11
+      ]
+    }
+  ],
+  "gt_unmatched_by_class": {
+    "dent": 0,
+    "scratch": 0,
+    "crack": 0,
+    "glass shatter": 0,
+    "lamp broken": 0,
+    "tire flat": 0
+  }
+}

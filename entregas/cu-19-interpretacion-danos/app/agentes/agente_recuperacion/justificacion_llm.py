@@ -2,7 +2,8 @@
 
 Para cada tema con pasajes en `normativa` (salida de `agente2()`, #32), un LLM recibe SOLO el tema y
 sus pasajes y devuelve un texto breve con las citas literales en las que se apoya. El codigo comprueba
-la respuesta antes de aceptarla: citas literales del mismo tema (la fuente la pone el codigo), texto
+la respuesta antes de aceptarla: citas literales del mismo tema (sin distinguir mayusculas ni asteriscos
+de enfasis; la fuente la pone el codigo), texto
 sin importes en euros y sin terminos de validacion. Nunca cambia cifras: no recibe el calculo.
 
 Plan: entregas/cu-19-interpretacion-danos/specs/97-justificacion-llm-normativa.md (AC-001 a AC-005,
@@ -94,11 +95,78 @@ def _comprobar(tema: str, pasajes: list[dict], datos: dict) -> dict:
     for cita in datos["citas"]:
         extracto = cita.get("extracto") if isinstance(cita, dict) else cita
         extracto = _normalizar(extracto) if isinstance(extracto, str) else ""
-        pasaje = next((p for p in pasajes if extracto and extracto in _normalizar(p["extracto"])), None)
-        if pasaje is None:
+        encontrada = next(((literal, p) for p in pasajes if (literal := _localizar(extracto, p["extracto"]))), None)
+        if encontrada is None:
             return _descartada(tema, f"La cita «{extracto[:80]}» no aparece literalmente en los pasajes de este tema.")
-        citas.append({"extracto": extracto, "fuente": pasaje["fuente"]})
+        # Se guarda la frase del pasaje tal cual esta escrita, no la version del modelo; dos citas de la misma
+        # frase quedan en una.
+        nueva = {"extracto": encontrada[0], "fuente": encontrada[1]["fuente"]}
+        if nueva not in citas:
+            citas.append(nueva)
     return {"tema": tema, "estado": "generada", "texto": texto, "citas": citas}
+
+
+def _localizar(cita: str, pasaje: str) -> str | None:
+    """La frase de `pasaje`, tal como esta escrita, que contiene `cita`, o None si la cita no aparece.
+
+    Se compara tras normalizar espacios, sin distinguir mayusculas y sin los asteriscos de enfasis de Markdown
+    (spec 97 v1.2): el modelo escribe «el asegurador» donde el pasaje dice «El asegurador» y copia «Rotura de
+    lunas» donde el pasaje dice «**Rotura de lunas**». Una palabra distinta sigue sin coincidir.
+
+    Lo que se devuelve no es la cita del modelo sino la frase completa del pasaje que la contiene (plan #54,
+    AC-020), hasta el punto, el punto y coma o el salto de linea, para que una cita cortada («franquicia de») lleve
+    sus cifras. Si esa frase pasa de MAX_FRASE caracteres se devuelve solo el fragmento citado."""
+    limpio: list[str] = []
+    posicion: list[int] = []  # posicion en `pasaje` de cada caracter de `limpio`
+    for i, caracter in enumerate(pasaje):
+        if caracter == "*":
+            continue
+        if caracter.isspace():
+            if not limpio or limpio[-1] == " ":
+                continue
+            caracter = " "
+        limpio.append(caracter)
+        posicion.append(i)
+    buscada = _normalizar(cita.replace("*", ""))
+    if not buscada:
+        return None
+    coincidencia = re.search(re.escape(buscada), "".join(limpio), re.IGNORECASE)
+    if coincidencia is None:
+        return None
+    inicio, fin = posicion[coincidencia.start()], posicion[coincidencia.end() - 1] + 1
+    frase = pasaje[_inicio_de_frase(pasaje, inicio):_fin_de_frase(pasaje, fin)]
+    if len(frase) > MAX_FRASE:
+        frase = pasaje[inicio:fin]
+    return _normalizar(frase)
+
+
+# Final de frase: punto seguido de mayuscula o apertura, con o sin enfasis Markdown `*` delante (no tras un numero ni tras «art.», «num.», «Ref.», «apdo.»)
+# o punto y coma.
+MAX_FRASE = 600
+_FIN_DE_FRASE = re.compile(r"(?:(?<!\d)(?<!\bart)(?<!\bnúm)(?<!\bapdo)(?<!\bRef)\.(?=\s+\**[A-ZÁÉÍÓÚÑ¿¡«\"(])|;(?=\s))")
+
+
+def _inicio_de_frase(texto: str, posicion: int) -> int:
+    """Donde empieza la frase que contiene `posicion`: tras el ultimo salto de linea o final de frase anterior."""
+    linea = texto.rfind("\n", 0, posicion) + 1
+    inicio = linea
+    # endpos = posicion + 1: el lookahead del final de frase necesita ver la mayuscula que esta justo en
+    # `posicion` (revision de Victor en la #113); sin ella, una cita que empieza una frase arrastraba la anterior.
+    for fin in _FIN_DE_FRASE.finditer(texto, linea, posicion + 1):
+        if fin.end() <= posicion:
+            inicio = fin.end()
+    while inicio < posicion and texto[inicio].isspace():
+        inicio += 1
+    return inicio
+
+
+def _fin_de_frase(texto: str, posicion: int) -> int:
+    """Donde termina la frase que contiene `posicion` (incluido su punto): antes del salto de linea o del
+    siguiente final de frase."""
+    salto = texto.find("\n", posicion)
+    limite = len(texto) if salto == -1 else salto
+    fin = _FIN_DE_FRASE.search(texto, max(posicion - 1, 0), limite)
+    return fin.end() if fin else limite
 
 
 def _descartada(tema: str, motivo: str) -> dict:

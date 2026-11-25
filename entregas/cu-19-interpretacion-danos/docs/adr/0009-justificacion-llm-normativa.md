@@ -36,7 +36,7 @@ Drivers:
 2. **Qué recibe el LLM:** por cada tema con pasajes recuperados, una llamada con **solo el tema y los `extracto` de ese tema**. No recibe importes, escenarios, cobertura, contexto del siniestro ni el resultado del cálculo. Un tema sin pasajes no genera llamada.
 3. **Qué devuelve:** un JSON con un `texto` breve en español y una lista de `citas` literales tomadas de esos pasajes.
 4. **Comprobación en código** antes de aceptar la respuesta:
-   - cada cita aparece literalmente en un pasaje del mismo tema, tras normalizar espacios;
+   - cada cita aparece literalmente en un pasaje del mismo tema, tras normalizar espacios, sin distinguir mayúsculas y sin los asteriscos de énfasis de Markdown (aclaración de la spec v1.2, 2026-11-21); la cita que se guarda es la frase completa del pasaje que la contiene (spec v1.3, 2026-11-23);
    - la `fuente` de cada cita la asigna el código, desde el pasaje que la contiene;
    - el texto no contiene ningún importe en euros (número con «€», «EUR», «euro» o «euros», en cualquier formato), aunque esté en sus citas;
    - el texto no contiene las raíces «verific», «valid» ni «garantiz».

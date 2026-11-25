@@ -364,7 +364,7 @@
       "texto": "La póliza cubre la rotura de lunas (parabrisas, lunas laterales y luneta) con un límite por anualidad.",
       "citas": [
         {
-          "extracto": "**Rotura de lunas** (parabrisas, lunas laterales y luneta) con límite de 1500 EUR por anualidad",
+          "extracto": "2.2 **Rotura de lunas** (parabrisas, lunas laterales y luneta) con límite de 1500 EUR por anualidad y franquicia de 0 EUR.",
           "fuente": "docs/polizas_sinteticas/P-TR-FR300.md#2. Coberturas incluidas"
         }
       ]
@@ -375,7 +375,7 @@
       "texto": "La póliza cubre los daños propios por colisión, vuelco, atropello de animales y actos vandálicos, con una franquicia por siniestro.",
       "citas": [
         {
-          "extracto": "**Daños propios por colisión, vuelco, atropello de animales y actos vandálicos** con franquicia de 300 EUR por siniestro.",
+          "extracto": "2.3 **Daños propios por colisión, vuelco, atropello de animales y actos vandálicos** con franquicia de 300 EUR por siniestro.",
           "fuente": "docs/polizas_sinteticas/P-TR-FR300.md#2. Coberturas incluidas"
         }
       ]

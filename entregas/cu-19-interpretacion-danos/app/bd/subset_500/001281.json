@@ -1,0 +1,198 @@
+{
+  "image_id": 1281,
+  "image_file": "001281.jpg",
+  "image_path": "/content/drive/MyDrive/CarDD_release/rawdata/images/001281.jpg",
+  "image_width": 1000,
+  "image_height": 655,
+  "split": "val",
+  "variant": "baseline",
+  "strategy_name": "baseline_prompt",
+  "num_predictions": 11,
+  "predictions": [
+    {
+      "instance_index": 1,
+      "damage_class": "glass shatter",
+      "category_id": 4,
+      "score": 0.91650390625,
+      "bbox_xywh": [
+        0.0,
+        150.0,
+        897.0,
+        504.0
+      ],
+      "area": 310387.0,
+      "is_true_positive": true,
+      "best_iou": 0.9151
+    },
+    {
+      "instance_index": 2,
+      "damage_class": "crack",
+      "category_id": 3,
+      "score": 0.8759765625,
+      "bbox_xywh": [
+        164.0,
+        166.0,
+        641.0,
+        372.0
+      ],
+      "area": 150720.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 3,
+      "damage_class": "dent",
+      "category_id": 1,
+      "score": 0.5693359375,
+      "bbox_xywh": [
+        164.0,
+        166.0,
+        640.0,
+        372.0
+      ],
+      "area": 150483.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 4,
+      "damage_class": "lamp broken",
+      "category_id": 5,
+      "score": 0.5595703125,
+      "bbox_xywh": [
+        0.0,
+        149.0,
+        906.0,
+        505.0
+      ],
+      "area": 314611.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 5,
+      "damage_class": "scratch",
+      "category_id": 2,
+      "score": 0.474609375,
+      "bbox_xywh": [
+        166.0,
+        167.0,
+        637.0,
+        371.0
+      ],
+      "area": 149212.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 6,
+      "damage_class": "crack",
+      "category_id": 3,
+      "score": 0.390625,
+      "bbox_xywh": [
+        0.0,
+        149.0,
+        923.0,
+        506.0
+      ],
+      "area": 314214.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 7,
+      "damage_class": "glass shatter",
+      "category_id": 4,
+      "score": 0.3515625,
+      "bbox_xywh": [
+        166.0,
+        167.0,
+        638.0,
+        370.0
+      ],
+      "area": 148933.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 8,
+      "damage_class": "scratch",
+      "category_id": 2,
+      "score": 0.345947265625,
+      "bbox_xywh": [
+        0.0,
+        153.0,
+        883.0,
+        500.0
+      ],
+      "area": 298704.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 9,
+      "damage_class": "lamp broken",
+      "category_id": 5,
+      "score": 0.345458984375,
+      "bbox_xywh": [
+        165.0,
+        167.0,
+        639.0,
+        369.0
+      ],
+      "area": 149016.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 10,
+      "damage_class": "glass shatter",
+      "category_id": 4,
+      "score": 0.339599609375,
+      "bbox_xywh": [
+        0.0,
+        87.0,
+        136.0,
+        45.0
+      ],
+      "area": 4219.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 11,
+      "damage_class": "crack",
+      "category_id": 3,
+      "score": 0.328369140625,
+      "bbox_xywh": [
+        492.0,
+        507.0,
+        42.0,
+        125.0
+      ],
+      "area": 923.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    }
+  ],
+  "ground_truth": [
+    {
+      "damage_class": "glass shatter",
+      "category_id": 4,
+      "bbox_xywh": [
+        0.0,
+        147.78,
+        924.2,
+        507.22
+      ]
+    }
+  ],
+  "gt_unmatched_by_class": {
+    "dent": 0,
+    "scratch": 0,
+    "crack": 0,
+    "glass shatter": 0,
+    "lamp broken": 0,
+    "tire flat": 0
+  }
+}

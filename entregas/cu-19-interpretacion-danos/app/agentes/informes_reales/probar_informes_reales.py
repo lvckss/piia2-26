@@ -67,7 +67,7 @@ def probar_ac003_contexto_y_coche_de_cada_caso():
             assert ctx["poliza_id"] == sin["poliza_id"], ctx
         else:
             assert "poliza_id" not in ctx, ctx
-        assert set(ctx) <= set(CAMPOS_CONTEXTO) | {"vehiculo_id", "poliza_id"}, ctx
+        assert set(ctx) <= set(CAMPOS_CONTEXTO) | {"vehiculo_id", "poliza_id", "vehiculo_origen"}, ctx
 
 
 AGENTES = Path(__file__).resolve().parent.parent
@@ -113,6 +113,36 @@ def probar_ac001_ac002_treinta_informes_y_resumen():
             columnas = [c.strip() for c in fila.strip().strip("|").split("|")]
             assert columnas[-2:] == ["ninguna", ""], fila
         assert codigo == 0, codigo
+
+
+# --- plan #54 v1.2, AC-021 (lado de los generadores) --------------------------
+PLAN_54 = "https://github.com/lvckss/piia2-26/issues/54#issuecomment-7107366100"
+
+
+def probar_54_ac021_procedencia_del_vehiculo_en_el_contexto():
+    """AC-021 (plan v1.2 de la #54, spec 34 v1.7): el contexto de cada caso lleva `vehiculo_origen`:
+    `referencia_confirmada` con la referencia del Agente 1 y `minimo_por_defecto` con V14 por `desconocido`;
+    el Agente 2 lo conserva en su salida, donde el informe lo lee."""
+    sys.path[:0] = [str(AGENTES / "agente_recuperacion")]
+    from costes_y_cobertura import estimar_siniestro
+
+    salidas = [_salida(1, "C", "V02"), _salida(2, "desconocido", None)]
+    siniestros = [_siniestro(f"S{n:05d}", "propio", "P-TR-FR300") for n in range(1, 5)]
+    casos = {c["image_id"]: c for c in preparar_casos(salidas, siniestros)}
+    assert casos[1]["contexto"]["vehiculo_origen"] == "referencia_confirmada", casos[1]["contexto"]
+    assert casos[1]["contexto"]["vehiculo_id"] == "V02"
+    assert casos[2]["contexto"]["vehiculo_origen"] == "minimo_por_defecto", casos[2]["contexto"]
+    assert casos[2]["contexto"]["vehiculo_id"] == "V14"
+
+    reales = [json.loads(p.read_text(encoding="utf-8")) for p in sorted(REALES.glob("*.json"))]
+    for caso in generar_informes_reales.preparar_casos(reales, generar_informes_reales.leer_siniestros()):
+        ctx = caso["contexto"]
+        referencia = caso["salida_agente1"]["vehiculo"]["vehiculo_id_referencia"]
+        if referencia:
+            assert (ctx["vehiculo_origen"], ctx["vehiculo_id"]) == ("referencia_confirmada", referencia), caso["image_id"]
+        else:
+            assert (ctx["vehiculo_origen"], ctx["vehiculo_id"]) == ("minimo_por_defecto", "V14"), caso["image_id"]
+        assert estimar_siniestro(caso["salida_agente1"], ctx)["contexto"]["vehiculo_origen"] == ctx["vehiculo_origen"]
 
 
 # --- plan #84, AC-004 --------------------------------------------------------
@@ -285,6 +315,7 @@ def probar_ac005_reproducible_sin_clave_ni_red():
 PRUEBAS = [
     probar_ac003_contexto_y_coche_de_cada_caso,
     probar_ac001_ac002_treinta_informes_y_resumen,
+    probar_54_ac021_procedencia_del_vehiculo_en_el_contexto,
     probar_ac001_comando,
     probar_ac004_error_en_una_salida,
     probar_ac004_contexto_invalido_no_detiene_los_demas,

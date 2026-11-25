@@ -1,0 +1,103 @@
+{
+  "image_id": 3317,
+  "image_file": "003317.jpg",
+  "image_path": "/content/drive/MyDrive/CarDD_release/rawdata/images/003317.jpg",
+  "image_width": 1000,
+  "image_height": 750,
+  "split": "val",
+  "variant": "baseline",
+  "strategy_name": "baseline_prompt",
+  "num_predictions": 4,
+  "predictions": [
+    {
+      "instance_index": 1,
+      "damage_class": "glass shatter",
+      "category_id": 4,
+      "score": 0.97412109375,
+      "bbox_xywh": [
+        0.0,
+        206.0,
+        1000.0,
+        544.0
+      ],
+      "area": 381370.0,
+      "is_true_positive": true,
+      "best_iou": 0.9804
+    },
+    {
+      "instance_index": 2,
+      "damage_class": "lamp broken",
+      "category_id": 5,
+      "score": 0.89599609375,
+      "bbox_xywh": [
+        0.0,
+        88.0,
+        1000.0,
+        662.0
+      ],
+      "area": 460697.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 3,
+      "damage_class": "crack",
+      "category_id": 3,
+      "score": 0.71435546875,
+      "bbox_xywh": [
+        0.0,
+        219.0,
+        1000.0,
+        531.0
+      ],
+      "area": 370416.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 4,
+      "damage_class": "crack",
+      "category_id": 3,
+      "score": 0.347900390625,
+      "bbox_xywh": [
+        4.0,
+        287.0,
+        627.0,
+        459.0
+      ],
+      "area": 144902.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    }
+  ],
+  "ground_truth": [
+    {
+      "damage_class": "dent",
+      "category_id": 1,
+      "bbox_xywh": [
+        624.86,
+        249.45,
+        203.37,
+        146.6
+      ]
+    },
+    {
+      "damage_class": "glass shatter",
+      "category_id": 4,
+      "bbox_xywh": [
+        0.0,
+        200.87,
+        1000.0,
+        549.13
+      ]
+    }
+  ],
+  "gt_unmatched_by_class": {
+    "dent": 1,
+    "scratch": 0,
+    "crack": 0,
+    "glass shatter": 0,
+    "lamp broken": 0,
+    "tire flat": 0
+  }
+}

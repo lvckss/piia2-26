@@ -1,0 +1,48 @@
+{
+  "image_id": 3017,
+  "image_file": "003017.jpg",
+  "image_path": "/content/drive/MyDrive/CarDD_release/rawdata/images/003017.jpg",
+  "image_width": 1000,
+  "image_height": 750,
+  "split": "val",
+  "variant": "baseline",
+  "strategy_name": "baseline_prompt",
+  "num_predictions": 1,
+  "predictions": [
+    {
+      "instance_index": 1,
+      "damage_class": "glass shatter",
+      "category_id": 4,
+      "score": 0.501953125,
+      "bbox_xywh": [
+        0.0,
+        0.0,
+        1000.0,
+        750.0
+      ],
+      "area": 745706.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    }
+  ],
+  "ground_truth": [
+    {
+      "damage_class": "scratch",
+      "category_id": 2,
+      "bbox_xywh": [
+        0.0,
+        211.54,
+        804.31,
+        334.05
+      ]
+    }
+  ],
+  "gt_unmatched_by_class": {
+    "dent": 0,
+    "scratch": 1,
+    "crack": 0,
+    "glass shatter": 0,
+    "lamp broken": 0,
+    "tire flat": 0
+  }
+}
