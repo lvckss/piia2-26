@@ -25,6 +25,14 @@ MODELS = {
     "large": Model("text-embedding-3-large", 3072, 0.13),
 }
 
+# #54 AC-024: solo los temas automáticos de cobertura de agente2(), no un
+# clasificador de preguntas generales ni una garantía de soporte semántico.
+_POLICY_COVERAGE_TOPICS = frozenset({
+    "Daños de cristal: cobertura, franquicia y límite de lunas",
+    "Daños propios por colisión: cobertura y franquicia",
+    "Cobertura de daños propios: cláusula aplicable a este siniestro",
+})
+
 
 @dataclass(frozen=True)
 class EmbeddingBatch:
@@ -68,10 +76,19 @@ class NormativaRetriever:
             (generation,)).fetchall()}
         if poliza_id and poliza_id not in policies:
             raise RagError("ENTRADA_INVALIDA", "La póliza indicada no pertenece al corpus activo", stage="entrada")
+        # Fijar el mismo filtro para el recuento y el ranking, antes de LIMIT:
+        # reordenar el top-k previo no recupera una cláusula que quedó fuera.
+        # Los únicos fragmentos SQL interpolados son constantes internas; todos
+        # los valores de consulta siguen siendo parámetros.
+        scope = "(d.kind='legal' OR d.policy_id=%s)"
         parameters = (generation, poliza_id)
-        candidates = self._execute("""SELECT count(*) FROM rag.generation_fragments gf
+        if (os.environ.get("RAG_POLICY_TOPIC_FILTER") == "1" and poliza_id
+                and pregunta in _POLICY_COVERAGE_TOPICS):
+            scope = "(d.kind='poliza' AND d.policy_id=%s AND f.section=ANY(%s::text[]))"
+            parameters += (["2. Coberturas incluidas", "3. Exclusiones"],)
+        candidates = self._execute(f"""SELECT count(*) FROM rag.generation_fragments gf
             JOIN rag.fragments f ON f.id=gf.fragment_id JOIN rag.documents d ON d.id=f.document_id
-            WHERE gf.generation_id=%s AND (d.kind='legal' OR d.policy_id=%s)""", parameters).fetchone()[0]
+            WHERE gf.generation_id=%s AND {scope}""", parameters).fetchone()[0]
         if not candidates:
             return []
         # Pin the generation before the external call; an index published meanwhile
@@ -82,13 +99,13 @@ class NormativaRetriever:
             raise RagError("EMBEDDINGS_RESPUESTA_INVALIDA", "El vector de consulta es inválido o incompatible", stage="embeddings")
         # Materialize only IDs/distances first, so PostgreSQL never decompresses
         # and compares every full legal document before applying LIMIT.
-        rows = self._execute("""WITH nearest AS MATERIALIZED (
+        rows = self._execute(f"""WITH nearest AS MATERIALIZED (
                 SELECT f.id,e.embedding <=> %s::vector AS distance
                 FROM rag.generation_fragments gf
                 JOIN rag.fragments f ON f.id=gf.fragment_id
                 JOIN rag.documents d ON d.id=f.document_id
                 JOIN rag.embeddings e ON e.model=gf.model AND e.dimensions=gf.dimensions AND e.input_hash=gf.input_hash
-                WHERE gf.generation_id=%s AND (d.kind='legal' OR d.policy_id=%s)
+                WHERE gf.generation_id=%s AND {scope}
                 ORDER BY distance,f.id COLLATE "C" LIMIT %s
             ) SELECT f.body,f.source,
                 f.body=substring(d.body FROM f.char_start+1 FOR f.char_end-f.char_start) AS literal
