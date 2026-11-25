@@ -14,6 +14,7 @@ from __future__ import annotations
 import copy
 import json
 import os
+import re
 import shutil
 import socket
 import subprocess
@@ -1029,9 +1030,14 @@ def probar_54_ac021_procedencia_del_vehiculo():
 # --- plan v1.3 de la #54, slice 10: una fila por pieza y reparacion (AC-022) ---
 # https://github.com/lvckss/piia2-26/issues/54 (plan v1.3, AC-022)
 def _filas_confirmadas(md: str) -> list[list[str]]:
+    """Filas de «Daños confirmados»; la reparacion, sin la marca de AC-023 («la que se presupuesta» o
+    «incluido en: ...»)."""
     seccion = _secciones(md)["## Daños confirmados"]
-    return [[c.strip() for c in l.strip().strip("|").split("|")] for l in seccion.splitlines()
-            if l.startswith("| ") and not l.startswith("| ID")]
+    filas = [[c.strip() for c in l.strip().strip("|").split("|")] for l in seccion.splitlines()
+             if l.startswith("| ") and not l.startswith("| ID")]
+    for f in filas:
+        f[4] = re.sub(r" \((?:la que se presupuesta|incluido en: [^)]*(?:\([^)]*\)[^)]*)*)\)$", "", f[4])
+    return filas
 
 
 def probar_54_ac022_una_fila_por_pieza_y_reparacion_003806():
@@ -1076,6 +1082,64 @@ def probar_54_ac022_reparaciones_distintas_siguen_separadas_001248():
         assert comprobar_cifras(md, a2) == [], (ruta.stem, comprobar_cifras(md, a2))
 
 
+# --- plan v1.4 de la #54, slice 11: reparacion presupuestada por pieza (AC-023) ---
+# https://github.com/lvckss/piia2-26/issues/54#issuecomment-7139264465 (plan v1.4, AC-023)
+def _reparacion_de(md: str, finding_id: str) -> str:
+    return _fila_por_id(_secciones(md)["## Daños confirmados"], finding_id)[4]
+
+
+def probar_54_ac023_marca_la_reparacion_presupuestada():
+    """#54 AC-023: con varias reparaciones distintas en una pieza, la fila de la que se presupuesta lo dice y las
+    demas quedan «incluido en: <la presupuestada>» (002859, 000702, 000381 y, eligiendo por severidad, 000082 y
+    001245); los importes, los totales y los 9 encabezados no cambian y `comprobar_cifras == []`."""
+    casos = {
+        "002859": ("2859-4", "Sustituir la pieza y pintarla", ["2859-9"]),
+        "000702": ("702-2", "Sustituir la pieza y pintarla", ["702-5"]),
+        "000381": ("381-4", "Reparar (desabollar) y pintar", ["381-5"]),
+        "000082": ("82-8", "Pintar el panel", ["82-4"]),
+        "001245": ("1245-10", "Pintar el panel", ["1245-4", "1245-8"]),
+    }
+    for caso, (presupuestada, accion, incluidas) in casos.items():
+        a1 = json.loads((REAL / f"{caso}.json").read_text(encoding="utf-8"))
+        a2 = _agente2_real_con_vehiculo(a1)
+        md = generar_informe(a1, a2, hoy=HOY)
+        assert _reparacion_de(md, presupuestada) == f"{accion} (la que se presupuesta)", (caso, _reparacion_de(md, presupuestada))
+        for fid in incluidas:
+            assert _reparacion_de(md, fid).endswith(f"(incluido en: {accion})"), (caso, fid, _reparacion_de(md, fid))
+        assert [l for l in md.splitlines() if l.startswith("## ")] == ENCABEZADOS[1:], caso
+        assert comprobar_cifras(md, a2) == [], (caso, comprobar_cifras(md, a2))
+
+
+def probar_54_ac023_una_reparacion_por_pieza_no_cambia():
+    """#54 AC-023: con una sola reparacion por pieza (003806, 001281) la tabla no lleva ninguna marca."""
+    for caso in ("003806", "001281"):
+        a1 = json.loads((REAL / f"{caso}.json").read_text(encoding="utf-8"))
+        tabla = _secciones(generar_informe(a1, _agente2_real_con_vehiculo(a1), hoy=HOY))["## Daños confirmados"]
+        assert "se presupuesta" not in tabla and "incluido en" not in tabla, (caso, tabla)
+
+
+def probar_54_ac023_la_marcada_es_la_que_presupuesta_la_herramienta():
+    """#54 AC-023: en las 30 salidas reales, presupuestar solo el hallazgo que el informe marca en cada pieza da el
+    mismo coste que la herramienta de la empresa con todos; asi la marca no se aparta de lo que se cobra."""
+    sys.path.insert(0, str(AQUI.parent / "agente_recuperacion"))
+    import costes_y_cobertura as cc
+
+    for ruta in sorted(REAL.glob("*.json")):
+        a1 = json.loads(ruta.read_text(encoding="utf-8"))
+        if "vehiculo" not in a1:
+            continue
+        a2 = _agente2_real_con_vehiculo(a1)
+        por_id = {f["finding_id"]: f for f in a1["findings"]}
+        ctx = a2["contexto"]
+        for nombre in ("confirmados", "con_pendientes"):
+            esc = a2["escenarios"][nombre]
+            hallazgos = [por_id[i] for i in esc["hallazgos_incluidos"]]
+            elegidos = list(informe._presupuestada_por_pieza(hallazgos).values())
+            solo = cc.estimar_coste(ctx["vehiculo_id"], cc._danos(elegidos), region=ctx["region"],
+                                    tipo_taller=ctx["tipo_taller"], acabado=ctx["acabado"], tipo_pieza=ctx["tipo_pieza"])
+            assert solo["subtotal_sin_iva_eur"] == esc["estimacion"]["subtotal_sin_iva_eur"], (ruta.stem, nombre)
+
+
 PRUEBAS = [
     probar_ac001_encabezados_cabecera_y_resumen,
     probar_ac002_confirmados_pendientes_y_no_incluidos,
@@ -1117,6 +1181,9 @@ PRUEBAS = [
     probar_54_ac021_procedencia_del_vehiculo,
     probar_54_ac022_una_fila_por_pieza_y_reparacion_003806,
     probar_54_ac022_reparaciones_distintas_siguen_separadas_001248,
+    probar_54_ac023_marca_la_reparacion_presupuestada,
+    probar_54_ac023_una_reparacion_por_pieza_no_cambia,
+    probar_54_ac023_la_marcada_es_la_que_presupuesta_la_herramienta,
 ]
 
 

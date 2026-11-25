@@ -162,6 +162,25 @@ def _reparacion(f: dict) -> str:
     return ACCION_TEXTO.get(REGLAS[(clase, zona, severidad)], "—")
 
 
+_ORDEN_SEVERIDAD = {"leve": 1, "moderado": 2, "grave": 3}
+
+
+def _presupuestada_por_pieza(hallazgos: list[dict]) -> dict[str, dict]:
+    """Por cada pieza, el hallazgo cuya reparacion presupuesta la herramienta de costes de la empresa: el de
+    mayor severidad efectiva y, si empatan, el primero (`estimar_coste` presupuesta un solo dano por pieza;
+    #54 plan v1.4, AC-023). Solo sirve para presentarlo: no cambia ninguna cifra."""
+    elegido: dict[str, tuple[int, dict]] = {}
+    for f in hallazgos:
+        if not f["pieza_id"] or not f["severidad"]:
+            continue
+        efectiva = regla_efectiva(f["clase_tool"], PIEZAS[f["pieza_id"]]["zona_tipo"], f["severidad"],
+                                  REGLAS, EQUIVALENCIAS)
+        nivel = _ORDEN_SEVERIDAD[(efectiva or (None, f["severidad"]))[1]]
+        if f["pieza_id"] not in elegido or nivel > elegido[f["pieza_id"]][0]:
+            elegido[f["pieza_id"]] = (nivel, f)
+    return {pieza: f for pieza, (_, f) in elegido.items()}
+
+
 def _motivos_pendiente(f: dict) -> str:
     motivos = []
     if f["score_tier"] == "needs_review":
@@ -189,7 +208,17 @@ def _tabla_hallazgos(hallazgos: list[dict], con_motivo: bool = False) -> list[st
         grupos: dict[tuple, list[dict]] = {}
         for f in hallazgos:
             grupos.setdefault((_pieza(f), _reparacion(f)), []).append(f)
+        # AC-023 (plan v1.4): con varias reparaciones en una pieza, se dice cual presupuesta la herramienta
+        # de costes y que las demas quedan incluidas en ella. Con una sola, la celda no cambia.
+        presupuestada = {_pieza(f): _reparacion(f) for f in _presupuestada_por_pieza(hallazgos).values()}
+        reparaciones_de: dict[str, int] = {}
+        for pieza, _ in grupos:
+            reparaciones_de[pieza] = reparaciones_de.get(pieza, 0) + 1
         for (pieza, reparacion), iguales in grupos.items():
+            if reparaciones_de[pieza] > 1 and pieza in presupuestada:
+                elegida = presupuestada[pieza]
+                reparacion = (f"{reparacion} (la que se presupuesta)" if reparacion == elegida
+                              else f"{reparacion} (incluido en: {elegida})")
             ids = ", ".join(f["finding_id"] for f in iguales)
             clases = ", ".join(dict.fromkeys(_clase(f) for f in iguales))
             severidades = ", ".join(dict.fromkeys(f["severidad"] or "—" for f in iguales))
