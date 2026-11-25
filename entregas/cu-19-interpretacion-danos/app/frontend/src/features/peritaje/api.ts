@@ -20,6 +20,8 @@ export type Catalogos = z.infer<typeof catalogosSchema>
 const errorSchema = z.object({
   codigo: z.string(), mensaje: z.string(), etapa: z.string().optional(), reintentable: z.boolean().optional(),
 })
+const bboxSchema = z.tuple([z.number().finite().min(0), z.number().finite().min(0), z.number().finite().positive(), z.number().finite().positive()])
+const detectionSchema = z.object({ finding_id: z.string(), category: z.string(), score: z.number().finite().min(0).max(1), bbox_xywh: bboxSchema })
 const analisisSchema = z.object({
   image_id: z.union([z.string(), z.number()]),
   resumen_filtro_previo: z.record(z.string(), z.unknown()).optional(),
@@ -28,6 +30,7 @@ const analisisSchema = z.object({
     finding_id: z.string(), category: z.string(), confidence_tier: z.string(),
     vision_verdict: z.string(), score: z.number(), pieza_id: z.string().nullable(),
     severidad: z.string().nullable(), vision_description: z.string(),
+    bbox_xywh: bboxSchema.optional(),
   })),
 })
 const ragSchema = z.object({
@@ -41,6 +44,7 @@ export const ejecucionSchema = z.object({
   ejecucion_id: z.string().min(1),
   estado: z.enum(['analizando', 'esperando_datos', 'generando_informe', 'completada', 'error']),
   etapa: z.enum(['entrada', 'piia1', 'agente1', 'agente2', 'agente3', 'verificacion']),
+  detecciones: z.object({ image_width: z.number().int().positive(), image_height: z.number().int().positive(), findings: z.array(detectionSchema) }).nullable().optional(),
   analisis: analisisSchema.nullable(),
   resultado: z.object({
     markdown: z.string(),
@@ -94,6 +98,11 @@ async function execution(path: string, init?: RequestInit, id?: string) {
 }
 const pathFor = (id: string) => `/api/peritajes/${encodeURIComponent(id)}`
 export const peritajeApi = {
+  async liberarCasos() {
+    const parsed = z.object({ descartados: z.array(z.string()), en_curso: z.number().int().min(0) }).safeParse(await request('/api/peritajes', { method: 'DELETE' }))
+    if (!parsed.success) throw new ErrorPeritaje('No se pudo confirmar la liberación de los casos.', 0, 'CONTRATO_INVALIDO')
+    return parsed.data
+  },
   async catalogos(signal?: AbortSignal) {
     const result = catalogosSchema.safeParse(await request('/api/catalogos', { signal }))
     if (!result.success) throw new ErrorPeritaje('Los catálogos recibidos no tienen el formato esperado.', 0, 'CONTRATO_INVALIDO')

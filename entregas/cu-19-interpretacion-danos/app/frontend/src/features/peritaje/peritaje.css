@@ -12,17 +12,18 @@
 }
 .peritaje-input:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
 .peritaje-input:disabled { opacity: .55; cursor: not-allowed; }
-/* La selección inicial ocupa la ventana; cada panel conserva su propio scroll. */
+/* Imagen, análisis y siniestro mantienen el scroll dentro de cada panel. */
 @media (min-width: 1024px) {
-  .peritaje-inicio { overflow: hidden; }
-  .peritaje-inicio .peritaje-content { height: 100%; min-height: 0; }
-  .peritaje-inicio .peritaje-content > :not(.peritaje-layout) { flex-shrink: 0; }
-  .peritaje-inicio .peritaje-layout { flex: 1; min-height: 0; align-items: stretch; }
-  .peritaje-inicio .peritaje-columna { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
-  .peritaje-inicio .peritaje-selector { display: flex; flex: 1; min-height: 0; flex-direction: column; overflow: hidden; }
-  .peritaje-inicio .peritaje-imagenes { flex: 1; min-height: 0; max-height: none; overscroll-behavior: contain; }
-  .peritaje-inicio .peritaje-vista-previa { display: flex; flex: 1; min-height: 10rem; flex-direction: column; }
-  .peritaje-inicio .peritaje-vista-previa img { flex: 1; height: 0; min-height: 0; max-height: none; }
+  .peritaje-panel { overflow: hidden; }
+  .peritaje-panel .peritaje-content { height: 100%; min-height: 0; }
+  .peritaje-panel .peritaje-content > :not(.peritaje-layout) { flex-shrink: 0; }
+  .peritaje-panel .peritaje-layout { flex: 1; min-height: 0; align-items: stretch; }
+  .peritaje-panel .peritaje-columna { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+  .peritaje-panel .peritaje-selector { display: flex; flex: 1; min-height: 0; flex-direction: column; overflow: hidden; }
+  .peritaje-panel .peritaje-imagenes { flex: 1; min-height: 0; max-height: none; overscroll-behavior: contain; }
+  .peritaje-panel .peritaje-vista-previa { display: flex; flex: 1; min-height: 10rem; flex-direction: column; }
+  .peritaje-panel .peritaje-imagen-marco { flex: 1; height: 0; min-height: 0; }
+  .peritaje-panel .peritaje-imagen-marco img { height: 100%; max-height: none; }
 }
 .peritaje-markdown { overflow-wrap: anywhere; line-height: 1.7; font-size: .925rem; }
 .peritaje-markdown h1 { margin: 0 0 1rem; font-size: 1.5rem; font-weight: 650; line-height: 1.3; }
@@ -37,3 +38,19 @@
 .peritaje-markdown blockquote { padding: .5rem 1rem; margin: .75rem 0; border-left: 3px solid var(--border); color: var(--muted-foreground); }
 .peritaje-markdown a { text-decoration: underline; text-underline-offset: 3px; }
 .peritaje-markdown pre { overflow-x: auto; padding: .8rem; background: var(--muted); border-radius: .375rem; }
+
+.peritaje-caja { border: 2px solid #0284c7; background: transparent; border-radius: 2px; animation: peritaje-caja-entrada .18s ease-out; }
+.peritaje-caja[data-tone="confirmada"] { border-color: #059669; }
+.peritaje-caja[data-tone="pendiente"] { border-color: #d97706; }
+.peritaje-caja[data-tone="rechazada"] { border-color: #64748b; border-style: dashed; }
+.peritaje-caja:disabled { opacity: 1; cursor: default; }
+.peritaje-caja-activa { z-index: 15; border-width: 3px; box-shadow: 0 0 0 1px white; }
+.peritaje-caja:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+.peritaje-etiqueta { color: white; background: #0369a1; }
+.peritaje-etiqueta[data-tone="confirmada"] { background: #047857; }
+.peritaje-etiqueta[data-tone="pendiente"] { background: #b45309; }
+.peritaje-etiqueta[data-tone="rechazada"] { background: #475569; }
+.peritaje-danos { display: flex; height: 14rem; flex-direction: column; }
+.peritaje-dano-detalle { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+@keyframes peritaje-caja-entrada { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .peritaje-caja { animation: none; } }

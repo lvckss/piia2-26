@@ -4,6 +4,7 @@ import { expect, test, type Page } from '@playwright/test'
 // https://github.com/lvckss/piia2-26/issues/34#issuecomment-7135966562
 // Solo dobles HTTP en pruebas: el producto nunca importa estas respuestas.
 const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGP4//8/AAX+Av4N70a4AAAAAElFTkSuQmCC', 'base64')
+const PNG_WIDE = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAMgAAABkCAIAAABM5OhcAAABHklEQVR4nO3SsQ3AIADAMOD/D7syckSfaIRU2RdkyHz2GfC1dTuAfzIWCWORMBYJY5EwFgljkTAWCWORMBYJY5EwFgljkTAWCWORMBYJY5EwFgljkTAWCWORMBYJY5EwFgljkTAWCWORMBYJY5EwFgljkTAWCWORMBYJY5EwFgljkTAWCWORMBYJY5EwFgljkTAWCWORMBYJY5EwFgljkTAWCWORMBYJY5EwFgljkTAWCWORMBYJY5EwFgljkTAWCWORMBYJY5EwFgljkTAWCWORMBYJY5EwFgljkTAWCWORMBYJY5EwFgljkTAWCWORMBYJY5EwFgljkTAWCWORMBYJY5EwFgljkTAWCWORMBYJY5EwFgljkTAWCWOReAEc+gNznKsXWAAAAABJRU5ErkJggg==', 'base64')
 const markdown = '# Informe de peritaje — imagen 82\n\n## Resumen\n\nEstimación: **123,45 €**.\n\n<script>window.peritajeInseguro = true</script>\n\n| Concepto | Importe |\n|---|---|\n| Reparación | 123,45 € |\n'
 const option = (id: string, nombre: string) => ({ id, nombre })
 const catalogos = {
@@ -28,6 +29,15 @@ function estado(fase = 'esperando_datos', desconocido = false) {
     } : null,
     error: null,
   }
+}
+
+function estadoConDanos(count = 3, fase = 'esperando_datos') {
+  const base = estado(fase)
+  const findings = Array.from({ length: count }, (_, index) => ({
+    ...base.analisis.findings[0], finding_id: `82-${index + 1}`, category: ['dent', 'scratch', 'crack'][index % 3],
+    bbox_xywh: [100 + index * 150, 100, 200, 200], vision_description: `Descripción del daño ${index + 1}`,
+  }))
+  return { ...base, analisis: fase === 'analizando' ? null : { ...base.analisis, findings }, detecciones: { image_width: 1000, image_height: 500, findings: findings.map(({ finding_id, category, score, bbox_xywh }) => ({ finding_id, category, score, bbox_xywh })) } }
 }
 
 async function preparar(page: Page, opts: { desconocido?: boolean; contextoInvalido?: boolean; perdido?: boolean; fallo?: boolean; originalAusente?: boolean; catalogoAusente?: boolean } = {}) {
@@ -350,6 +360,78 @@ test('AC-003/004: presupuesto plegado con valores de demo, disclaimer y vehícul
   expect(l.analisis).toBe(1)
 })
 
+test('AC-019: las cajas aparecen una a una durante el análisis y el resultado final no espera animaciones', async ({ page }) => {
+  await preparar(page)
+  let finished = false, posts = 0
+  await page.route('**/dataset/**', route => route.fulfill({ contentType: 'image/png', body: PNG_WIDE }))
+  await page.route('**/api/peritajes', route => { posts++; return route.fulfill({ status: 202, json: estadoConDanos(3, 'analizando') }) })
+  await page.route('**/api/peritajes/caso-82', route => route.fulfill({ json: estadoConDanos(3, finished ? 'esperando_datos' : 'analizando') }))
+  await seleccionar(page)
+  await page.clock.install({ time: new Date('2026-11-24T12:00:00Z') })
+  await page.clock.pauseAt(new Date('2026-11-24T12:00:01Z'))
+  await page.getByRole('button', { name: 'Analizar imagen', exact: true }).click()
+  await expect(page.getByText('Detecciones disponibles', { exact: true })).toBeVisible()
+  await expect(page.locator('[data-finding-id]')).toHaveCount(0)
+  await page.clock.runFor(310)
+  await expect(page.locator('[data-finding-id]')).toHaveCount(1)
+  finished = true
+  await page.clock.runFor(240)
+  await expect(page.getByRole('heading', { name: 'Vehículo y siniestro', exact: true })).toBeVisible()
+  await expect(page.locator('[data-finding-id]')).toHaveCount(3)
+  expect(posts).toBe(1)
+})
+
+test('AC-019: las cajas conservan geometría con márgenes de imagen y al cambiar el tamaño', async ({ page }) => {
+  await preparar(page)
+  await page.setViewportSize({ width: 1280, height: 800 })
+  await page.route('**/dataset/**', route => route.fulfill({ contentType: 'image/png', body: PNG_WIDE }))
+  await page.route('**/api/peritajes/caso-82', route => route.fulfill({ json: estadoConDanos() }))
+  await seleccionar(page)
+  await page.getByRole('button', { name: 'Analizar imagen', exact: true }).click()
+  const box = page.locator('[data-finding-id="82-1"]')
+  await expect(box).toBeVisible()
+  for (const viewport of [{ width: 1280, height: 800 }, { width: 1100, height: 900 }, { width: 390, height: 844 }]) {
+    await page.setViewportSize(viewport)
+    await expect.poll(async () => {
+      const image = (await page.getByRole('img', { name: 'Vista previa de 000082.jpg' }).boundingBox())!
+      const actual = (await box.boundingBox())!
+      const scale = Math.min(image.width / 1000, image.height / 500)
+      const expectedX = image.x + (image.width - 1000 * scale) / 2 + 100 * scale
+      const expectedY = image.y + (image.height - 500 * scale) / 2 + 100 * scale
+      return Math.max(Math.abs(actual.x - expectedX), Math.abs(actual.y - expectedY), Math.abs(actual.width - 200 * scale), Math.abs(actual.height - 200 * scale))
+    }).toBeLessThan(2)
+  }
+})
+
+for (const count of [0, 1]) test(`AC-020: panel con ${count} daños sin navegación fuera de límites`, async ({ page }) => {
+  await preparar(page)
+  await page.route('**/api/peritajes/caso-82', route => route.fulfill({ json: estadoConDanos(count) }))
+  await seleccionar(page)
+  await page.getByRole('button', { name: 'Analizar imagen', exact: true }).click()
+  const panel = page.getByRole('region', { name: 'Daños analizados', exact: true })
+  await expect(panel).toBeVisible()
+  if (count) {
+    await expect(panel.getByText('Daño 1 de 1', { exact: true })).toBeVisible()
+    await expect(panel.getByRole('button', { name: 'Daño anterior' })).toBeDisabled()
+    await expect(panel.getByRole('button', { name: 'Daño siguiente' })).toBeDisabled()
+  } else {
+    await expect(panel.getByText('No se han encontrado daños para analizar.', { exact: true })).toBeVisible()
+    await expect(panel.getByRole('button')).toHaveCount(0)
+  }
+})
+
+test('AC-019: movimiento reducido muestra las detecciones sin aparición animada', async ({ page }) => {
+  await preparar(page)
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.route('**/dataset/**', route => route.fulfill({ contentType: 'image/png', body: PNG_WIDE }))
+  await page.route('**/api/peritajes', route => route.fulfill({ status: 202, json: estadoConDanos(3, 'analizando') }))
+  await page.route('**/api/peritajes/caso-82', route => route.fulfill({ json: estadoConDanos(3, 'analizando') }))
+  await seleccionar(page)
+  await page.getByRole('button', { name: 'Analizar imagen', exact: true }).click()
+  await expect(page.locator('[data-finding-id]')).toHaveCount(3)
+  expect(await page.locator('[data-finding-id]').first().evaluate(e => getComputedStyle(e).animationName)).toBe('none')
+})
+
 test('AC-003/004: editar y plegar conserva datos; volver a confirmar sincroniza vehículo y origen', async ({ page }) => {
   const l = await preparar(page)
   await analizar(page)
@@ -383,4 +465,29 @@ test('AC-004: un valor de demo ausente del catálogo se deja pendiente, sin sust
   await page.getByRole('button', { name: 'Generar informe', exact: true }).click()
   await expect(page.getByRole('button', { name: 'Descargar Markdown' })).toBeVisible()
   expect(l.cuerpos[0].contexto).toHaveProperty('acabado', 'metalizado')
+})
+
+// Complemento UI v4: https://github.com/lvckss/piia2-26/issues/34#issuecomment-7139877038
+test('AC-019/020: cajas sincronizadas y navegación de daños debajo de la imagen sin scroll global', async ({ page }) => {
+  const l = await preparar(page)
+  await page.setViewportSize({ width: 1280, height: 800 })
+  await page.route('**/dataset/**', route => route.fulfill({ contentType: 'image/png', body: PNG_WIDE }))
+  await page.route('**/api/peritajes/caso-82', route => route.fulfill({ json: estadoConDanos() }))
+  await seleccionar(page)
+  await page.getByRole('button', { name: 'Analizar imagen', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Vehículo y siniestro', exact: true })).toBeVisible()
+  const panel = page.getByRole('region', { name: 'Daños analizados', exact: true })
+  await expect(panel).toBeVisible()
+  await expect(panel.getByText('Daño 1 de 3', { exact: true })).toBeVisible()
+  await expect(panel.getByRole('button', { name: 'Daño anterior', exact: true })).toBeDisabled()
+  await panel.getByRole('button', { name: 'Daño siguiente', exact: true }).click()
+  await expect(panel.getByText('Descripción del daño 2', { exact: true })).toBeVisible()
+  await expect(page.locator('[data-finding-id="82-2"]')).toHaveAttribute('aria-pressed', 'true')
+  await page.locator('[data-finding-id="82-3"]').click()
+  await expect(panel.getByText('Daño 3 de 3', { exact: true })).toBeVisible()
+  await expect(panel.getByRole('button', { name: 'Daño siguiente', exact: true })).toBeDisabled()
+  const image = await page.getByRole('img', { name: 'Vista previa de 000082.jpg' }).boundingBox()
+  expect((await panel.boundingBox())!.y).toBeGreaterThanOrEqual(image!.y + image!.height)
+  await expect.poll(() => page.getByRole('main').evaluate(e => e.scrollHeight - e.clientHeight)).toBeLessThanOrEqual(1)
+  expect(l.analisis).toBe(1)
 })

@@ -102,6 +102,39 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(self.pipeline.calls, ["detector", "vision", "costes", "informe", "verificacion"])
         self.assertEqual(result["resultado"]["agente2"]["escenarios"]["confirmados"]["estimacion"]["total_con_iva_eur"], 0)
 
+    def test_ac019_candidate_boxes_available_while_vision_is_running(self):
+        """#34 UI v4 AC-019: vista previa sin veredictos, rutas ni otra inferencia."""
+        self.pipeline.detections = [
+            {"damage_class": "dent", "score": .9, "bbox": {"x": 1, "y": 2, "width": 3, "height": 4}},
+            {"damage_class": "glass shatter", "score": .001, "bbox": {"x": 2, "y": 1, "width": 4, "height": 3}},
+        ]
+        started, release = threading.Event(), threading.Event()
+        original = self.pipeline.analyze
+        def blocked(*args):
+            started.set()
+            release.wait(5)
+            return original(*args)
+        with patch.object(self.pipeline, "analyze", side_effect=blocked) as vision:
+            case_id = self.flow.create(image_bytes(), "image/png", "preview")["ejecucion_id"]
+            try:
+                self.assertTrue(started.wait(2))
+                state = self.flow.get(case_id)
+                self.assertEqual(state["estado"], "analizando")
+                self.assertIsNone(state["analisis"])
+                preview = state.get("detecciones")
+                self.assertIsNotNone(preview)
+                self.assertEqual((preview["image_width"], preview["image_height"]), (40, 30))
+                self.assertEqual(preview["findings"], [{"finding_id": f"{case_id}-1", "category": "dent", "score": .9, "bbox_xywh": [1, 2, 3, 4]}])
+                self.assertNotIn(self.temp.name, json.dumps(preview))
+                for _ in range(3):
+                    self.flow.get(case_id)
+                self.assertEqual(vision.call_count, 1)
+                self.assertEqual(self.pipeline.calls, ["detector"])
+            finally:
+                release.set()
+                self.flow.cases[case_id].future.result(5)
+        self.assertEqual(self.flow.get(case_id)["estado"], "esperando_datos")
+
     def test_ac001_invalid_before_any_provider(self):
         for data, mime in ((b"", "image/png"), (b"text", "image/png"), (image_bytes(), "text/plain")):
             with self.assertRaises(FlowError):

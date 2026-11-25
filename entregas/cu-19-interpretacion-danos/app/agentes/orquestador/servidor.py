@@ -82,6 +82,10 @@ def create_app(workflow=None):
     def state(case_id: str):
         return workflow.get(case_id)
 
+    @app.delete("/peritajes")
+    def discard_retained():
+        return workflow.discard_retained()
+
     @app.post("/peritajes/{case_id}/informe", status_code=202)
     async def report(case_id: str, request: Request):
         try:

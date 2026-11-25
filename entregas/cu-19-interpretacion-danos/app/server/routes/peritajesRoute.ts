@@ -49,6 +49,7 @@ export function createPeritajeRoutes(
   return new Hono()
     .get('/catalogos', proxy)
     .post('/peritajes', limit, proxy)
+    .delete('/peritajes', proxy)
     .get('/peritajes/:id{[A-Za-z0-9_-]+}', proxy)
     .delete('/peritajes/:id{[A-Za-z0-9_-]+}', proxy)
     .post('/peritajes/:id{[A-Za-z0-9_-]+}/informe', limit, proxy)

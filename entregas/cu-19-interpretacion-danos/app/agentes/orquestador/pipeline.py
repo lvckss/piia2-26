@@ -35,6 +35,15 @@ class ProductionPipeline:
         archive = getattr(self, "archive", None)
         return archive.prepare(image, filename) if archive else None
 
+    def preview(self, detection, size):
+        """Solo datos de entrada ya disponibles, sin veredictos del modelo."""
+        from hallazgos import construir_hallazgos
+        candidates = construir_hallazgos(detection)["findings"]
+        return {"image_width": size[0], "image_height": size[1], "findings": [
+            {key: finding[key] for key in ("finding_id", "category", "score", "bbox_xywh")}
+            for finding in candidates
+        ]}
+
     def preflight(self):
         if not os.environ.get("OPENAI_API_KEY") or not os.environ.get("OPENAI_MODEL"):
             raise FlowError("VISION_NO_DISPONIBLE", "Falta configurar OPENAI_API_KEY u OPENAI_MODEL en el servidor.", stage="agente1", status=503)

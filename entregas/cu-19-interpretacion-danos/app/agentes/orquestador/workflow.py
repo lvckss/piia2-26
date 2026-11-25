@@ -135,6 +135,7 @@ class Case:
     state: str = "analizando"
     stage: str = "entrada"
     analysis: dict | None = None
+    detections: dict | None = None
     result: dict | None = None
     error: dict | None = None
     last_activity: float = 0
@@ -238,6 +239,11 @@ class Workflow:
                 detection = adapt_detection(self.pipeline.detect(path), case.id, path, case.image_size)
             detection_path = case.folder / "deteccion.json"
             detection_path.write_text(json.dumps(detection), encoding="utf-8")
+            preview = getattr(self.pipeline, "preview", None)
+            if preview:
+                public = preview(detection, case.image_size)
+                with self.lock:
+                    case.detections = copy.deepcopy(public)
             self._stage(case, "agente1")
             analysis = self.pipeline.analyze(detection_path, case.folder)
             vehicle = analysis.get("vehiculo", {})
@@ -296,7 +302,7 @@ class Workflow:
         if analysis:
             for finding in analysis["findings"]:
                 finding.pop("crop_image_path", None)
-        return {"ejecucion_id": case.id, "estado": case.state, "etapa": case.stage, "analisis": analysis, "resultado": copy.deepcopy(case.result), "error": copy.deepcopy(case.error)}
+        return {"ejecucion_id": case.id, "estado": case.state, "etapa": case.stage, "detecciones": copy.deepcopy(case.detections), "analisis": analysis, "resultado": copy.deepcopy(case.result), "error": copy.deepcopy(case.error)}
 
     def get(self, case_id):
         with self.lock:
@@ -315,6 +321,16 @@ class Workflow:
             if case.state in ACTIVE:
                 raise FlowError("ESTADO_INVALIDO", "El caso sigue trabajando y todavía no se puede descartar.", status=409)
             self._remove(case)
+
+    def discard_retained(self):
+        """Descarta los casos terminados; las consultas activas siguen su curso."""
+        with self.lock:
+            discarded = []
+            for case in list(self.cases.values()):
+                if case.state not in ACTIVE:
+                    discarded.append(case.id)
+                    self._remove(case)
+            return {"descartados": discarded, "en_curso": len(self.cases)}
 
     def close(self):
         self.executor.shutdown(wait=True)
