@@ -224,7 +224,7 @@ salida["justificaciones"] = justificar_normativa(
 ```
 
 - **`generada`:** `texto` y `citas` (`[{extracto, fuente}]`). Cada cita está literalmente en un
-  pasaje del mismo tema (tras normalizar espacios) y la `fuente` la pone el código.
+  pasaje del mismo tema (tras normalizar espacios, sin distinguir mayúsculas y sin los asteriscos de énfasis de Markdown) y la `fuente` la pone el código; la cita que se guarda es la frase completa del pasaje que la contiene, tal como está escrita (hasta el punto, el punto y coma o el salto de línea, con un máximo de 600 caracteres).
 - **`descartada`:** con `motivo`, cuando la respuesta no pasa la comprobación: una cita que no
   está en los pasajes, cualquier importe en euros en el texto (incluidos «1500EUR» o «euros 1500»)
   o un texto que se presenta como validación («verific…», «valid…», «garantiz…»).

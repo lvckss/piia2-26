@@ -1,0 +1,108 @@
+{
+  "image_id": 215,
+  "image_file": "000215.jpg",
+  "image_path": "/content/drive/MyDrive/CarDD_release/rawdata/images/000215.jpg",
+  "image_width": 1000,
+  "image_height": 750,
+  "split": "val",
+  "variant": "baseline",
+  "strategy_name": "baseline_prompt",
+  "num_predictions": 5,
+  "predictions": [
+    {
+      "instance_index": 1,
+      "damage_class": "glass shatter",
+      "category_id": 4,
+      "score": 0.93017578125,
+      "bbox_xywh": [
+        0.0,
+        0.0,
+        1000.0,
+        748.0
+      ],
+      "area": 683047.0,
+      "is_true_positive": true,
+      "best_iou": 0.9603
+    },
+    {
+      "instance_index": 2,
+      "damage_class": "tire flat",
+      "category_id": 6,
+      "score": 0.8154296875,
+      "bbox_xywh": [
+        886.0,
+        0.0,
+        79.0,
+        50.0
+      ],
+      "area": 3426.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 3,
+      "damage_class": "lamp broken",
+      "category_id": 5,
+      "score": 0.80029296875,
+      "bbox_xywh": [
+        0.0,
+        0.0,
+        1000.0,
+        750.0
+      ],
+      "area": 704707.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 4,
+      "damage_class": "lamp broken",
+      "category_id": 5,
+      "score": 0.435302734375,
+      "bbox_xywh": [
+        947.0,
+        159.0,
+        53.0,
+        117.0
+      ],
+      "area": 4236.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 5,
+      "damage_class": "crack",
+      "category_id": 3,
+      "score": 0.383056640625,
+      "bbox_xywh": [
+        0.0,
+        0.0,
+        1000.0,
+        749.0
+      ],
+      "area": 601696.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    }
+  ],
+  "ground_truth": [
+    {
+      "damage_class": "glass shatter",
+      "category_id": 4,
+      "bbox_xywh": [
+        0.0,
+        0.0,
+        1000.0,
+        750.0
+      ]
+    }
+  ],
+  "gt_unmatched_by_class": {
+    "dent": 0,
+    "scratch": 0,
+    "crack": 0,
+    "glass shatter": 0,
+    "lamp broken": 0,
+    "tire flat": 0
+  }
+}

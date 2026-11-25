@@ -1,0 +1,78 @@
+{
+  "image_id": 1661,
+  "image_file": "001661.jpg",
+  "image_path": "/content/drive/MyDrive/CarDD_release/rawdata/images/001661.jpg",
+  "image_width": 1000,
+  "image_height": 750,
+  "split": "val",
+  "variant": "baseline",
+  "strategy_name": "baseline_prompt",
+  "num_predictions": 3,
+  "predictions": [
+    {
+      "instance_index": 1,
+      "damage_class": "glass shatter",
+      "category_id": 4,
+      "score": 0.8505859375,
+      "bbox_xywh": [
+        0.0,
+        124.0,
+        1000.0,
+        401.0
+      ],
+      "area": 328628.0,
+      "is_true_positive": true,
+      "best_iou": 0.9623
+    },
+    {
+      "instance_index": 2,
+      "damage_class": "crack",
+      "category_id": 3,
+      "score": 0.66943359375,
+      "bbox_xywh": [
+        262.0,
+        250.0,
+        477.0,
+        251.0
+      ],
+      "area": 85418.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    },
+    {
+      "instance_index": 3,
+      "damage_class": "glass shatter",
+      "category_id": 4,
+      "score": 0.398681640625,
+      "bbox_xywh": [
+        4.0,
+        232.0,
+        72.0,
+        60.0
+      ],
+      "area": 2380.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    }
+  ],
+  "ground_truth": [
+    {
+      "damage_class": "glass shatter",
+      "category_id": 4,
+      "bbox_xywh": [
+        0.0,
+        127.57,
+        1000.0,
+        413.59
+      ]
+    }
+  ],
+  "gt_unmatched_by_class": {
+    "dent": 0,
+    "scratch": 0,
+    "crack": 0,
+    "glass shatter": 0,
+    "lamp broken": 0,
+    "tire flat": 0
+  }
+}

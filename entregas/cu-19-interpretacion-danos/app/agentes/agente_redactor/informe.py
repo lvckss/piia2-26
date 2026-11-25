@@ -87,9 +87,9 @@ CLASE_TEXTO = {
     "glass_shatter": "rotura de cristal", "lamp_broken": "óptica rota", "tire_flat": "neumático pinchado",
 }
 MOTIVO_FUERA = {
-    "rechazado_por_vision": "rechazado por la visión: el modelo no ve el daño (probable falso positivo)",
+    "rechazado_por_vision": "la visión no confirma el daño",
     "sin_pieza_o_severidad": "no se pudo identificar la pieza o la severidad",
-    "sin_regla_de_coste": "no hay regla de coste para esta combinación de daño, pieza y severidad",
+    "sin_regla_de_coste": "la tabla de reparaciones de la empresa no prevé esta combinación de daño, pieza y severidad",
 }
 CONCEPTOS = [
     ("Piezas", "piezas"), ("Mano de obra de chapa", "mano_obra_chapa"),
@@ -98,9 +98,22 @@ CONCEPTOS = [
 ]
 NINGUNO = "_Ninguno._"
 # Issue #54, slice 2 (plan v1.1): https://github.com/lvckss/piia2-26/issues/54#issuecomment-6806386857
-# AC-011: el sistema solo juzga lo que detecta PIIA 1; se dice aparte del aviso legal de la cabecera.
-AVISO_PIIA1 = ("Solo se analizan los daños que ha detectado PIIA 1 en la foto; puede haber otros que no "
-               "aparezcan en este informe.")
+# AC-011: el sistema solo juzga lo que encuentra el detector de danos; se dice aparte del aviso legal.
+# Plan v1.2 de la #54, AC-014: sin jerga para el lector («el detector de daños» y no el nombre interno).
+AVISO_DETECTOR = ("Solo se analizan los daños que ha encontrado el detector en la foto; puede haber otros que no "
+                  "aparezcan en este informe.")
+# Plan v1.2 de la #54 (https://github.com/lvckss/piia2-26/issues/54#issuecomment-7107366100), slice 8.
+# AC-014: sigla que se desarrolla la primera vez que aparece fuera de las citas literales.
+SIGLAS = {"LRCSCVM": "Ley sobre responsabilidad civil y seguro en la circulación de vehículos a motor"}
+# AC-019: las fuentes explican; la cobertura la calcula la herramienta de costes.
+FRASE_FUENTES = ("La cobertura y la indemnización las calcula la herramienta de costes a partir de la póliza; "
+                 "las fuentes siguientes son explicativas.")
+# AC-021: procedencia del vehiculo (spec 34 v1.7, `contexto.vehiculo_origen`), con la frase literal de la spec 34.
+ORIGENES_VEHICULO = ("referencia_confirmada", "seleccion_usuario", "minimo_por_defecto")
+VEHICULO_POR_DEFECTO = "V14"
+FRASE_VEHICULO_POR_DEFECTO = (
+    "Vehículo no identificado en la imagen: el presupuesto usa el vehículo de menor coste del catálogo. "
+    "Es una estimación a la baja: si el taller encuentra un importe mayor, avisará a la aseguradora para revisarlo.")
 # AC-003: hallazgos fuera del coste que no son falsos positivos y que una persona debe revisar.
 MOTIVOS_REVISION_HUMANA = ("sin_pieza_o_severidad", "sin_regla_de_coste")
 # Issue #54, slice 1 (plan v1): https://github.com/lvckss/piia2-26/issues/54#issuecomment-6805208293
@@ -149,6 +162,25 @@ def _reparacion(f: dict) -> str:
     return ACCION_TEXTO.get(REGLAS[(clase, zona, severidad)], "—")
 
 
+_ORDEN_SEVERIDAD = {"leve": 1, "moderado": 2, "grave": 3}
+
+
+def _presupuestada_por_pieza(hallazgos: list[dict]) -> dict[str, dict]:
+    """Por cada pieza, el hallazgo cuya reparacion presupuesta la herramienta de costes de la empresa: el de
+    mayor severidad efectiva y, si empatan, el primero (`estimar_coste` presupuesta un solo dano por pieza;
+    #54 plan v1.4, AC-023). Solo sirve para presentarlo: no cambia ninguna cifra."""
+    elegido: dict[str, tuple[int, dict]] = {}
+    for f in hallazgos:
+        if not f["pieza_id"] or not f["severidad"]:
+            continue
+        efectiva = regla_efectiva(f["clase_tool"], PIEZAS[f["pieza_id"]]["zona_tipo"], f["severidad"],
+                                  REGLAS, EQUIVALENCIAS)
+        nivel = _ORDEN_SEVERIDAD[(efectiva or (None, f["severidad"]))[1]]
+        if f["pieza_id"] not in elegido or nivel > elegido[f["pieza_id"]][0]:
+            elegido[f["pieza_id"]] = (nivel, f)
+    return {pieza: f for pieza, (_, f) in elegido.items()}
+
+
 def _motivos_pendiente(f: dict) -> str:
     motivos = []
     if f["score_tier"] == "needs_review":
@@ -156,7 +188,7 @@ def _motivos_pendiente(f: dict) -> str:
     if f["vision_verdict"] != "confirmado":
         motivos.append(f"la visión lo ve {f['vision_verdict']}")
     if f["regla_coste_aplicable"] is not True:
-        motivos.append("sin regla de coste")
+        motivos.append("la tabla de reparaciones de la empresa no la prevé")
     return "; ".join(motivos) or "pendiente de verificación"
 
 
@@ -170,14 +202,28 @@ def _tabla_hallazgos(hallazgos: list[dict], con_motivo: bool = False) -> list[st
             filas.append(f"| {f['finding_id']} | {_pieza(f)} | {_clase(f)} | "
                          f"{f['severidad'] or '—'} | {_reparacion(f)} | {_motivos_pendiente(f)} |")
     else:
-        # #54 AC-004: los confirmados con la misma pieza, dano, severidad y reparacion van en una sola fila.
+        # #54 AC-004 y AC-022 (plan v1.3): los confirmados con la misma pieza y reparacion van en una sola
+        # fila, con sus danos y severidades distintos, sus finding_id y sus scores; una reparacion distinta
+        # de la misma pieza sigue en otra fila. Solo cambia la presentacion: los importes no se tocan.
         grupos: dict[tuple, list[dict]] = {}
         for f in hallazgos:
-            grupos.setdefault((_pieza(f), _clase(f), f["severidad"] or "—", _reparacion(f)), []).append(f)
-        for (pieza, clase, severidad, reparacion), iguales in grupos.items():
+            grupos.setdefault((_pieza(f), _reparacion(f)), []).append(f)
+        # AC-023 (plan v1.4): con varias reparaciones en una pieza, se dice cual presupuesta la herramienta
+        # de costes y que las demas quedan incluidas en ella. Con una sola, la celda no cambia.
+        presupuestada = {_pieza(f): _reparacion(f) for f in _presupuestada_por_pieza(hallazgos).values()}
+        reparaciones_de: dict[str, int] = {}
+        for pieza, _ in grupos:
+            reparaciones_de[pieza] = reparaciones_de.get(pieza, 0) + 1
+        for (pieza, reparacion), iguales in grupos.items():
+            if reparaciones_de[pieza] > 1 and pieza in presupuestada:
+                elegida = presupuestada[pieza]
+                reparacion = (f"{reparacion} (la que se presupuesta)" if reparacion == elegida
+                              else f"{reparacion} (incluido en: {elegida})")
             ids = ", ".join(f["finding_id"] for f in iguales)
+            clases = ", ".join(dict.fromkeys(_clase(f) for f in iguales))
+            severidades = ", ".join(dict.fromkeys(f["severidad"] or "—" for f in iguales))
             scores = "; ".join(_decimal(f["score"]) for f in iguales)
-            filas.append(f"| {ids} | {pieza} | {clase} | {severidad} | {reparacion} | {scores} |")
+            filas.append(f"| {ids} | {pieza} | {clases} | {severidades} | {reparacion} | {scores} |")
     imagenes = " ".join(f"![{f['finding_id']}]({f['crop_image_path']})" for f in hallazgos if f.get("crop_image_path"))
     return filas + ([""] + [imagenes] if imagenes else [])
 
@@ -228,7 +274,7 @@ def _detecciones_fuera(fuera: list[dict], por_id: dict) -> list[str]:
     if not revision:
         return otros
     return otros + ([""] if otros else []) + [
-        "**Requieren revisión humana:** no se han podido presupuestar, pero no se han descartado como falso positivo.",
+        "**Requieren revisión humana:** no se han podido presupuestar, pero la visión no los ha descartado.",
         "", *revision]
 
 
@@ -277,6 +323,7 @@ def validar_entradas(agente1: dict, agente2: dict) -> None:
             raise ValueError(f"pieza_id no esta en el catalogo de la empresa: {pieza!r}")
     if "diagnostico_rag" in agente2:
         _validar_diagnostico(agente2["diagnostico_rag"])
+    _validar_origen_vehiculo(agente1, agente2["contexto"])
     if "justificaciones" in agente2:
         _validar_justificaciones(agente2["justificaciones"])
 
@@ -308,6 +355,24 @@ def _validar_justificaciones(justificaciones: list) -> None:
             raise ValueError(f"{campo}.citas debe ser una lista no vacia de {{extracto, fuente}}")
 
 
+def _validar_origen_vehiculo(agente1: dict, ctx: dict) -> None:
+    """`contexto.vehiculo_origen` opcional (spec 34 v1.7; plan v1.2 de la #54, AC-021): si viene, solo admite tres
+    valores y debe ser coherente con el coche usado; un valor invalido no equivale a su ausencia."""
+    if "vehiculo_origen" not in ctx:
+        return
+    origen = ctx["vehiculo_origen"]
+    if origen not in ORIGENES_VEHICULO:
+        raise ValueError(f"contexto.vehiculo_origen no valido: {origen!r} (debe ser {', '.join(ORIGENES_VEHICULO)})")
+    if origen == "minimo_por_defecto" and ctx["vehiculo_id"] != VEHICULO_POR_DEFECTO:
+        raise ValueError(f"contexto.vehiculo_origen minimo_por_defecto exige vehiculo_id {VEHICULO_POR_DEFECTO}, "
+                         f"no {ctx['vehiculo_id']!r}")
+    if origen == "referencia_confirmada":
+        referencia = (agente1.get("vehiculo") or {}).get("vehiculo_id_referencia")
+        if referencia is None or referencia != ctx["vehiculo_id"]:
+            raise ValueError(f"contexto.vehiculo_origen referencia_confirmada exige que vehiculo_id "
+                             f"({ctx['vehiculo_id']!r}) sea la referencia del Agente 1 ({referencia!r})")
+
+
 def _validar_diagnostico(diagnostico: dict) -> None:
     """`diagnostico_rag` opcional, con la forma del contrato de la #32
     (specs/31-informe-peritaje.md#AC-015). Solo se presenta, no se recalcula."""
@@ -337,28 +402,112 @@ def _consultas_sin_fuentes(diagnostico: dict | None) -> list[str]:
     return lineas
 
 
+def _linea_vehiculo(veh: dict, ctx: dict, agente1: dict) -> str:
+    """La linea «Vehículo» de la cabecera, con su procedencia si viene (#54 AC-021); sin ella, la de siempre."""
+    nombre = f"{veh['marca']} {veh['modelo']}"
+    origen = ctx.get("vehiculo_origen")
+    if origen == "referencia_confirmada":
+        categoria = (agente1.get("vehiculo") or {}).get("categoria", "")
+        nombre += f" (coche de referencia de la categoría {categoria} que propone la visión, confirmado)"
+    elif origen == "seleccion_usuario":
+        nombre += " (elegido por la persona usuaria)"
+    elif origen == "minimo_por_defecto":
+        nombre += ", el de menor coste del catálogo, porque no se reconoció la categoría del vehículo"
+    return f"- **Vehículo:** {nombre}"
+
+
+def _aviso_vehiculo(veh: dict, ctx: dict) -> list[str]:
+    """Con `minimo_por_defecto`, la frase literal de la spec 34 y sus limites (#54 AC-021)."""
+    if ctx.get("vehiculo_origen") != "minimo_por_defecto":
+        return []
+    return ["", f"> {FRASE_VEHICULO_POR_DEFECTO}",
+            f"> El cálculo usa el {veh['marca']} {veh['modelo']} ({ctx['vehiculo_id']}), una referencia fija que no "
+            "garantiza el mínimo exacto: el valor venal no es el del vehículo real y la pérdida total no es fiable."]
+
+
+def _resumen_detecciones(detecciones: int, analizados: int) -> list[str]:
+    """Las detecciones que no se analizaron las descarto el filtro previo (ADR 0005; #54 AC-015)."""
+    if detecciones <= analizados:
+        return []
+    resto = detecciones - analizados
+    sujeto = "La otra detección no se analizó" if resto == 1 else f"Las otras {resto} detecciones no se analizaron"
+    return [f"- {sujeto}: el filtro previo las descarta por su clase o por su confianza baja."]
+
+
+def _celda_cubierto(escenario: dict) -> str:
+    """«No aplica» si no hay nada que presupuestar en ese escenario (#54 AC-017)."""
+    if not escenario["hallazgos_incluidos"]:
+        return "No aplica: no hay daños que presupuestar"
+    return _si_no(escenario["cobertura"]["cubierto"])
+
+
+def _celda_indemnizacion(escenario: dict) -> str:
+    """Con cobertura e indemnizacion 0 € porque el coste no supera la franquicia, se dice (#54 AC-017). Se compara
+    de forma explicita, para no afirmarlo si la indemnizacion es 0 € por otro motivo. Las cifras no cambian."""
+    cobertura = escenario["cobertura"]
+    celda = eur(cobertura["indemnizacion_estimada_eur"])
+    if (cobertura["cubierto"] and cobertura["indemnizacion_estimada_eur"] == 0
+            and escenario["estimacion"]["total_con_iva_eur"] <= cobertura["franquicia_eur"]):
+        celda += " (el coste no supera la franquicia)"
+    return celda
+
+
+def _desarrollar_siglas(lineas: list[str]) -> list[str]:
+    """Desarrolla cada sigla de SIGLAS la primera vez que aparece fuera de los bloques literales (#54 AC-014)."""
+    pendientes, dentro, salida = dict(SIGLAS), False, []
+    for linea in lineas:
+        if linea.strip().startswith("```"):
+            dentro = not dentro
+        elif not dentro:
+            for sigla, nombre in list(pendientes.items()):
+                if sigla in linea:
+                    linea = linea.replace(sigla, f"{nombre} ({sigla})", 1)
+                    del pendientes[sigla]
+        salida.append(linea)
+    return salida
+
+
 def _fuentes(agente2: dict) -> list[str]:
-    """Pasajes de «Fuentes consultadas». Sin `justificaciones`, el formato de la spec 31. Con ellas
-    (specs/97-justificacion-llm-normativa.md#AC-008 y AC-009), por tema: si esta `generada`, su texto y
-    debajo sus citas con su fuente como bloque literal; si no, sus pasajes sin justificacion y el motivo."""
-    lineas: list[str] = []
-    if "justificaciones" not in agente2:
+    """Contenido de «Fuentes consultadas» (#54 AC-016 y AC-019; spec 97 AC-008 y AC-009).
+
+    Primero la frase de que las fuentes son explicativas. Con `justificaciones`, una linea por tema: su texto si
+    esta `generada`, o «sin justificación» y el motivo si no. Despues, las citas agrupadas por fuente, cada texto
+    una sola vez: las de las justificaciones generadas y, para los demas temas (o sin justificaciones), los
+    pasajes de la normativa."""
+    citas: dict[str, list[str]] = {}
+    temas_de: dict[str, list[str]] = {}
+
+    def anotar(fuente: str, extracto: str, tema: str) -> None:
+        textos = citas.setdefault(fuente, [])
+        if extracto not in textos:
+            textos.append(extracto)
+        temas = temas_de.setdefault(fuente, [])
+        if tema not in temas:
+            temas.append(tema)
+
+    lineas = [FRASE_FUENTES, ""]
+    justificaciones = agente2.get("justificaciones")
+    if justificaciones is None:
         for n in agente2["normativa"]:
-            lineas += [f"- {n['tema']} ({n['fuente']}):", *_bloque_literal(n["extracto"]), ""]
-        return lineas
-    por_tema = {j["tema"]: j for j in agente2["justificaciones"]}
-    temas = list(dict.fromkeys(n["tema"] for n in agente2["normativa"]))
-    for tema in temas:
-        j = por_tema.get(tema)
-        if j and j["estado"] == "generada":
-            lineas += [f"- **{tema}:** {j['texto']}", ""]
-            for c in j["citas"]:
-                lineas += [f"- Cita ({c['fuente']}):", *_bloque_literal(c["extracto"]), ""]
-            continue
-        for n in (x for x in agente2["normativa"] if x["tema"] == tema):
-            lineas += [f"- {tema} ({n['fuente']}):", *_bloque_literal(n["extracto"]), ""]
-        if j:
-            lineas += [f"  Sin justificación: {j['motivo']}", ""]
+            anotar(n["fuente"], n["extracto"], n["tema"])
+    else:
+        por_tema = {j["tema"]: j for j in justificaciones}
+        for tema in dict.fromkeys(n["tema"] for n in agente2["normativa"]):
+            j = por_tema.get(tema)
+            if j and j["estado"] == "generada":
+                lineas.append(f"- **{tema}:** {j['texto']}")
+                for c in j["citas"]:
+                    anotar(c["fuente"], c["extracto"], tema)
+                continue
+            lineas.append(f"- **{tema}:** sin justificación: {j['motivo']}" if j else f"- **{tema}**")
+            for n in (x for x in agente2["normativa"] if x["tema"] == tema):
+                anotar(n["fuente"], n["extracto"], tema)
+        lineas += ["", "Citas, por fuente:", ""]
+    for fuente, textos in citas.items():
+        lineas.append(f"- {fuente} ({'; '.join(temas_de[fuente])}):")
+        for texto in textos:
+            lineas += _bloque_literal(texto)
+        lineas.append("")
     return lineas
 
 
@@ -384,14 +533,14 @@ def generar_informe(agente1: dict, agente2: dict, hoy: str | None = None) -> str
         f"# Informe de peritaje — imagen {agente2['image_id']}",
         "",
         f"- **Fecha:** {hoy}",
-        f"- **Vehículo:** {veh['marca']} {veh['modelo']}",
+        _linea_vehiculo(veh, ctx, agente1),
         f"- **Taller:** {TALLER_TEXTO.get(ctx['tipo_taller'], ctx['tipo_taller'])} ({ctx['region']})",
         f"- **Póliza:** {poliza}",
     ]
     if tercero:
         md.append("- **Perjudicado:** un tercero (reclamación por responsabilidad civil)")
     diagnostico = agente2.get("diagnostico_rag")
-    md += ["", f"> {AVISO_LEGAL}", "", AVISO_PIIA1]
+    md += ["", f"> {AVISO_LEGAL}", "", AVISO_DETECTOR, *_aviso_vehiculo(veh, ctx)]
     if diagnostico and diagnostico["estado"] in ESTADOS_PRELIMINARES:
         md += ["", f"> **{AVISO_PRELIMINAR}**"]
     revision = [x for x in fuera if x["motivo"] in MOTIVOS_REVISION_HUMANA]
@@ -401,8 +550,9 @@ def generar_informe(agente1: dict, agente2: dict, hoy: str | None = None) -> str
         "",
         "## Resumen",
         "",
-        f"- {detecciones} detecciones de PIIA-1 frente a {len(agente1['findings'])} hallazgos analizados: "
+        f"- {detecciones} detecciones del detector de daños y {len(agente1['findings'])} hallazgos analizados: "
         f"{len(confirmados)} confirmados, {len(pendientes)} pendientes de revisión y {len(fuera)} fuera del coste.",
+        *_resumen_detecciones(detecciones, len(agente1["findings"])),
         *_resumen_revision(revision, presupuestables=len(confirmados) + len(pendientes)),
         f"- Coste **solo con los daños confirmados**: {eur(est_c['subtotal_sin_iva_eur'])} sin IVA "
         f"({eur(est_c['total_con_iva_eur'])} con IVA).",
@@ -421,6 +571,8 @@ def generar_informe(agente1: dict, agente2: dict, hoy: str | None = None) -> str
         "Entran en el segundo presupuesto, pero **no están confirmados**: requieren verificación humana.",
         "",
         *_tabla_hallazgos(pendientes, con_motivo=True),
+        *(["", f"{_detecciones(len(revision))} revisión humana: ver «Detecciones no incluidas en el coste»."]
+          if revision and not pendientes else []),
         "",
         "## Detecciones no incluidas en el coste",
         "",
@@ -454,22 +606,23 @@ def generar_informe(agente1: dict, agente2: dict, hoy: str | None = None) -> str
         "",
         "| | Solo confirmados | Con pendientes |",
         "|---|---|---|",
-        f"| Cubierto | {_si_no(cob_c['cubierto'])} | {_si_no(cob_p['cubierto'])} |",
+        f"| Cubierto | {_celda_cubierto(esc_c)} | {_celda_cubierto(esc_p)} |",
         f"| Motivo | {cob_c['motivo']} | {cob_p['motivo']} |",
         f"| Franquicia | {eur(cob_c['franquicia_eur'])} | {eur(cob_p['franquicia_eur'])} |",
         f"| Pérdida total | {_si_no(cob_c['perdida_total'])} | {_si_no(cob_p['perdida_total'])} |",
-        f"| Indemnización estimada | {eur(cob_c['indemnizacion_estimada_eur'])} | {eur(cob_p['indemnizacion_estimada_eur'])} |",
+        f"| Indemnización estimada | {_celda_indemnizacion(esc_c)} | {_celda_indemnizacion(esc_p)} |",
         "",
         "## Fuentes consultadas",
         "",
     ]
-    md += _fuentes(agente2)
-    if not agente2["normativa"]:
+    if agente2["normativa"]:
+        md += _fuentes(agente2)
+    else:
         md.append("_Sin fuentes._")
     sin_fuentes = _consultas_sin_fuentes(diagnostico)
     if sin_fuentes:
         md += ["", "Temas sin fuentes recuperadas (las conclusiones sobre ellos requieren revisión):", "", *sin_fuentes]
-    return "\n".join(md) + "\n"
+    return "\n".join(_desarrollar_siglas(md)) + "\n"
 
 
 # Un importe seguido de `€`, con o sin separador de miles: el numero entero,

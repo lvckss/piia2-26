@@ -1,0 +1,32 @@
+{
+  "image_id": 2869,
+  "image_file": "002869.jpg",
+  "image_path": "/content/drive/MyDrive/CarDD_release/rawdata/images/002869.jpg",
+  "image_width": 1000,
+  "image_height": 598,
+  "split": "val",
+  "variant": "baseline",
+  "strategy_name": "baseline_prompt",
+  "num_predictions": 0,
+  "predictions": [],
+  "ground_truth": [
+    {
+      "damage_class": "scratch",
+      "category_id": 2,
+      "bbox_xywh": [
+        33.95,
+        84.19,
+        966.05,
+        513.81
+      ]
+    }
+  ],
+  "gt_unmatched_by_class": {
+    "dent": 0,
+    "scratch": 1,
+    "crack": 0,
+    "glass shatter": 0,
+    "lamp broken": 0,
+    "tire flat": 0
+  }
+}

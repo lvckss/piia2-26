@@ -14,6 +14,7 @@ from __future__ import annotations
 import copy
 import json
 import os
+import re
 import shutil
 import socket
 import subprocess
@@ -101,7 +102,8 @@ def probar_ac002_confirmados_pendientes_y_no_incluidos():
     assert "score de detección bajo" in fila_3 and "0,28" in fila_3, fila_3
     assert "score de detección bajo" in fila_5 and "0,29" in fila_5 and "incierto" in fila_5, fila_5
     assert "verificación humana" in pendientes, pendientes
-    assert "rechaz" in s["## Detecciones no incluidas en el coste"].lower()
+    # plan v1.2 de la #54, AC-014: el rechazo se explica sin jerga
+    assert "la visión no confirma el daño" in s["## Detecciones no incluidas en el coste"]
     for fid in ("160-1", "160-4"):
         fila = next(l for l in s["## Daños confirmados"].splitlines() if fid in l)
         score = next(f["score"] for f in a1["findings"] if f["finding_id"] == fid)
@@ -555,14 +557,15 @@ def probar_97_ac009_justificacion_no_generada_da_informe_preliminar():
 
 
 def probar_97_ac009_sin_justificaciones_el_informe_no_cambia():
-    """specs/97-justificacion-llm-normativa.md#AC-009: sin el campo `justificaciones`, el informe es el actual:
-    sin aviso de justificaciones y con «Fuentes consultadas» en el formato de la spec 31."""
+    """specs/97-justificacion-llm-normativa.md#AC-009: sin el campo `justificaciones`, sin aviso de justificaciones
+    y con los pasajes de la normativa en «Fuentes consultadas», agrupados por fuente (plan v1.2 de la #54, AC-016)."""
     a1, a2 = _ejemplos()
     md = generar_informe(a1, a2, hoy=HOY)
     assert AVISO_JUSTIFICACION not in md and "Justificación" not in md
     fuentes = _secciones(md)["## Fuentes consultadas"]
     for n in a2["normativa"]:
-        assert f"- {n['tema']} ({n['fuente']}):" in fuentes.splitlines(), fuentes
+        cabecera = next((l for l in fuentes.splitlines() if l.startswith(f"- {n['fuente']} (")), "")
+        assert n["tema"] in cabecera and f"  {n['extracto']}" in fuentes.splitlines(), fuentes
 
 
 def probar_97_ac009_justificaciones_mal_formadas():
@@ -728,7 +731,8 @@ def probar_54_ac003_requieren_revision_humana():
     a1, a2 = _ejemplos()
     resumen_actual = _secciones(generar_informe(a1, a2, hoy=HOY))["## Resumen"]
     assert "revisión humana" not in resumen_actual, resumen_actual
-    assert sum(l.startswith("- ") for l in resumen_actual.splitlines()) == 5, resumen_actual
+    # 5 lineas de siempre y la del filtro previo del plan v1.2 (AC-015: 31 detecciones y 5 analizados)
+    assert sum(l.startswith("- ") for l in resumen_actual.splitlines()) == 6, resumen_actual
 
     x = copy.deepcopy(a2)
     x["escenarios"]["con_pendientes"]["hallazgos_incluidos"] = ["160-1", "160-4"]
@@ -744,7 +748,7 @@ def probar_54_ac003_requieren_revision_humana():
         linea = next(l for l in bloque.splitlines() if fid in l)
         assert clase in linea, linea
     linea_2 = next(l for l in lineas if "160-2" in l)
-    assert lineas.index(linea_2) < i and "rechazado por la visión" in linea_2, fuera
+    assert lineas.index(linea_2) < i and "la visión no confirma el daño" in linea_2, fuera
     assert "2 detecciones requieren revisión humana" in s["## Resumen"], s["## Resumen"]
     encontrados = [l for l in md.splitlines() if l.startswith("# ") or l.startswith("## ")]
     assert encontrados == ENCABEZADOS, encontrados
@@ -769,14 +773,15 @@ def probar_54_ac003_sin_nada_presupuestable_003478():
 
 def probar_54_ac011_aviso_de_lo_que_detecta_piia1():
     """#54 AC-011: el informe incluye, aparte del aviso literal de la cabecera, una línea que dice que solo se
-    analizan los daños detectados por PIIA 1 y que puede haber otros (el ejemplo y el 000423 real)."""
+    analizan los daños que encuentra el detector y que puede haber otros (el ejemplo y el 000423 real). Desde el
+    plan v1.2 (AC-014) el aviso dice «el detector» y el «Resumen», «el detector de daños»."""
     a1, a2 = _ejemplos()
     real = json.loads((REAL / "000423.json").read_text(encoding="utf-8"))
     for salida1, salida2 in ((a1, a2), (real, _agente2_real_con_vehiculo(real))):
         md = generar_informe(salida1, salida2, hoy=HOY)
         cabecera = _secciones(md)[next(l for l in md.splitlines() if l.startswith("# "))]
         assert AVISO_LEGAL in cabecera, cabecera
-        linea = next((l for l in cabecera.splitlines() if "PIIA 1" in l), "")
+        linea = next((l for l in cabecera.splitlines() if "el detector en la foto" in l), "")
         assert linea and AVISO_LEGAL not in linea and "puede haber otros" in linea, cabecera
         encontrados = [l for l in md.splitlines() if l.startswith("# ") or l.startswith("## ")]
         assert encontrados[1:] == ENCABEZADOS[1:], encontrados
@@ -819,19 +824,320 @@ def probar_54_ac002_umbral_cero_no_aplica():
 def probar_54_ac004_hallazgos_iguales_en_una_fila_000341():
     """#54 AC-004: en el 000341 real, los confirmados con la misma pieza, dano, severidad y reparacion
     (`341-1` y `341-2`, cristal roto grave del parabrisas) van en una sola fila con sus finding_id y scores;
-    cada finding_id aparece y los importes no cambian."""
+    cada finding_id aparece y los importes no cambian. Desde AC-022 la fila agrupa por pieza y reparacion."""
     a1 = json.loads((REAL / "000341.json").read_text(encoding="utf-8"))
     a2 = _agente2_real(a1)
     md = generar_informe(a1, a2, hoy=HOY)
     tabla = [l for l in _secciones(md)["## Daños confirmados"].splitlines() if l.startswith("| 341-")]
     fila = next(l for l in tabla if "341-1" in l)
     assert "341-2" in fila and "0,96" in fila and "0,95" in fila, fila
-    assert len(tabla) == 3, tabla
+    # AC-022 (plan v1.3): la grieta 341-4 del parabrisas tiene la misma reparacion y entra en esa fila.
+    assert "341-4" in fila and len(tabla) == 2, tabla
     for fid in ("341-1", "341-2", "341-3", "341-4"):
         assert any(fid in l for l in tabla), fid
     for esc in ("confirmados", "con_pendientes"):
         assert informe.eur(a2["escenarios"][esc]["estimacion"]["total_con_iva_eur"]) in md, esc
     assert comprobar_cifras(md, a2) == [], comprobar_cifras(md, a2)
+
+
+# --- plan v1.2 de la #54, slice 8: informe legible (AC-014 a AC-019 y AC-021) --
+# https://github.com/lvckss/piia2-26/issues/54#issuecomment-7107366100
+JERGA = ("PIIA", "probable falso positivo", "regla de coste")
+LEY_DESARROLLADA = "Ley sobre responsabilidad civil y seguro en la circulación de vehículos a motor (LRCSCVM)"
+FRASE_FUENTES = ("La cobertura y la indemnización las calcula la herramienta de costes a partir de la póliza; "
+                 "las fuentes siguientes son explicativas.")
+FRASE_V14 = ("Vehículo no identificado en la imagen: el presupuesto usa el vehículo de menor coste del catálogo. "
+             "Es una estimación a la baja: si el taller encuentra un importe mayor, avisará a la aseguradora para "
+             "revisarlo.")
+
+
+def _tercero(a2: dict) -> dict:
+    t = copy.deepcopy(a2)
+    t["contexto"]["rol"], t["contexto"]["poliza_id"] = "tercero_perjudicado", ""
+    t["umbral_perdida_total"] = 1.0
+    for e in t["escenarios"].values():
+        e["cobertura"] = {"cubierto": True, "motivo": "Daños a tercero: RC obligatoria (acción directa, LRCSCVM art. 7)",
+                          "franquicia_eur": 0.0, "perdida_total": False,
+                          "indemnizacion_estimada_eur": e["estimacion"]["total_con_iva_eur"]}
+    return t
+
+
+def _fuera_de_bloques(md: str) -> str:
+    """El informe sin el contenido de los bloques literales de las citas."""
+    fuera, dentro = [], False
+    for linea in md.splitlines():
+        if linea.strip().startswith("```"):
+            dentro = not dentro
+            continue
+        if not dentro:
+            fuera.append(linea)
+    return "\n".join(fuera)
+
+
+def probar_54_ac014_lenguaje_sin_jerga():
+    """#54 AC-014: ni el ejemplo ni los 30 informes reales contienen «PIIA», «probable falso positivo» ni «regla de
+    coste»; se nombra al «detector de daños»; un rechazado dice que «la visión no confirma el daño»; la primera
+    «LRCSCVM» se desarrolla; los 9 encabezados no cambian y `comprobar_cifras == []`."""
+    a1, a2 = _ejemplos()
+    casos = [(a1, a2), (a1, _tercero(a2))]
+    casos += [(r, _agente2_real_con_vehiculo(r))
+              for r in (json.loads(p.read_text(encoding="utf-8")) for p in sorted(REAL.glob("*.json")))]
+    assert len(casos) == 32
+    for salida1, salida2 in casos:
+        md = generar_informe(salida1, salida2, hoy=HOY)
+        for palabra in JERGA:
+            assert palabra not in _fuera_de_bloques(md), (salida1["image_id"], palabra)
+        assert "detector de daños" in md, salida1["image_id"]
+        encabezados = [l for l in md.splitlines() if l.startswith("# ") or l.startswith("## ")]
+        assert encabezados[1:] == ENCABEZADOS[1:], encabezados
+        assert comprobar_cifras(md, salida2) == [], (salida1["image_id"], comprobar_cifras(md, salida2))
+    md = generar_informe(a1, a2, hoy=HOY)
+    rechazado = next(l for l in _secciones(md)["## Detecciones no incluidas en el coste"].splitlines() if "160-2" in l)
+    assert "la visión no confirma el daño" in rechazado, rechazado
+    md = _fuera_de_bloques(generar_informe(a1, _tercero(a2), hoy=HOY))
+    assert md.count(LEY_DESARROLLADA) == 1 and md.index(LEY_DESARROLLADA) <= md.index("LRCSCVM"), md
+
+
+def probar_54_ac015_resumen_explica_las_detecciones_descartadas():
+    """#54 AC-015: con más detecciones que hallazgos analizados (000381: 18 y 9) el «Resumen» dice que el resto lo
+    descartó el filtro previo; con todas analizadas, el «Resumen» no lo menciona."""
+    real = json.loads((REAL / "000381.json").read_text(encoding="utf-8"))
+    resumen = _secciones(generar_informe(real, _agente2_real_con_vehiculo(real), hoy=HOY))["## Resumen"]
+    linea = next((l for l in resumen.splitlines() if "filtro previo" in l), "")
+    assert "9" in linea and ("clase" in linea or "confianza" in linea), resumen
+    a1, a2 = _ejemplos()
+    todas = copy.deepcopy(a1)
+    todas["resumen_filtro_previo"]["detecciones_totales"] = len(todas["findings"])
+    assert "filtro previo" not in _secciones(generar_informe(todas, a2, hoy=HOY))["## Resumen"]
+
+
+def probar_54_ac016_citas_sin_repetir_agrupadas_por_fuente():
+    """#54 AC-016: la misma cita repetida (fuente y texto) sale una sola vez, las de una misma fuente van juntas
+    y no se pierde ningún texto distinto ni ninguna fuente; también con justificaciones."""
+    a1, a2 = _ejemplos()
+    x = copy.deepcopy(a2)
+    base = a2["normativa"]
+    x["normativa"] = [dict(base[0])] * 4 + [dict(base[1]), dict(base[0], tema="otro tema")]
+    for salida in (x, _con_justificaciones(x, dict(J_DANOS, tema=base[0]["tema"]),
+                                           dict(J_DANOS, tema="otro tema"))):
+        fuentes = _secciones(generar_informe(a1, salida, hoy=HOY))["## Fuentes consultadas"]
+        for n in base:
+            assert fuentes.splitlines().count(f"  {n['extracto']}") <= 1, fuentes
+        textos = {n["extracto"] for n in salida["normativa"]} if "justificaciones" not in salida else set()
+        for texto in textos:
+            assert f"  {texto}" in fuentes.splitlines(), (texto, fuentes)
+        for fuente in {n["fuente"] for n in salida["normativa"]}:
+            assert fuentes.count(f"{fuente}") >= 1, (fuente, fuentes)
+        cita = J_DANOS["citas"][0]["extracto"]
+        if "justificaciones" in salida:
+            assert fuentes.splitlines().count(f"  {cita}") == 1, fuentes
+
+
+def probar_54_ac017_cobertura_sin_danos_y_sin_indemnizacion():
+    """#54 AC-017: sin nada que presupuestar, «Cobertura» dice «No aplica: no hay daños que presupuestar» en lugar
+    de «Cubierto: No»; con cobertura e indemnización 0 € añade «el coste no supera la franquicia». Cifras iguales."""
+    real = json.loads((REAL / "003478.json").read_text(encoding="utf-8"))
+    a2r = _agente2_real_con_vehiculo(real)
+    assert not a2r["escenarios"]["con_pendientes"]["hallazgos_incluidos"], "003478 no debe tener nada presupuestable"
+    md = generar_informe(real, a2r, hoy=HOY)
+    cobertura = _secciones(md)["## Cobertura e indemnización"]
+    fila = next(l for l in cobertura.splitlines() if l.startswith("| Cubierto"))
+    assert "No aplica: no hay daños que presupuestar" in fila and "| No |" not in fila, fila
+    assert comprobar_cifras(md, a2r) == []
+    a1, a2 = _ejemplos()
+    x = copy.deepcopy(a2)
+    for e in x["escenarios"].values():
+        # el coste no supera la franquicia: franquicia por encima del total con IVA
+        e["cobertura"].update(cubierto=True, indemnizacion_estimada_eur=0.0,
+                              franquicia_eur=e["estimacion"]["total_con_iva_eur"] + 1)
+    md = generar_informe(a1, x, hoy=HOY)
+    fila = next(l for l in _secciones(md)["## Cobertura e indemnización"].splitlines() if l.startswith("| Indemnización"))
+    assert "el coste no supera la franquicia" in fila and informe.eur(0.0) in fila, fila
+    assert comprobar_cifras(md, x) == []
+    # Revision de Lucia en la #114: la nota solo sale si el coste de verdad no supera la franquicia. Con
+    # indemnizacion 0 € por otro motivo (por ejemplo, un limite agotado) no se afirma.
+    y = copy.deepcopy(x)
+    for e in y["escenarios"].values():
+        e["cobertura"]["franquicia_eur"] = 10.0
+    fila = next(l for l in _secciones(generar_informe(a1, y, hoy=HOY))["## Cobertura e indemnización"].splitlines()
+                if l.startswith("| Indemnización"))
+    assert "franquicia" not in fila, fila
+
+
+def probar_54_ac018_pendientes_vacios_localizan_la_revision_humana():
+    """#54 AC-018: sin pendientes y con hallazgos que requieren revisión humana (003478), «Daños pendientes de
+    revisión» dice cuántos son y dónde están; sin ninguno (el ejemplo), la sección no cambia."""
+    real = json.loads((REAL / "003478.json").read_text(encoding="utf-8"))
+    a2r = _agente2_real_con_vehiculo(real)
+    revision = [x for x in a2r["hallazgos_fuera_del_coste"] if x["motivo"] in informe.MOTIVOS_REVISION_HUMANA]
+    assert revision, "003478 debe tener hallazgos que requieren revisión humana"
+    seccion = _secciones(generar_informe(real, a2r, hoy=HOY))["## Daños pendientes de revisión"]
+    assert "revisión humana" in seccion and "«Detecciones no incluidas en el coste»" in seccion, seccion
+    assert str(len(revision)) in seccion, seccion
+    a1, a2 = _ejemplos()
+    seccion = _secciones(generar_informe(a1, a2, hoy=HOY))["## Daños pendientes de revisión"]
+    assert "revisión humana (ver" not in seccion, seccion
+
+
+def probar_54_ac019_frase_de_fuentes_explicativas():
+    """#54 AC-019: con fuentes, «Fuentes consultadas» empieza con la frase fija de que la cobertura la calcula la
+    herramienta y las fuentes son explicativas; sin fuentes, no aparece."""
+    a1, a2 = _ejemplos()
+    fuentes = _secciones(generar_informe(a1, a2, hoy=HOY))["## Fuentes consultadas"]
+    assert [l for l in fuentes.splitlines() if l.strip()][0] == FRASE_FUENTES, fuentes
+    x = copy.deepcopy(a2)
+    x["normativa"] = []
+    assert FRASE_FUENTES not in generar_informe(a1, x, hoy=HOY)
+
+
+def probar_54_ac021_procedencia_del_vehiculo():
+    """#54 AC-021 (spec 34 v1.7, `contexto.vehiculo_origen`): la línea «Vehículo» dice de dónde sale el coche; con
+    `minimo_por_defecto` la cabecera lleva la frase literal de la spec 34 y avisa de que el valor venal y la pérdida
+    total no son los del vehículo real; sin el campo, el informe es el actual; un valor inválido o incoherente lanza
+    `ValueError` que nombra el campo."""
+    a1, a2 = _ejemplos()
+    actual = generar_informe(a1, a2, hoy=HOY)
+
+    def _con(origen, vehiculo_id):
+        x = copy.deepcopy(a2)
+        x["contexto"].update(vehiculo_origen=origen, vehiculo_id=vehiculo_id)
+        return x
+
+    md = generar_informe(a1, _con("minimo_por_defecto", "V14"), hoy=HOY)
+    cabecera = md.split("## Resumen")[0]
+    linea = next(l for l in cabecera.splitlines() if l.startswith("- **Vehículo:**"))
+    assert "Dacia Sandero" in linea and "menor coste" in linea, linea
+    assert FRASE_V14 in cabecera and "pérdida total no es fiable" in cabecera, cabecera
+    linea = next(l for l in generar_informe(a1, _con("referencia_confirmada", "V02"), hoy=HOY).splitlines()
+                 if l.startswith("- **Vehículo:**"))
+    assert "SEAT Leon" in linea and "categoría C" in linea, linea
+    linea = next(l for l in generar_informe(a1, _con("seleccion_usuario", "V05"), hoy=HOY).splitlines()
+                 if l.startswith("- **Vehículo:**"))
+    assert "Volkswagen Golf" in linea and "elegido" in linea, linea
+    assert FRASE_V14 not in actual and next(l for l in actual.splitlines() if l.startswith("- **Vehículo:**")) == \
+        "- **Vehículo:** Volkswagen Golf"
+    for origen, vehiculo_id in (("maximo_por_defecto", "V14"), ("minimo_por_defecto", "V05"),
+                                ("referencia_confirmada", "V05")):
+        try:
+            generar_informe(a1, _con(origen, vehiculo_id), hoy=HOY)
+        except ValueError as error:
+            assert "vehiculo_origen" in str(error), (origen, error)
+        else:
+            raise AssertionError(f"se esperaba ValueError con {origen}/{vehiculo_id}")
+
+
+
+# --- plan v1.3 de la #54, slice 10: una fila por pieza y reparacion (AC-022) ---
+# https://github.com/lvckss/piia2-26/issues/54 (plan v1.3, AC-022)
+def _filas_confirmadas(md: str) -> list[list[str]]:
+    """Filas de «Daños confirmados»; la reparacion, sin la marca de AC-023 («la que se presupuesta» o
+    «incluido en: ...»)."""
+    seccion = _secciones(md)["## Daños confirmados"]
+    filas = [[c.strip() for c in l.strip().strip("|").split("|")] for l in seccion.splitlines()
+             if l.startswith("| ") and not l.startswith("| ID")]
+    for f in filas:
+        f[4] = re.sub(r" \((?:la que se presupuesta|incluido en: [^)]*(?:\([^)]*\)[^)]*)*)\)$", "", f[4])
+    return filas
+
+
+def probar_54_ac022_una_fila_por_pieza_y_reparacion_003806():
+    """#54 AC-022: en el 003806 real, la grieta (3806-1, 3806-5) y la rotura de cristal (3806-2) del parabrisas,
+    las tres «Sustituir la pieza», van en una sola fila (IDs en el orden de la salida) con los dos danos, los tres IDs y sus scores; los
+    importes, los totales y los 9 encabezados no cambian y `comprobar_cifras == []`."""
+    a1 = json.loads((REAL / "003806.json").read_text(encoding="utf-8"))
+    a2 = _agente2_real_con_vehiculo(a1)
+    md = generar_informe(a1, a2, hoy=HOY)
+    filas = [f for f in _filas_confirmadas(md) if f[1] == "Parabrisas"]
+    assert len(filas) == 1, filas
+    ids, _, dano, severidad, reparacion, scores = filas[0]
+    assert [x.strip() for x in ids.split(",")] == ["3806-1", "3806-2", "3806-5"], ids
+    assert "grieta" in dano and "rotura de cristal" in dano, dano
+    assert severidad == "grave" and reparacion == "Sustituir la pieza", filas[0]
+    assert scores.count(";") == 2, scores
+    assert [l for l in md.splitlines() if l.startswith("## ")] == ENCABEZADOS[1:], md
+    for esc in ("confirmados", "con_pendientes"):
+        assert informe.eur(a2["escenarios"][esc]["estimacion"]["total_con_iva_eur"]) in md, esc
+    assert comprobar_cifras(md, a2) == [], comprobar_cifras(md, a2)
+
+
+def probar_54_ac022_reparaciones_distintas_siguen_separadas_001248():
+    """#54 AC-022: en el 001248 real, el paragolpes trasero tiene dos reparaciones distintas («Sustituir la pieza
+    y pintarla» y «Reparar el plástico y pintar») y siguen en dos filas; ninguna tabla de confirmados de los
+    informes reales repite pieza y reparacion, y cada finding_id confirmado aparece una vez."""
+    a1 = json.loads((REAL / "001248.json").read_text(encoding="utf-8"))
+    md = generar_informe(a1, _agente2_real_con_vehiculo(a1), hoy=HOY)
+    filas = [f for f in _filas_confirmadas(md) if f[1] == "Paragolpes trasero (cubierta)"]
+    assert sorted(f[4] for f in filas) == ["Reparar el plástico y pintar", "Sustituir la pieza y pintarla"], filas
+    for ruta in sorted(REAL.glob("*.json")):
+        a1 = json.loads(ruta.read_text(encoding="utf-8"))
+        if "vehiculo" not in a1:
+            continue
+        a2 = _agente2_real_con_vehiculo(a1)
+        md = generar_informe(a1, a2, hoy=HOY)
+        filas = _filas_confirmadas(md)
+        claves = [(f[1], f[4]) for f in filas]
+        assert len(claves) == len(set(claves)), (ruta.stem, claves)
+        ids = [x.strip() for f in filas for x in f[0].split(",")]
+        assert sorted(ids) == sorted(a2["escenarios"]["confirmados"]["hallazgos_incluidos"]), (ruta.stem, ids)
+        assert comprobar_cifras(md, a2) == [], (ruta.stem, comprobar_cifras(md, a2))
+
+
+# --- plan v1.4 de la #54, slice 11: reparacion presupuestada por pieza (AC-023) ---
+# https://github.com/lvckss/piia2-26/issues/54#issuecomment-7139264465 (plan v1.4, AC-023)
+def _reparacion_de(md: str, finding_id: str) -> str:
+    return _fila_por_id(_secciones(md)["## Daños confirmados"], finding_id)[4]
+
+
+def probar_54_ac023_marca_la_reparacion_presupuestada():
+    """#54 AC-023: con varias reparaciones distintas en una pieza, la fila de la que se presupuesta lo dice y las
+    demas quedan «incluido en: <la presupuestada>» (002859, 000702, 000381 y, eligiendo por severidad, 000082 y
+    001245); los importes, los totales y los 9 encabezados no cambian y `comprobar_cifras == []`."""
+    casos = {
+        "002859": ("2859-4", "Sustituir la pieza y pintarla", ["2859-9"]),
+        "000702": ("702-2", "Sustituir la pieza y pintarla", ["702-5"]),
+        "000381": ("381-4", "Reparar (desabollar) y pintar", ["381-5"]),
+        "000082": ("82-8", "Pintar el panel", ["82-4"]),
+        "001245": ("1245-10", "Pintar el panel", ["1245-4", "1245-8"]),
+    }
+    for caso, (presupuestada, accion, incluidas) in casos.items():
+        a1 = json.loads((REAL / f"{caso}.json").read_text(encoding="utf-8"))
+        a2 = _agente2_real_con_vehiculo(a1)
+        md = generar_informe(a1, a2, hoy=HOY)
+        assert _reparacion_de(md, presupuestada) == f"{accion} (la que se presupuesta)", (caso, _reparacion_de(md, presupuestada))
+        for fid in incluidas:
+            assert _reparacion_de(md, fid).endswith(f"(incluido en: {accion})"), (caso, fid, _reparacion_de(md, fid))
+        assert [l for l in md.splitlines() if l.startswith("## ")] == ENCABEZADOS[1:], caso
+        assert comprobar_cifras(md, a2) == [], (caso, comprobar_cifras(md, a2))
+
+
+def probar_54_ac023_una_reparacion_por_pieza_no_cambia():
+    """#54 AC-023: con una sola reparacion por pieza (003806, 001281) la tabla no lleva ninguna marca."""
+    for caso in ("003806", "001281"):
+        a1 = json.loads((REAL / f"{caso}.json").read_text(encoding="utf-8"))
+        tabla = _secciones(generar_informe(a1, _agente2_real_con_vehiculo(a1), hoy=HOY))["## Daños confirmados"]
+        assert "se presupuesta" not in tabla and "incluido en" not in tabla, (caso, tabla)
+
+
+def probar_54_ac023_la_marcada_es_la_que_presupuesta_la_herramienta():
+    """#54 AC-023: en las 30 salidas reales, presupuestar solo el hallazgo que el informe marca en cada pieza da el
+    mismo coste que la herramienta de la empresa con todos; asi la marca no se aparta de lo que se cobra."""
+    sys.path.insert(0, str(AQUI.parent / "agente_recuperacion"))
+    import costes_y_cobertura as cc
+
+    for ruta in sorted(REAL.glob("*.json")):
+        a1 = json.loads(ruta.read_text(encoding="utf-8"))
+        if "vehiculo" not in a1:
+            continue
+        a2 = _agente2_real_con_vehiculo(a1)
+        por_id = {f["finding_id"]: f for f in a1["findings"]}
+        ctx = a2["contexto"]
+        for nombre in ("confirmados", "con_pendientes"):
+            esc = a2["escenarios"][nombre]
+            hallazgos = [por_id[i] for i in esc["hallazgos_incluidos"]]
+            elegidos = list(informe._presupuestada_por_pieza(hallazgos).values())
+            solo = cc.estimar_coste(ctx["vehiculo_id"], cc._danos(elegidos), region=ctx["region"],
+                                    tipo_taller=ctx["tipo_taller"], acabado=ctx["acabado"], tipo_pieza=ctx["tipo_pieza"])
+            assert solo["subtotal_sin_iva_eur"] == esc["estimacion"]["subtotal_sin_iva_eur"], (ruta.stem, nombre)
 
 
 PRUEBAS = [
@@ -866,6 +1172,18 @@ PRUEBAS = [
     probar_97_ac009_sin_justificaciones_el_informe_no_cambia,
     probar_97_ac009_justificaciones_mal_formadas,
     probar_97_ac010_informe_con_justificaciones_determinista,
+    probar_54_ac014_lenguaje_sin_jerga,
+    probar_54_ac015_resumen_explica_las_detecciones_descartadas,
+    probar_54_ac016_citas_sin_repetir_agrupadas_por_fuente,
+    probar_54_ac017_cobertura_sin_danos_y_sin_indemnizacion,
+    probar_54_ac018_pendientes_vacios_localizan_la_revision_humana,
+    probar_54_ac019_frase_de_fuentes_explicativas,
+    probar_54_ac021_procedencia_del_vehiculo,
+    probar_54_ac022_una_fila_por_pieza_y_reparacion_003806,
+    probar_54_ac022_reparaciones_distintas_siguen_separadas_001248,
+    probar_54_ac023_marca_la_reparacion_presupuestada,
+    probar_54_ac023_una_reparacion_por_pieza_no_cambia,
+    probar_54_ac023_la_marcada_es_la_que_presupuesta_la_herramienta,
 ]
 
 

@@ -1,0 +1,48 @@
+{
+  "image_id": 1582,
+  "image_file": "001582.jpg",
+  "image_path": "/content/drive/MyDrive/CarDD_release/rawdata/images/001582.jpg",
+  "image_width": 1000,
+  "image_height": 667,
+  "split": "test",
+  "variant": "baseline",
+  "strategy_name": "baseline_prompt",
+  "num_predictions": 1,
+  "predictions": [
+    {
+      "instance_index": 1,
+      "damage_class": "lamp broken",
+      "category_id": 5,
+      "score": 0.6337890625,
+      "bbox_xywh": [
+        0.0,
+        2.0,
+        1000.0,
+        662.0
+      ],
+      "area": 583095.0,
+      "is_true_positive": false,
+      "best_iou": 0.0
+    }
+  ],
+  "ground_truth": [
+    {
+      "damage_class": "dent",
+      "category_id": 1,
+      "bbox_xywh": [
+        357.13,
+        143.45,
+        457.32,
+        412.39
+      ]
+    }
+  ],
+  "gt_unmatched_by_class": {
+    "dent": 1,
+    "scratch": 0,
+    "crack": 0,
+    "glass shatter": 0,
+    "lamp broken": 0,
+    "tire flat": 0
+  }
+}

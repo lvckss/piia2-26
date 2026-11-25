@@ -34,7 +34,11 @@ assert comprobar_cifras(md, salida_agente2) == []  # ningún importe inventado
 - Los hallazgos fuera del coste sin pieza, sin severidad o sin regla de coste
   se listan aparte, bajo «Requieren revisión humana», y el «Resumen» dice
   cuántos son y si ningún hallazgo es presupuestable (#54, AC-003). La
-  cabecera avisa de que solo se analizan los daños que detecta PIIA 1 (#54, AC-011).
+  cabecera avisa de que solo se analizan los daños que encuentra el detector (#54, AC-011).
+- Desde el plan v1.2 de la #54 (AC-014 a AC-019 y AC-021) el informe evita la jerga interna, explica las
+  detecciones que descartó el filtro previo, agrupa las citas por fuente, dice «No aplica» en la cobertura
+  cuando no hay nada que presupuestar y, si `contexto.vehiculo_origen` viene, dice de dónde sale el coche
+  (spec 34 v1.7). Detalle en la sección «Ampliaciones de la #54» de la spec 31.
 - La columna «Reparación» muestra la acción de la regla con la que el Agente 2
   presupuesta el daño. Es la propia o, si no la tiene, la de su equivalente,
   con la severidad mínima ([ADR 0008](../../../docs/adr/0008-equivalencias-reglas-coste.md),
