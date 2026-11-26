@@ -1,6 +1,6 @@
 # Limitaciones conocidas del sistema
 
-Estado: **borrador del 2026-11-25**, para el AC-009 del [plan v1.2 de la #54](https://github.com/lvckss/piia2-26/issues/54#issuecomment-7107366100) (con las [v1.3](https://github.com/lvckss/piia2-26/issues/54#issuecomment-7138153208) y [v1.4](https://github.com/lvckss/piia2-26/issues/54#issuecomment-7139264465)) y el AC-006 del [plan de la #46](https://github.com/lvckss/piia2-26/issues/46#issuecomment-6985712887). Las cifras son del **ensayo de punta a punta del 2026-11-21** (30 imágenes de CarDD, con el RAG y el modelo reales), de una revisión manual de 11 informes por una sola persona y de las comparaciones controladas de la #54. **Se actualizan con la ejecución definitiva del 2026-11-27**; lo que sigue marcado «pendiente» no se ha medido todavía.
+Estado: **borrador del 2026-11-26**, para el AC-009 del [plan v1.2 de la #54](https://github.com/lvckss/piia2-26/issues/54#issuecomment-7107366100) (con las [v1.3](https://github.com/lvckss/piia2-26/issues/54#issuecomment-7138153208) y [v1.4](https://github.com/lvckss/piia2-26/issues/54#issuecomment-7139264465)) y el AC-006 del [plan de la #46](https://github.com/lvckss/piia2-26/issues/46#issuecomment-6985712887). Las cifras son del **ensayo de punta a punta del 2026-11-21** (30 imágenes de CarDD, con el RAG y el modelo reales), de una revisión manual de 11 informes por una sola persona y de las comparaciones controladas de la #54. **Se actualizan con la ejecución definitiva del 2026-11-27**; lo que sigue marcado «pendiente» no se ha medido todavía.
 
 Cada limitación consta con su origen, porque no todas son nuestras:
 
@@ -41,10 +41,23 @@ Cada limitación consta con su origen, porque no todas son nuestras:
 
 | Limitación | Evidencia | Efecto en el informe |
 |---|---|---|
-| El RAG recupera fuentes poco pertinentes a veces | Búsqueda vectorial de las 4 mejores sin umbral. En 1281 salen fuentes de incendio y homologación para un cristal con póliza Terceros Básico, y en 82 la «cláusula aplicable» devuelve artículos de incendio. Con `small`, la primera sección de su póliza queda en el puesto 7 (1281) y 10 (82) | La justificación es fiel a los pasajes, pero no pertinente al caso. **Corrección en revisión ([#119](https://github.com/lvckss/piia2-26/pull/119), AC-024):** un filtro opcional (`RAG_POLICY_TOPIC_FILTER=1`) limita los tres temas de cobertura a las secciones de coberturas y exclusiones de la póliza. Según la evidencia de la PR, no cambia el resultado de las 25 preguntas del benchmark. La calidad del RAG (objetivo de 23 de 25 en la [#32](https://github.com/lvckss/piia2-26/issues/32)) **todavía no está medida** |
+| El RAG recupera fuentes poco pertinentes a veces | Búsqueda vectorial de las 4 mejores sin umbral. En 1281 salen fuentes de incendio y homologación para un cristal con póliza Terceros Básico, y en 82 la «cláusula aplicable» devuelve artículos de incendio. Con `small`, la primera sección de su póliza queda en el puesto 7 (1281) y 10 (82) | La justificación es fiel a los pasajes, pero no pertinente al caso. **Corrección integrada ([#119](https://github.com/lvckss/piia2-26/pull/119), AC-024), apagada por defecto:** un filtro opcional (`RAG_POLICY_TOPIC_FILTER=1`) limita los tres temas de cobertura a las secciones de coberturas y exclusiones de la póliza. Según la evidencia de la PR, no cambia el resultado de las 25 preguntas del benchmark. La calidad de recuperación se midió aparte (fila siguiente) |
+| La recuperación no basta en todas las preguntas | Revisión de las 25 preguntas del [benchmark de la #32](https://github.com/lvckss/piia2-26/issues/32#issuecomment-7196320140): **23 de 25** suficientes con `small` y con `large`, hit@4 de 25 de 25. Fallan la 24 (ningún pasaje identifica la norma que reforma el baremo) y la 25 (no permiten establecer el intervalo completo de artículos 61 a 66). Se mantiene `small` por coste | Se alcanza el mínimo acordado. **Es una revisión asistida por Codex con criterio aceptado por Lucas, no una revisión humana independiente** de las 25 preguntas: Lucas juzgó la 24 y aceptó el criterio del asistente en la 25 y el resto. Encontrar la fuente correcta no garantiza que los pasajes respondan |
 | Un informe sin hallazgos confirmados queda casi vacío | 003637: 0 confirmados, 0 pendientes y 7 fuera del coste | **Mejorado (AC-017, #114):** la cobertura dice «No aplica: no hay daños que presupuestar». Sigue siendo un informe sin daños presupuestables, que depende del detector y del modelo |
 | Lenguaje interno y resumen poco explicativo | «PIIA 1» en los 11 informes revisados; el resumen no explicaba las detecciones restantes en 10 | **Resuelto en la [#114](https://github.com/lvckss/piia2-26/pull/114)** (AC-014 y AC-015). Comparación controlada de Víctor ([#54](https://github.com/lvckss/piia2-26/issues/54#issuecomment-7137773223)): «PIIA» pasa de 31 informes a 0, «probable falso positivo» de 31 a 0 y «LRCSCVM» sin desarrollar de 13 a 0, sin cambiar ningún importe |
 | Las justificaciones del LLM dependen de la comparación literal de citas | Con la regla inicial se descartaban 15 de 38 justificaciones por una mayúscula o unos asteriscos; tras la [#112](https://github.com/lvckss/piia2-26/pull/112) y la [#113](https://github.com/lvckss/piia2-26/pull/113), 38 de 38 se generan. Comparación controlada de las citas ([#54](https://github.com/lvckss/piia2-26/issues/54#issuecomment-7161287415)), con los mismos pasajes y las mismas respuestas del modelo: las citas con cifras pasan de 3 a 11 de 22 | **Resuelto** en esas PR. La evaluación de fidelidad (AC-011 de la #97) **está pendiente** |
+
+## Web de peritaje (#34)
+
+La demo web ([#117](https://github.com/lvckss/piia2-26/pull/117)) está integrada y validada a mano por Lucas ([evidencia](https://github.com/lvckss/piia2-26/issues/34#issuecomment-7196507258)): usa las **detecciones ya exportadas** de 500 imágenes de CarDD y llama al modelo de visión real; no ejecuta el detector. La Issue **sigue en curso** porque falta acreditar parte de la Spec v1.7:
+
+| Pendiente | Qué falta |
+|---|---|
+| Despliegue conjunto (AC-013) | Compose con todos los servicios, preparación, salud y reinicio. Hoy `compose.yaml` solo tiene PostgreSQL |
+| Integración real documentada (AC-014) | Tabla de 3 a 5 imágenes identificadas y leídas, con configuración y resultados. La validación de varias imágenes no anotó sus IDs |
+| Imagen nueva | El recorrido foto → detector real → agentes → informe no está acreditado; la demo documental lo deja aparte |
+| Limpieza tras una caída (AC-012) | Evidencia de que los temporales se retiran al reiniciar tras una terminación abrupta |
+| RAG real en la web | La integración de la web con el RAG autorizado y la cobertura final del servidor |
 
 ## Datos y método
 
@@ -60,7 +73,9 @@ Cada limitación consta con su origen, porque no todas son nuestras:
 
 ## Lo que no se ha podido medir
 
-- La calidad de recuperación del RAG (23 de 25) y la fidelidad de las justificaciones (AC-011 de la #97).
+- La fidelidad de las justificaciones (AC-011 de la #97).
+- Una revisión humana independiente de la calidad del RAG (la de las 25 preguntas es asistida).
+- Los pendientes de la web de la tabla anterior.
 - El efecto del filtro de la #119 sobre el texto de las justificaciones: solo se verá con el modelo real en la ejecución definitiva.
 - Las tasas de acierto del sistema completo: con 30 imágenes y un revisor solo hay indicios, no estimaciones.
 - El comportamiento con fotos distintas de CarDD.
