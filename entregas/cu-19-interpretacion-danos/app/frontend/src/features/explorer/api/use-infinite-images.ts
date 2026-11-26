@@ -2,10 +2,11 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { type ImagesFiltersInput, normalizeImagesFilters } from "@server/models/ImageFilters";
 
-export function useInfiniteImages(rawFilters: ImagesFiltersInput = {}) {
+export function useInfiniteImages(rawFilters: ImagesFiltersInput = {}, enabled = true) {
   const filters = normalizeImagesFilters(rawFilters);
 
   return useInfiniteQuery({
+    enabled,
     queryKey: ["images", filters],
     queryFn: async ({ pageParam }) => {
       const res = await api.images.$get({

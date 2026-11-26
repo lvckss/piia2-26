@@ -16,6 +16,10 @@ function RootComponent() {
           <Link to="/explorer" className="[&.active]:font-bold">
             Explorar dataset
           </Link>
+          {' | '}
+          <Link to="/peritaje" className="[&.active]:font-bold">
+            Peritaje
+          </Link>
         </div>
       </header>
 

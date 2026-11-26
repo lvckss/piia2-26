@@ -1,6 +1,4 @@
 import { Hono } from "hono";
-import { zValidator } from "@hono/zod-validator";
-import { type Instance, InstanceSchema, createInstanceSchema } from '../models/Instance';
 import { getInstances } from "../controllers/instanceController";
 
 export const instancesRoute = new Hono()

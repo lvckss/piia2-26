@@ -149,6 +149,81 @@ class SearchTests(unittest.TestCase):
         self.assertTrue(hasattr(rag, "NormativaRetriever"), "Falta recuperación sobre el índice persistente")
         return rag.NormativaRetriever(self.connection, provider or SearchEmbedder(), model or rag.MODELS["small"])
 
+    # Plan #54 v1.5, AC-024:
+    # https://github.com/lvckss/piia2-26/issues/54#issuecomment-7140196344
+    POLICY_TOPICS = (
+        "Daños de cristal: cobertura, franquicia y límite de lunas",
+        "Daños propios por colisión: cobertura y franquicia",
+        "Cobertura de daños propios: cláusula aplicable a este siniestro",
+    )
+
+    def prepare_policy_topics(self, *, applicable_sections=True):
+        for policy in ("A", "B", "C", "D"):
+            sections = ("## 2. Coberturas incluidas\nCobertura propia.\n"
+                        "## 3. Exclusiones\nExclusión propia.\n") if applicable_sections else ""
+            (self.root / f"docs/polizas_sinteticas/P-{policy}.md").write_text(
+                f"# Producto {policy}\n## 1. Objeto y definiciones\nDefiniciones.\n{sections}"
+                "## 5. Pérdida total\nRegla de indemnización.\n")
+        (self.root / "docs/legal/ley.txt").write_text(
+            "Artículo 1. Seguro de incendio.\nUna cláusula ajena al siniestro.\n")
+        self.corpus = load_corpus(self.root)
+        model = rag.MODELS["small"]
+        self.store.index(self.corpus, model, FakeEmbedder(), execute=True)
+        for fragment in self.corpus.fragments:
+            # El artículo ajeno gana por distancia: el filtro debe preceder a LIMIT.
+            v = ([1.0, 0.0] if fragment.document.kind == "legal" else [0.0, 1.0])
+            v += [0.0] * (model.dimensions - 2)
+            self.connection.execute("UPDATE rag.embeddings SET embedding=%s::vector WHERE input_hash=%s",
+                                    (json.dumps(v), fragment.input_hash))
+
+    def test_54_ac024_policy_and_sections_are_filtered_before_top_k(self):
+        self.prepare_policy_topics()
+        with patch.dict(os.environ, {"RAG_POLICY_TOPIC_FILTER": "1"}):
+            for policy in ("P-A", "P-B", "P-C", "P-D"):
+                expected = sorted((f for f in self.corpus.fragments if f.document.policy_id == policy
+                                   and f.section in ("2. Coberturas incluidas", "3. Exclusiones")),
+                                  key=lambda f: f.id)
+                for topic in self.POLICY_TOPICS:
+                    for k in (1, 4, 100):
+                        with self.subTest(policy=policy, topic=topic, k=k):
+                            self.assertEqual(self.search().search(topic, k, policy),
+                                [{"tema": topic, "extracto": f.text, "fuente": f.source} for f in expected[:k]])
+
+    def test_54_ac024_no_eligible_sections_returns_empty_without_embedding(self):
+        self.prepare_policy_topics(applicable_sections=False)
+        provider = SearchEmbedder()
+        with patch.dict(os.environ, {"RAG_POLICY_TOPIC_FILTER": "1"}):
+            self.assertEqual(self.search(provider).search(self.POLICY_TOPICS[0], 4, "P-A"), [])
+        self.assertEqual(provider.calls, [])
+
+    def test_54_ac024_switch_off_and_unrecognized_or_legal_queries_preserve_results(self):
+        self.prepare_policy_topics()
+        for topic, policy in [(t, "P-A") for t in self.POLICY_TOPICS] + [
+                ("Responsabilidad civil obligatoria de terceros perjudicados: legislación", ""),
+                ("Pérdida total: criterio y regla de indemnización", "P-A"),
+                ("¿Qué cobertura tiene mi póliza?", "P-A"), (self.POLICY_TOPICS[0], "")]:
+            with self.subTest(topic=topic, policy=policy):
+                with patch.dict(os.environ, {}, clear=True):
+                    baseline = self.search().search(topic, 4, policy)
+                with patch.dict(os.environ, {"RAG_POLICY_TOPIC_FILTER": "0"}):
+                    self.assertEqual(self.search().search(topic, 4, policy), baseline)
+                if topic not in self.POLICY_TOPICS or not policy:
+                    with patch.dict(os.environ, {"RAG_POLICY_TOPIC_FILTER": "1"}):
+                        self.assertEqual(self.search().search(topic, 4, policy), baseline)
+        self.assertTrue(baseline[0]["fuente"].startswith("docs/legal/"))
+
+    def test_54_ac024_filter_does_not_hide_invalid_policy_or_corrupted_passages(self):
+        self.prepare_policy_topics()
+        provider = SearchEmbedder()
+        with patch.dict(os.environ, {"RAG_POLICY_TOPIC_FILTER": "1"}):
+            self.assert_error("ENTRADA_INVALIDA", lambda: self.search(provider).search(
+                self.POLICY_TOPICS[0], 4, "P-inexistente"), "entrada")
+            self.assertEqual(provider.calls, [])
+            fragment = next(f for f in self.corpus.fragments if f.document.policy_id == "P-A"
+                            and f.section == "3. Exclusiones")
+            self.connection.execute("UPDATE rag.fragments SET body='Pasaje alterado' WHERE id=%s", (fragment.id,))
+            self.assert_error("INDICE_INCOMPATIBLE", lambda: self.search().search(self.POLICY_TOPICS[0], 4, "P-A"))
+
     def assert_error(self, code, call, stage=None, retryable=False):
         with self.assertRaises(rag.RagError) as caught:
             call()

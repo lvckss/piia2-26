@@ -63,6 +63,7 @@ las rutas visibles hoy son:
 
 - `/`
 - `/explorer`
+- `/peritaje`: nueva pestaña para imagen → análisis → contexto → informe. [Uso, contrato y límites de integración](peritaje-ui.md).
 
 referencias:
 

@@ -1,6 +1,7 @@
 # Entorno y caché locales del descargador
 .venv-cardd/
 .venv-rag/
+.venv-ml/
 .cache-rag/
 __pycache__/
 

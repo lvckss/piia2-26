@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "start": "bun server/index.ts",
-    "dev": "bun --watch server/index.ts"
+    "dev": "bun --watch server/index.ts",
+    "test:peritaje": "cd frontend && bunx playwright test"
   },
   "private": true,
   "devDependencies": {
