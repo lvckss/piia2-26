@@ -97,7 +97,7 @@ El «antes» es la [revisión de los 30 del 11-nov](https://github.com/lvckss/pi
 
 ## AC-005 — Fidelidad de las justificaciones
 
-Es el [AC-011 de la spec 97](../../specs/97-justificacion-llm-normativa.md), sobre su propia lista de 10 informes: **11 de 11 justificaciones fieles y pertinentes**; cumple su criterio de éxito. Los tokens y el tiempo no se registraron. Tabla publicada en la #97: ENLACE_TABLA_97.
+Es el [AC-011 de la spec 97](../../specs/97-justificacion-llm-normativa.md), sobre su propia lista de 10 informes: **11 de 11 justificaciones fieles y pertinentes**; cumple su criterio de éxito. Los tokens y el tiempo no se registraron. [Tabla publicada en la #97](https://github.com/lvckss/piia2-26/issues/97#issuecomment-7239125068).
 
 ## AC-006 — Fallos y limitaciones, con su origen
 
